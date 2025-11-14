@@ -387,7 +387,7 @@ export class InitialSchema1700000000000 implements MigrationInterface {
         name: 'company_settings',
         columns: [
           { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'gen_random_uuid()' },
-          { name: 'name', type: 'varchar', length: '255', default: "'FlipFlop.cz'" },
+          { name: 'name', type: 'varchar', length: '255', default: "'flipflop.statex.cz'" },
           { name: 'address', type: 'varchar', length: '255', isNullable: true },
           { name: 'city', type: 'varchar', length: '255', isNullable: true },
           { name: 'postalCode', type: 'varchar', length: '20', isNullable: true },

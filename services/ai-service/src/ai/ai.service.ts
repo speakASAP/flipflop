@@ -52,7 +52,7 @@ export class AiService {
               'Authorization': `Bearer ${this.apiKey}`,
               'Content-Type': 'application/json',
               'HTTP-Referer': process.env.FRONTEND_URL || 'http://localhost:3000',
-              'X-Title': 'FlipFlop.cz E-commerce',
+              'X-Title': 'flipflop.statex.cz E-commerce',
             },
             timeout: this.timeout,
           },
@@ -103,7 +103,7 @@ export class AiService {
   }
 
   private buildSystemPrompt(context?: Record<string, any>): string {
-    let prompt = `You are a helpful shopping assistant for FlipFlop.cz, an e-commerce platform in the Czech Republic.
+    let prompt = `You are a helpful shopping assistant for flipflop.statex.cz, an e-commerce platform in the Czech Republic.
 Your role is to help customers find products, answer questions about products, and guide them through their shopping experience.
 Always respond in Czech language.
 Be friendly, helpful, and professional.`;

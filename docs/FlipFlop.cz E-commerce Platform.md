@@ -1,8 +1,8 @@
-# **Technical Specification: FlipFlop.cz E-commerce Platform**
+# **Technical Specification: flipflop.statex.cz E-commerce Platform**
 
 ## **Project Overview**
 
-Create a modern, fully automated e-commerce platform for selling diverse product categories in the Czech Republic (<https://flipflop.cz/>). The platform will integrate with multiple wholesale suppliers via APIs, automatically synchronize product data, process orders, and handle the entire customer journey from product discovery to delivery with minimal human intervention.
+Create a modern, fully automated e-commerce platform for selling diverse product categories in the Czech Republic (<https://flipflop.statex.cz/>). The platform will integrate with multiple wholesale suppliers via APIs, automatically synchronize product data, process orders, and handle the entire customer journey from product discovery to delivery with minimal human intervention.
 
 **Primary Goal**: Maximize conversion rates and encourage repeat purchases through automation, speed, user-friendly design, and high-quality product presentation.
 

@@ -1,4 +1,4 @@
-# FlipFlop.cz E-commerce Platform
+# flipflop.statex.cz E-commerce Platform
 
 Modern, fully automated e-commerce platform for selling diverse product categories in the Czech Republic.
 

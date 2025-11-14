@@ -35,14 +35,14 @@ export class AdminService {
     // Create default settings if none exist
     if (!settings) {
       settings = this.companySettingsRepository.create({
-        name: 'FlipFlop.cz',
+        name: 'flipflop.statex.cz',
         address: 'Czech Republic',
         country: 'Česká republika',
         ico: '12345678',
         dic: 'CZ12345678',
         phone: '+420 123 456 789',
-        email: 'info@flipflop.cz',
-        website: 'https://flipflop.cz',
+        email: 'info@flipflop.statex.cz',
+        website: 'https://flipflop.statex.cz',
       });
       settings = await this.companySettingsRepository.save(settings);
       this.logger.log('Default company settings created', { settingsId: settings.id });

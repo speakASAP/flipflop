@@ -186,7 +186,7 @@ export class InvoiceService {
     });
 
     const company = companySettings || {
-      name: 'FlipFlop.cz',
+      name: 'flipflop.statex.cz',
       address: 'Czech Republic',
       city: null,
       postalCode: null,
@@ -194,8 +194,8 @@ export class InvoiceService {
       ico: '12345678',
       dic: 'CZ12345678',
       phone: '+420 123 456 789',
-      email: 'info@flipflop.cz',
-      website: 'https://flipflop.cz',
+      email: 'info@flipflop.statex.cz',
+      website: 'https://flipflop.statex.cz',
     };
 
     return {

@@ -16,7 +16,7 @@ export class CompanySettings {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'varchar', length: 255, default: 'FlipFlop.cz' })
+  @Column({ type: 'varchar', length: 255, default: 'flipflop.statex.cz' })
   name!: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })

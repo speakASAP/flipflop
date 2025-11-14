@@ -1,5 +1,5 @@
 /**
- * API Client for FlipFlop.cz
+ * API Client for flipflop.statex.cz
  */
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';

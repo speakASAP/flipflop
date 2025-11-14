@@ -11,7 +11,7 @@ export default async function HomePage() {
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
         <div className="container mx-auto px-4">
-          <h1 className="text-5xl font-bold mb-4">Vítejte na FlipFlop.cz</h1>
+          <h1 className="text-5xl font-bold mb-4">Vítejte na flipflop.statex.cz</h1>
           <p className="text-xl mb-8">Moderní e-shop s automatizovanou správou produktů</p>
           <Link
             href="/products"
