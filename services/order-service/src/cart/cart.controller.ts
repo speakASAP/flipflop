@@ -17,7 +17,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { CartService } from './cart.service';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
-import { ApiResponseUtil } from '../../../shared/utils/api-response.util';
+import { ApiResponseUtil } from '@shared/utils/api-response.util';
 
 @Controller('cart')
 @UseGuards(AuthGuard('jwt'))

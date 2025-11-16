@@ -17,7 +17,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { DeliveryAddressesService } from './delivery-addresses.service';
 import { CreateDeliveryAddressDto } from './dto/create-delivery-address.dto';
 import { UpdateDeliveryAddressDto } from './dto/update-delivery-address.dto';
-import { ApiResponseUtil } from '../../../shared/utils/api-response.util';
+import { ApiResponseUtil } from '@shared/utils/api-response.util';
 
 @Controller('delivery-addresses')
 @UseGuards(AuthGuard('jwt'))

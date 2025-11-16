@@ -7,16 +7,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { HttpModule } from '@nestjs/axios';
-import { Order } from '../../../../shared/entities/order.entity';
-import { OrderItem } from '../../../../shared/entities/order-item.entity';
-import { OrderStatusHistory } from '../../../../shared/entities/order-status-history.entity';
-import { CartItem } from '../../../../shared/entities/cart-item.entity';
-import { Product } from '../../../../shared/entities/product.entity';
-import { DeliveryAddress } from '../../../../shared/entities/delivery-address.entity';
+import { Order } from '@shared/entities/order.entity';
+import { OrderItem } from '@shared/entities/order-item.entity';
+import { OrderStatusHistory } from '@shared/entities/order-status-history.entity';
+import { CartItem } from '@shared/entities/cart-item.entity';
+import { Product } from '@shared/entities/product.entity';
+import { DeliveryAddress } from '@shared/entities/delivery-address.entity';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 import { JwtStrategy } from '../auth/jwt.strategy';
-import { NotificationModule } from '../../../../shared/notifications/notification.module';
+import { NotificationModule } from '@shared/notifications/notification.module';
 
 @Module({
   imports: [

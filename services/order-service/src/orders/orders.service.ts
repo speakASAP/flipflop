@@ -6,15 +6,15 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import { Order, OrderStatus, PaymentStatus } from '../../../../shared/entities/order.entity';
-import { OrderItem } from '../../../../shared/entities/order-item.entity';
-import { OrderStatusHistory } from '../../../../shared/entities/order-status-history.entity';
-import { CartItem } from '../../../../shared/entities/cart-item.entity';
-import { Product } from '../../../../shared/entities/product.entity';
-import { DeliveryAddress } from '../../../../shared/entities/delivery-address.entity';
+import { Order, OrderStatus, PaymentStatus } from '@shared/entities/order.entity';
+import { OrderItem } from '@shared/entities/order-item.entity';
+import { OrderStatusHistory } from '@shared/entities/order-status-history.entity';
+import { CartItem } from '@shared/entities/cart-item.entity';
+import { Product } from '@shared/entities/product.entity';
+import { DeliveryAddress } from '@shared/entities/delivery-address.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { LoggerService } from '../../../../shared/logger/logger.service';
-import { NotificationService } from '../../../../shared/notifications/notification.service';
+import { LoggerService } from '@shared/logger/logger.service';
+import { NotificationService } from '@shared/notifications/notification.service';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 

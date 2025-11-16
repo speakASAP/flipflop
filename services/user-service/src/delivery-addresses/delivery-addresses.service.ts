@@ -2,13 +2,13 @@
  * Delivery Addresses Service
  */
 
-import { Injectable, NotFoundError, ForbiddenError } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { DeliveryAddress } from '../../../shared/entities/delivery-address.entity';
+import { DeliveryAddress } from '@shared/entities/delivery-address.entity';
 import { CreateDeliveryAddressDto } from './dto/create-delivery-address.dto';
 import { UpdateDeliveryAddressDto } from './dto/update-delivery-address.dto';
-import { LoggerService } from '../../../shared/logger/logger.service';
+import { LoggerService } from '@shared/logger/logger.service';
 
 @Injectable()
 export class DeliveryAddressesService {
@@ -62,11 +62,11 @@ export class DeliveryAddressesService {
     });
 
     if (!address) {
-      throw new NotFoundError('Delivery address', id);
+      throw new NotFoundException(`Delivery address with id ${id} not found`);
     }
 
     if (address.userId !== userId) {
-      throw new ForbiddenError('Not authorized to update this address');
+      throw new ForbiddenException('Not authorized to update this address');
     }
 
     // If setting as default, unset other defaults
@@ -94,11 +94,11 @@ export class DeliveryAddressesService {
     });
 
     if (!address) {
-      throw new NotFoundError('Delivery address', id);
+      throw new NotFoundException(`Delivery address with id ${id} not found`);
     }
 
     if (address.userId !== userId) {
-      throw new ForbiddenError('Not authorized to delete this address');
+      throw new ForbiddenException('Not authorized to delete this address');
     }
 
     await this.addressRepository.remove(address);

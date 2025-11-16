@@ -5,9 +5,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HttpModule } from '@nestjs/axios';
-import { Supplier } from '../../../shared/entities/supplier.entity';
-import { SupplierProduct } from '../../../shared/entities/supplier-product.entity';
-import { Product } from '../../../shared/entities/product.entity';
+import { Supplier } from '@shared/entities/supplier.entity';
+import { SupplierProduct } from '@shared/entities/supplier-product.entity';
+import { Product } from '@shared/entities/product.entity';
 import { SuppliersController } from './suppliers.controller';
 import { SuppliersService } from './suppliers.service';
 import { SuppliersSyncJob } from './suppliers-sync.job';

@@ -7,8 +7,8 @@ import { Controller, All, Req, Res, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import { ApiResponseUtil } from '../../../../shared/utils/api-response.util';
-import { LoggerService } from '../../../../shared/logger/logger.service';
+import { ApiResponseUtil } from '@shared/utils/api-response.util';
+import { LoggerService } from '@shared/logger/logger.service';
 
 @Controller('*')
 export class GatewayController {

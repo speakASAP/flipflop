@@ -16,7 +16,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { InvoiceService } from './invoice.service';
-import { ApiResponseUtil } from '../../../../shared/utils/api-response.util';
+import { ApiResponseUtil } from '@shared/utils/api-response.util';
 import * as fs from 'fs';
 import * as path from 'path';
 

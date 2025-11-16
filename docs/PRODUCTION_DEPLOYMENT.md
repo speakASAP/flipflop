@@ -19,11 +19,14 @@ This guide covers the complete deployment process for the flipflop.statex.cz e-c
    ssh statex
    ```
 
-2. **Required Services Running**:
-   - Database server (PostgreSQL + Redis)
-   - Nginx microservice
-   - Notification microservice
-   - Logging microservice
+2. **Required External Shared Services Running**:
+
+   **Note**: These are external shared production microservices used by multiple applications. They must be running before deploying this application.
+
+   - `database-server` - Shared PostgreSQL and Redis server (`db-server-postgres`, `db-server-redis`)
+   - `nginx-microservice` - Reverse proxy, SSL termination, and blue/green deployment management
+   - `notifications-microservice` - Multi-channel notification service (`https://notifications.statex.cz`)
+   - `logging-microservice` - Centralized logging service (`https://logging.statex.cz`)
 
 3. **Network Configuration**:
    - All services must be on `nginx-network` Docker network

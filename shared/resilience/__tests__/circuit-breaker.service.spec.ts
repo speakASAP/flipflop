@@ -63,14 +63,14 @@ describe('CircuitBreakerService', () => {
 
   describe('reset', () => {
     it('should reset circuit breaker', () => {
-      const breaker = service.create(
+      service.create(
         'test-service',
         async () => ({ success: true }),
       );
 
       service.reset('test-service');
 
-      expect(breaker.isOpen).toBe(false);
+      expect(service.isOpen('test-service')).toBe(false);
     });
   });
 });

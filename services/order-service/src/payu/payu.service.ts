@@ -6,10 +6,10 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import { LoggerService } from '../../../../shared/logger/logger.service';
-import { Order } from '../../../../shared/entities/order.entity';
-import { User } from '../../../../shared/entities/user.entity';
-import { DeliveryAddress } from '../../../../shared/entities/delivery-address.entity';
+import { LoggerService } from '@shared/logger/logger.service';
+import { Order } from '@shared/entities/order.entity';
+import { User } from '@shared/entities/user.entity';
+import { DeliveryAddress } from '@shared/entities/delivery-address.entity';
 
 @Injectable()
 export class PayuService {

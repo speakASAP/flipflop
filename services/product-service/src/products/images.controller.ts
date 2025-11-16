@@ -17,7 +17,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { ImagesService } from './images.service';
 import { ProductsService } from './products.service';
-import { ApiResponseUtil } from '../../../../shared/utils/api-response.util';
+import { ApiResponseUtil } from '@shared/utils/api-response.util';
 import { memoryStorage } from 'multer';
 
 @Controller('products/:productId/images')

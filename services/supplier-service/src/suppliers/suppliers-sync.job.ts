@@ -6,7 +6,7 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { SuppliersService } from './suppliers.service';
-import { LoggerService } from '../../../shared/logger/logger.service';
+import { LoggerService } from '@shared/logger/logger.service';
 
 @Injectable()
 export class SuppliersSyncJob {

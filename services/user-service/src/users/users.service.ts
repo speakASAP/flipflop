@@ -5,10 +5,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '../../../../shared/entities/user.entity';
+import { User } from '@shared/entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { LoggerService } from '../../../../shared/logger/logger.service';
-import { SettingsService } from '../../../../shared/settings/settings.service';
+import { LoggerService } from '@shared/logger/logger.service';
+import { SettingsService } from '@shared/settings/settings.service';
 
 @Injectable()
 export class UsersService {

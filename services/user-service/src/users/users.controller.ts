@@ -17,7 +17,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserSettingsDto } from './dto/update-user-settings.dto';
-import { ApiResponseUtil } from '../../../../shared/utils/api-response.util';
+import { ApiResponseUtil } from '@shared/utils/api-response.util';
 
 @Controller('users')
 @UseGuards(AuthGuard('jwt'))

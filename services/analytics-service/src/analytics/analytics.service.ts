@@ -5,10 +5,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Order, OrderStatus, PaymentStatus } from '../../../shared/entities/order.entity';
-import { OrderItem } from '../../../shared/entities/order-item.entity';
-import { Product } from '../../../shared/entities/product.entity';
-import { LoggerService } from '../../../shared/logger/logger.service';
+import { Order, OrderStatus, PaymentStatus } from '@shared/entities/order.entity';
+import { OrderItem } from '@shared/entities/order-item.entity';
+import { Product } from '@shared/entities/product.entity';
+import { LoggerService } from '@shared/logger/logger.service';
 
 @Injectable()
 export class AnalyticsService {

@@ -6,8 +6,8 @@ import { Controller, Post, Get, Body, Param, Query, UseGuards, Request } from '@
 import { AuthGuard } from '@nestjs/passport';
 import { PayuService } from './payu.service';
 import { OrdersService } from '../orders/orders.service';
-import { LoggerService } from '../../../../shared/logger/logger.service';
-import { ApiResponseUtil } from '../../../../shared/utils/api-response.util';
+import { LoggerService } from '@shared/logger/logger.service';
+import { ApiResponseUtil } from '@shared/utils/api-response.util';
 
 @Controller('payu')
 export class PayuController {

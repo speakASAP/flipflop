@@ -11,10 +11,10 @@ import { redisConfig } from './redis.config';
 @Module({
   imports: [
     NestRedisModule.forRoot({
-      config: redisConfig,
+      type: 'single',
+      options: redisConfig,
     }),
   ],
   exports: [NestRedisModule],
 })
 export class RedisModule {}
-

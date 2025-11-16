@@ -4,7 +4,7 @@
 
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DeliveryAddress } from '../../../shared/entities/delivery-address.entity';
+import { DeliveryAddress } from '@shared/entities/delivery-address.entity';
 import { DeliveryAddressesController } from './delivery-addresses.controller';
 import { DeliveryAddressesService } from './delivery-addresses.service';
 

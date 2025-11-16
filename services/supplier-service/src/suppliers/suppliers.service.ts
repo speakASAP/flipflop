@@ -7,12 +7,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import { Supplier } from '../../../shared/entities/supplier.entity';
-import { SupplierProduct } from '../../../shared/entities/supplier-product.entity';
-import { Product } from '../../../shared/entities/product.entity';
+import { Supplier } from '@shared/entities/supplier.entity';
+import { SupplierProduct } from '@shared/entities/supplier-product.entity';
+import { Product } from '@shared/entities/product.entity';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
-import { LoggerService } from '../../../shared/logger/logger.service';
+import { LoggerService } from '@shared/logger/logger.service';
 
 @Injectable()
 export class SuppliersService {

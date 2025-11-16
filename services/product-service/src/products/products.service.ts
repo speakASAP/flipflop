@@ -2,15 +2,15 @@
  * Products Service
  */
 
-import { Injectable, NotFoundError } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, Between } from 'typeorm';
-import { Product } from '../../../shared/entities/product.entity';
-import { Category } from '../../../shared/entities/category.entity';
+import { Product } from '@shared/entities/product.entity';
+import { Category } from '@shared/entities/category.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductQueryDto } from './dto/product-query.dto';
-import { LoggerService } from '../../../shared/logger/logger.service';
+import { LoggerService } from '@shared/logger/logger.service';
 
 @Injectable()
 export class ProductsService {
@@ -128,7 +128,7 @@ export class ProductsService {
     });
 
     if (!product) {
-      throw new NotFoundError('Product', id);
+      throw new NotFoundException(`Product with id ${id} not found`);
     }
 
     return product;

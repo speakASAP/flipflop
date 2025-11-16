@@ -5,12 +5,12 @@
 import { Injectable, NotFoundError, ForbiddenError } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CartItem } from '../../../shared/entities/cart-item.entity';
-import { Product } from '../../../shared/entities/product.entity';
-import { ProductVariant } from '../../../shared/entities/product-variant.entity';
+import { CartItem } from '@shared/entities/cart-item.entity';
+import { Product } from '@shared/entities/product.entity';
+import { ProductVariant } from '@shared/entities/product-variant.entity';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
-import { LoggerService } from '../../../shared/logger/logger.service';
+import { LoggerService } from '@shared/logger/logger.service';
 
 @Injectable()
 export class CartService {

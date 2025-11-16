@@ -4,8 +4,8 @@
  */
 
 import { Controller, Get } from '@nestjs/common';
-import { ApiResponseUtil } from '../../../../shared/utils/api-response.util';
-import { HealthService } from '../../../../shared/health/health.service';
+import { ApiResponseUtil } from '@shared/utils/api-response.util';
+import { HealthService } from '@shared/health/health.service';
 
 @Controller('health')
 export class HealthController {

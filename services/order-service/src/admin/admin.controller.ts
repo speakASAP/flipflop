@@ -17,11 +17,11 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { AdminService } from './admin.service';
 import { UpdateCompanySettingsDto } from './dto/update-company-settings.dto';
-import { ApiResponseUtil } from '../../../../shared/utils/api-response.util';
+import { ApiResponseUtil } from '@shared/utils/api-response.util';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { OrdersService } from '../orders/orders.service';
-import { OrderStatus, PaymentStatus } from '../../../../shared/entities/order.entity';
+import { OrderStatus, PaymentStatus } from '@shared/entities/order.entity';
 
 @Controller('admin')
 @UseGuards(AuthGuard('jwt'))

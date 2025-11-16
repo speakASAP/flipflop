@@ -4,7 +4,7 @@
 
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { LoggerModule } from '../../shared/logger/logger.module';
+import { LoggerModule } from '@shared/logger/logger.module';
 import { AiModule } from './ai/ai.module';
 import { HealthController } from './health/health.controller';
 

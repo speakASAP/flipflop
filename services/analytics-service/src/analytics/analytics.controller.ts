@@ -5,7 +5,7 @@
 import { Controller, Get, Query, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AnalyticsService } from './analytics.service';
-import { ApiResponseUtil } from '../../../shared/utils/api-response.util';
+import { ApiResponseUtil } from '@shared/utils/api-response.util';
 
 @Controller('analytics')
 @UseGuards(AuthGuard('jwt'))

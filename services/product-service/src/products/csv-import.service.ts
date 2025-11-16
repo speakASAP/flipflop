@@ -6,9 +6,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Product } from '../../../shared/entities/product.entity';
-import { Category } from '../../../shared/entities/category.entity';
-import { LoggerService } from '../../../shared/logger/logger.service';
+import { Product } from '@shared/entities/product.entity';
+import { Category } from '@shared/entities/category.entity';
+import { LoggerService } from '@shared/logger/logger.service';
 
 export interface CsvFieldMapping {
   sku: string;

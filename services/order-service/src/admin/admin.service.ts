@@ -6,11 +6,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CompanySettings } from '../../../../shared/entities/company-settings.entity';
-import { AdminSettings } from '../../../../shared/entities/admin-settings.entity';
-import { LoggerService } from '../../../../shared/logger/logger.service';
+import { CompanySettings } from '@shared/entities/company-settings.entity';
+import { AdminSettings } from '@shared/entities/admin-settings.entity';
+import { LoggerService } from '@shared/logger/logger.service';
 import { UpdateCompanySettingsDto } from './dto/update-company-settings.dto';
-import { SettingsService } from '../../../../shared/settings/settings.service';
+import { SettingsService } from '@shared/settings/settings.service';
 
 @Injectable()
 export class AdminService {

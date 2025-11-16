@@ -3,7 +3,7 @@
  */
 
 import { Controller, Get } from '@nestjs/common';
-import { ApiResponseUtil } from '../../shared/utils/api-response.util';
+import { ApiResponseUtil } from '@shared/utils/api-response.util';
 
 @Controller('health')
 export class HealthController {

@@ -358,9 +358,12 @@ Create a modern, fully automated e-commerce platform for selling diverse product
 
 * Production environment using Docker containers  
 * Microservices architecture:  
-  * Nginx microservice (separate, already running)  
-  * Database microservice (separate, already running)  
-  * Notification microservice (to be implemented)  
+  * **External Shared Production Microservices** (used by multiple applications):
+    * `nginx-microservice` - Reverse proxy, SSL termination, and blue/green deployment management
+    * `database-server` - Shared PostgreSQL and Redis server
+    * `notifications-microservice` - Multi-channel notification service (Email, Telegram, WhatsApp)
+    * `logging-microservice` - Centralized logging service
+  * These services are managed separately and must be running before deploying this application
   * Additional microservices as needed
 
 ### **8.2 SSL & Security**
@@ -393,27 +396,37 @@ Create a modern, fully automated e-commerce platform for selling diverse product
 
 ### **8.6 Database**
 
-* Separate microservice  
-* Already running in separate Docker container  
+* **External Shared Production Microservice**: `database-server`
+* Shared PostgreSQL and Redis server used by multiple applications
+* Already running in separate Docker container (`db-server-postgres`, `db-server-redis`)
 * Not part of this project deployment
+* Accessible via Docker network (`db-server-postgres:5432`) or SSH tunnel for local development
+* Used by multiple applications: e-commerce, statex.cz, crypto-ai-agent, etc.
 
 ### **8.7 Nginx**
 
-* Separate microservice  
-* Already running in separate Docker container  
-* Project only provides configuration files  
+* **External Shared Production Microservice**: `nginx-microservice`
+* Reverse proxy, SSL termination, and blue/green deployment management
+* Shared service used by multiple applications (statex.cz, flipflop.statex.cz, crypto-ai-agent.statex.cz, etc.)
+* Already running in separate Docker container
+* Project only provides configuration files for this application's domain
 * Configuration files transferred to existing Nginx server
+* Manages SSL certificates via Let's Encrypt/Certbot
 
 ### **8.8 Logging**
 
+**External Shared Production Microservice**: `logging-microservice`
+
 **Centralized Logging System:**
 
-* Logger utility for all services  
-* Centralized Logging Service API  
+* **External Shared Service**: `https://logging.statex.cz` (production) or `http://logging-microservice:3268` (Docker network)
+* Shared logging service used by multiple applications
+* Logger utility for all services acts as a client/wrapper for the external service
+* Logs are sent to the centralized service AND written locally as backup
 * Configuration via .env:  
   * `LOG_LEVEL`  
   * `LOG_TIMESTAMP_FORMAT`  
-  * `LOGGING_SERVICE_URL`  
+  * `LOGGING_SERVICE_URL` (defaults to `https://logging.statex.cz` in production)
   * Other logging parameters
 
 **Logging Requirements:**
@@ -422,7 +435,8 @@ Create a modern, fully automated e-commerce platform for selling diverse product
 * Standardized output format  
 * Debug logging enabled  
 * Intensive logging throughout development \- NO EXCEPTIONS  
-* Logs stored in `./logs` directory
+* Logs stored in `./logs` directory (local backup)
+* All logs also sent to centralized logging microservice
 
 ### **8.9 Documentation**
 
@@ -715,9 +729,10 @@ Create a modern, fully automated e-commerce platform for selling diverse product
    * Status tracking  
    * Invoice generation  
    * Notification triggers  
-6. **Notification Module (Microservice)**  
-   * Multi-channel notification system  
-   * Email, Telegram, WhatsApp, SMS  
+6. **Notification Module (External Shared Microservice)**  
+   * **External Shared Production Microservice**: `notifications-microservice` (`https://notifications.statex.cz`)
+   * Multi-channel notification system (Email, Telegram, WhatsApp, SMS)
+   * Shared service used by multiple applications  
    * Notification templates  
    * Delivery tracking  
 7. **Logistics Module**  
@@ -758,9 +773,9 @@ Create a modern, fully automated e-commerce platform for selling diverse product
 
 1. **Logging Module**  
     * Centralized logging service  
-    * Log collection  
-    * Log storage  
-    * Log viewer  
+    * Log collection
+    * Log storage
+    * Log viewer
 2. **Configuration Module**  
     * Environment variable management  
     * Dynamic settings  

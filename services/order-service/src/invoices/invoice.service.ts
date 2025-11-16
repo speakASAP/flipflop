@@ -6,12 +6,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import { Order } from '../../../../shared/entities/order.entity';
-import { Invoice } from '../../../../shared/entities/invoice.entity';
-import { ProformaInvoice } from '../../../../shared/entities/proforma-invoice.entity';
-import { OrderItem } from '../../../../shared/entities/order-item.entity';
-import { CompanySettings } from '../../../../shared/entities/company-settings.entity';
-import { LoggerService } from '../../../../shared/logger/logger.service';
+import { Order } from '@shared/entities/order.entity';
+import { Invoice } from '@shared/entities/invoice.entity';
+import { ProformaInvoice } from '@shared/entities/proforma-invoice.entity';
+import { OrderItem } from '@shared/entities/order-item.entity';
+import { CompanySettings } from '@shared/entities/company-settings.entity';
+import { LoggerService } from '@shared/logger/logger.service';
 import PDFDocument from 'pdfkit';
 import * as fs from 'fs';
 import * as path from 'path';

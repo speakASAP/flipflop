@@ -5,12 +5,12 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
-import { LoggerService } from '../../../shared/logger/logger.service';
+import { LoggerService } from '@shared/logger/logger.service';
 import {
   validateAndLog,
   commonDefinitions,
   databaseDefinitions,
-} from '../../../shared/config/env-validator';
+} from '@shared/config/env-validator';
 
 // Validate environment variables before starting
 const supplierServiceDefinitions = [

@@ -16,10 +16,14 @@ The platform consists of 9 microservices:
 6. **AI Service** (3007) - AI shopping assistant (OpenRouter/Gemini)
 7. **Analytics Service** (3008) - Sales and revenue analytics
 
-### External Services
+### External Shared Services
 
-1. **Notification Microservice** (3010) - Multi-channel notifications
-2. **Logging Microservice** (3009) - Centralized logging
+**Note**: These are external shared production microservices used by multiple applications. They are not part of this project's deployment but must be running and accessible before deployment.
+
+1. **Notification Microservice** (`https://notifications.statex.cz`) - Multi-channel notifications (Email, Telegram, WhatsApp)
+2. **Logging Microservice** (`https://logging.statex.cz`) - Centralized logging service
+3. **Database Server** (`db-server-postgres`) - Shared PostgreSQL database server
+4. **Nginx Microservice** - Reverse proxy and SSL termination for all applications
 
 ## 🛠️ Technology Stack
 
