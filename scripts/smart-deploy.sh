@@ -176,20 +176,23 @@ deploy_service() {
         api-gateway)
             port="3001"
             ;;
-        user-service)
-            port="3004"
-            ;;
         product-service)
             port="3002"
             ;;
         order-service)
             port="3003"
             ;;
-        cart-service)
-            port="3009"
+        user-service)
+            port="3004"
             ;;
         warehouse-service)
             port="3005"
+            ;;
+        supplier-service)
+            port="3006"
+            ;;
+        cart-service)
+            port="3009"
             ;;
     esac
     
