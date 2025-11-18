@@ -30,6 +30,7 @@
     "@types/jest": "^29.5.14",
     "@types/node": "^20.10.0",
     "@types/opossum": "^6.0.0",
+    "prisma": "^5.7.1",
     "typescript": "^5.3.3"
   }
 }
