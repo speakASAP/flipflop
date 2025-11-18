@@ -2,6 +2,11 @@ FROM node:lts-slim
 
 WORKDIR /app
 
+# Install system dependencies (OpenSSL + build tools if needed)
+RUN apt-get update -y && \
+    apt-get install -y openssl libssl-dev && \
+    rm -rf /var/lib/apt/lists/*
+
 # Copy package files
 COPY package.json package-lock.json* ./
 COPY shared/package.json shared/package-lock.json* ./shared/
@@ -36,4 +41,3 @@ EXPOSE 3009
 
 # Start service
 CMD ["node", "dist/main.js"]
-
