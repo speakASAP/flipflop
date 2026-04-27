@@ -31,12 +31,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: flipflop-config
-          env:
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: database-credentials
-                  key: DB_PASSWORD
+            - secretRef:
+                name: flipflop-service-secret
           livenessProbe:
             httpGet:
               path: /health
