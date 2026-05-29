@@ -10,6 +10,12 @@ SERVICE_NAME="flipflop-service"
 NAMESPACE="${NAMESPACE:-statex-apps}"
 K8S_DIR="$PROJECT_ROOT/k8s"
 
+# shellcheck disable=SC1091
+source "$(dirname "$PROJECT_ROOT")/shared/scripts/load-deploy-phase-timing.sh" "$PROJECT_ROOT" 2>/dev/null \
+  || source "$HOME/Documents/Github/shared/scripts/load-deploy-phase-timing.sh" "$PROJECT_ROOT" \
+  || { echo "Error: deploy timing library not found" >&2; exit 1; }
+deploy_timing_init "$SERVICE_NAME"
+
 preflight_service_health() {
   echo -e "${YELLOW}Preflight: checking Kubernetes and current service health...${NC}"
 
@@ -40,7 +46,6 @@ preflight_service_health() {
   echo -e "${GREEN}Preflight passed${NC}"
 }
 
-
 echo -e "${BLUE}==========================================================${NC}"
 echo -e "${BLUE}  Flipflop Service - Kubernetes Deployment${NC}"
 echo -e "${BLUE}==========================================================${NC}"
@@ -50,38 +55,35 @@ if [ ! -d "$K8S_DIR" ]; then
   exit 1
 fi
 
-preflight_service_health
+deploy_timing_run_phase "Preflight" preflight_service_health
 
-echo -e "${YELLOW}[1/4] Applying Kubernetes manifests...${NC}"
+deploy_timing_phase_start "Apply Kubernetes manifests"
+echo -e "${YELLOW}Applying Kubernetes manifests...${NC}"
 for manifest in configmap.yaml external-secret.yaml deployment.yaml service.yaml ingress.yaml; do
   if [ -f "$K8S_DIR/$manifest" ]; then
     kubectl apply -f "$K8S_DIR/$manifest" -n "$NAMESPACE"
   fi
 done
 echo -e "${GREEN}OK Kubernetes manifests applied${NC}"
+deploy_timing_phase_end "Apply Kubernetes manifests"
 
-echo -e "${YELLOW}[2/4] Triggering rollout restart...${NC}"
+deploy_timing_phase_start "Rollout restart"
+echo -e "${YELLOW}Triggering rollout restart...${NC}"
 kubectl rollout restart deployment/"$SERVICE_NAME" -n "$NAMESPACE"
 echo -e "${GREEN}OK Rollout restart triggered${NC}"
+deploy_timing_phase_end "Rollout restart"
 
-echo -e "${YELLOW}[3/4] Waiting for rollout...${NC}"
-if ! kubectl rollout status deployment/"$SERVICE_NAME" -n "$NAMESPACE" --timeout=120s; then
-  echo -e "${YELLOW}Rollout did not complete in time. Diagnosing terminating pods...${NC}"
-  kubectl get pods -n "$NAMESPACE" -l app="$SERVICE_NAME" -o wide || true
-  TERMINATING_PODS=$(kubectl get pods -n "$NAMESPACE" -l app="$SERVICE_NAME" --no-headers 2>/dev/null | awk '$3=="Terminating"{print $1}')
-  if [ -n "$TERMINATING_PODS" ]; then
-    echo -e "${YELLOW}Force deleting stuck terminating pods...${NC}"
-    for pod in $TERMINATING_PODS; do
-      kubectl delete pod -n "$NAMESPACE" "$pod" --grace-period=0 --force || true
-    done
-  fi
-  kubectl rollout status deployment/"$SERVICE_NAME" -n "$NAMESPACE" --timeout=120s
-fi
+deploy_timing_phase_start "Wait for rollout"
+echo -e "${YELLOW}Waiting for rollout...${NC}"
+deploy_timing_k8s_rollout_wait kubectl "$SERVICE_NAME" "$NAMESPACE"
 echo -e "${GREEN}OK Rollout complete${NC}"
+deploy_timing_phase_end "Wait for rollout"
 
-echo -e "${YELLOW}[4/4] Current pods:${NC}"
+deploy_timing_phase_start "Post-deploy status"
+echo -e "${YELLOW}Current pods:${NC}"
 kubectl get pods -n "$NAMESPACE" -l app="$SERVICE_NAME"
+deploy_timing_phase_end "Post-deploy status"
 
-echo -e "${GREEN}==========================================================${NC}"
-echo -e "${GREEN}  Flipflop Service Deployment successful${NC}"
-echo -e "${GREEN}==========================================================${NC}"
+deploy_timing_finish_success "Flipflop Service"
+DEPLOY_TIMING_FINISHED=1
+exit 0
