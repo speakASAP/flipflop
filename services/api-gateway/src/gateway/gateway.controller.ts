@@ -74,8 +74,7 @@ export class GatewayController {
   /**
    * Route cart requests (requires auth)
    */
-  @All('cart')
-  @All('cart/*')
+  @All('cart*')
   @UseGuards(JwtAuthGuard)
   async cartRoute(@Req() req: ExpressRequest, @Res() res: ExpressResponse) {
     const path = req.url.replace('/api/cart', '');
@@ -106,8 +105,7 @@ export class GatewayController {
   /**
    * Route order requests (requires auth)
    */
-  @All('orders')
-  @All('orders/*')
+  @All('orders*')
   @UseGuards(JwtAuthGuard)
   async ordersRoute(@Req() req: ExpressRequest, @Res() res: ExpressResponse) {
     const path = req.url.replace('/api/orders', '');
