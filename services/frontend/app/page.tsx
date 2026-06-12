@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { productsApi, Product } from '@/lib/api/products';
 import ProductCard from '@/components/ProductCard';
 
+export const dynamic = 'force-dynamic';
+
 // Product type with optional rating for display purposes
 type ProductWithRating = Product & { rating?: number };
 

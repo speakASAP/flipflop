@@ -5,6 +5,7 @@ metadata:
   namespace: statex-apps
   labels:
     app: flipflop-service
+    component: api-gateway
     managed-by: k8s-migration
 spec:
   replicas: 1
@@ -20,9 +21,11 @@ spec:
     metadata:
       labels:
         app: flipflop-service
+        component: api-gateway
+        managed-by: k8s-migration
     spec:
       containers:
-        - name: app
+        - name: api-gateway
           image: localhost:5000/flipflop-service:latest
           imagePullPolicy: Always
           ports:
@@ -32,6 +35,11 @@ spec:
                 name: flipflop-config
             - secretRef:
                 name: flipflop-service-secret
+          env:
+            - name: PORT
+              value: "3000"
+            - name: SERVICE_NAME
+              value: "flipflop-api-gateway"
           startupProbe:
             httpGet:
               path: /health
@@ -50,6 +58,325 @@ spec:
             httpGet:
               path: /health
               port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 5
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flipflop-frontend
+  namespace: statex-apps
+  labels:
+    app: flipflop-frontend
+    component: frontend
+    managed-by: k8s-migration
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flipflop-frontend
+      component: frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: flipflop-frontend
+        component: frontend
+        managed-by: k8s-migration
+    spec:
+      containers:
+        - name: frontend
+          image: localhost:5000/flipflop-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: flipflop-config
+          env:
+            - name: PORT
+              value: "3000"
+            - name: SERVICE_NAME
+              value: "flipflop-frontend"
+            - name: API_URL
+              value: "http://flipflop-service:3000/api"
+            - name: NEXT_PUBLIC_API_URL
+              value: "https://flipflop.alfares.cz/api"
+          startupProbe:
+            httpGet:
+              path: /
+              port: 3000
+            failureThreshold: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            periodSeconds: 30
+            failureThreshold: 3
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 5
+          resources:
+            requests:
+              memory: "192Mi"
+              cpu: "50m"
+            limits:
+              memory: "768Mi"
+              cpu: "500m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flipflop-product-service
+  namespace: statex-apps
+  labels:
+    app: flipflop-product-service
+    component: product-service
+    managed-by: k8s-migration
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flipflop-product-service
+      component: product-service
+  template:
+    metadata:
+      labels:
+        app: flipflop-product-service
+        component: product-service
+        managed-by: k8s-migration
+    spec:
+      containers:
+        - name: product-service
+          image: localhost:5000/flipflop-product-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3002
+          envFrom:
+            - configMapRef:
+                name: flipflop-config
+            - secretRef:
+                name: flipflop-service-secret
+          env:
+            - name: PORT
+              value: "3002"
+            - name: SERVICE_NAME
+              value: "flipflop-product-service"
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            failureThreshold: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 5
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flipflop-cart-service
+  namespace: statex-apps
+  labels:
+    app: flipflop-cart-service
+    component: cart-service
+    managed-by: k8s-migration
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flipflop-cart-service
+      component: cart-service
+  template:
+    metadata:
+      labels:
+        app: flipflop-cart-service
+        component: cart-service
+        managed-by: k8s-migration
+    spec:
+      containers:
+        - name: cart-service
+          image: localhost:5000/flipflop-cart-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3009
+          envFrom:
+            - configMapRef:
+                name: flipflop-config
+            - secretRef:
+                name: flipflop-service-secret
+          env:
+            - name: PORT
+              value: "3009"
+            - name: SERVICE_NAME
+              value: "flipflop-cart-service"
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 3009
+            failureThreshold: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3009
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 5
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flipflop-order-service
+  namespace: statex-apps
+  labels:
+    app: flipflop-order-service
+    component: order-service
+    managed-by: k8s-migration
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flipflop-order-service
+      component: order-service
+  template:
+    metadata:
+      labels:
+        app: flipflop-order-service
+        component: order-service
+        managed-by: k8s-migration
+    spec:
+      containers:
+        - name: order-service
+          image: localhost:5000/flipflop-order-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3003
+          envFrom:
+            - configMapRef:
+                name: flipflop-config
+            - secretRef:
+                name: flipflop-service-secret
+          env:
+            - name: PORT
+              value: "3003"
+            - name: SERVICE_NAME
+              value: "flipflop-order-service"
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 3003
+            failureThreshold: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3003
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 5
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "768Mi"
+              cpu: "500m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flipflop-user-service
+  namespace: statex-apps
+  labels:
+    app: flipflop-user-service
+    component: user-service
+    managed-by: k8s-migration
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flipflop-user-service
+      component: user-service
+  template:
+    metadata:
+      labels:
+        app: flipflop-user-service
+        component: user-service
+        managed-by: k8s-migration
+    spec:
+      containers:
+        - name: user-service
+          image: localhost:5000/flipflop-user-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3004
+          envFrom:
+            - configMapRef:
+                name: flipflop-config
+            - secretRef:
+                name: flipflop-service-secret
+          env:
+            - name: PORT
+              value: "3004"
+            - name: SERVICE_NAME
+              value: "flipflop-user-service"
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 3004
+            failureThreshold: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3004
             initialDelaySeconds: 10
             periodSeconds: 10
             failureThreshold: 3

@@ -3,6 +3,8 @@ import ProductCard from '@/components/ProductCard';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Všechny produkty | flipflop.alfares.cz',
   description: 'Prohlédněte si náš kompletní sortiment. Rychlé doručení, snadné platby, kvalitní zboží za skvělé ceny.',

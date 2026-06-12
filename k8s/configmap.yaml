@@ -1,24 +1,57 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: flipflop-service-config
+  name: flipflop-config
   namespace: statex-apps
   labels:
     app: flipflop-service
     managed-by: k8s-migration
 data:
   NODE_ENV: "production"
-  SERVICE_NAME: "flipflop-service"
+  SERVICE_NAME: "flipflop"
   DOMAIN: "flipflop.alfares.cz"
-  PORT: "3000"
-  # Add environment variables from .env that are non-sensitive (no secrets, API keys, passwords)
-  # Examples:
-  # DATABASE_POOL_SIZE: "10"
-  # LOG_LEVEL: "info"
-  DB_HOST: "192.168.88.53"
+  CORS_ORIGIN: "https://flipflop.alfares.cz"
+
+  DB_HOST: "db-server-postgres"
   DB_PORT: "5432"
   DB_USER: "dbadmin"
   DB_NAME: "flipflop"
   DB_SYNC: "false"
   DB_AUTO_CREATE: "true"
-  # TIMEOUT_MS: "30000"
+
+  REDIS_HOST: "db-server-redis"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+
+  API_GATEWAY_URL: "https://flipflop.alfares.cz"
+  API_URL: "http://flipflop-service:3000/api"
+  FRONTEND_URL: "https://flipflop.alfares.cz"
+  NEXT_PUBLIC_API_URL: "https://flipflop.alfares.cz/api"
+  NEXT_PUBLIC_FRONTEND_URL: "https://flipflop.alfares.cz"
+
+  AUTH_SERVICE_URL: "http://auth-microservice:3370"
+  PRODUCT_SERVICE_URL: "http://flipflop-product-service:3002"
+  CART_SERVICE_URL: "http://flipflop-cart-service:3009"
+  ORDER_SERVICE_URL: "http://flipflop-order-service:3003"
+  USER_SERVICE_URL: "http://flipflop-user-service:3004"
+  SUPPLIER_SERVICE_URL: "http://suppliers-microservice:3202"
+  WAREHOUSE_SERVICE_URL: "http://warehouse-microservice:3201"
+  CATALOG_SERVICE_URL: "http://catalog-microservice:3200"
+  ORDERS_MICROSERVICE_URL: "http://orders-microservice:3203"
+  NOTIFICATION_SERVICE_URL: "http://notifications-microservice:3368"
+  PAYMENT_SERVICE_URL: "http://payments-microservice:3468"
+  LOGGING_SERVICE_URL: "http://logging-microservice:3367"
+  AI_SERVICE_URL: "http://ai-microservice:3380"
+
+  PAYMENT_CALLBACK_URL: "https://flipflop.alfares.cz/api/webhooks/payment-result"
+  PAYMENT_CANCEL_URL: "https://flipflop.alfares.cz/payment-result?status=cancelled"
+  PAYMENT_SUCCESS_URL: "https://flipflop.alfares.cz/payment-result?status=completed"
+
+  JWT_EXPIRES_IN: "7d"
+  LOG_LEVEL: "info"
+  LOG_FILE_PATH: "./logs/app.log"
+  LOG_STORAGE_PATH: "./logs"
+  LOG_ROTATION_MAX_FILES: "10"
+  LOG_ROTATION_MAX_SIZE: "100m"
+  LOG_TIMESTAMP_FORMAT: "YYYY-MM-DD HH:mm:ss"
+  TEST_LOGIN_EMAIL: "test@example.com"

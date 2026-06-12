@@ -9,6 +9,19 @@ import { WarehouseService } from './warehouse.service';
 
 @Injectable()
 export class ProductsService {
+  private getCatalogPrice(product: any): number {
+    const pricingRows = Array.isArray(product.pricing)
+      ? product.pricing
+      : product.pricing
+        ? [product.pricing]
+        : [];
+    const activePrice = pricingRows.find((row: any) => row?.isActive !== false) || pricingRows[0];
+    const rawPrice = activePrice?.salePrice ?? activePrice?.basePrice ?? 0;
+    const price = Number(rawPrice);
+
+    return Number.isFinite(price) ? price : 0;
+  }
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
@@ -66,12 +79,13 @@ export class ProductsService {
       // Map catalog products to response format
       const items = catalogResult.items.map((product: any) => {
         const stock = warehouseData.get(product.id);
+        const price = this.getCatalogPrice(product);
         return {
           id: product.id,
           name: product.title,
           sku: product.sku,
           description: product.description,
-          price: product.pricing?.basePrice || 0,
+          price,
           stockQuantity: stock?.available || 0,
           trackInventory: true,
           brand: product.brand,
@@ -138,12 +152,13 @@ export class ProductsService {
       }
 
       // Map to response format
+      const price = this.getCatalogPrice(product);
       return {
         id: product.id,
         name: product.title,
         sku: product.sku,
         description: product.description,
-        price: product.pricing?.basePrice || 0,
+        price,
         stockQuantity: stock?.available || 0,
         trackInventory: true,
         brand: product.brand,

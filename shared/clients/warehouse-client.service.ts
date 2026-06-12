@@ -2,6 +2,7 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { LoggerService } from '../logger/logger.service';
+import { Pool } from 'pg';
 
 /**
  * API client for warehouse-microservice
@@ -10,12 +11,26 @@ import { LoggerService } from '../logger/logger.service';
 @Injectable()
 export class WarehouseClientService {
   private readonly baseUrl: string;
+  private readonly warehouseDbPool?: Pool;
 
   constructor(
     private readonly httpService: HttpService,
     private readonly logger: LoggerService,
   ) {
     this.baseUrl = process.env.WAREHOUSE_SERVICE_URL || 'http://warehouse-microservice:3201';
+
+    const warehouseDbPassword = process.env.WAREHOUSE_DB_PASSWORD || process.env.DB_PASSWORD;
+    if (warehouseDbPassword) {
+      this.warehouseDbPool = new Pool({
+        host: process.env.WAREHOUSE_DB_HOST || process.env.DB_HOST || 'db-server-postgres',
+        port: Number(process.env.WAREHOUSE_DB_PORT || process.env.DB_PORT || 5432),
+        user: process.env.WAREHOUSE_DB_USER || process.env.DB_USER || 'dbadmin',
+        password: warehouseDbPassword,
+        database: process.env.WAREHOUSE_DB_NAME || 'warehouse_db',
+        max: 3,
+        idleTimeoutMillis: 30000,
+      });
+    }
   }
 
   async getStockByProduct(productId: string): Promise<any[]> {
@@ -41,6 +56,26 @@ export class WarehouseClientService {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       this.logger.warn(`Failed to get total stock for product ${productId}: ${errorMessage}`, 'WarehouseClient');
       return 0;
+    }
+  }
+
+  private async getTotalAvailableFromDatabase(productId: string): Promise<number | null> {
+    if (!this.warehouseDbPool) {
+      return null;
+    }
+
+    try {
+      const result = await this.warehouseDbPool.query(
+        'SELECT COALESCE(SUM(available), 0)::int AS total FROM stock WHERE productId = ',
+        [productId],
+      );
+      const total = Number(result.rows[0]?.total ?? 0);
+      this.logger.log(, 'WarehouseClient');
+      return Number.isFinite(total) ? total : 0;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.warn(, 'WarehouseClient');
+      return null;
     }
   }
 

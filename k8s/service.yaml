@@ -5,6 +5,7 @@ metadata:
   namespace: statex-apps
   labels:
     app: flipflop-service
+    component: api-gateway
     managed-by: k8s-migration
 spec:
   type: ClusterIP
@@ -14,4 +15,104 @@ spec:
     - protocol: TCP
       port: 3000
       targetPort: 3000
-      name: app
+      name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flipflop-frontend
+  namespace: statex-apps
+  labels:
+    app: flipflop-frontend
+    component: frontend
+    managed-by: k8s-migration
+spec:
+  type: ClusterIP
+  selector:
+    app: flipflop-frontend
+    component: frontend
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flipflop-product-service
+  namespace: statex-apps
+  labels:
+    app: flipflop-product-service
+    component: product-service
+    managed-by: k8s-migration
+spec:
+  type: ClusterIP
+  selector:
+    app: flipflop-product-service
+    component: product-service
+  ports:
+    - protocol: TCP
+      port: 3002
+      targetPort: 3002
+      name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flipflop-cart-service
+  namespace: statex-apps
+  labels:
+    app: flipflop-cart-service
+    component: cart-service
+    managed-by: k8s-migration
+spec:
+  type: ClusterIP
+  selector:
+    app: flipflop-cart-service
+    component: cart-service
+  ports:
+    - protocol: TCP
+      port: 3009
+      targetPort: 3009
+      name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flipflop-order-service
+  namespace: statex-apps
+  labels:
+    app: flipflop-order-service
+    component: order-service
+    managed-by: k8s-migration
+spec:
+  type: ClusterIP
+  selector:
+    app: flipflop-order-service
+    component: order-service
+  ports:
+    - protocol: TCP
+      port: 3003
+      targetPort: 3003
+      name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flipflop-user-service
+  namespace: statex-apps
+  labels:
+    app: flipflop-user-service
+    component: user-service
+    managed-by: k8s-migration
+spec:
+  type: ClusterIP
+  selector:
+    app: flipflop-user-service
+    component: user-service
+  ports:
+    - protocol: TCP
+      port: 3004
+      targetPort: 3004
+      name: http
