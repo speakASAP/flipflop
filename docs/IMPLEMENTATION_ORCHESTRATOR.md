@@ -9,12 +9,17 @@ The FlipFlop orchestrator manages implementation by goals. It preserves the orig
 Before implementation work, read:
 
 ```text
+00_constitution/CONSTITUTION.md
+01_vision/VISION.md
+02_business_case/BUSINESS_CASE.md
 README.md
 BUSINESS.md
 SYSTEM.md
 SPEC.md
 GOALS.md
 PLAN.md
+17_governance/PROJECT_INVARIANTS.md
+23_documentation_contracts/DOCUMENTATION_COMPLETENESS_STANDARD.md
 docs/INTENT_MEMORY.md
 docs/IMPLEMENTATION_STATE.md
 docs/process/PROJECT_INVARIANTS.md
@@ -43,17 +48,30 @@ If docs-rag-microservice is available, query it before broad repository scanning
 4. If no goal is active, pick the first `ready` goal in `implementation-goals/README.md` whose dependencies are done.
 5. Do not start a later goal while an earlier required dependency is incomplete.
 6. Do not start code edits unless the selected goal has an execution plan and intent bundle.
+7. Do not start code edits unless the IPS pre-coding gate and strict documentation audit pass or a blocker is recorded.
 
 ## Execution Loop
 
 1. Confirm the goal's intent, constraints, non-goals, and acceptance criteria.
 2. Check repository status and identify unrelated dirty files.
 3. Update or create the execution plan.
-4. Apply the narrowest possible code or documentation changes.
-5. Run the narrowest relevant validation gate.
-6. Update goal artifacts and `docs/IMPLEMENTATION_STATE.md`.
-7. Write an Intent Compliance Report before marking the goal complete.
-8. Report the next step to the owner.
+4. Run `python3 scripts/pre_coding_gate.py --root .` and `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` before code edits.
+5. Apply the narrowest possible code or documentation changes.
+6. Run the narrowest relevant validation gate.
+7. Run `python3 scripts/deployment_readiness_gate.py --root .` before deployment or release closure.
+8. Update goal artifacts and `docs/IMPLEMENTATION_STATE.md`.
+9. Write an Intent Compliance Report before marking the goal complete.
+10. Report the next step to the owner.
+
+## IPS Intent Contract
+
+Future implementation must preserve:
+
+```text
+Raw owner request -> constitution -> vision -> business case -> system -> subsystem -> roadmap -> milestone -> feature -> task -> goal impact -> execution plan -> context package -> coding prompt -> code -> validation report -> state update
+```
+
+Execution-critical `[MISSING: ...]` and `[UNKNOWN: ...]` markers block coding and release closure.
 
 ## Intent Compliance Report
 

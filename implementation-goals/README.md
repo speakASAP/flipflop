@@ -14,15 +14,26 @@ Before coding, each goal must have:
 - goal file;
 - execution plan;
 - intent bundle or context package;
+- task and goal-impact traceability when new implementation work is introduced;
 - allowed and forbidden changes;
 - acceptance criteria;
 - validation plan.
+- passing IPS pre-coding gate or a recorded blocker.
 
 Before completion, each goal must have:
 
 - validation report;
 - Intent Compliance Report;
 - updated `docs/IMPLEMENTATION_STATE.md`.
+- deployment-readiness gate evidence when deployment or release closure is in scope.
+
+## IPS Gate Commands
+
+```bash
+python3 scripts/pre_coding_gate.py --root .
+python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues
+python3 scripts/deployment_readiness_gate.py --root .
+```
 
 ## Ordered Goals
 

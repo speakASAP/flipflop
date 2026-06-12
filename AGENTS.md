@@ -31,12 +31,17 @@ Then continue from the latest checkpoint.
 Before implementation, branch orchestration, or launching workers, read:
 
 ```text
+00_constitution/CONSTITUTION.md
+01_vision/VISION.md
+02_business_case/BUSINESS_CASE.md
 README.md
 BUSINESS.md
 SYSTEM.md
 SPEC.md
 GOALS.md
 PLAN.md
+17_governance/PROJECT_INVARIANTS.md
+23_documentation_contracts/DOCUMENTATION_COMPLETENESS_STANDARD.md
 docs/INTENT_MEMORY.md
 docs/IMPLEMENTATION_STATE.md
 docs/IMPLEMENTATION_ORCHESTRATOR.md
@@ -48,6 +53,36 @@ implementation-goals/README.md
 ```
 
 For a specific goal, also read the matching file in `implementation-goals/` and its companion artifacts.
+
+## Intent Preservation System (MANDATORY)
+
+FlipFlop uses the Intent Preservation System from `/Users/Sergej.Stasok/Documents/Gitlab/intent-preservation-system`.
+
+Before coding, preserve this chain:
+
+```text
+Constitution -> Vision -> Business Case -> System -> Subsystem -> Roadmap -> Milestone -> Feature -> Task -> Goal Impact -> Execution Plan -> Context Package -> Coding Prompt -> Code -> Validation Report -> State Update
+```
+
+Coding must not start until:
+
+1. The selected task or goal traces back to the IPS source documents.
+2. An execution plan exists with validation, invariant, sensitive-data, contract, replay/determinism, and rollback sections.
+3. A context package and coding prompt exist when another worker or later session will perform the code change.
+4. The pre-coding gate has passed or a blocker is recorded in `docs/IMPLEMENTATION_STATE.md`.
+
+Run before coding:
+
+```bash
+python3 scripts/pre_coding_gate.py --root .
+python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues
+```
+
+Run before deployment or release closure:
+
+```bash
+python3 scripts/deployment_readiness_gate.py --root .
+```
 
 If docs-rag-microservice is available, query it before broad repository reads:
 
@@ -79,6 +114,7 @@ Development must proceed by implementation goals, with an orchestrator selecting
 8. For coding work, create or update an execution plan before editing code.
 9. Run the narrowest relevant gate from `docs/process/OPERATIONAL_GATES.md`.
 10. After each goal is complete, commit goal changes and verify a clean working tree before starting the next goal.
+11. Preserve owner-bypassed payment-provider and webhook risks until verified by the owner or provider evidence.
 
 ## User Checkpoints
 

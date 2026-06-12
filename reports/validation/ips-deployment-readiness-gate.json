@@ -1,0 +1,62 @@
+{
+  "created_at": "2026-06-12T11:27:25Z",
+  "gate": "deployment_readiness",
+  "next_step": "ready_for_deployment_review",
+  "pre_coding_gate": {
+    "report_path": "reports/validation/ips-pre-coding-gate.json",
+    "status": "pass"
+  },
+  "protected_files": {
+    "changed_files": [],
+    "status": "pass",
+    "stderr": ""
+  },
+  "root": "/home/ssf/Documents/Github/flipflop-service",
+  "schema_version": "1.0.0",
+  "status": "pass",
+  "strict_doc_audit": {
+    "findings_count": 0,
+    "score": 100,
+    "status": "PASS"
+  },
+  "target": null,
+  "unresolved_markers": [
+    {
+      "line": 43,
+      "marker": "[MISSING: ...]",
+      "path": "23_documentation_contracts/DOCUMENTATION_COMPLETENESS_STANDARD.md"
+    },
+    {
+      "line": 43,
+      "marker": "[UNKNOWN: ...]",
+      "path": "23_documentation_contracts/DOCUMENTATION_COMPLETENESS_STANDARD.md"
+    },
+    {
+      "line": 74,
+      "marker": "[MISSING: ...]",
+      "path": "docs/IMPLEMENTATION_ORCHESTRATOR.md"
+    },
+    {
+      "line": 74,
+      "marker": "[UNKNOWN: ...]",
+      "path": "docs/IMPLEMENTATION_ORCHESTRATOR.md"
+    },
+    {
+      "line": 114,
+      "marker": "[MISSING: ...]",
+      "path": "docs/INTENT_MEMORY.md"
+    },
+    {
+      "line": 46,
+      "marker": "[MISSING: ...]",
+      "path": "docs/process/OPERATIONAL_GATES.md"
+    }
+  ],
+  "validation_reports": {
+    "reports": [
+      "12_validation/VAL-TASK-001-flipflop-ips-baseline.md"
+    ],
+    "status": "pass",
+    "target": null
+  }
+}

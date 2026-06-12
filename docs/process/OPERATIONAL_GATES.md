@@ -2,6 +2,21 @@
 
 Use the narrowest relevant gate for the selected goal.
 
+## IPS Gates
+
+Required before coding:
+
+```bash
+python3 scripts/pre_coding_gate.py --root .
+python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues
+```
+
+Required before deployment or release closure:
+
+```bash
+python3 scripts/deployment_readiness_gate.py --root .
+```
+
 ## Documentation Gate
 
 Required for documentation-only goals:
@@ -9,6 +24,8 @@ Required for documentation-only goals:
 ```bash
 find docs implementation-goals -name '*.md' -print
 git diff -- docs implementation-goals AGENTS.md README.md SYSTEM.md
+python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues
+python3 scripts/pre_coding_gate.py --root .
 ```
 
 Pass criteria:
@@ -62,3 +79,4 @@ Required before marking checkout revenue complete:
 - GP WebPay initiation and webhook confirmation verified with FlipFlop application description.
 - Stripe initiation and webhook confirmation verified.
 - Order state, stock update, and notification evidence recorded per provider.
+- Owner-bypassed provider or webhook gaps remain visible and must not be marked verified automatically.
