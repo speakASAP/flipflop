@@ -55,6 +55,10 @@ export class WarehouseClientService {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       this.logger.warn(`Failed to get total stock for product ${productId}: ${errorMessage}`, 'WarehouseClient');
+      const fallbackTotal = await this.getTotalAvailableFromDatabase(productId);
+      if (fallbackTotal !== null) {
+        return fallbackTotal;
+      }
       return 0;
     }
   }
@@ -66,15 +70,15 @@ export class WarehouseClientService {
 
     try {
       const result = await this.warehouseDbPool.query(
-        'SELECT COALESCE(SUM(available), 0)::int AS total FROM stock WHERE productId = ',
+        'SELECT COALESCE(SUM(available), 0)::int AS total FROM stock WHERE "productId" = $1',
         [productId],
       );
       const total = Number(result.rows[0]?.total ?? 0);
-      this.logger.log(, 'WarehouseClient');
+      this.logger.log(`Read warehouse stock fallback for product ${productId}: ${total}`, 'WarehouseClient');
       return Number.isFinite(total) ? total : 0;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      this.logger.warn(, 'WarehouseClient');
+      this.logger.warn(`Warehouse stock fallback failed for product ${productId}: ${errorMessage}`, 'WarehouseClient');
       return null;
     }
   }
