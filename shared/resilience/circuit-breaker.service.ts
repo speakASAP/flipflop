@@ -4,7 +4,8 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import CircuitBreaker from 'opossum';
+import type CircuitBreaker from 'opossum';
+import * as CircuitBreakerModule from 'opossum';
 import { getCircuitBreakerConfig } from './resilience.config';
 
 export interface CircuitBreakerOptions {
@@ -51,7 +52,8 @@ export class CircuitBreakerService {
     };
 
     // Create circuit breaker
-    const breaker = new CircuitBreaker(fn, breakerOptions);
+    const CircuitBreakerCtor = ((CircuitBreakerModule as any).default || CircuitBreakerModule) as any;
+    const breaker = new CircuitBreakerCtor(fn, breakerOptions) as CircuitBreaker;
 
     // Set up event handlers
     breaker.on('open', () => {

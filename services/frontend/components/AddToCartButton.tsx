@@ -9,12 +9,16 @@ interface AddToCartButtonProps {
   productId: string;
   variantId?: string;
   quantity?: number;
+  className?: string;
+  label?: string;
 }
 
 export default function AddToCartButton({
   productId,
   variantId,
   quantity = 1,
+  className,
+  label = '🛒 Přidat do košíku',
 }: AddToCartButtonProps) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -55,9 +59,9 @@ export default function AddToCartButton({
       <button
         onClick={handleAddToCart}
         disabled={loading}
-        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+        className={className || 'w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none'}
       >
-        {loading ? 'Přidávání...' : '🛒 Přidat do košíku'}
+        {loading ? 'Přidávání...' : label}
       </button>
       {message && (
         <div className={`mt-3 p-3 rounded-xl font-semibold text-sm ${

@@ -229,7 +229,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               {product.categories.map((category) => (
                 <Link
                   key={category.id}
-                  href={`/products?category=${category.name.toLowerCase()}`}
+                  href={`/products?category=${encodeURIComponent(category.slug || category.name.toLowerCase())}`}
                   className="px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl font-semibold text-blue-700 hover:from-blue-100 hover:to-indigo-100 transition-all shadow-sm hover:shadow-md"
                 >
                   {category.name}

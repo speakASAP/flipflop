@@ -6,10 +6,11 @@
 import { Controller, Get, Post, Param, Body, UseGuards, Request } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { JwtAuthGuard, ApiResponse } from '@flipflop/shared';
+import { ApiResponse } from '@flipflop/shared';
+import { GatewayUserGuard } from './gateway-user.guard';
 
 @Controller('orders')
-@UseGuards(JwtAuthGuard)
+@UseGuards(GatewayUserGuard)
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
@@ -33,7 +34,7 @@ export class OrdersController {
 }
 
 @Controller('payu')
-@UseGuards(JwtAuthGuard)
+@UseGuards(GatewayUserGuard)
 export class PaymentController {
   constructor(private readonly ordersService: OrdersService) {}
 

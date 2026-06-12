@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import AddToCartButton from './AddToCartButton';
 
 interface ProductCardProps {
   product: {
@@ -17,13 +18,6 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // TODO: Implement add to cart functionality
-    console.log('Adding to cart:', product.id);
-  };
-
   // Generate product image placeholder based on product name
   const getProductImage = () => {
     const name = product.name.toLowerCase();
@@ -75,12 +69,9 @@ export default function ProductCard({ product }: ProductCardProps) {
   const mainImageUrl = getMainImageUrl();
 
   return (
-    <Link
-      href={`/products/${product.id}`}
-      className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 hover:border-blue-200"
-    >
+    <article className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 hover:border-blue-200">
       {/* Product Image */}
-      <div className={`relative aspect-square bg-gradient-to-br ${getGradient()} overflow-hidden`}>
+      <Link href={`/products/${product.id}`} className={`block relative aspect-square bg-gradient-to-br ${getGradient()} overflow-hidden`}>
         {mainImageUrl ? (
           <img
             src={mainImageUrl}
@@ -120,7 +111,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             -20%
           </div>
         )}
-      </div>
+      </Link>
       
       {/* Product Info */}
       <div className="p-5">
@@ -129,9 +120,11 @@ export default function ProductCard({ product }: ProductCardProps) {
             {product.brand}
           </p>
         )}
-        <h3 className="font-bold text-slate-900 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors text-lg leading-tight">
-          {product.name}
-        </h3>
+        <Link href={`/products/${product.id}`}>
+          <h3 className="font-bold text-slate-900 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors text-lg leading-tight">
+            {product.name}
+          </h3>
+        </Link>
         
         {/* Rating */}
         {product.rating && (
@@ -157,14 +150,12 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
         
         {/* Quick Add Button */}
-        <button
-          onClick={handleAddToCart}
-          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-bold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 text-sm shadow-md hover:shadow-lg transform hover:scale-[1.02]"
-        >
-          Přidat do košíku
-        </button>
+        <AddToCartButton
+          productId={product.id}
+          label="Přidat do košíku"
+          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-bold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 text-sm shadow-md hover:shadow-lg transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+        />
       </div>
-    </Link>
+    </article>
   );
 }
-

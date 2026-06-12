@@ -35,6 +35,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     limit: 20,
     search: searchParams.search,
     categoryId: searchParams.categoryId,
+    category: searchParams.category,
     minPrice: searchParams.minPrice ? parseFloat(searchParams.minPrice) : undefined,
     maxPrice: searchParams.maxPrice ? parseFloat(searchParams.maxPrice) : undefined,
     includeWarehouse: true, // Always include real warehouse stock data
@@ -96,7 +97,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
               <div className="flex justify-center items-center gap-3 mb-8">
                 {pagination.hasPrev && (
                   <Link
-                    href={`/products?page=${pagination.page - 1}${searchParams.search ? `&search=${searchParams.search}` : ''}${searchParams.category ? `&category=${searchParams.category}` : ''}`}
+                    href={`/products?page=${pagination.page - 1}${searchParams.search ? `&search=${encodeURIComponent(searchParams.search)}` : ''}${searchParams.category ? `&category=${encodeURIComponent(searchParams.category)}` : ''}`}
                     className="px-6 py-3 bg-white border-2 border-gray-300 rounded-xl font-semibold hover:bg-blue-50 hover:border-blue-500 transition-all shadow-sm hover:shadow-md"
                   >
                     ← Předchozí
@@ -107,7 +108,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                 </span>
                 {pagination.hasNext && (
                   <Link
-                    href={`/products?page=${pagination.page + 1}${searchParams.search ? `&search=${searchParams.search}` : ''}${searchParams.category ? `&category=${searchParams.category}` : ''}`}
+                    href={`/products?page=${pagination.page + 1}${searchParams.search ? `&search=${encodeURIComponent(searchParams.search)}` : ''}${searchParams.category ? `&category=${encodeURIComponent(searchParams.category)}` : ''}`}
                     className="px-6 py-3 bg-white border-2 border-gray-300 rounded-xl font-semibold hover:bg-blue-50 hover:border-blue-500 transition-all shadow-sm hover:shadow-md"
                   >
                     Další →
@@ -133,4 +134,3 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     </div>
   );
 }
-

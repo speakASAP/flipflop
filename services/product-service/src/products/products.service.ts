@@ -9,6 +9,16 @@ import { WarehouseService } from './warehouse.service';
 
 @Injectable()
 export class ProductsService {
+  private normalizeCategoryToken(value: string): string {
+    return value
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
   private getCatalogPrice(product: any): number {
     const pricingRows = Array.isArray(product.pricing)
       ? product.pricing
@@ -36,13 +46,15 @@ export class ProductsService {
    */
   async getProducts(filters: any) {
     try {
+      const resolvedCategoryId = await this.resolveCategoryId(filters.categoryId, filters.category);
+
       // Fetch products from catalog-microservice
       // Note: catalog client only supports: search, isActive, categoryId, page, limit
       const catalogResult = await this.catalogClient.searchProducts({
         page: Number(filters.page) || 1,
         limit: Number(filters.limit) || 20,
         search: filters.search,
-        categoryId: filters.categoryId,
+        categoryId: resolvedCategoryId,
         isActive: filters.isActive !== undefined ? filters.isActive : true,
       });
 
@@ -192,15 +204,15 @@ export class ProductsService {
    * Get categories
    */
   async getCategories() {
-    const categories = await this.prisma.category.findMany({
-      where: { isActive: true },
-      orderBy: { sortOrder: 'asc' },
-    });
+    const categories = await this.catalogClient.getCategories();
 
-    return categories.map((cat) => ({
+    return categories.map((cat: any) => ({
       id: cat.id,
       name: cat.name,
+      slug: cat.slug,
       description: cat.description,
+      path: cat.path,
+      sortOrder: cat.sortOrder,
       parentId: cat.parentId || undefined,
     }));
   }
@@ -318,6 +330,37 @@ export class ProductsService {
     return { success: true };
   }
 
+  private async resolveCategoryId(categoryId?: string, category?: string): Promise<string | undefined> {
+    if (categoryId) {
+      return categoryId;
+    }
+
+    if (!category) {
+      return undefined;
+    }
+
+    const requested = this.normalizeCategoryToken(category);
+    if (!requested) {
+      return undefined;
+    }
+
+    const categories = await this.catalogClient.getCategories();
+    const match = categories.find((cat: any) => {
+      const candidates = [
+        cat.id,
+        cat.slug,
+        cat.name,
+        cat.path,
+      ]
+        .filter(Boolean)
+        .map((value: string) => this.normalizeCategoryToken(String(value).replace(/^\//, '')));
+
+      return candidates.includes(requested);
+    });
+
+    return match?.id;
+  }
+
   /**
    * Map product to response format
    */
@@ -372,4 +415,3 @@ export class ProductsService {
     };
   }
 }
-

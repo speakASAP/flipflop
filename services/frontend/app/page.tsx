@@ -7,6 +7,15 @@ export const dynamic = 'force-dynamic';
 // Product type with optional rating for display purposes
 type ProductWithRating = Product & { rating?: number };
 
+const categoryLinks = [
+  { name: 'Elektronika', slug: 'elektronika' },
+  { name: 'Móda', slug: 'moda' },
+  { name: 'Sport', slug: 'sport' },
+  { name: 'Domácnost', slug: 'domacnost' },
+  { name: 'Krása', slug: 'krasa' },
+  { name: 'Knihy', slug: 'knihy' },
+];
+
 export default async function HomePage() {
   // Fetch featured products from catalog and warehouse services
   // includeWarehouse is now default true, so real stock data will be included
@@ -76,13 +85,13 @@ export default async function HomePage() {
       <section className="py-10 bg-white border-b border-gray-100 shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap justify-center gap-3 md:gap-4">
-            {['Elektronika', 'Móda', 'Sport', 'Domácnost', 'Krása', 'Knihy'].map((category) => (
+            {categoryLinks.map((category) => (
               <Link
-                key={category}
-                href={`/products?category=${category.toLowerCase()}`}
+                key={category.slug}
+                href={`/products?category=${category.slug}`}
                 className="px-6 py-3 rounded-full bg-gradient-to-r from-gray-50 to-gray-100 hover:from-blue-50 hover:to-indigo-50 text-gray-700 hover:text-blue-700 font-semibold transition-all duration-300 text-sm md:text-base shadow-sm hover:shadow-md transform hover:scale-105 border border-gray-200 hover:border-blue-200"
               >
-                {category}
+                {category.name}
               </Link>
             ))}
           </div>

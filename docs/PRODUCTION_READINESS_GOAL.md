@@ -4,7 +4,7 @@
 
 Make FlipFlop production-ready on AlphaRes so `https://flipflop.alfares.cz/` serves the storefront, shows sellable products from the catalog and warehouse ecosystem, supports authenticated shopping with the test user, and passes deployment smoke checks.
 
-## Current Findings
+## Original Findings
 
 - The public root currently returns `404 Cannot GET /` because ingress sends `/` to the API gateway instead of a Next.js storefront.
 - The deployed API gateway points at stale Docker-era DNS names such as `product-service`, `cart-service`, `order-service`, `user-service`, and `warehouse-service`.
@@ -12,6 +12,22 @@ Make FlipFlop production-ready on AlphaRes so `https://flipflop.alfares.cz/` ser
 - `catalog-microservice` is running, but `catalog_db` has no product schema; `GET /api/products` fails with `relation "products" does not exist`.
 - No `products`, `categories`, or `product_variants` tables were found in any Postgres database checked on the cluster.
 - Test authentication works with `test@example.com` using the password from `auth-microservice/.env`.
+
+## Current Validation Snapshot
+
+Rechecked on 2026-06-12:
+
+- The public root now returns HTTP 200 and serves the Next.js storefront.
+- `/api/products` returns HTTP 200 with six sellable products, prices, images,
+  categories, and warehouse stock.
+- Bare `/api` reaches the gateway but returns Nest 404 JSON because no API index
+  route exists.
+- FlipFlop frontend, gateway, product, cart, order, and user deployments are
+  running in Kubernetes.
+- Shared auth, catalog, warehouse, orders, payments, and notifications services
+  are running in Kubernetes.
+- `scripts/smoke-checkout.js` passes against production: login, product lookup,
+  cart add, and checkout initiation with a pending payment redirect.
 
 ## Implementation Plan
 

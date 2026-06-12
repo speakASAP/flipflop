@@ -40,5 +40,9 @@ kubectl get pods -n statex-apps -l app=flipflop
 | `SYSTEM.md` | Architecture + integrations |
 | `PLAN.md` | Active tasks |
 | `SPEC.md` | Technical specification |
+| `docs/INTENT_MEMORY.md` | Preserved original intent, constraints, corrections, and decision-memory contract |
+| `docs/IMPLEMENTATION_ORCHESTRATOR.md` | Goal-driven orchestration workflow for agents |
+| `docs/IMPLEMENTATION_STATE.md` | Current goal checkpoint and next orchestrator step |
+| `implementation-goals/README.md` | Ordered goal backlog and goal execution rules |
 | `docs/ENV_VARIABLES.md` | Env var reference (secrets in Vault) |
 | `docs/SMART_DEPLOYMENT.md` | Deploy commands |

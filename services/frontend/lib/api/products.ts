@@ -34,7 +34,9 @@ export interface ProductVariant {
 export interface Category {
   id: string;
   name: string;
+  slug?: string;
   description?: string;
+  path?: string;
   parentId?: string;
 }
 
@@ -46,6 +48,7 @@ export interface ProductFilters {
   maxPrice?: number;
   brand?: string;
   categoryId?: string;
+  category?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   includeWarehouse?: boolean | string; // Include warehouse stock data (default: true)
@@ -142,4 +145,3 @@ export const productsApi = {
     return apiClient.delete(`/products/${id}`);
   },
 };
-

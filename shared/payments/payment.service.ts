@@ -173,12 +173,13 @@ export class PaymentService {
     const callFn = async () =>
       this.callPaymentService<Record<string, unknown>>('/payments/create', payload);
 
+    const breakerName = `payment-service:create:${dto.orderId}:${(dto.paymentMethod || 'webpay').toLowerCase()}`;
     const breaker = this.circuitBreakerService.create(
-      'payment-service',
+      breakerName,
       callFn,
     );
 
-    if (this.circuitBreakerService.isOpen('payment-service')) {
+    if (this.circuitBreakerService.isOpen(breakerName)) {
       this.logger.warn('Payment service circuit breaker is open', {
         action: 'createPayment',
         orderId: dto.orderId,
@@ -228,12 +229,13 @@ export class PaymentService {
     const callFn = async () =>
       this.callPaymentService<PaymentStatusResponse>(`/payments/${paymentId}`, undefined, 'GET');
 
+    const breakerName = `payment-service:status:${paymentId}`;
     const breaker = this.circuitBreakerService.create(
-      'payment-service',
+      breakerName,
       callFn,
     );
 
-    if (this.circuitBreakerService.isOpen('payment-service')) {
+    if (this.circuitBreakerService.isOpen(breakerName)) {
       this.logger.warn('Payment service circuit breaker is open', {
         action: 'getPaymentStatus',
         paymentId,
@@ -276,12 +278,13 @@ export class PaymentService {
     const callFn = async () =>
       this.callPaymentService<RefundResponse>(`/payments/${dto.paymentId}/refund`, dto, 'PUT');
 
+    const breakerName = `payment-service:refund:${dto.paymentId}`;
     const breaker = this.circuitBreakerService.create(
-      'payment-service',
+      breakerName,
       callFn,
     );
 
-    if (this.circuitBreakerService.isOpen('payment-service')) {
+    if (this.circuitBreakerService.isOpen(breakerName)) {
       this.logger.warn('Payment service circuit breaker is open', {
         action: 'processRefund',
         paymentId: dto.paymentId,
@@ -348,4 +351,3 @@ export class PaymentService {
     };
   }
 }
-

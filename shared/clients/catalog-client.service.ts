@@ -80,6 +80,20 @@ export class CatalogClientService {
     }
   }
 
+  async getCategories(): Promise<any[]> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(`${this.baseUrl}/api/categories`)
+      );
+      return response.data.data || [];
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to get categories: ${errorMessage}`, errorStack, 'CatalogClient');
+      return [];
+    }
+  }
+
   async getProductPricing(productId: string): Promise<any> {
     try {
       const response = await firstValueFrom(
@@ -104,4 +118,3 @@ export class CatalogClientService {
     }
   }
 }
-

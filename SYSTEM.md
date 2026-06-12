@@ -23,6 +23,15 @@ NestJS + PostgreSQL + Redis + Next.js frontend. Deployed on Kubernetes (`statex-
 
 ## Current State
 
+FlipFlop development is now coordinated through the intent preservation and goal workflow in:
+
+- `docs/INTENT_MEMORY.md`
+- `docs/IMPLEMENTATION_ORCHESTRATOR.md`
+- `docs/IMPLEMENTATION_STATE.md`
+- `implementation-goals/README.md`
+
+The current active implementation stream is production readiness and checkout revenue enablement. The orchestrator must preserve the original human intent from raw request through goal, plan, task, execution, validation, and report.
+
 ## Ops
 
 ```bash

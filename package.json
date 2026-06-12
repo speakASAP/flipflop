@@ -10,7 +10,8 @@
     "export:products": "ts-node scripts/export-products-to-catalog.ts",
     "migrate:products": "ts-node scripts/migrate-products-to-catalog.ts",
     "migrate:products:dry-run": "ts-node scripts/migrate-products-to-catalog.ts --dry-run",
-    "migrate:products:skip-stock": "ts-node scripts/migrate-products-to-catalog.ts --skip-stock"
+    "migrate:products:skip-stock": "ts-node scripts/migrate-products-to-catalog.ts --skip-stock",
+    "smoke:checkout": "node scripts/smoke-checkout.js"
   },
   "dependencies": {
     "@nestjs-modules/ioredis": "^2.2.1",

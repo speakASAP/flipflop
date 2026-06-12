@@ -9,6 +9,7 @@ import { AdminOrdersController } from './admin-orders.controller';
 import { AdminInventoryController } from './admin-inventory.controller';
 import { OrdersInternalController } from './orders-internal.controller';
 import { OrdersService } from './orders.service';
+import { GatewayUserGuard } from './gateway-user.guard';
 import { ReviewSolicitationScheduler } from './review-solicitation.scheduler';
 import { EventsConsumerService } from './events.consumer';
 import {
@@ -45,6 +46,7 @@ import { PricingModule } from '../pricing/pricing.module';
   ],
   providers: [
     OrdersService,
+    GatewayUserGuard,
     EventsConsumerService,
     InventoryEventsPublisher,
     CustomerEventsPublisher,
