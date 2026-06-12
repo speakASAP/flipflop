@@ -4,9 +4,9 @@
 
 **Date:** 2026-06-12  
 **Mode:** Goal-driven orchestration enabled  
-**Active goal:** `GOAL-01-production-readiness`  
-**Goal status:** validating  
-**Current checkpoint:** live production topology and checkout smoke validated
+**Active goal:** `GOAL-02-checkout-payments`  
+**Goal status:** active  
+**Current checkpoint:** GOAL-02 Stripe initiation fixed and deployed; provider webhook validation remains
 
 ## Current Intent Summary
 
@@ -37,37 +37,56 @@ Orchestrator agents must not overwrite or revert those changes unless the owner 
 - Updated root agent instructions to use the goal workflow.
 - Validated live homepage, API routing, product API, Kubernetes services,
   authenticated cart add, and checkout initiation.
+- Closed `GOAL-01-production-readiness` with accepted validation evidence.
+- Created GOAL-02 execution plan, context package, coding prompt, and validation
+  report.
+- Checked production payment-provider readiness without exposing secret values.
+- Fixed stale payment payload reuse in `shared/payments/payment.service.ts` by
+  using request-scoped circuit breaker names for payment create/status/refund.
+- Deployed FlipFlop and validated Stripe initiation now returns a Stripe
+  Checkout URL for a Stripe order.
 
 ## Next Step
 
-Review GOAL-01 closeout:
+Continue GOAL-02 checkout payments:
 
 ```text
-implementation-goals/GOAL-01-production-readiness.validation-report.md
+implementation-goals/GOAL-02-checkout-payments.execution-plan.md
+implementation-goals/GOAL-02-checkout-payments.validation-report.md
 ```
 
-The live storefront now returns HTTP 200 from Next.js, `/api/products` returns
-six sellable products with warehouse stock, and `scripts/smoke-checkout.js`
-created a pending checkout order with a payment redirect.
+Production payment discovery found:
 
-The only non-blocking ambiguity found is that bare `/api` returns the gateway's
-404 JSON because no API index route exists. If strict `/api` HTTP 200 is
-required, add a minimal gateway index/health response, deploy, and rerun the
-GOAL-01 smoke checks. Otherwise GOAL-01 can be marked done and GOAL-02 can begin
-payment-provider validation.
+- `payments-microservice` health is OK.
+- FlipFlop order service has payment service URL plus API/webhook keys present.
+- PayU credentials are missing in the running payments pod.
+- PayPal credentials are missing in the running payments pod.
+- GP WebPay merchant/key/application/description config checked in the running
+  payments pod is missing.
+- Stripe has `STRIPE_SECRET_KEY` present, but `STRIPE_WEBHOOK_SECRET` is
+  missing.
+
+Next implementation step: configure or verify Stripe webhook handling, then
+validate provider callback to order paid state, stock deduction, and
+notification evidence. Treat webhook completion as blocked unless
+`STRIPE_WEBHOOK_SECRET` or another approved verified provider callback path is
+available. Do not use simulated webhook scripts as provider success evidence.
 
 ## Goal Register
 
 | Goal | Status | Next action |
 | --- | --- | --- |
-| `GOAL-01-production-readiness` | validating | close out with current evidence or add `/api` index route for stricter base-path acceptance |
-| `GOAL-02-checkout-payments` | blocked | wait for Goal 01 topology and provider credential status |
-| `GOAL-03-catalog-stock-storefront` | blocked | wait for Goal 01 product topology findings |
+| `GOAL-01-production-readiness` | done | closed with live validation evidence |
+| `GOAL-02-checkout-payments` | active | validate Stripe webhook/order paid path; keep PayU/PayPal/WebPay blocked until credentials are configured |
+| `GOAL-03-catalog-stock-storefront` | blocked | wait for Goal 02 provider findings |
 | `GOAL-04-agent-content-seo` | backlog | wait for product/catalog readiness |
 | `GOAL-05-operational-closure` | backlog | wait for production readiness and checkout goals |
 
 ## Open Blockers
 
-- PayU credentials were previously reported as blocking end-to-end verification.
-- PayPal credentials were previously reported as blocking end-to-end verification.
-- Bare `/api` returns 404 even though routed API paths work.
+- PayU production credentials are missing in the running payments pod.
+- PayPal production credentials are missing in the running payments pod.
+- GP WebPay production merchant/key/application/description config checked in
+  the running payments pod is missing.
+- Stripe webhook verification is blocked until `STRIPE_WEBHOOK_SECRET` or an
+  approved verified callback path is configured.

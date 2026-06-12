@@ -104,13 +104,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
                     alt={product.name}
                     fill
                     className="object-cover"
-                    onError={(e) => {
-                      // Fallback to emoji if image fails to load
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      const fallback = target.nextElementSibling as HTMLElement;
-                      if (fallback) fallback.style.display = 'flex';
-                    }}
                   />
                 ) : null;
               })()}
@@ -139,20 +132,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 {(product.imageUrls || product.images || []).slice(0, 4).map((image, index) => (
                   <div key={index} className="aspect-square rounded-xl border-2 border-gray-200 overflow-hidden relative">
                     <Image
-                      src={image}
-                      alt={`${product.name} - obrázek ${index + 1}`}
-                      fill
-                      className="object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        const parent = target.parentElement;
-                        if (parent) {
-                          parent.className = `aspect-square bg-gradient-to-br ${getGradient(product.name)} rounded-xl border-2 border-gray-200 relative`;
-                        }
-                      }}
-                    />
-                  </div>
+                    src={image}
+                    alt={`${product.name} - obrázek ${index + 1}`}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
                 ))}
               </div>
             ) : null}

@@ -9,6 +9,26 @@ Verify and complete PayU, PayPal, GP WebPay, and Stripe checkout flows after pro
 - `GOAL-01-production-readiness` done.
 - Provider credential status known.
 
+## Allowed Changes
+
+- Provider-specific payment initiation wiring in FlipFlop order/payment adapter
+  code.
+- Payment callback/webhook handling needed to consume verified provider results.
+- Smoke scripts and validation docs that distinguish real provider evidence
+  from simulation.
+- Deployment/config documentation for required provider secrets.
+- Narrow fixes in payments-microservice provider code when the defect is
+  provider-specific and required for FlipFlop checkout.
+
+## Forbidden Changes
+
+- Do not fake payment success.
+- Do not mark a provider complete using only a simulated webhook.
+- Do not directly update production order payment state in the database.
+- Do not mutate prices, discounts, order totals, refunds, or cancellations.
+- Do not print or commit credential values.
+- Do not remove existing PayU, PayPal, GP WebPay, or Stripe paths.
+
 ## Acceptance Criteria
 
 - Each provider can initiate payment.

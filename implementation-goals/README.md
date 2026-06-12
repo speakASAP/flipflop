@@ -28,9 +28,9 @@ Before completion, each goal must have:
 
 | Goal | Status | Dependency | Outcome |
 | --- | --- | --- | --- |
-| `GOAL-01-production-readiness` | ready | none | Coherent deployed topology, storefront at `/`, API at `/api`, smokeable product/auth/cart/checkout paths |
-| `GOAL-02-checkout-payments` | blocked | Goal 01 | PayU, PayPal, GP WebPay, and Stripe payment flows verified or explicitly blocked by credentials |
-| `GOAL-03-catalog-stock-storefront` | blocked | Goal 01 | Product catalog, images, categories, price display, and stock state are production-ready |
+| `GOAL-01-production-readiness` | done | none | Coherent deployed topology, storefront at `/`, API at `/api`, smokeable product/auth/cart/checkout paths |
+| `GOAL-02-checkout-payments` | active | Goal 01 | PayU, PayPal, GP WebPay, and Stripe payment flows verified or explicitly blocked by credentials |
+| `GOAL-03-catalog-stock-storefront` | blocked | Goal 01 and Goal 02 provider findings | Product catalog, images, categories, price display, and stock state are production-ready |
 | `GOAL-04-agent-content-seo` | backlog | Goal 03 | AI product descriptions and SEO metadata generated through approved review flow |
 | `GOAL-05-operational-closure` | backlog | Goals 01-04 | Final validation, runbook, monitoring checks, and handoff state |
 

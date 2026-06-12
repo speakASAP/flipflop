@@ -2,11 +2,10 @@
 
 ## Status
 
-Production validation gathered on 2026-06-12.
+Done on 2026-06-12.
 
-GOAL-01 is ready to move from topology discovery into completion review or any
-remaining hardening the owner wants. No production code change was required in
-this session.
+GOAL-01 is closed with the accepted validation evidence below. No production
+code change was required in this session.
 
 ## Validation Evidence
 
@@ -76,9 +75,8 @@ Residual risks and follow-up:
 
 ## Next Required Action
 
-Choose one of these GOAL-01 closeout paths:
+Proceed to GOAL-02 checkout payment-provider validation:
 
 ```text
-1. Mark GOAL-01 validating/done with the evidence above.
-2. Add a tiny `/api` index/health response, deploy, and rerun smoke checks.
+FLIPFLOP ORCHESTRATOR: continue implementation
 ```
