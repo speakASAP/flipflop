@@ -18,26 +18,27 @@ export const metadata: Metadata = {
 };
 
 interface ProductsPageProps {
-  searchParams: {
+  searchParams: Promise<{
     search?: string;
     page?: string;
     categoryId?: string;
     category?: string;
     minPrice?: string;
     maxPrice?: string;
-  };
+  }>;
 }
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
-  const page = parseInt(searchParams.page || '1');
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || '1');
   const filters = {
     page,
     limit: 20,
-    search: searchParams.search,
-    categoryId: searchParams.categoryId,
-    category: searchParams.category,
-    minPrice: searchParams.minPrice ? parseFloat(searchParams.minPrice) : undefined,
-    maxPrice: searchParams.maxPrice ? parseFloat(searchParams.maxPrice) : undefined,
+    search: resolvedSearchParams.search,
+    categoryId: resolvedSearchParams.categoryId,
+    category: resolvedSearchParams.category,
+    minPrice: resolvedSearchParams.minPrice ? parseFloat(resolvedSearchParams.minPrice) : undefined,
+    maxPrice: resolvedSearchParams.maxPrice ? parseFloat(resolvedSearchParams.maxPrice) : undefined,
     includeWarehouse: true, // Always include real warehouse stock data
   };
 
@@ -51,8 +52,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       <section className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-12">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-extrabold mb-4">
-            {searchParams.search ? `Výsledky hledání: "${searchParams.search}"` : 
-             searchParams.category ? `Kategorie: ${searchParams.category}` : 
+            {resolvedSearchParams.search ? `Výsledky hledání: "${resolvedSearchParams.search}"` : 
+             resolvedSearchParams.category ? `Kategorie: ${resolvedSearchParams.category}` : 
              'Všechny produkty'}
           </h1>
           <p className="text-xl text-blue-50">
@@ -71,7 +72,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
               type="text"
               name="search"
               placeholder="Hledat produkty..."
-              defaultValue={searchParams.search}
+              defaultValue={resolvedSearchParams.search}
               className="flex-1 border-2 border-gray-300 rounded-xl px-5 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
             />
             <button
@@ -97,7 +98,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
               <div className="flex justify-center items-center gap-3 mb-8">
                 {pagination.hasPrev && (
                   <Link
-                    href={`/products?page=${pagination.page - 1}${searchParams.search ? `&search=${encodeURIComponent(searchParams.search)}` : ''}${searchParams.category ? `&category=${encodeURIComponent(searchParams.category)}` : ''}`}
+                    href={`/products?page=${pagination.page - 1}${resolvedSearchParams.search ? `&search=${encodeURIComponent(resolvedSearchParams.search)}` : ''}${resolvedSearchParams.category ? `&category=${encodeURIComponent(resolvedSearchParams.category)}` : ''}`}
                     className="px-6 py-3 bg-white border-2 border-gray-300 rounded-xl font-semibold hover:bg-blue-50 hover:border-blue-500 transition-all shadow-sm hover:shadow-md"
                   >
                     ← Předchozí
@@ -108,7 +109,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                 </span>
                 {pagination.hasNext && (
                   <Link
-                    href={`/products?page=${pagination.page + 1}${searchParams.search ? `&search=${encodeURIComponent(searchParams.search)}` : ''}${searchParams.category ? `&category=${encodeURIComponent(searchParams.category)}` : ''}`}
+                    href={`/products?page=${pagination.page + 1}${resolvedSearchParams.search ? `&search=${encodeURIComponent(resolvedSearchParams.search)}` : ''}${resolvedSearchParams.category ? `&category=${encodeURIComponent(resolvedSearchParams.category)}` : ''}`}
                     className="px-6 py-3 bg-white border-2 border-gray-300 rounded-xl font-semibold hover:bg-blue-50 hover:border-blue-500 transition-all shadow-sm hover:shadow-md"
                   >
                     Další →

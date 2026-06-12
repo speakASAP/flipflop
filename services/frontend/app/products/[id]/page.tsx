@@ -6,9 +6,9 @@ import Image from 'next/image';
 import type { Metadata } from 'next';
 
 interface ProductPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // Helper function to get product emoji
@@ -43,7 +43,8 @@ const getGradient = (name: string) => {
 };
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
-  const response = await productsApi.getProduct(params.id);
+  const { id } = await params;
+  const response = await productsApi.getProduct(id);
   if (!response.success || !response.data) {
     return { title: 'Produkt nenalezen | flipflop.alfares.cz' };
   }
@@ -72,7 +73,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const response = await productsApi.getProduct(params.id);
+  const { id } = await params;
+  const response = await productsApi.getProduct(id);
 
   if (!response.success || !response.data) {
     notFound();
