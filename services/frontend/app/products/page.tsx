@@ -31,12 +31,13 @@ interface ProductsPageProps {
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const resolvedSearchParams = await searchParams;
   const page = parseInt(resolvedSearchParams.page || '1');
+  const selectedCategory = resolvedSearchParams.category;
   const filters = {
     page,
     limit: 20,
     search: resolvedSearchParams.search,
     categoryId: resolvedSearchParams.categoryId,
-    category: resolvedSearchParams.category,
+    category: selectedCategory,
     minPrice: resolvedSearchParams.minPrice ? parseFloat(resolvedSearchParams.minPrice) : undefined,
     maxPrice: resolvedSearchParams.maxPrice ? parseFloat(resolvedSearchParams.maxPrice) : undefined,
     includeWarehouse: true, // Always include real warehouse stock data
@@ -45,6 +46,12 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const response = await productsApi.getProducts(filters);
   const products = response.success ? response.data?.items || [] : [];
   const pagination = response.success ? response.data?.pagination : null;
+  const selectedCategoryLabel = selectedCategory
+    ? products
+        .flatMap((product: Product) => product.categories || [])
+        .find((category) => category.slug === selectedCategory || category.name === selectedCategory)
+        ?.name || selectedCategory
+    : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -53,11 +60,13 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         <div className="container mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-extrabold mb-4">
             {resolvedSearchParams.search ? `Výsledky hledání: "${resolvedSearchParams.search}"` : 
-             resolvedSearchParams.category ? `Kategorie: ${resolvedSearchParams.category}` : 
+             selectedCategoryLabel ? `Kategorie: ${selectedCategoryLabel}` : 
              'Všechny produkty'}
           </h1>
           <p className="text-xl text-blue-50">
-            {products.length > 0 
+            {!response.success
+              ? 'Katalog je dočasně nedostupný'
+              : products.length > 0 
               ? `Našli jsme ${products.length} ${products.length === 1 ? 'produkt' : products.length < 5 ? 'produkty' : 'produktů'}`
               : 'Procházejte naši širokou nabídku'}
           </p>
@@ -118,6 +127,18 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
               </div>
             )}
           </>
+        ) : !response.success ? (
+          <div className="text-center py-20 bg-white rounded-2xl shadow-lg border border-amber-200">
+            <div className="text-6xl mb-4">!</div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Katalog je dočasně nedostupný</h2>
+            <p className="text-gray-600 mb-6">Zkuste stránku obnovit za chvíli.</p>
+            <Link
+              href="/products"
+              className="inline-block bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              Znovu načíst katalog
+            </Link>
+          </div>
         ) : (
           <div className="text-center py-20 bg-white rounded-2xl shadow-lg">
             <div className="text-6xl mb-4">🔍</div>

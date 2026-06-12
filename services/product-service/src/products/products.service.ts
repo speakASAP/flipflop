@@ -57,6 +57,16 @@ export class ProductsService {
         categoryId: resolvedCategoryId,
         isActive: filters.isActive !== undefined ? filters.isActive : true,
       });
+      if (!catalogResult.items.length) {
+        await this.logger.warn('OPERATIONAL_ALERT catalog_empty_or_unavailable', {
+          context: 'ProductsService',
+          search: filters.search,
+          category: filters.category,
+          categoryId: resolvedCategoryId,
+          page: Number(filters.page) || 1,
+          limit: Number(filters.limit) || 20,
+        });
+      }
 
       // Always fetch stock from warehouse-microservice (unless explicitly disabled)
       // This ensures real stock quantities are displayed instead of 0
@@ -79,11 +89,19 @@ export class ProductsService {
             }
           });
           const stockResults = await Promise.all(stockPromises);
+          const failedStockCount = stockResults.filter(({ stock }) => !stock).length;
           stockResults.forEach(({ productId, stock }) => {
             if (stock) {
               warehouseData.set(productId, stock);
             }
           });
+          if (failedStockCount > 0) {
+            await this.logger.warn('OPERATIONAL_ALERT warehouse_stock_enrichment_partial_failure', {
+              context: 'ProductsService',
+              requestedProductCount: productIds.length,
+              failedStockCount,
+            });
+          }
           this.logger.log(`Successfully fetched warehouse stock for ${warehouseData.size} products`, 'ProductsService');
         }
       }
@@ -105,6 +123,8 @@ export class ProductsService {
           imageUrls: product.media?.filter((m: any) => m.type === 'image').map((m: any) => m.url) || [],
           images: product.media?.filter((m: any) => m.type === 'image').map((m: any) => m.url) || [],
           categories: product.categories || [],
+          seoData: product.seoData || null,
+          tags: product.tags || [],
           createdAt: product.createdAt,
           updatedAt: product.updatedAt,
           ...(stock && {
@@ -160,6 +180,10 @@ export class ProductsService {
         } catch (error: any) {
           // Log warning but don't fail the request - product will show 0 stock
           this.logger.warn(`Failed to fetch stock for product ${id}: ${error.message}`, 'ProductsService');
+          await this.logger.warn('OPERATIONAL_ALERT warehouse_stock_enrichment_failure', {
+            context: 'ProductsService',
+            productId: id,
+          });
         }
       }
 
@@ -179,6 +203,8 @@ export class ProductsService {
         images: product.media?.filter((m: any) => m.type === 'image').map((m: any) => m.url) || [],
         categories: product.categories || [],
         attributes: product.attributes || [],
+        seoData: product.seoData || null,
+        tags: product.tags || [],
         createdAt: product.createdAt,
         updatedAt: product.updatedAt,
         ...(stock && {

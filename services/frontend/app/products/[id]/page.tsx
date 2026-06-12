@@ -4,6 +4,7 @@ import AddToCartButton from '@/components/AddToCartButton';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Metadata } from 'next';
+import type { Product } from '@/lib/api/products';
 
 interface ProductPageProps {
   params: Promise<{
@@ -42,6 +43,13 @@ const getGradient = (name: string) => {
   return 'from-gray-100 via-slate-50 to-gray-200';
 };
 
+const getPublishableSeoData = (product: Product) => {
+  const seoData = product.seoData;
+  if (!seoData) return null;
+  if (seoData.reviewStatus === 'draft') return null;
+  return seoData;
+};
+
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { id } = await params;
   const response = await productsApi.getProduct(id);
@@ -50,17 +58,24 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   }
 
   const product = response.data;
-  const description = product.description
+  const seoData = getPublishableSeoData(product);
+  const description = seoData?.metaDescription
+    ? seoData.metaDescription.slice(0, 160)
+    : product.description
     ? product.description.slice(0, 160)
     : `Koupit ${product.name} za ${product.price.toLocaleString('cs-CZ')} Kč. Rychlé doručení po celé ČR.`;
-  const title = product.brand
+  const title = seoData?.metaTitle
+    ? seoData.metaTitle
+    : product.brand
     ? `${product.brand} ${product.name} | flipflop.alfares.cz`
     : `${product.name} | flipflop.alfares.cz`;
   const image = product.mainImageUrl ?? product.imageUrls?.[0] ?? product.images?.[0];
+  const keywords = Array.isArray(seoData?.keywords) ? seoData.keywords : product.tags;
 
   return {
     title,
     description,
+    ...(keywords?.length ? { keywords } : {}),
     openGraph: {
       title,
       description,

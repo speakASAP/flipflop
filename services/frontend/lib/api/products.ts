@@ -17,8 +17,30 @@ export interface Product {
   images?: string[]; // Alias for imageUrls for backward compatibility
   categories?: Category[];
   variants?: ProductVariant[];
+  seoData?: ProductSeoData | null;
+  tags?: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ProductSeoData {
+  metaTitle?: string;
+  metaDescription?: string;
+  keywords?: string[];
+  slug?: string;
+  reviewStatus?: 'draft' | 'approved' | 'published' | string;
+  aiDraft?: {
+    metaTitle?: string;
+    metaDescription?: string;
+    keywords?: string[];
+    shortDescription?: string;
+    description?: string;
+    reviewStatus: 'draft' | string;
+    generatedAt?: string;
+    generator?: string;
+    modelTier?: string;
+    sourceProductFacts?: Record<string, unknown>;
+  };
 }
 
 export interface ProductVariant {

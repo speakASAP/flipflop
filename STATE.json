@@ -1,10 +1,24 @@
 {
-  "cycle": 22,
-  "tasks_active": 4,
-  "last_cycle_at": "2026-04-16T19:55:15.745Z",
-  "status": "operational",
-  "programme_phase": "P12_closure",
-  "all_features_complete": true,
+  "cycle": 23,
+  "tasks_active": 0,
+  "last_cycle_at": "2026-06-12T08:47:08.000Z",
+  "status": "operational_with_owner_bypassed_payment_provider_risk",
+  "programme_phase": "P12_closure_complete",
+  "all_features_complete": false,
   "orchestrator_project_slug": "flipflop-v1",
-  "last_updated": "2026-04-16"
+  "active_goal": null,
+  "goals": {
+    "GOAL-01-production-readiness": "done",
+    "GOAL-02-checkout-payments": "blocked_with_owner_approved_bypass",
+    "GOAL-03-catalog-stock-storefront": "done",
+    "GOAL-04-agent-content-seo": "done",
+    "GOAL-05-operational-closure": "done"
+  },
+  "residual_risks": [
+    "PayU production credentials and callback verification require owner manual follow-up",
+    "PayPal production credentials and callback verification require owner manual follow-up",
+    "GP WebPay production merchant, key, application, and description configuration require owner manual follow-up",
+    "Stripe webhook verification requires owner manual follow-up"
+  ],
+  "last_updated": "2026-06-12"
 }
