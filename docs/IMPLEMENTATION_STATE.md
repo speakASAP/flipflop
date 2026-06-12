@@ -4,9 +4,9 @@
 
 **Date:** 2026-06-12  
 **Mode:** Goal-driven orchestration enabled  
-**Active goal:** `GOAL-02-checkout-payments`  
+**Active goal:** `GOAL-03-catalog-stock-storefront`  
 **Goal status:** active  
-**Current checkpoint:** GOAL-02 Stripe initiation fixed and deployed; provider webhook validation remains
+**Current checkpoint:** GOAL-02 provider completion bypassed by owner; GOAL-03 started
 
 ## Current Intent Summary
 
@@ -45,40 +45,35 @@ Orchestrator agents must not overwrite or revert those changes unless the owner 
   using request-scoped circuit breaker names for payment create/status/refund.
 - Deployed FlipFlop and validated Stripe initiation now returns a Stripe
   Checkout URL for a Stripe order.
+- Recorded owner-approved bypass for remaining GOAL-02 payment provider
+  credential/webhook completion.
 
 ## Next Step
 
-Continue GOAL-02 checkout payments:
+Start GOAL-03 catalog, stock, and storefront quality:
 
 ```text
-implementation-goals/GOAL-02-checkout-payments.execution-plan.md
-implementation-goals/GOAL-02-checkout-payments.validation-report.md
+implementation-goals/GOAL-03-catalog-stock-storefront.md
 ```
 
-Production payment discovery found:
+Owner bypass decision:
 
-- `payments-microservice` health is OK.
-- FlipFlop order service has payment service URL plus API/webhook keys present.
-- PayU credentials are missing in the running payments pod.
-- PayPal credentials are missing in the running payments pod.
-- GP WebPay merchant/key/application/description config checked in the running
-  payments pod is missing.
-- Stripe has `STRIPE_SECRET_KEY` present, but `STRIPE_WEBHOOK_SECRET` is
-  missing.
+The owner deferred the remaining GOAL-02 payment provider setup and webhook
+validation until after the whole project is implemented. PayU, PayPal, GP
+WebPay, and Stripe webhook completion remain manual follow-up work and must not
+be marked verified automatically.
 
-Next implementation step: configure or verify Stripe webhook handling, then
-validate provider callback to order paid state, stock deduction, and
-notification evidence. Treat webhook completion as blocked unless
-`STRIPE_WEBHOOK_SECRET` or another approved verified provider callback path is
-available. Do not use simulated webhook scripts as provider success evidence.
+Next implementation step: create GOAL-03 execution artifacts, validate live
+product list/detail/category/cart stock behavior, and patch the smallest
+storefront/catalog/stock gap found.
 
 ## Goal Register
 
 | Goal | Status | Next action |
 | --- | --- | --- |
 | `GOAL-01-production-readiness` | done | closed with live validation evidence |
-| `GOAL-02-checkout-payments` | active | validate Stripe webhook/order paid path; keep PayU/PayPal/WebPay blocked until credentials are configured |
-| `GOAL-03-catalog-stock-storefront` | blocked | wait for Goal 02 provider findings |
+| `GOAL-02-checkout-payments` | blocked with owner-approved bypass | owner will finish provider credentials/webhooks manually after project implementation |
+| `GOAL-03-catalog-stock-storefront` | active | validate live product list/detail/category/cart stock behavior and patch storefront/catalog gaps |
 | `GOAL-04-agent-content-seo` | backlog | wait for product/catalog readiness |
 | `GOAL-05-operational-closure` | backlog | wait for production readiness and checkout goals |
 

@@ -2,13 +2,18 @@
 
 ## Status
 
-Active on 2026-06-12.
+Blocked with owner-approved bypass on 2026-06-12.
 
-GOAL-02 is active, with initial provider readiness discovery complete. Full
-end-to-end provider validation is currently blocked for PayU, PayPal, and GP
-WebPay by missing production provider credentials/configuration. Stripe is
-partially configured: initiation now works, but verified webhook completion
-still needs webhook-secret/provider-callback evidence.
+GOAL-02 provider completion is intentionally deferred by owner decision. The
+platform can proceed to later implementation goals while PayU, PayPal, GP
+WebPay, and Stripe webhook/provider completion are configured manually after the
+rest of the project is implemented.
+
+Initial provider readiness discovery is complete. Full end-to-end provider
+validation is currently blocked for PayU, PayPal, and GP WebPay by missing
+production provider credentials/configuration. Stripe is partially configured:
+initiation now works, but verified webhook completion still needs
+webhook-secret/provider-callback evidence.
 
 ## Commands
 
@@ -116,7 +121,12 @@ Validation after deploy:
   no credential values printed, no price/order-total changes.
 - Non-goals respected: no checkout UX redesign, no provider replacement, no
   credential rotation.
+- Owner-approved bypass: on 2026-06-12, the owner explicitly deferred the
+  remaining provider credential/webhook completion until after the whole
+  project is implemented and said they will add it manually once FlipFlop is
+  available.
 - Remaining blockers: PayU, PayPal, and GP WebPay missing production
   credentials/configuration; Stripe webhook verification missing webhook secret.
-- Next step: configure/verify Stripe webhook handling, then validate provider
-  callback to order paid state, stock deduction, and notification evidence.
+- Next step: proceed to GOAL-03 catalog, stock, and storefront quality. Payment
+  provider completion remains a manual follow-up and must not be silently marked
+  verified.
