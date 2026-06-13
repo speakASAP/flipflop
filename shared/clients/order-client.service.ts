@@ -4,15 +4,33 @@ import { firstValueFrom } from 'rxjs';
 import { LoggerService } from '../logger/logger.service';
 
 const CREATE_ORDER_CONTRACT_VERSION = 'orders.create.v1';
-const DEFAULT_CHANNEL_ACCOUNT_ID = 'default';
+const DEFAULT_CHANNEL_ACCOUNT_ID = 'flipflop-storefront';
+export const ORDER_IDEMPOTENCY_CONFLICT = 'ORDER_IDEMPOTENCY_CONFLICT';
 
 interface CreateCentralOrderRequest {
   externalOrderId: string;
   channel: string;
   channelAccountId?: string;
-  customer?: any;
-  shippingAddress?: any;
-  billingAddress?: any;
+  orderedAt?: Date | string;
+  customer?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+  };
+  shippingAddress?: {
+    name?: string;
+    street?: string;
+    city?: string;
+    postalCode?: string;
+    country?: string;
+  };
+  billingAddress?: {
+    name?: string;
+    street?: string;
+    city?: string;
+    postalCode?: string;
+    country?: string;
+  };
   items: Array<{
     productId: string;
     sku?: string;
@@ -20,18 +38,28 @@ interface CreateCentralOrderRequest {
     quantity: number;
     unitPrice: number;
     totalPrice: number;
+    warehouseId?: string;
   }>;
-  subtotal: number;
-  shippingCost: number;
-  taxAmount: number;
-  total: number;
-  currency: string;
-  paymentMethod?: string;
-  paymentStatus?: string;
-  shippingMethod?: string;
-  customerNote?: string;
-  orderedAt?: Date;
+  totals: {
+    subtotal: number;
+    shippingCost: number;
+    taxAmount: number;
+    total: number;
+    currency: string;
+  };
+  payment?: {
+    method?: string;
+    status?: string;
+  };
+  shipping?: {
+    method?: string;
+  };
 }
+
+type CreateCentralOrderPayload = Omit<CreateCentralOrderRequest, 'orderedAt'> & {
+  contractVersion: string;
+  orderedAt?: string;
+};
 
 /**
  * API client for orders-microservice.
@@ -45,14 +73,19 @@ export class OrderClientService {
     private readonly httpService: HttpService,
     private readonly logger: LoggerService,
   ) {
-    this.baseUrl = process.env.ORDER_SERVICE_URL || 'http://orders-microservice:3203';
+    this.baseUrl =
+      process.env.ORDERS_SERVICE_URL ||
+      process.env.ORDERS_MICROSERVICE_URL ||
+      process.env.ORDER_HUB_SERVICE_URL ||
+      'http://orders-microservice:3203';
   }
 
   async createOrder(orderData: CreateCentralOrderRequest): Promise<any> {
-    const payload = {
+    const payload: CreateCentralOrderPayload = {
       contractVersion: CREATE_ORDER_CONTRACT_VERSION,
       ...orderData,
       channelAccountId: this.normalizeChannelAccountId(orderData.channelAccountId),
+      orderedAt: this.normalizeOrderedAt(orderData.orderedAt),
     };
 
     try {
@@ -64,7 +97,7 @@ export class OrderClientService {
     } catch (error: any) {
       const status = error?.response?.status;
       const message = status === HttpStatus.CONFLICT
-        ? 'ORDER_IDEMPOTENCY_CONFLICT'
+        ? ORDER_IDEMPOTENCY_CONFLICT
         : error instanceof Error ? error.message : 'Unknown error';
       const stack = error instanceof Error ? error.stack : undefined;
       this.logger.error('Failed to create order in orders-microservice: ' + message, stack, 'OrderClient');
@@ -108,5 +141,12 @@ export class OrderClientService {
   private normalizeChannelAccountId(channelAccountId?: string): string {
     const normalized = channelAccountId?.trim();
     return normalized || DEFAULT_CHANNEL_ACCOUNT_ID;
+  }
+
+  private normalizeOrderedAt(orderedAt?: Date | string): string | undefined {
+    if (!orderedAt) {
+      return undefined;
+    }
+    return orderedAt instanceof Date ? orderedAt.toISOString() : orderedAt;
   }
 }

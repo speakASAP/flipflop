@@ -20,6 +20,7 @@ import {
   OrderStatus,
   PaymentStatus,
   OrderClientService,
+  ORDER_IDEMPOTENCY_CONFLICT,
   WarehouseClientService,
   InventoryEventsPublisher,
   CustomerEventsPublisher,
@@ -620,6 +621,110 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     return `ORD-${timestamp}-${random}`;
   }
 
+  private buildCentralOrdersPayload(params: {
+    order: any;
+    orderItems: Array<{
+      productId: string;
+      productSku?: string;
+      productName: string;
+      quantity: number;
+      unitPrice: number;
+      totalPrice: number;
+    }>;
+    deliveryAddress: any;
+    user?: { email?: string | null } | null;
+  }) {
+    const { order, orderItems, deliveryAddress, user } = params;
+    const customerName = `${deliveryAddress.firstName} ${deliveryAddress.lastName}`.trim();
+    const boundedAddress = {
+      name: customerName || undefined,
+      street: deliveryAddress.street,
+      city: deliveryAddress.city,
+      postalCode: deliveryAddress.postalCode,
+      country: deliveryAddress.country || 'CZ',
+    };
+
+    return {
+      externalOrderId: order.orderNumber,
+      channel: 'flipflop',
+      channelAccountId: this.getCentralOrdersChannelAccountId(),
+      orderedAt: order.createdAt,
+      customer: {
+        name: customerName || undefined,
+        email: user?.email || undefined,
+        phone: deliveryAddress.phone || undefined,
+      },
+      shippingAddress: boundedAddress,
+      billingAddress: boundedAddress,
+      items: orderItems.map((item) => ({
+        productId: item.productId,
+        sku: item.productSku,
+        title: item.productName,
+        quantity: item.quantity,
+        unitPrice: Number(item.unitPrice),
+        totalPrice: Number(item.totalPrice),
+      })),
+      totals: {
+        subtotal: Number(order.subtotal),
+        shippingCost: Number(order.shippingCost),
+        taxAmount: Number(order.tax),
+        total: Number(order.total),
+        currency: 'CZK',
+      },
+      payment: {
+        method: order.paymentMethod || 'webpay',
+        status: order.paymentStatus || PaymentStatus.pending,
+      },
+      shipping: {
+        method: order.shippingProvider || 'standard',
+      },
+    };
+  }
+
+  private getCentralOrdersChannelAccountId(): string {
+    const configured = process.env.ORDERS_CHANNEL_ACCOUNT_ID?.trim();
+    return configured || 'flipflop-storefront';
+  }
+
+  private async recordCentralOrdersForwarding(
+    order: any,
+    status: 'accepted' | 'conflict' | 'failed',
+    details: Record<string, unknown> = {},
+  ): Promise<void> {
+    try {
+      const existingMetadata =
+        order.metadata && typeof order.metadata === 'object' && !Array.isArray(order.metadata)
+          ? { ...(order.metadata as Record<string, unknown>) }
+          : {};
+
+      await this.prisma.order.update({
+        where: { id: order.id },
+        data: {
+          metadata: {
+            ...existingMetadata,
+            centralOrdersForwarding: {
+              status,
+              contractVersion: 'orders.create.v1',
+              channel: 'flipflop',
+              channelAccountId: this.getCentralOrdersChannelAccountId(),
+              externalOrderId: order.orderNumber,
+              updatedAt: new Date().toISOString(),
+              ...details,
+            },
+          } as Prisma.InputJsonValue,
+        },
+      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn('Failed to record central Orders forwarding metadata', {
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        status,
+        error: message,
+      });
+    }
+  }
+
   /**
    * Create order from cart
    */
@@ -799,45 +904,44 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     });
 
     try {
-      const orderData = {
-        externalOrderId: order.orderNumber,
-        channel: 'flipflop',
-        channelAccountId: process.env.ORDERS_CHANNEL_ACCOUNT_ID || 'flipflop-storefront',
-        customer: {
-          id: userId,
-          email: user?.email,
-        },
-        shippingAddress: deliveryAddress,
-        billingAddress: deliveryAddress,
-        items: orderItems.map((item) => ({
-          productId: item.productId,
-          sku: item.productSku,
-          title: item.productName,
-          quantity: item.quantity,
-          unitPrice: Number(item.unitPrice),
-          totalPrice: Number(item.totalPrice),
-        })),
-        subtotal: Number(order.subtotal),
-        shippingCost: Number(order.shippingCost),
-        taxAmount: Number(order.tax),
-        total: Number(order.total),
-        currency: 'CZK',
-        paymentMethod: order.paymentMethod,
-        paymentStatus: order.paymentStatus,
-        orderedAt: order.createdAt,
-      };
+      const orderData = this.buildCentralOrdersPayload({
+        order,
+        orderItems,
+        deliveryAddress,
+        user,
+      });
 
-      await this.orderClient.createOrder(orderData);
+      const centralOrder = await this.orderClient.createOrder(orderData);
+      await this.recordCentralOrdersForwarding(order, 'accepted', {
+        centralOrderId: centralOrder?.id,
+      });
       this.logger.log('Order forwarded to orders-microservice', {
         orderId: order.id,
         orderNumber: order.orderNumber,
+        channelAccountId: orderData.channelAccountId,
       });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
+      const isIdempotencyConflict = message.includes(ORDER_IDEMPOTENCY_CONFLICT);
+      await this.recordCentralOrdersForwarding(order, isIdempotencyConflict ? 'conflict' : 'failed', {
+        reason: isIdempotencyConflict ? ORDER_IDEMPOTENCY_CONFLICT : 'CENTRAL_ORDERS_FORWARD_FAILED',
+      });
+      if (isIdempotencyConflict) {
+        this.logger.warn('Central Orders idempotency conflict for FlipFlop order', {
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          channel: 'flipflop',
+          channelAccountId: this.getCentralOrdersChannelAccountId(),
+        });
+        return {
+          order: this.mapOrder(orderWithPayment),
+          redirectUrl: paymentResult.data.redirectUri || null,
+        };
+      }
       this.logger.error('Failed to forward order to orders-microservice', {
         orderId: order.id,
         orderNumber: order.orderNumber,
-        error: message,
+        error: 'CENTRAL_ORDERS_FORWARD_FAILED',
       });
     }
 

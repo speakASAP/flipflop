@@ -11,6 +11,7 @@
     "migrate:products": "ts-node scripts/migrate-products-to-catalog.ts",
     "migrate:products:dry-run": "ts-node scripts/migrate-products-to-catalog.ts --dry-run",
     "migrate:products:skip-stock": "ts-node scripts/migrate-products-to-catalog.ts --skip-stock",
+    "verify:orders-hub-integration": "node scripts/verify-orders-hub-integration.js",
     "smoke:checkout": "node scripts/smoke-checkout.js"
   },
   "dependencies": {

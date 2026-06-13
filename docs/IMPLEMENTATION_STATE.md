@@ -2,11 +2,11 @@
 
 ## Current Status
 
-**Date:** 2026-06-12  
-**Mode:** Goal-driven orchestration enabled  
-**Active goal:** none  
-**Goal status:** closed with owner-bypassed payment provider risk  
-**Current checkpoint:** GOAL-05 closed; project handoff recorded
+**Date:** 2026-06-13
+**Mode:** Goal-driven orchestration enabled
+**Active goal:** GOAL-06-orders-hub-integration
+**Goal status:** implemented and validated; deployment pending owner approval
+**Current checkpoint:** GOAL-06 server-side Orders Hub integration is implemented in FlipFlop order-service and validated locally. Runtime deployment has not been run.
 
 ## Current Intent Summary
 
@@ -76,20 +76,38 @@ Orchestrator agents must not overwrite or revert those changes unless the owner 
 - Added final operational runbook and handoff notes.
 - Updated machine-readable `STATE.json` to show no active implementation goal
   and preserve the owner-bypassed payment provider risk.
+- Started `GOAL-06-orders-hub-integration` after owner approval naming
+  FlipFlop as the specific application for central Orders. Scope is the
+  FlipFlop server-side `order-service` forwarding path, not provider
+  credentials, provider webhook verification, price mutation, refund,
+  cancellation, warehouse ownership, or catalog ownership.
+- Implemented GOAL-06 server-side central Orders forwarding hardening:
+  `shared/clients/order-client.service.ts` now uses `ORDERS_SERVICE_URL`
+  for central Orders with compatibility for existing `ORDERS_MICROSERVICE_URL`,
+  sends `orders.create.v1`, and maps central Orders HTTP 409 to
+  `ORDER_IDEMPOTENCY_CONFLICT`. `order-service` now builds a bounded
+  FlipFlop payload with stable `channel=flipflop`,
+  `channelAccountId`, `externalOrderId=order.orderNumber`, nested totals,
+  payment, shipping, and bounded customer/address fields, and records
+  accepted/conflict/failed central forwarding status in local order metadata.
+- Added explicit `ORDERS_SERVICE_URL=http://orders-microservice:3203` to
+  `k8s/configmap.yaml` while preserving the existing `ORDERS_MICROSERVICE_URL`
+  alias.
+- Added `scripts/verify-orders-hub-integration.js` and
+  `npm run verify:orders-hub-integration`.
 
 ## Next Step
 
-No active implementation goal remains.
+Active implementation goal: none. `GOAL-06-orders-hub-integration` is code-complete and validated; deployment is pending explicit owner approval.
 
-Owner bypass decision:
+Owner bypass decision remains in force:
 
 The owner deferred the remaining GOAL-02 payment provider setup and webhook
 validation until after the whole project is implemented. PayU, PayPal, GP
 WebPay, and Stripe webhook completion remain manual follow-up work and must not
 be marked verified automatically.
 
-Next implementation step: none. Owner/manual follow-up remains for production
-payment provider credentials and webhook verification.
+Next implementation step: obtain owner approval for FlipFlop runtime deployment, then run the deployment readiness gate and deploy.
 
 ## Goal Register
 
@@ -100,6 +118,7 @@ payment provider credentials and webhook verification.
 | `GOAL-03-catalog-stock-storefront` | done | closed with live catalog, storefront, stock, deploy, and alert evidence |
 | `GOAL-04-agent-content-seo` | done | closed with draft AI content, review status, SEO metadata, and no-publish validation |
 | `GOAL-05-operational-closure` | done | closed with final validation docs, monitoring notes, runbook, and handoff |
+| `GOAL-06-orders-hub-integration` | implemented, deployment pending | owner approval for runtime deployment |
 
 ## Owner Manual Follow-Up
 
