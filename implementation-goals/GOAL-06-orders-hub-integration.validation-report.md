@@ -2,11 +2,11 @@
 
 ## Status
 
-Implemented, validated, deployed, and post-deploy checked on 2026-06-13.
-Deployment completed for all FlipFlop workloads. A full checkout smoke did not
-reach order creation because `POST /cart/items` returned 404 through the
-gateway, so live central Orders forwarding still needs a follow-up synthetic
-order exercise after that cart/gateway blocker is resolved.
+Implemented, validated, deployed, and live-smoke proven on 2026-06-13.
+Deployment completed for all FlipFlop workloads. Runtime authorization was
+corrected with an Orders-runtime-signed `ORDERS_SERVICE_TOKEN`, the
+ExternalSecret was refreshed, only `flipflop-order-service` was restarted, and
+final checkout smoke proved central Orders forwarding in production.
 
 ## Commands
 
@@ -22,6 +22,9 @@ npm run verify:orders-hub-integration
 curl -fsSI https://flipflop.alfares.cz/
 curl -fsS 'https://flipflop.alfares.cz/api/products?limit=1'
 node scripts/smoke-checkout.js
+central Orders auth probe from the deployed order-service pod
+FlipFlop local order metadata evidence query
+central Orders log evidence query for ORD-1781378332000-840
 ```
 
 ## Results
@@ -41,8 +44,8 @@ node scripts/smoke-checkout.js
   `flipflop-user-service`. The script's rollout wait initially timed out
   while pods were still pulling from the local registry, but the current
   replacement pods later reached 1/1 ready for all six deployments.
-- Deployed image evidence: order-service image digest
-  `sha256:73eea3fc4e5bd2e8365d65f7706aee1342a0fca4c581672ca7e25987ae0c8275`.
+- Deployed image evidence: running order-service image ID
+  `localhost:5000/flipflop-order-service@sha256:773a6cad6064d1af3106733fa7ce617a1af4f5aaa97e14c8478397bba732afb9`.
 - Post-deploy verifier: PASS; `npm run verify:orders-hub-integration` passed
   against the deployed source state.
 - Public runtime checks: PASS; homepage returned HTTP 200 and the public
@@ -54,9 +57,16 @@ node scripts/smoke-checkout.js
 - Workload health: PARTIAL; all service health endpoints returned HTTP 200,
   but bodies reported `degraded` due a logging dependency error.
   `logging-microservice` itself returned healthy.
-- Checkout smoke: BLOCKED before central Orders forwarding. The smoke script
-  failed on `POST /cart/items` with a gateway 404, before local order creation
-  and before any central Orders create request could be exercised.
+- Runtime authorization: PASS. The deployed FlipFlop order-service pod has
+  `ORDERS_SERVICE_TOKEN` projected, and a non-mutating in-cluster probe to
+  central Orders returned HTTP 200 without exposing token values.
+- Checkout smoke: PASS. `node scripts/smoke-checkout.js` created
+  `ORD-1781378332000-840` with pending Stripe payment and a redirect URL.
+- Central Orders forwarding: PASS. FlipFlop local metadata recorded
+  `centralOrdersForwarding.status=accepted` and
+  `centralOrderId=ae51a415-ded0-4bf9-ac4e-c9adcab97d80`; central Orders logs
+  recorded `operation=order.create`, `channel=flipflop`, and
+  `outcome=success` for the same smoke order.
 
 ## Intent Compliance Report
 
@@ -66,10 +76,8 @@ node scripts/smoke-checkout.js
 - Runtime wiring clarified: the central Orders client no longer uses local `ORDER_SERVICE_URL`; it uses `ORDERS_SERVICE_URL`, then existing `ORDERS_MICROSERVICE_URL`, then `ORDER_HUB_SERVICE_URL`, then the in-cluster central Orders default.
 - Payment safety preserved: no provider credential, provider webhook, payment capture, refund, cancellation, price, discount, or order-total behavior was changed.
 - Sensitive-data boundary preserved: central forwarding now uses bounded customer/address fields and does not forward raw local delivery-address records, customer notes, raw provider payloads, card data, tokens, or secrets.
-- Remaining blockers: live central Orders forwarding has not been proven by
-  checkout smoke because cart item creation currently returns gateway 404;
-  PayU, PayPal, GP WebPay, and Stripe webhook/provider follow-up risks remain
-  as previously recorded.
-- Next step: fix or bypass the checkout smoke cart/gateway 404, then run a
-  live synthetic order path that confirms central Orders receives the bounded
-  FlipFlop order payload.
+- Remaining blockers: none for GOAL-06. PayU, PayPal, GP WebPay, and Stripe
+  webhook/provider follow-up risks remain as previously recorded under the
+  owner-approved GOAL-02 bypass, outside this goal.
+- Next step: return to H8 candidate application integration decisions and pick
+  the next application/service to migrate into central Orders.

@@ -4,9 +4,9 @@
 
 **Date:** 2026-06-13
 **Mode:** Goal-driven orchestration enabled
-**Active goal:** GOAL-06-orders-hub-integration
-**Goal status:** deployed with residual checkout-smoke blocker
-**Current checkpoint:** GOAL-06 server-side Orders Hub integration is implemented, validated, committed, pushed, and deployed in FlipFlop. All FlipFlop Kubernetes deployments are rolled out 1/1. Runtime checkout smoke is still blocked before order creation by `POST /cart/items` returning 404 through the gateway, so a live central Orders forwarding event has not yet been exercised.
+**Active goal:** none
+**Goal status:** GOAL-06-orders-hub-integration closed after live deployment validation
+**Current checkpoint:** GOAL-06 server-side Orders Hub integration is implemented, validated, committed, pushed, deployed in FlipFlop, and live-smoke proven. All FlipFlop Kubernetes deployments are rolled out 1/1. Final checkout smoke created `ORD-1781378332000-840`; FlipFlop metadata recorded central forwarding `status=accepted` with central order id `ae51a415-ded0-4bf9-ac4e-c9adcab97d80`, and central Orders logged `order.create` success for channel `flipflop`.
 
 ## Current Intent Summary
 
@@ -111,12 +111,25 @@ Orchestrator agents must not overwrite or revert those changes unless the owner 
   `npm run verify:orders-hub-integration` successfully after deployment.
 - Captured operational residuals after deployment: service health endpoints
   returned HTTP 200 with body status `degraded` due a logging dependency
-  error while `logging-microservice` itself reported healthy, and live
-  checkout smoke failed at `POST /cart/items` 404 before order creation.
+  error while `logging-microservice` itself reported healthy.
+- Fixed deployed runtime authorization for FlipFlop-to-Orders forwarding by
+  storing an Orders-runtime-signed `ORDERS_SERVICE_TOKEN` in the FlipFlop
+  Vault path, forcing ExternalSecret refresh, verifying the Kubernetes Secret
+  against the central Orders runtime signing key without printing secret
+  values, and restarting only `flipflop-order-service`.
+- Proved central Orders auth from inside the deployed FlipFlop order-service
+  pod: non-mutating `GET /api/orders?channel=flipflop` returned HTTP 200.
+- Proved live checkout and central Orders forwarding after deployment:
+  `node scripts/smoke-checkout.js` created FlipFlop order
+  `ORD-1781378332000-840` with pending Stripe payment and redirect URL; the
+  local order metadata recorded `centralOrdersForwarding.status=accepted`
+  and `centralOrderId=ae51a415-ded0-4bf9-ac4e-c9adcab97d80`; central
+  Orders logged `operation=order.create`, `channel=flipflop`,
+  `outcome=success`.
 
 ## Next Step
 
-Active implementation goal: none. `GOAL-06-orders-hub-integration` is deployed. Runtime checkout smoke did not reach order creation because gateway forwarding to `POST /cart/items` returned 404, so central Orders live forwarding still needs a synthetic order exercise after the cart/gateway issue is resolved.
+Active implementation goal: none. `GOAL-06-orders-hub-integration` is closed with deployed live evidence. FlipFlop checkout now reaches local order creation, payment initiation, and central Orders forwarding in production.
 
 Owner bypass decision remains in force:
 
@@ -125,7 +138,7 @@ validation until after the whole project is implemented. PayU, PayPal, GP
 WebPay, and Stripe webhook completion remain manual follow-up work and must not
 be marked verified automatically.
 
-Next implementation step: investigate the FlipFlop cart/gateway 404 on `POST /cart/items`, then rerun checkout smoke or a narrower synthetic order test that proves central Orders forwarding in production.
+Next implementation step: return to H8 candidate application integration decisions and choose the next application/service to migrate into central Orders using the FlipFlop evidence as the reference pattern.
 
 ## Goal Register
 
@@ -136,7 +149,7 @@ Next implementation step: investigate the FlipFlop cart/gateway 404 on `POST /ca
 | `GOAL-03-catalog-stock-storefront` | done | closed with live catalog, storefront, stock, deploy, and alert evidence |
 | `GOAL-04-agent-content-seo` | done | closed with draft AI content, review status, SEO metadata, and no-publish validation |
 | `GOAL-05-operational-closure` | done | closed with final validation docs, monitoring notes, runbook, and handoff |
-| `GOAL-06-orders-hub-integration` | deployed with residual smoke blocker | fix `POST /cart/items` 404, then exercise live central Orders forwarding |
+| `GOAL-06-orders-hub-integration` | done | closed with deployed live checkout and central Orders forwarding evidence |
 
 ## Owner Manual Follow-Up
 
