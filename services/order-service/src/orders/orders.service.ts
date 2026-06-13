@@ -686,6 +686,11 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     return configured || 'flipflop-storefront';
   }
 
+  private getPaymentApplicationId(): string {
+    const configured = process.env.PAYMENT_APPLICATION_ID?.trim();
+    return configured || 'flipflop-service';
+  }
+
   private async recordCentralOrdersForwarding(
     order: any,
     status: 'accepted' | 'conflict' | 'failed',
@@ -856,7 +861,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     try {
       paymentResult = await this.paymentService.createPayment({
         orderId: order.orderNumber,
-        applicationId: 'flipflop-v1',
+        applicationId: this.getPaymentApplicationId(),
         amount: total,
         currency: 'CZK',
         paymentMethod: dto.paymentMethod || 'webpay',
@@ -1028,7 +1033,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
 
     const paymentResponse = await this.paymentService.createPayment({
       orderId: order.orderNumber,
-      applicationId: 'flipflop-v1',
+      applicationId: this.getPaymentApplicationId(),
       amount: Number(order.total),
       currency: 'CZK',
       paymentMethod: order.paymentMethod || 'webpay',
