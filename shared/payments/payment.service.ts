@@ -54,11 +54,13 @@ export class PaymentService {
     endpoint: string,
     data?: any,
     method: 'GET' | 'POST' | 'PUT' = 'POST',
+    extraHeaders: Record<string, string> = {},
   ): Promise<T> {
     const config = {
       headers: {
         'Content-Type': 'application/json',
         'X-API-Key': this.configService.get<string>('PAYMENT_API_KEY') || '',
+        ...extraHeaders,
       },
       timeout: 30000,
     };
@@ -170,8 +172,11 @@ export class PaymentService {
       payload.metadata = dto.metadata;
     }
 
+    const idempotencyKey = this.buildCreatePaymentIdempotencyKey(dto);
     const callFn = async () =>
-      this.callPaymentService<Record<string, unknown>>('/payments/create', payload);
+      this.callPaymentService<Record<string, unknown>>('/payments/create', payload, 'POST', {
+        'Idempotency-Key': idempotencyKey,
+      });
 
     const breakerName = `payment-service:create:${dto.orderId}:${(dto.paymentMethod || 'webpay').toLowerCase()}`;
     const breaker = this.circuitBreakerService.create(
@@ -220,6 +225,14 @@ export class PaymentService {
 
       throw error;
     }
+  }
+
+  private buildCreatePaymentIdempotencyKey(dto: CreatePaymentDto): string {
+    const method = (dto.paymentMethod || 'webpay').toLowerCase();
+    const amount = Number.isFinite(Number(dto.amount)) ? Number(dto.amount).toFixed(2) : String(dto.amount);
+    return ['flipflop', dto.applicationId, dto.orderId, method, dto.currency || 'CZK', amount]
+      .join(':')
+      .replace(/[^A-Za-z0-9:._-]/g, '-');
   }
 
   /**

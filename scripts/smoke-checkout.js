@@ -5,6 +5,7 @@ const { execFileSync } = require('child_process');
 const baseUrl = process.env.BASE_URL || 'https://flipflop.alfares.cz/api';
 const email = process.env.TEST_EMAIL || 'test@example.com';
 const authEnvPath = process.env.AUTH_ENV_PATH || '/home/ssf/Documents/Github/auth-microservice/.env';
+const paymentMethod = process.env.SMOKE_PAYMENT_METHOD || 'stripe';
 
 function readEnvFile(path) {
   const out = {};
@@ -168,7 +169,10 @@ async function main() {
   }
 
   await request('/cart', { method: 'DELETE', headers: authHeaders });
-  const product = products.find((item) => Number(item.stockQuantity || 0) > 0) || products[0];
+  const product =
+    products.find((item) => Number(item.stockQuantity || 0) > 0 && Number(item.price || 0) > 0) ||
+    products.find((item) => Number(item.stockQuantity || 0) > 0) ||
+    products[0];
   const cartItem = await request('/cart/items', {
     method: 'POST',
     headers: authHeaders,
@@ -182,7 +186,7 @@ async function main() {
     headers: authHeaders,
     body: JSON.stringify({
       deliveryAddressId: address.id,
-      paymentMethod: 'webpay',
+      paymentMethod,
       shippingCost: 0,
       notes: 'Automated production-readiness smoke test',
     }),
