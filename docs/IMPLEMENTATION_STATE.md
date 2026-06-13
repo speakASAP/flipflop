@@ -5,8 +5,8 @@
 **Date:** 2026-06-13
 **Mode:** Goal-driven orchestration enabled
 **Active goal:** GOAL-06-orders-hub-integration
-**Goal status:** implemented and validated; deployment pending owner approval
-**Current checkpoint:** GOAL-06 server-side Orders Hub integration is implemented in FlipFlop order-service and validated locally. Runtime deployment has not been run.
+**Goal status:** deployed with residual checkout-smoke blocker
+**Current checkpoint:** GOAL-06 server-side Orders Hub integration is implemented, validated, committed, pushed, and deployed in FlipFlop. All FlipFlop Kubernetes deployments are rolled out 1/1. Runtime checkout smoke is still blocked before order creation by `POST /cart/items` returning 404 through the gateway, so a live central Orders forwarding event has not yet been exercised.
 
 ## Current Intent Summary
 
@@ -95,10 +95,28 @@ Orchestrator agents must not overwrite or revert those changes unless the owner 
   alias.
 - Added `scripts/verify-orders-hub-integration.js` and
   `npm run verify:orders-hub-integration`.
+- Deployed GOAL-06 after owner approval with `./scripts/deploy.sh`.
+  Build and image push completed for all FlipFlop workloads. The initial
+  rollout wait timed out while replacement pods were still pulling images from
+  the local registry, but the current replacements later completed
+  successfully and all six deployments reached ready state:
+  `flipflop-service`, `flipflop-frontend`, `flipflop-product-service`,
+  `flipflop-cart-service`, `flipflop-order-service`, and
+  `flipflop-user-service` are each 1/1 ready.
+- Confirmed deployed order-service runtime wiring:
+  `ORDERS_SERVICE_URL=http://orders-microservice:3203`,
+  `ORDERS_MICROSERVICE_URL=http://orders-microservice:3203`, and
+  local `ORDER_SERVICE_URL=http://flipflop-order-service:3003`.
+- Validated post-deploy public homepage and product API. Re-ran
+  `npm run verify:orders-hub-integration` successfully after deployment.
+- Captured operational residuals after deployment: service health endpoints
+  returned HTTP 200 with body status `degraded` due a logging dependency
+  error while `logging-microservice` itself reported healthy, and live
+  checkout smoke failed at `POST /cart/items` 404 before order creation.
 
 ## Next Step
 
-Active implementation goal: none. `GOAL-06-orders-hub-integration` is code-complete and validated; deployment is pending explicit owner approval.
+Active implementation goal: none. `GOAL-06-orders-hub-integration` is deployed. Runtime checkout smoke did not reach order creation because gateway forwarding to `POST /cart/items` returned 404, so central Orders live forwarding still needs a synthetic order exercise after the cart/gateway issue is resolved.
 
 Owner bypass decision remains in force:
 
@@ -107,7 +125,7 @@ validation until after the whole project is implemented. PayU, PayPal, GP
 WebPay, and Stripe webhook completion remain manual follow-up work and must not
 be marked verified automatically.
 
-Next implementation step: obtain owner approval for FlipFlop runtime deployment, then run the deployment readiness gate and deploy.
+Next implementation step: investigate the FlipFlop cart/gateway 404 on `POST /cart/items`, then rerun checkout smoke or a narrower synthetic order test that proves central Orders forwarding in production.
 
 ## Goal Register
 
@@ -118,7 +136,7 @@ Next implementation step: obtain owner approval for FlipFlop runtime deployment,
 | `GOAL-03-catalog-stock-storefront` | done | closed with live catalog, storefront, stock, deploy, and alert evidence |
 | `GOAL-04-agent-content-seo` | done | closed with draft AI content, review status, SEO metadata, and no-publish validation |
 | `GOAL-05-operational-closure` | done | closed with final validation docs, monitoring notes, runbook, and handoff |
-| `GOAL-06-orders-hub-integration` | implemented, deployment pending | owner approval for runtime deployment |
+| `GOAL-06-orders-hub-integration` | deployed with residual smoke blocker | fix `POST /cart/items` 404, then exercise live central Orders forwarding |
 
 ## Owner Manual Follow-Up
 
