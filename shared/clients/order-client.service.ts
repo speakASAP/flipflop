@@ -90,7 +90,9 @@ export class OrderClientService {
 
     try {
       const response = await firstValueFrom(
-        this.httpService.post(this.baseUrl + '/api/orders', payload),
+        this.httpService.post(this.baseUrl + '/api/orders', payload, {
+          headers: this.getAuthHeaders(),
+        }),
       );
       this.logger.log('Order accepted by orders-microservice: ' + response.data.data?.id, 'OrderClient');
       return response.data.data;
@@ -148,5 +150,15 @@ export class OrderClientService {
       return undefined;
     }
     return orderedAt instanceof Date ? orderedAt.toISOString() : orderedAt;
+  }
+
+  private getAuthHeaders(): Record<string, string> {
+    const token = process.env.ORDERS_SERVICE_TOKEN?.trim();
+    if (!token) {
+      return {};
+    }
+    return {
+      Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
+    };
   }
 }
