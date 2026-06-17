@@ -1,8 +1,8 @@
 {
-  "cycle": 23,
+  "cycle": 24,
   "tasks_active": 0,
   "last_cycle_at": "2026-06-12T08:47:08.000Z",
-  "status": "operational_with_owner_bypassed_payment_provider_risk",
+  "status": "operational_with_owner_bypassed_payment_provider_risk_and_blocked_leads_intake_adoption",
   "programme_phase": "P12_closure_complete",
   "all_features_complete": false,
   "orchestrator_project_slug": "flipflop-v1",
@@ -12,13 +12,16 @@
     "GOAL-02-checkout-payments": "blocked_with_owner_approved_bypass",
     "GOAL-03-catalog-stock-storefront": "done",
     "GOAL-04-agent-content-seo": "done",
-    "GOAL-05-operational-closure": "done"
+    "GOAL-05-operational-closure": "done",
+    "GOAL-06-orders-hub-integration": "done",
+    "GOAL-07-leads-public-intake-adoption": "blocked_no_existing_submission_path"
   },
   "residual_risks": [
     "PayU production credentials and callback verification require owner manual follow-up",
     "PayPal production credentials and callback verification require owner manual follow-up",
     "GP WebPay production merchant, key, application, and description configuration require owner manual follow-up",
-    "Stripe webhook verification requires owner manual follow-up"
+    "Stripe webhook verification requires owner manual follow-up",
+    "Leads intake adoption for FlipFlop requires an owner-approved lead/contact surface and consent copy before runtime implementation"
   ],
-  "last_updated": "2026-06-12"
+  "last_updated": "2026-06-15"
 }

@@ -2,11 +2,11 @@
 
 ## Current Status
 
-**Date:** 2026-06-13
+**Date:** 2026-06-15
 **Mode:** Goal-driven orchestration enabled
 **Active goal:** none
-**Goal status:** GOAL-06-orders-hub-integration closed after live deployment validation
-**Current checkpoint:** GOAL-06 server-side Orders Hub integration is implemented, validated, committed, pushed, deployed in FlipFlop, and live-smoke proven. All FlipFlop Kubernetes deployments are rolled out 1/1. Final checkout smoke created `ORD-1781378332000-840`; FlipFlop metadata recorded central forwarding `status=accepted` with central order id `ae51a415-ded0-4bf9-ac4e-c9adcab97d80`, and central Orders logged `order.create` success for channel `flipflop`.
+**Goal status:** GOAL-07-leads-public-intake-adoption blocked after discovery; no existing FlipFlop lead/contact submission path exists to adapt safely
+**Current checkpoint:** Leads Goal 26 cross-repo adoption for FlipFlop was evaluated. Leads contract compatibility is confirmed for `sourceService=flipflop`, but FlipFlop runtime implementation is blocked because editable source has no existing customer lead/contact/newsletter/waitlist/inquiry submission path to adapt. No runtime code, schema, secret, deployment, or production lead mutation was performed.
 
 ## Current Intent Summary
 
@@ -119,6 +119,7 @@ Orchestrator agents must not overwrite or revert those changes unless the owner 
   values, and restarting only `flipflop-order-service`.
 - Proved central Orders auth from inside the deployed FlipFlop order-service
   pod: non-mutating `GET /api/orders?channel=flipflop` returned HTTP 200.
+- Added GOAL-08 Leads lifecycle replay consumer source/config path for owner-selected Leads Goal 24 first consumer. `LeadsClientService` calls the guarded one-lead replay route as `flipflop-service`, clamps limit to 30, sends only internal service identity headers from env, and is statically verified by `npm run verify:leads-lifecycle-replay`. Not deployed.
 - Proved live checkout and central Orders forwarding after deployment:
   `node scripts/smoke-checkout.js` created FlipFlop order
   `ORD-1781378332000-840` with pending Stripe payment and redirect URL; the
@@ -126,10 +127,11 @@ Orchestrator agents must not overwrite or revert those changes unless the owner 
   and `centralOrderId=ae51a415-ded0-4bf9-ac4e-c9adcab97d80`; central
   Orders logged `operation=order.create`, `channel=flipflop`,
   `outcome=success`.
+- Evaluated Leads Goal 26 cross-repo product-app adoption for FlipFlop after owner selection of FlipFlop as the Leads consumer. Reviewed Leads Goal 26 and product-app intake contract artifacts, searched FlipFlop editable source for existing lead/contact/newsletter/waitlist/inquiry submission paths, and recorded GOAL-07 as blocked because no existing path exists to adapt safely. No production lead submission, runtime code change, schema change, secret change, deployment, raw contact export, campaign execution, or AI/CRM export was performed.
 
 ## Next Step
 
-Active implementation goal: none. `GOAL-06-orders-hub-integration` is closed with deployed live evidence. FlipFlop checkout now reaches local order creation, payment initiation, and central Orders forwarding in production.
+Active implementation goal: none. `GOAL-07-leads-public-intake-adoption` is blocked pending owner-approved FlipFlop lead surface and consent semantics. `GOAL-06-orders-hub-integration` remains closed with deployed live evidence.
 
 Owner bypass decision remains in force:
 
@@ -150,6 +152,8 @@ Next implementation step: return to H8 candidate application integration decisio
 | `GOAL-04-agent-content-seo` | done | closed with draft AI content, review status, SEO metadata, and no-publish validation |
 | `GOAL-05-operational-closure` | done | closed with final validation docs, monitoring notes, runbook, and handoff |
 | `GOAL-06-orders-hub-integration` | done | closed with deployed live checkout and central Orders forwarding evidence |
+| `GOAL-08-leads-lifecycle-replay-consumer` | done for source/config verification; not deployed | deploy only after integration-owner approval and Leads internal trust/token provisioning |
+| `GOAL-07-leads-public-intake-adoption` | blocked | define owner-approved FlipFlop lead/contact surface and consent copy before runtime implementation |
 
 ## Owner Manual Follow-Up
 
