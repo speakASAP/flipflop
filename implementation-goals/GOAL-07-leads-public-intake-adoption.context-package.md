@@ -46,3 +46,9 @@ A runtime integration would require creating a new product surface and consent l
 ## Handoff Notes
 
 Future implementation should be a new explicit FlipFlop goal, not a hidden extension of this blocked adoption lane. It should define the exact surface and consent text before adding code.
+
+## 2026-06-21 Added Context
+
+Owner approval supplied the missing UX/consent decision. The implemented surface is the FlipFlop homepage contact form. It uses e-mail as the only supported contact method for this slice and consent copy requiring the user to allow FlipFlop to contact them by e-mail for the request and follow-up offer.
+
+The gateway, not the browser, owns the Leads public intake payload construction.

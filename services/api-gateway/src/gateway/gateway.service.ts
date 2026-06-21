@@ -3,7 +3,7 @@
  * Routes requests to appropriate microservices
  */
 
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
@@ -37,7 +37,61 @@ export class GatewayService {
       warehouse: this.configService.get('WAREHOUSE_SERVICE_URL') || `http://flipflop-warehouse-service:${warehousePort}`,
       users: this.configService.get('USER_SERVICE_URL') || `http://flipflop-user-service:${userPort}`,
       supplier: this.configService.get('SUPPLIER_SERVICE_URL') || `http://localhost:${supplierPort}`,
+      leadsPublic: this.configService.get('LEADS_PUBLIC_URL') || 'https://leads.alfares.cz',
     };
+  }
+
+  /**
+   * Submit an approved FlipFlop public contact request to Leads public intake.
+   */
+  async submitFlipFlopLead(payload: {
+    email: string;
+    message: string;
+    marketingConsent: boolean;
+    sourceUrl?: string;
+  }): Promise<{ leadId: string; status: string; confirmationSent: boolean }> {
+    if (!payload.marketingConsent) {
+      throw new HttpException('Contact consent is required before submitting this request.', HttpStatus.BAD_REQUEST);
+    }
+
+    const message = payload.message.trim();
+    const email = payload.email.trim();
+    const leadPayload = {
+      sourceService: 'flipflop',
+      sourceLabel: 'support-contact',
+      sourceUrl: payload.sourceUrl,
+      message,
+      contactMethods: [
+        {
+          type: 'email',
+          value: email,
+        },
+      ],
+      preferredChannel: 'email',
+      marketingConsent: true,
+      consentSource: 'flipflop-home-contact:v1',
+      consentCapturedAt: new Date().toISOString(),
+      metadata: {
+        intent: 'support_contact',
+        surface: 'home_contact',
+        locale: 'cs-CZ',
+      },
+    };
+
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(`${this.serviceUrls.leadsPublic}/api/leads/submit`, leadPayload, {
+          timeout: 15000,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      );
+      this.logger.log('Submitted FlipFlop lead contact request to Leads intake');
+      return response.data;
+    } catch (error: any) {
+      const status = error.response?.status || HttpStatus.BAD_GATEWAY;
+      this.logger.warn(`FlipFlop lead contact submission failed with status ${status}`);
+      throw new HttpException('Failed to submit contact request.', status);
+    }
   }
 
   /**
@@ -100,4 +154,3 @@ export class GatewayService {
     }
   }
 }
-

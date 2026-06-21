@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { productsApi, Product } from '@/lib/api/products';
 import ProductCard from '@/components/ProductCard';
+import LeadContactForm from '@/components/LeadContactForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -159,6 +160,41 @@ export default async function HomePage() {
           </Link>
         </div>
       </section>
+
+      {/* Contact Lead Form */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-10 items-start">
+            <div className="max-w-2xl">
+              <p className="text-sm font-bold uppercase tracking-wide text-blue-600 mb-3">Kontakt</p>
+              <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">
+                Potrebujete poradit s vyberem?
+              </h2>
+              <p className="text-lg text-slate-600 leading-relaxed mb-6">
+                Napiste, co hledate, a tym FlipFlop se ozve e-mailem s doporucenim nebo dalsim postupem.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-slate-700">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="font-bold text-slate-900 mb-1">Produkty</div>
+                  <div>Doporuceni podle potreby a dostupnosti.</div>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="font-bold text-slate-900 mb-1">Nabidky</div>
+                  <div>Navazujici komunikace jen po souhlasu.</div>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="font-bold text-slate-900 mb-1">Soukromi</div>
+                  <div>Kontakt uklada sluzba Leads s evidenci souhlasu.</div>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70">
+              <LeadContactForm />
+            </div>
+          </div>
+        </div>
+      </section>
+
 
       {/* Features Section - Compact */}
       <section className="py-20 bg-gradient-to-b from-white to-gray-50">

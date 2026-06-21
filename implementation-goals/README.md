@@ -45,7 +45,7 @@ python3 scripts/deployment_readiness_gate.py --root .
 | `GOAL-04-agent-content-seo` | done | Goal 03 | AI product descriptions and SEO metadata generated through approved review flow |
 | `GOAL-05-operational-closure` | done | Goals 01-04 | Final validation, runbook, monitoring checks, and handoff state |
 | `GOAL-06-orders-hub-integration` | done | Goals 01-05 and owner approval | FlipFlop server-side order-service feeds central Orders with deployed evidence |
-| `GOAL-07-leads-public-intake-adoption` | blocked | Leads Goal 26 owner selection of FlipFlop | Blocked: no existing FlipFlop lead/contact submission path exists to adapt safely |
+| `GOAL-07-leads-public-intake-adoption` | deployed | Leads Goal 26 owner selection of FlipFlop and 2026-06-21 owner approvals | Public FlipFlop contact surface submits through gateway to Leads public intake; production smoke passed |
 
 ## Orchestrator Rule
 

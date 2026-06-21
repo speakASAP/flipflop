@@ -44,3 +44,27 @@ If a future owner-approved FlipFlop lead surface is added, it should submit to t
 ## Next Valid Work
 
 A future owner-approved implementation goal should first define the FlipFlop lead surface, user-visible consent copy, accepted contact method(s), source label, and metadata fields. After that, a narrow implementation can add a frontend/backend adapter and synthetic tests without submitting production leads.
+
+## 2026-06-21 Owner-Approved Source Completion
+
+The owner approved the previously gated FlipFlop lead/contact surface and consent semantics on 2026-06-21. The blocked discovery lane was converted into a bounded source implementation.
+
+Implemented:
+
+- public homepage contact form with explicit e-mail consent copy;
+- FlipFlop gateway endpoint `POST /api/leads/contact`;
+- server-side proxy from FlipFlop gateway to Leads public intake at `POST /api/leads/submit`;
+- Leads payload with `sourceService: "flipflop"`, `sourceLabel: "support-contact"`, `preferredChannel: "email"`, `consentSource: "flipflop-home-contact:v1"`, ISO `consentCapturedAt`, and bounded metadata;
+- static verifier `npm run verify:leads-public-intake`.
+
+Not performed:
+
+- production lead submission;
+- raw contact export;
+- campaign execution;
+- AI/CRM export;
+- schema migration;
+- payment, order, price, checkout, or provider webhook mutation;
+- production deployment.
+
+Status: deployed. Production smoke passed after explicit owner approval.

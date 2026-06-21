@@ -59,3 +59,37 @@ Forbidden:
 ## Result
 
 Blocked before runtime implementation because no existing FlipFlop lead/contact submission path exists to adapt safely.
+
+## 2026-06-21 Continuation Plan After Owner Approval
+
+Owner approval supplied the missing product-surface decision for a new FlipFlop public contact surface with visible consent copy. The resumed implementation scope is intentionally narrow:
+
+Allowed files:
+
+- `services/api-gateway/src/gateway/gateway.controller.ts`
+- `services/api-gateway/src/gateway/gateway.service.ts`
+- `services/api-gateway/src/gateway/dto/create-lead-contact.dto.ts`
+- `services/frontend/components/LeadContactForm.tsx`
+- `services/frontend/lib/api/leads.ts`
+- `services/frontend/app/page.tsx`
+- `k8s/configmap.yaml`
+- `scripts/verify-leads-public-intake.js`
+- goal/state/task documentation files
+
+Forbidden remains:
+
+- direct browser calls to internal Leads URLs;
+- internal service tokens in browser code;
+- production lead mutation during validation;
+- raw lead/contact export or raw contact logs;
+- campaign execution, AI/CRM export, notification campaign send;
+- checkout, payment provider, order, price, or warehouse behavior changes;
+- database migrations;
+- production deployment without explicit owner approval.
+
+Validation plan:
+
+- `npm run verify:leads-public-intake`
+- `git diff --check`
+- `cd services/api-gateway && npm run build`
+- `cd services/frontend && npm run build`

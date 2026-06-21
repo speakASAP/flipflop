@@ -13,7 +13,8 @@
     "migrate:products:skip-stock": "ts-node scripts/migrate-products-to-catalog.ts --skip-stock",
     "verify:orders-hub-integration": "node scripts/verify-orders-hub-integration.js",
     "verify:leads-lifecycle-replay": "node scripts/verify-leads-lifecycle-replay-integration.js",
-    "smoke:checkout": "node scripts/smoke-checkout.js"
+    "smoke:checkout": "node scripts/smoke-checkout.js",
+    "verify:leads-public-intake": "node scripts/verify-leads-public-intake.js"
   },
   "dependencies": {
     "@nestjs-modules/ioredis": "^2.2.1",

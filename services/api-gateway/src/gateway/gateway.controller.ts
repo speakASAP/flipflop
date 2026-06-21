@@ -4,16 +4,18 @@
  */
 
 import {
-  Controller,
   All,
+  Body,
+  Controller,
+  Post,
   Req,
   Res,
   UseGuards,
-  Request,
 } from '@nestjs/common';
 import { GatewayService } from './gateway.service';
 import { JwtAuthGuard } from '@flipflop/shared';
 import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
+import { CreateLeadContactDto } from './dto/create-lead-contact.dto';
 
 @Controller('api')
 export class GatewayController {
@@ -46,6 +48,34 @@ export class GatewayController {
         error: {
           code: error.response?.data?.error?.code || 'GATEWAY_ERROR',
           message: error.response?.data?.error?.message || error.message,
+        },
+      });
+    }
+  }
+
+  /**
+   * Submit public FlipFlop contact requests to Leads public intake.
+   */
+  @Post('leads/contact')
+  async leadContactRoute(
+    @Body() payload: CreateLeadContactDto,
+    @Req() req: ExpressRequest,
+    @Res() res: ExpressResponse,
+  ) {
+    try {
+      const response = await this.gatewayService.submitFlipFlopLead({
+        email: payload.email,
+        message: payload.message,
+        marketingConsent: payload.marketingConsent,
+        sourceUrl: this.getSourceUrl(req),
+      });
+      res.status(200).json({ success: true, data: response });
+    } catch (error: any) {
+      res.status(error.status || error.response?.status || 500).json({
+        success: false,
+        error: {
+          code: 'LEADS_CONTACT_ERROR',
+          message: error.message || 'Failed to submit contact request.',
         },
       });
     }
@@ -202,5 +232,13 @@ export class GatewayController {
 
     return headers;
   }
-}
 
+  private getSourceUrl(req: ExpressRequest): string | undefined {
+    const referer = req.headers.referer;
+    if (typeof referer === 'string' && referer.length <= 500) {
+      return referer;
+    }
+    const origin = req.headers.origin;
+    return typeof origin === 'string' && origin.length <= 200 ? origin : undefined;
+  }
+}

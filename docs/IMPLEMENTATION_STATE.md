@@ -2,11 +2,11 @@
 
 ## Current Status
 
-**Date:** 2026-06-15
+**Date:** 2026-06-21
 **Mode:** Goal-driven orchestration enabled
 **Active goal:** none
-**Goal status:** GOAL-07-leads-public-intake-adoption blocked after discovery; no existing FlipFlop lead/contact submission path exists to adapt safely
-**Current checkpoint:** Leads Goal 26 cross-repo adoption for FlipFlop was evaluated. Leads contract compatibility is confirmed for `sourceService=flipflop`, but FlipFlop runtime implementation is blocked because editable source has no existing customer lead/contact/newsletter/waitlist/inquiry submission path to adapt. No runtime code, schema, secret, deployment, or production lead mutation was performed.
+**Goal status:** GOAL-07-leads-public-intake-adoption deployed and production smoke passed
+**Current checkpoint:** Owner approved deployment on 2026-06-21. GOAL-07 public Leads intake is deployed to production; homepage, product API, and one bounded synthetic Leads contact smoke passed. Payment-provider residual risks remain pending separate readiness evidence.
 
 ## Current Intent Summary
 
@@ -131,7 +131,7 @@ Orchestrator agents must not overwrite or revert those changes unless the owner 
 
 ## Next Step
 
-Active implementation goal: none. `GOAL-07-leads-public-intake-adoption` is blocked pending owner-approved FlipFlop lead surface and consent semantics. `GOAL-06-orders-hub-integration` remains closed with deployed live evidence.
+Active implementation goal: none. `GOAL-07-leads-public-intake-adoption` is deployed with production smoke evidence after owner approval. `GOAL-06-orders-hub-integration` remains closed with deployed live evidence.
 
 Owner bypass decision remains in force:
 
@@ -153,7 +153,7 @@ Next implementation step: return to H8 candidate application integration decisio
 | `GOAL-05-operational-closure` | done | closed with final validation docs, monitoring notes, runbook, and handoff |
 | `GOAL-06-orders-hub-integration` | done | closed with deployed live checkout and central Orders forwarding evidence |
 | `GOAL-08-leads-lifecycle-replay-consumer` | done for source/config verification; not deployed | deploy only after integration-owner approval and Leads internal trust/token provisioning |
-| `GOAL-07-leads-public-intake-adoption` | blocked | define owner-approved FlipFlop lead/contact surface and consent copy before runtime implementation |
+| `GOAL-07-leads-public-intake-adoption` | deployed | production smoke passed after owner approval |
 
 ## Owner Manual Follow-Up
 
@@ -163,3 +163,62 @@ Next implementation step: return to H8 candidate application integration decisio
   the running payments pod is missing.
 - Stripe webhook verification is blocked until `STRIPE_WEBHOOK_SECRET` or an
   approved verified callback path is configured.
+
+
+## 2026-06-21 - Owner-Approved GOAL-07 Source Implementation
+
+Owner approval reopened the previously blocked `GOAL-07-leads-public-intake-adoption` lane for a new FlipFlop public contact surface with visible consent copy.
+
+Implemented source/config:
+
+- Added public gateway route `POST /api/leads/contact` in `services/api-gateway/src/gateway/gateway.controller.ts`.
+- Added bounded gateway DTO `services/api-gateway/src/gateway/dto/create-lead-contact.dto.ts`.
+- Added server-side Leads public intake proxy in `services/api-gateway/src/gateway/gateway.service.ts` using `LEADS_PUBLIC_URL` and the Leads product-app contract.
+- Added homepage lead-contact form `services/frontend/components/LeadContactForm.tsx` and frontend wrapper `services/frontend/lib/api/leads.ts`.
+- Added `LEADS_PUBLIC_URL: "https://leads.alfares.cz"` to `k8s/configmap.yaml`.
+- Added `scripts/verify-leads-public-intake.js` and `npm run verify:leads-public-intake` for synthetic/static validation.
+
+Contract and privacy posture:
+
+- Leads payload uses `sourceService: "flipflop"`, `sourceLabel: "support-contact"`, one `email` contact method, `preferredChannel: "email"`, consent source `flipflop-home-contact:v1`, ISO `consentCapturedAt`, and bounded metadata keys `intent`, `surface`, and `locale`.
+- Browser code calls only FlipFlop `/api/leads/contact`; it does not use internal Kubernetes URLs or internal service tokens.
+- No raw contact export, campaign execution, production lead submission, payment/order/price mutation, schema migration, or deployment was performed during source validation.
+
+Validation passed:
+
+- `npm run verify:leads-public-intake`
+- `git diff --check`
+- `cd services/api-gateway && npm run build`
+- `cd services/frontend && npm run build`
+
+Current checkpoint: GOAL-07 is deployed and production smoke passed. GOAL-02 payment-provider credentials/webhook follow-up remains pending separate readiness evidence.
+
+## 2026-06-21 - GOAL-07 Production Deployment And Smoke
+
+Owner approved production deployment and smoke for the completed GOAL-07 source.
+
+Deployment command:
+
+```bash
+./scripts/deploy.sh
+```
+
+Deployment result:
+
+- Deployment completed successfully in 517.80s.
+- Built and pushed images for `flipflop-service`, `flipflop-frontend`, `flipflop-product-service`, `flipflop-cart-service`, `flipflop-order-service`, and `flipflop-user-service`.
+- Applied Kubernetes manifests; `flipflop-config` was updated with `LEADS_PUBLIC_URL`.
+- Rollout completed for all six FlipFlop deployments.
+- Deploy-script post checks for `/` and `/api/products?limit=1` passed.
+
+Production smoke:
+
+- `GET https://flipflop.alfares.cz/` returned HTTP 200.
+- `GET https://flipflop.alfares.cz/api/products?limit=1` returned HTTP 200.
+- `POST https://flipflop.alfares.cz/api/leads/contact` with one synthetic contact payload returned HTTP 200, `success: true`, Leads status `new`, `confirmationSent: true`, and a lead id was present.
+
+Safety notes:
+
+- The production lead smoke used a synthetic `example.invalid` contact and no raw contact value is recorded in this state file.
+- No payment provider, order total, price, cancellation, database migration, object storage, campaign execution, AI/CRM export, or manual secret change was performed.
+- Residual GOAL-02 payment-provider credential/webhook risk remains preserved.
