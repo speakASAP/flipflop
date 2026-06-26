@@ -27,6 +27,7 @@ import {
 } from '@flipflop/shared';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
+import { randomUUID } from 'crypto';
 import { PaymentResultDto } from './dto/payment-result.dto';
 import { UpdateOrderPaymentStatusDto } from './dto/update-order-payment-status.dto';
 import { UpdateAdminOrderStatusDto } from './dto/update-admin-order-status.dto';
@@ -359,7 +360,11 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         }
       }
 
-      const recipient = buyer?.email;
+      const paymentMeta = order.metadata as Record<string, unknown> | null;
+      const guestEmail = paymentMeta && typeof paymentMeta.guestEmail === 'string'
+        ? paymentMeta.guestEmail
+        : undefined;
+      const recipient = guestEmail || buyer?.email;
       if (recipient) {
         try {
           await this.notificationService.sendOrderConfirmation({
@@ -691,6 +696,136 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     return configured || 'flipflop-service';
   }
 
+
+  private normalizeGuestEmail(email: unknown): string {
+    if (typeof email !== 'string' || !email.includes('@')) {
+      throw new BadRequestException('Valid email is required');
+    }
+    return email.trim().toLowerCase().slice(0, 255);
+  }
+
+  private normalizeGuestText(value: unknown, fallback = ''): string {
+    return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+  }
+
+  private buildGuestTechnicalEmail(): string {
+    return `guest+${randomUUID()}@flipflop.local`;
+  }
+
+  private async createTechnicalGuestUser(dto: any): Promise<any> {
+    const address = dto.deliveryAddress || dto.billingAddress || {};
+    return this.prisma.user.create({
+      data: {
+        email: this.buildGuestTechnicalEmail(),
+        password: `guest-checkout-disabled:${randomUUID()}`,
+        firstName: this.normalizeGuestText(address.firstName, 'Guest'),
+        lastName: this.normalizeGuestText(address.lastName, 'Customer'),
+        phone: this.normalizeGuestText(dto.phone || address.phone, ''),
+        isEmailVerified: false,
+        isAdmin: false,
+        preferences: {
+          checkoutMode: 'guest',
+          accountLoginDisabled: true,
+        } as Prisma.InputJsonValue,
+      },
+    });
+  }
+
+  private async createCheckoutAddress(userId: string, rawAddress: any, phone?: string): Promise<any> {
+    const address = rawAddress || {};
+    const firstName = this.normalizeGuestText(address.firstName);
+    const lastName = this.normalizeGuestText(address.lastName);
+    const street = this.normalizeGuestText(address.street);
+    const city = this.normalizeGuestText(address.city);
+    const postalCode = this.normalizeGuestText(address.postalCode);
+
+    if (!firstName || !lastName || !street || !city || !postalCode) {
+      throw new BadRequestException('Complete billing address is required');
+    }
+
+    return this.prisma.deliveryAddress.create({
+      data: {
+        userId,
+        firstName,
+        lastName,
+        street,
+        city,
+        postalCode,
+        country: this.normalizeGuestText(address.country, 'Česká republika'),
+        phone: this.normalizeGuestText(address.phone || phone, ''),
+        isDefault: false,
+      },
+    });
+  }
+
+  private async buildGuestOrderItems(items: any[]): Promise<Array<{
+    productId: string;
+    variantId: string | null;
+    productName: string;
+    productSku: string;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+  }>> {
+    if (!Array.isArray(items) || items.length === 0) {
+      throw new BadRequestException('Cart is empty');
+    }
+
+    const orderItems = [];
+    for (const item of items) {
+      const productId = this.normalizeGuestText(item?.productId);
+      const quantity = Number.isFinite(Number(item?.quantity)) ? Math.floor(Number(item.quantity)) : 0;
+      if (!productId || quantity < 1) {
+        throw new BadRequestException('Invalid cart item');
+      }
+
+      const product = await this.prisma.product.findUnique({
+        where: { id: productId },
+        include: { product_variants: true },
+      });
+      if (!product || !product.isActive) {
+        throw new BadRequestException(`Product ${productId} is not available`);
+      }
+
+      const variantId = this.normalizeGuestText(item?.variantId) || null;
+      const variant = variantId
+        ? product.product_variants.find((row: any) => row.id === variantId && row.isActive)
+        : null;
+      if (variantId && !variant) {
+        throw new BadRequestException(`Product variant ${variantId} is not available`);
+      }
+
+      const availableStock = variant ? variant.stockQuantity : product.stockQuantity;
+      if (typeof availableStock === 'number' && availableStock >= 0 && quantity > availableStock) {
+        throw new BadRequestException(`Only ${availableStock} pcs available for ${product.name}`);
+      }
+
+      const unitPrice = variant ? Number(variant.price) : Number(product.price);
+      orderItems.push({
+        productId: product.id,
+        variantId,
+        productName: product.name,
+        productSku: variant?.sku || product.sku,
+        quantity,
+        unitPrice,
+        totalPrice: Math.round(unitPrice * quantity * 100) / 100,
+      });
+    }
+
+    return orderItems;
+  }
+
+  private buildBankTransferRedirect(order: any, total: number): string {
+    const params = new URLSearchParams({
+      status: 'bank-transfer',
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      variableSymbol: order.orderNumber.replace(/\D/g, '').slice(-10) || order.id.replace(/\D/g, '').slice(-10),
+      amount: String(total),
+    });
+    return `/payment-result?${params.toString()}`;
+  }
+
   private async recordCentralOrdersForwarding(
     order: any,
     status: 'accepted' | 'conflict' | 'failed',
@@ -953,6 +1088,178 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     return {
       order: this.mapOrder(orderWithPayment),
       redirectUrl: paymentResult.data.redirectUri || null,
+    };
+  }
+
+
+  /**
+   * Create order from guest checkout payload. It never marks payment as paid;
+   * provider/webhook evidence or manual bank transfer reconciliation remains required.
+   */
+  async createGuestOrder(dto: any) {
+    const guestEmail = this.normalizeGuestEmail(dto.email);
+    const guestUser = await this.createTechnicalGuestUser(dto);
+    const deliveryAddress = await this.createCheckoutAddress(
+      guestUser.id,
+      dto.deliveryAddress || dto.billingAddress,
+      dto.phone,
+    );
+    const orderItems = await this.buildGuestOrderItems(dto.items);
+    const subtotal = orderItems.reduce((sum, item) => sum + item.totalPrice, 0);
+    const tax = Math.round(subtotal * 0.21 * 100) / 100;
+    const shippingCost = Number.isFinite(Number(dto.shippingCost)) ? Math.max(0, Number(dto.shippingCost)) : 0;
+    const operatorTip = Number.isFinite(Number(dto.operatorTip)) ? Math.max(0, Number(dto.operatorTip)) : 0;
+    const orderTotalBeforeDiscount = subtotal + tax + shippingCost + operatorTip;
+    const trimmedDiscountCode =
+      typeof dto.discountCode === 'string' && dto.discountCode.trim()
+        ? dto.discountCode.trim()
+        : '';
+    let discount = Number.isFinite(Number(dto.discount)) ? Math.max(0, Number(dto.discount)) : 0;
+    if (trimmedDiscountCode) {
+      const validation = await this.discountService.validateCode(trimmedDiscountCode);
+      if (!validation.valid) {
+        throw new BadRequestException('Invalid or expired discount code');
+      }
+      const after = await this.discountService.applyDiscount(
+        orderTotalBeforeDiscount,
+        trimmedDiscountCode,
+      );
+      discount = Math.round((orderTotalBeforeDiscount - after) * 100) / 100;
+    }
+    const total = Math.max(0, Math.round((orderTotalBeforeDiscount - discount) * 100) / 100);
+    const paymentMethod = this.normalizeGuestText(dto.paymentMethod, 'webpay');
+    const metadata: Prisma.InputJsonValue = {
+      checkoutMode: 'guest',
+      guestEmail,
+      deliveryMethod: this.normalizeGuestText(dto.deliveryMethod, 'standard'),
+      expeditionMethod: this.normalizeGuestText(dto.expeditionMethod, 'standard'),
+      wantsDifferentDeliveryDay: dto.wantsDifferentDeliveryDay === true,
+      requestedDeliveryDate: this.normalizeGuestText(dto.requestedDeliveryDate, ''),
+      operatorTip,
+      pendingDiscountCode: trimmedDiscountCode
+        ? this.discountService.normalizeCode(trimmedDiscountCode)
+        : undefined,
+    } as Prisma.InputJsonValue;
+
+    const order = await this.prisma.order.create({
+      data: {
+        orderNumber: this.generateOrderNumber(),
+        userId: guestUser.id,
+        deliveryAddressId: deliveryAddress.id,
+        status: OrderStatus.pending,
+        paymentStatus: PaymentStatus.pending,
+        paymentMethod,
+        subtotal,
+        tax,
+        shippingCost: shippingCost + operatorTip,
+        discount,
+        total,
+        notes: this.normalizeGuestText(dto.notes, ''),
+        metadata,
+        order_items: { create: orderItems },
+        order_status_history: {
+          create: {
+            status: OrderStatus.pending,
+            notes: 'Guest order created',
+          },
+        },
+      },
+      include: {
+        order_items: {
+          include: {
+            products: true,
+            product_variants: true,
+          },
+        },
+        delivery_addresses: true,
+      },
+    });
+
+    try {
+      await this.reserveOrderLines(order.orderNumber, order.order_items);
+    } catch (err: unknown) {
+      await this.prisma.order.delete({ where: { id: order.id } });
+      throw err;
+    }
+
+    let redirectUrl: string | null = null;
+    if (paymentMethod === 'invoice') {
+      redirectUrl = this.buildBankTransferRedirect(order, total);
+    } else {
+      const callbackUrlBase =
+        this.configService.get<string>('API_GATEWAY_URL') || 'https://flipflop.alfares.cz';
+      const callbackUrl = `${callbackUrlBase.replace(/\/$/, '')}/api/webhooks/payment-result`;
+      let paymentResult;
+      try {
+        paymentResult = await this.paymentService.createPayment({
+          orderId: order.orderNumber,
+          applicationId: this.getPaymentApplicationId(),
+          amount: total,
+          currency: 'CZK',
+          paymentMethod,
+          callbackUrl,
+          customer: {
+            email: guestEmail,
+            name: `${deliveryAddress.firstName} ${deliveryAddress.lastName}`.trim(),
+          },
+          description: 'FLIPFLOP',
+        });
+      } catch (error: unknown) {
+        await this.unreserveOrderLines(order.orderNumber, order.order_items);
+        await this.prisma.order.delete({ where: { id: order.id } });
+        throw error;
+      }
+
+      if (!paymentResult.success || !paymentResult.data?.id) {
+        await this.unreserveOrderLines(order.orderNumber, order.order_items);
+        await this.prisma.order.delete({ where: { id: order.id } });
+        throw new BadRequestException('Payment initiation failed');
+      }
+
+      await this.prisma.order.update({
+        where: { id: order.id },
+        data: { paymentTransactionId: paymentResult.data.id },
+      });
+      redirectUrl = paymentResult.data.redirectUri || null;
+    }
+
+    try {
+      const orderData = this.buildCentralOrdersPayload({
+        order,
+        orderItems,
+        deliveryAddress,
+        user: { email: guestEmail },
+      });
+      const centralOrder = await this.orderClient.createOrder(orderData);
+      await this.recordCentralOrdersForwarding(order, 'accepted', {
+        centralOrderId: centralOrder?.id,
+      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      await this.recordCentralOrdersForwarding(order, message.includes(ORDER_IDEMPOTENCY_CONFLICT) ? 'conflict' : 'failed', {
+        reason: message.includes(ORDER_IDEMPOTENCY_CONFLICT)
+          ? ORDER_IDEMPOTENCY_CONFLICT
+          : 'CENTRAL_ORDERS_FORWARD_FAILED',
+      });
+    }
+
+    const orderWithPayment = await this.prisma.order.findUnique({
+      where: { id: order.id },
+      include: {
+        order_items: {
+          include: {
+            products: true,
+            product_variants: true,
+          },
+        },
+        delivery_addresses: true,
+      },
+    });
+
+    this.logger.log('Guest order created', { orderId: order.id, orderNumber: order.orderNumber });
+    return {
+      order: this.mapOrder(orderWithPayment),
+      redirectUrl,
     };
   }
 

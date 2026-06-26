@@ -102,6 +102,14 @@ export class GatewayController {
   }
 
   /**
+   * Public guest checkout order creation. This route intentionally avoids JWT so buying does not require registration.
+   */
+  @Post('orders/guest')
+  async guestOrderRoute(@Req() req: ExpressRequest, @Res() res: ExpressResponse) {
+    return this.routeRequest('orders', '/orders/guest', req, res);
+  }
+
+  /**
    * Route cart requests (requires auth)
    */
   @All('cart*')

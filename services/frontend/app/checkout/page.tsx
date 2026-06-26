@@ -20,6 +20,20 @@ export default function CheckoutPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
 
+  const isAlreadyInCartResponse = (result: any) => (
+    !result.success &&
+    (
+      result.error?.details?.status === 409 ||
+      (
+        typeof result.error?.message === 'string' &&
+        (
+          result.error.message.toLowerCase().includes('already in your cart') ||
+          result.error.message.toLowerCase().includes('status code 409')
+        )
+      )
+    )
+  );
+
   useEffect(() => {
     if (authLoading) return;
 
@@ -44,7 +58,7 @@ export default function CheckoutPage() {
       }));
     }
 
-    if (results.every((result) => result.success)) {
+    if (results.every((result) => result.success || isAlreadyInCartResponse(result))) {
       clearGuestCart();
     }
   };
@@ -94,12 +108,11 @@ export default function CheckoutPage() {
       });
 
       if (response.success && response.data) {
-        // Redirect to payment
-        const paymentResponse = await ordersApi.createPayment(response.data.id);
-        if (paymentResponse.success && paymentResponse.data) {
-          window.location.href = paymentResponse.data.redirectUri;
+        const orderId = response.data.order.id;
+        if (response.data.redirectUrl) {
+          window.location.href = response.data.redirectUrl;
         } else {
-          router.push(`/orders/${response.data.id}`);
+          router.push(`/orders/${orderId}`);
         }
       } else {
         setOrderError('Nepodařilo se vytvořit objednávku. Zkuste to prosím znovu.');

@@ -1,15 +1,18 @@
 {
-  "created_at": "2026-06-26T13:12:38Z",
+  "created_at": "2026-06-26T14:39:19Z",
   "execution_plans": {
-    "execution_plan_count": 1,
+    "execution_plan_count": 2,
     "execution_plan_files": [
-      "21_execution_plans/EP-TASK-001-flipflop-ips-baseline.md"
+      "21_execution_plans/EP-TASK-001-flipflop-ips-baseline.md",
+      "21_execution_plans/EP-TASK-002-smarty-checkout-reference-ux.md"
     ],
-    "missing_validation_plan": []
+    "missing_validation_plan": [
+      "21_execution_plans/EP-TASK-002-smarty-checkout-reference-ux.md"
+    ]
   },
   "gate": "pre_coding",
   "missing_immutable_files": [],
-  "next_step": "start_controlled_coding",
+  "next_step": "fix_pre_coding_gate_findings",
   "project_invariants": {
     "path": "17_governance/PROJECT_INVARIANTS.md",
     "status": "pass"
@@ -26,12 +29,13 @@
     "reason": "cross_repo_mode_disabled",
     "status": "not_applicable"
   },
-  "status": "pass",
+  "status": "fail",
   "tasks": {
     "missing_upstream_traceability": [],
-    "task_count": 1,
+    "task_count": 2,
     "task_files": [
-      "11_tasks/TASK-001-flipflop-ips-baseline.md"
+      "11_tasks/TASK-001-flipflop-ips-baseline.md",
+      "11_tasks/TASK-002-smarty-checkout-reference-ux.md"
     ]
   }
 }

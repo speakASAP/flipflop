@@ -64,6 +64,45 @@ export interface Order {
   fulfilledAt?: string;
 }
 
+export interface CheckoutAddressData {
+  firstName: string;
+  lastName: string;
+  street: string;
+  city: string;
+  postalCode: string;
+  country?: string;
+  phone?: string;
+}
+
+export interface GuestOrderItemData {
+  productId: string;
+  variantId?: string;
+  quantity: number;
+}
+
+export interface CreateGuestOrderData {
+  email: string;
+  phone?: string;
+  billingAddress: CheckoutAddressData;
+  deliveryAddress?: CheckoutAddressData;
+  items: GuestOrderItemData[];
+  paymentMethod?: string;
+  deliveryMethod?: string;
+  expeditionMethod?: string;
+  wantsDifferentDeliveryDay?: boolean;
+  requestedDeliveryDate?: string;
+  operatorTip?: number;
+  notes?: string;
+  shippingCost?: number;
+  discount?: number;
+  discountCode?: string;
+}
+
+export interface CreateOrderResponse {
+  order: Order;
+  redirectUrl?: string | null;
+}
+
 export interface CreateOrderData {
   deliveryAddressId: string;
   paymentMethod?: string;
@@ -79,7 +118,11 @@ export interface PaymentResponse {
 
 export const ordersApi = {
   async createOrder(data: CreateOrderData) {
-    return apiClient.post<Order>('/orders', data);
+    return apiClient.post<CreateOrderResponse>('/orders', data);
+  },
+
+  async createGuestOrder(data: CreateGuestOrderData) {
+    return apiClient.post<CreateOrderResponse>('/orders/guest', data);
   },
 
   async getOrders() {

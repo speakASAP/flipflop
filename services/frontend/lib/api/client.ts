@@ -74,8 +74,18 @@ class ApiClient {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error?.message || 'Request failed');
+      if (!response.ok || data.success === false) {
+        return {
+          success: false,
+          error: {
+            code: data.error?.code || String(response.status),
+            message: data.error?.message || data.message || response.statusText || 'Request failed',
+            details: {
+              status: response.status,
+              body: data,
+            },
+          },
+        };
       }
 
       return data;
@@ -121,4 +131,3 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient();
-

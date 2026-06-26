@@ -3,7 +3,7 @@
  * Handles shopping cart operations
  */
 
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { PrismaService, LoggerService, WarehouseClientService, CatalogClientService } from '@flipflop/shared';
 
 @Injectable()
@@ -100,6 +100,19 @@ export class CartService {
       }
     }
 
+    // Check if item already exists in cart
+    const existingItem = await this.prisma.cartItem.findFirst({
+      where: {
+        userId,
+        productId,
+        variantId: variantId || null,
+      },
+    });
+
+    if (existingItem) {
+      throw new ConflictException('Product is already in your cart');
+    }
+
     // Check stock availability from warehouse-microservice
     await this.checkStockAvailability(productId, product.catalogProductId, quantity);
 
@@ -112,48 +125,28 @@ export class CartService {
       price = Number(product.price);
     }
 
-    // Check if item already exists in cart
-    const existingItem = await this.prisma.cartItem.findFirst({
-      where: {
-        userId,
-        productId,
-        variantId: variantId || null,
-      },
-    });
-
-    if (existingItem) {
-      // Check stock for new total quantity
-      const newQuantity = existingItem.quantity + quantity;
-      await this.checkStockAvailability(productId, product.catalogProductId, newQuantity);
-
-      // Update quantity
-      const updated = await this.prisma.cartItem.update({
-        where: { id: existingItem.id },
-        data: { quantity: newQuantity },
+    // Create new cart item
+    let cartItem;
+    try {
+      cartItem = await this.prisma.cartItem.create({
+        data: {
+          userId,
+          productId,
+          variantId: variantId || null,
+          quantity,
+          price,
+        },
         include: {
           products: true,
           product_variants: true,
         },
       });
-
-      this.logger.log('Cart item updated', { userId, cartItemId: updated.id });
-      return this.mapCartItem(updated);
+    } catch (error) {
+      if (this.isUniqueCartItemConflict(error)) {
+        throw new ConflictException('Product is already in your cart');
+      }
+      throw error;
     }
-
-    // Create new cart item
-    const cartItem = await this.prisma.cartItem.create({
-      data: {
-        userId,
-        productId,
-        variantId: variantId || null,
-        quantity,
-        price,
-      },
-      include: {
-        products: true,
-        product_variants: true,
-      },
-    });
 
     this.logger.log('Item added to cart', { userId, cartItemId: cartItem.id });
     return this.mapCartItem(cartItem);
@@ -275,6 +268,15 @@ export class CartService {
     }
   }
 
+  private isUniqueCartItemConflict(error: unknown): boolean {
+    return Boolean(
+      error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        (error as { code?: string }).code === 'P2002',
+    );
+  }
+
   /**
    * Helper to map cart item to response format
    */
@@ -310,4 +312,3 @@ export class CartService {
     };
   }
 }
-

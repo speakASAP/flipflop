@@ -32,18 +32,18 @@ export interface CreateAddressData {
 
 export const addressesApi = {
   async getAddresses() {
-    return apiClient.get<DeliveryAddress[]>('/delivery-addresses');
+    return apiClient.get<DeliveryAddress[]>('/users/addresses');
   },
 
   async createAddress(data: CreateAddressData) {
-    return apiClient.post<DeliveryAddress>('/delivery-addresses', data);
+    return apiClient.post<DeliveryAddress>('/users/addresses', data);
   },
 
   async updateAddress(id: string, data: Partial<CreateAddressData>) {
-    return apiClient.put<DeliveryAddress>(`/delivery-addresses/${id}`, data);
+    return apiClient.put<DeliveryAddress>(`/users/addresses/${id}`, data);
   },
 
   async deleteAddress(id: string) {
-    return apiClient.delete(`/delivery-addresses/${id}`);
+    return apiClient.delete(`/users/addresses/${id}`);
   },
 };

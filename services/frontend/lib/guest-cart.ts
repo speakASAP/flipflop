@@ -35,6 +35,14 @@ export interface GuestCart {
   itemCount: number;
 }
 
+export type GuestCartAddStatus = 'added' | 'already-in-cart' | 'insufficient-stock';
+
+export interface GuestCartAddResult {
+  cart: GuestCart;
+  status: GuestCartAddStatus;
+  availableStock?: number;
+}
+
 interface AddGuestCartItemInput {
   product: GuestCartProduct;
   variant?: GuestCartVariant;
@@ -57,6 +65,12 @@ const normalizeQuantity = (quantity: unknown) => {
   return typeof quantity === 'number' && Number.isFinite(quantity) && quantity > 0
     ? Math.floor(quantity)
     : 1;
+};
+
+const normalizeStockQuantity = (quantity: unknown) => {
+  return typeof quantity === 'number' && Number.isFinite(quantity) && quantity >= 0
+    ? Math.floor(quantity)
+    : undefined;
 };
 
 const normalizePrice = (price: unknown) => {
@@ -94,7 +108,7 @@ const readStoredItems = (): GuestCartItem[] => {
           id: candidate.product.id,
           name: candidate.product.name,
           price: normalizePrice(candidate.product.price),
-          stockQuantity: normalizeQuantity(candidate.product.stockQuantity),
+          stockQuantity: normalizeStockQuantity(candidate.product.stockQuantity),
           brand: candidate.product.brand,
           mainImageUrl: candidate.product.mainImageUrl,
           imageUrls: candidate.product.imageUrls,
@@ -126,46 +140,58 @@ export const getGuestCart = (): GuestCart => {
   };
 };
 
+const getAvailableStock = (product: GuestCartProduct, variant?: GuestCartVariant) => {
+  return normalizeStockQuantity(variant?.stockQuantity ?? product.stockQuantity);
+};
+
 export const addGuestCartItem = ({
   product,
   variant,
   quantity = 1,
-}: AddGuestCartItemInput): GuestCart => {
+}: AddGuestCartItemInput): GuestCartAddResult => {
   const items = readStoredItems();
   const variantId = variant?.id;
   const id = getItemId(product.id, variantId);
   const existing = items.find((item) => item.id === id);
   const safeQuantity = normalizeQuantity(quantity);
   const price = normalizePrice(variant?.price ?? product.price);
+  const availableStock = getAvailableStock(product, variant);
 
   if (existing) {
-    existing.quantity += safeQuantity;
-    existing.price = price;
-    existing.product = product;
-    existing.variant = variant;
-  } else {
-    items.push({
-      id,
-      productId: product.id,
-      product,
-      variantId,
-      variant,
-      quantity: safeQuantity,
-      price,
-    });
+    return { cart: getGuestCart(), status: 'already-in-cart', availableStock };
   }
 
+  if (availableStock !== undefined && safeQuantity > availableStock) {
+    return { cart: getGuestCart(), status: 'insufficient-stock', availableStock };
+  }
+
+  items.push({
+    id,
+    productId: product.id,
+    product,
+    variantId,
+    variant,
+    quantity: safeQuantity,
+    price,
+  });
+
   writeStoredItems(items);
-  return getGuestCart();
+  return { cart: getGuestCart(), status: 'added', availableStock };
 };
 
 export const updateGuestCartQuantity = (itemId: string, quantity: number): GuestCart => {
-  const safeQuantity = Math.floor(quantity);
-  const items = safeQuantity < 1
+  const requestedQuantity = Math.floor(quantity);
+  const items = requestedQuantity < 1
     ? readStoredItems().filter((item) => item.id !== itemId)
-    : readStoredItems().map((item) => (
-        item.id === itemId ? { ...item, quantity: safeQuantity } : item
-      ));
+    : readStoredItems().map((item) => {
+        if (item.id !== itemId) return item;
+
+        const availableStock = getAvailableStock(item.product, item.variant);
+        const safeQuantity = availableStock === undefined
+          ? requestedQuantity
+          : Math.min(requestedQuantity, availableStock);
+        return { ...item, quantity: safeQuantity };
+      });
 
   writeStoredItems(items);
   return getGuestCart();

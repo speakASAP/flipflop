@@ -46,6 +46,8 @@ python3 scripts/deployment_readiness_gate.py --root .
 | `GOAL-05-operational-closure` | done | Goals 01-04 | Final validation, runbook, monitoring checks, and handoff state |
 | `GOAL-06-orders-hub-integration` | done | Goals 01-05 and owner approval | FlipFlop server-side order-service feeds central Orders with deployed evidence |
 | `GOAL-07-leads-public-intake-adoption` | deployed | Leads Goal 26 owner selection of FlipFlop and 2026-06-21 owner approvals | Public FlipFlop contact surface submits through gateway to Leads public intake; production smoke passed |
+| `GOAL-09-smarty-checkout-reference-ux` | planned | Owner 2026-06-26 checkout UX correction and GOAL-02 payment-safety constraints | Guest checkout modeled on Smarty.cz, optional account creation by magic link, no mandatory registration before purchase |
+| `GOAL-09-guest-checkout-smarty-flow` | active | Owner 2026-06-26 checkout UX request | Guest checkout, Smarty.cz-inspired Czech checkout flow, optional registration, and bank-transfer QR completion |
 
 ## Orchestrator Rule
 

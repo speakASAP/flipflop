@@ -2,11 +2,11 @@
 
 ## Current Status
 
-**Date:** 2026-06-21
+**Date:** 2026-06-26
 **Mode:** Goal-driven orchestration enabled
-**Active goal:** none
-**Goal status:** GOAL-07-leads-public-intake-adoption deployed and production smoke passed
-**Current checkpoint:** Owner approved deployment on 2026-06-21. GOAL-07 public Leads intake is deployed to production; homepage, product API, and one bounded synthetic Leads contact smoke passed. Payment-provider residual risks remain pending separate readiness evidence.
+**Active goal:** GOAL-09-smarty-checkout-reference-ux
+**Goal status:** planning
+**Current checkpoint:** Owner requested Smarty.cz-referenced checkout UX and guest checkout on 2026-06-26. Planning/reference artifacts were created before implementation. Code implementation has not started in this planning pass. Existing dirty checkout/cart source changes remain present and must be classified before coding.
 
 ## Current Intent Summary
 
@@ -29,6 +29,23 @@ Orchestrator agents must not overwrite or revert those changes unless the owner 
 
 ## Completed In This Setup
 
+- Started `GOAL-09-smarty-checkout-reference-ux` as a planning-only goal after
+  owner correction that checkout must support purchase without mandatory
+  registration and optional account creation by post-order magic link.
+- Added Smarty.cz checkout reference documentation under
+  `docs/reference/smarty-checkout/README.md`, tied to 13 reference screenshots
+  in `docs/reference/smarty-checkout/screenshots/`.
+- Added GOAL-09 planning artifacts:
+  `implementation-goals/GOAL-09-smarty-checkout-reference-ux.md`,
+  `.execution-plan.md`, `.context-package.md`, `.coding-prompt.md`, and
+  `.validation-report.md`.
+- Added IPS traceability artifacts for TASK-002 guest checkout:
+  `11_tasks/TASK-002-smarty-checkout-reference-ux.md`,
+  `22_goal_impact/GOAL-IMPACT-TASK-002-smarty-checkout-reference-ux.md`,
+  `21_execution_plans/EP-TASK-002-smarty-checkout-reference-ux.md`,
+  `13_context_packages/CP-TASK-002-smarty-checkout-reference-ux.md`,
+  `14_prompts/PROMPT-TASK-002-smarty-checkout-reference-ux.md`, and
+  `12_validation/VAL-TASK-002-smarty-checkout-reference-ux.md`.
 - Added canonical Intent Preservation System baseline: constitution, vision, business case, domain model, system/subsystem, architecture, ADR, roadmap, milestone, feature, task, goal-impact record, execution plan, context package, coding prompt, validation report, audit checklist, project graph, and local gate scripts.
 - Updated FlipFlop orchestrator and process docs so future coding must pass IPS pre-coding and strict documentation gates before code edits, and deployment-readiness before release closure.
 - Validated IPS baseline locally: `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed 100/100, `python3 scripts/pre_coding_gate.py --root .` passed, `python3 scripts/deployment_readiness_gate.py --root .` passed, and `./scripts/next_goal.sh` preserved the no-active-goal/payment-follow-up state.
@@ -131,7 +148,7 @@ Orchestrator agents must not overwrite or revert those changes unless the owner 
 
 ## Next Step
 
-Active implementation goal: none. `GOAL-07-leads-public-intake-adoption` is deployed with production smoke evidence after owner approval. `GOAL-06-orders-hub-integration` remains closed with deployed live evidence.
+Active implementation goal: `GOAL-09-smarty-checkout-reference-ux`.
 
 Owner bypass decision remains in force:
 
@@ -140,7 +157,7 @@ validation until after the whole project is implemented. PayU, PayPal, GP
 WebPay, and Stripe webhook completion remain manual follow-up work and must not
 be marked verified automatically.
 
-Next implementation step: return to H8 candidate application integration decisions and choose the next application/service to migrate into central Orders using the FlipFlop evidence as the reference pattern.
+Next implementation step: before code edits, classify the existing dirty guest-cart/checkout changes, inspect the auth-microservice magic-link or passwordless account contract, and choose the backend guest-order contract documented in `implementation-goals/GOAL-09-smarty-checkout-reference-ux.execution-plan.md`.
 
 ## Goal Register
 
@@ -154,6 +171,7 @@ Next implementation step: return to H8 candidate application integration decisio
 | `GOAL-06-orders-hub-integration` | done | closed with deployed live checkout and central Orders forwarding evidence |
 | `GOAL-08-leads-lifecycle-replay-consumer` | done for source/config verification; not deployed | deploy only after integration-owner approval and Leads internal trust/token provisioning |
 | `GOAL-07-leads-public-intake-adoption` | deployed | production smoke passed after owner approval |
+| `GOAL-09-smarty-checkout-reference-ux` | planning | classify dirty guest-cart changes, confirm magic-link contract, then implement guest checkout |
 
 ## Owner Manual Follow-Up
 
@@ -222,3 +240,32 @@ Safety notes:
 - The production lead smoke used a synthetic `example.invalid` contact and no raw contact value is recorded in this state file.
 - No payment provider, order total, price, cancellation, database migration, object storage, campaign execution, AI/CRM export, or manual secret change was performed.
 - Residual GOAL-02 payment-provider credential/webhook risk remains preserved.
+
+
+## 2026-06-26 - GOAL-09 Guest Checkout And Smarty.cz Reference Flow
+
+Owner requested removal of mandatory login/registration from checkout and asked to model the Czech checkout flow after Smarty.cz screenshots.
+
+Current active goal: `GOAL-09-guest-checkout-smarty-flow`.
+
+Reference evidence added:
+
+- `docs/reference/smarty-checkout/USER_FLOW.md`
+- `docs/reference/smarty-checkout/screenshots/01-add-to-cart-accessory-upsell-top.png` through `13-completion-payment-instructions-detail.png`
+
+Subagent findings preserved:
+
+- UX/reference explorer documented all 13 screenshots and extracted required checkout states.
+- Code explorer found forced `/checkout` login redirect, authenticated-only `/api/orders*`, likely stale frontend payment initiation, and address route mismatch.
+
+Execution decision:
+
+- Implement guest-first checkout without marking payment as paid.
+- Backend must recalculate prices and totals from product/order data.
+- Guest order uses internal technical customer identity while real contact email is stored in order metadata and used for payment/notification where applicable.
+- Optional registration remains a visible checkbox; purchase must not depend on registration.
+
+Validation checkpoint before code edits:
+
+- `python3 scripts/pre_coding_gate.py --root .` passed.
+- `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed 100/100.

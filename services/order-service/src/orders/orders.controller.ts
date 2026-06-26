@@ -6,8 +6,20 @@
 import { Controller, Get, Post, Param, Body, UseGuards, Request } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { CreateGuestOrderDto } from './dto/create-guest-order.dto';
 import { ApiResponse } from '@flipflop/shared';
 import { GatewayUserGuard } from './gateway-user.guard';
+
+@Controller('orders')
+export class GuestOrdersController {
+  constructor(private readonly ordersService: OrdersService) {}
+
+  @Post('guest')
+  async createGuestOrder(@Body() dto: CreateGuestOrderDto) {
+    const order = await this.ordersService.createGuestOrder(dto);
+    return ApiResponse.success(order);
+  }
+}
 
 @Controller('orders')
 @UseGuards(GatewayUserGuard)
