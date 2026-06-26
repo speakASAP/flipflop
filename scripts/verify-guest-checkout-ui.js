@@ -97,6 +97,7 @@ async function main() {
   await httpOk(`${baseUrl}/checkout`);
   await httpOk(`${baseUrl}/payment-result?status=bank-transfer&orderId=verify&orderNumber=FFVERIFY&variableSymbol=1&amount=1`);
   await httpOk(`${baseUrl}/api/products?limit=1`);
+  await httpInvalidGuestOrderRejected(`${baseUrl}/api/orders/guest`);
 
   console.log(JSON.stringify({
     ok: true,
@@ -110,6 +111,7 @@ async function main() {
       paymentQrContract: true,
       savedBrowserEvidencePresent: true,
       liveEndpointsReachable: true,
+      guestOrderRouteMountedAndValidated: true,
     },
   }, null, 2));
 }

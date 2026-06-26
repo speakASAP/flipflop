@@ -4,7 +4,7 @@
 
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
-import { OrdersController, PaymentController } from './orders.controller';
+import { GuestOrdersController, OrdersController, PaymentController } from './orders.controller';
 import { AdminOrdersController } from './admin-orders.controller';
 import { AdminInventoryController } from './admin-inventory.controller';
 import { OrdersInternalController } from './orders-internal.controller';
@@ -38,6 +38,7 @@ import { PricingModule } from '../pricing/pricing.module';
     PricingModule,
   ],
   controllers: [
+    GuestOrdersController,
     OrdersController,
     PaymentController,
     AdminOrdersController,
