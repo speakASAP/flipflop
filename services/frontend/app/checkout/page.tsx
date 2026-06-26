@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { cartApi, Cart } from '@/lib/api/cart';
+import { clearGuestCart, getGuestCart } from '@/lib/guest-cart';
 import { addressesApi, DeliveryAddress } from '@/lib/api/addresses';
 import { ordersApi } from '@/lib/api/orders';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,20 +17,41 @@ export default function CheckoutPage() {
   const [processing, setProcessing] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'payu' | 'paypal' | 'webpay' | 'stripe'>('webpay');
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
+    if (authLoading) return;
+
     if (!isAuthenticated) {
-      router.push('/login');
+      router.push(`/login?redirect=${encodeURIComponent('/checkout')}`);
       return;
     }
 
     loadData();
-  }, [isAuthenticated, router]);
+  }, [authLoading, isAuthenticated, router]);
+
+  const mergeGuestCartIntoServerCart = async () => {
+    const guestCart = getGuestCart();
+    if (guestCart.items.length === 0) return;
+
+    const results = [];
+    for (const item of guestCart.items) {
+      results.push(await cartApi.addToCart({
+        productId: item.productId,
+        variantId: item.variantId,
+        quantity: item.quantity,
+      }));
+    }
+
+    if (results.every((result) => result.success)) {
+      clearGuestCart();
+    }
+  };
 
   const loadData = async () => {
     try {
+      await mergeGuestCartIntoServerCart();
       const [cartResponse, addressesResponse] = await Promise.all([
         cartApi.getCart(),
         addressesApi.getAddresses(),
@@ -90,7 +112,7 @@ export default function CheckoutPage() {
     }
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
         <div className="text-center">

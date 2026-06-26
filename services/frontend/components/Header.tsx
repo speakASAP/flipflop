@@ -1,12 +1,31 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { getGuestCart, GUEST_CART_UPDATED_EVENT } from '@/lib/guest-cart';
 
 export default function Header() {
   const { user, isAuthenticated, logout } = useAuth();
+  const [guestItemCount, setGuestItemCount] = useState(0);
   const router = useRouter();
+  const cartItemCount = isAuthenticated ? 0 : guestItemCount;
+
+  useEffect(() => {
+    const refreshGuestCartCount = () => {
+      setGuestItemCount(getGuestCart().itemCount);
+    };
+
+    refreshGuestCartCount();
+    window.addEventListener('storage', refreshGuestCartCount);
+    window.addEventListener(GUEST_CART_UPDATED_EVENT, refreshGuestCartCount);
+
+    return () => {
+      window.removeEventListener('storage', refreshGuestCartCount);
+      window.removeEventListener(GUEST_CART_UPDATED_EVENT, refreshGuestCartCount);
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -44,7 +63,7 @@ export default function Header() {
               <>
                 <Link href="/cart" className="relative p-2 text-gray-700 hover:text-blue-600 transition-colors">
                   <span className="text-2xl">🛒</span>
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{cartItemCount}</span>
                 </Link>
                 <Link href="/orders" className="text-slate-700 font-medium hover:text-blue-600 transition-colors px-3 py-2 rounded-lg hover:bg-blue-50 hidden sm:block">
                   Objednávky
@@ -68,7 +87,7 @@ export default function Header() {
               <>
                 <Link href="/cart" className="relative p-2 text-gray-700 hover:text-blue-600 transition-colors">
                   <span className="text-2xl">🛒</span>
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{cartItemCount}</span>
                 </Link>
                 <Link href="/login" className="text-slate-700 font-medium hover:text-blue-600 transition-colors px-3 py-2 rounded-lg hover:bg-blue-50">
                   Přihlásit
@@ -122,4 +141,3 @@ export default function Header() {
     </header>
   );
 }
-

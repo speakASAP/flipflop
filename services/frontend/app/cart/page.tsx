@@ -2,27 +2,60 @@
 
 import { useEffect, useState } from 'react';
 import { cartApi, CartItem } from '@/lib/api/cart';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  clearGuestCart,
+  getGuestCart,
+  GuestCart,
+  GuestCartItem,
+  removeGuestCartItem,
+  updateGuestCartQuantity,
+} from '@/lib/guest-cart';
 import Link from 'next/link';
 
+type CartView = {
+  items: Array<CartItem | GuestCartItem>;
+  total: number;
+  itemCount: number;
+};
+
 export default function CartPage() {
-  const [cart, setCart] = useState<{ items: CartItem[]; total: number; itemCount: number } | null>(null);
+  const [cart, setCart] = useState<CartView | null>(null);
   const [loading, setLoading] = useState(true);
-  const { isAuthenticated } = useAuth();
-  const router = useRouter();
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
+    if (authLoading) return;
+
+    if (isAuthenticated) {
+      loadAuthenticatedCart();
+    } else {
+      setCart(getGuestCart());
+      setLoading(false);
+    }
+  }, [authLoading, isAuthenticated]);
+
+  const mergeGuestCartIntoServerCart = async () => {
+    const guestCart = getGuestCart();
+    if (guestCart.items.length === 0) return;
+
+    const results = [];
+    for (const item of guestCart.items) {
+      results.push(await cartApi.addToCart({
+        productId: item.productId,
+        variantId: item.variantId,
+        quantity: item.quantity,
+      }));
     }
 
-    loadCart();
-  }, [isAuthenticated]);
+    if (results.every((result) => result.success)) {
+      clearGuestCart();
+    }
+  };
 
-  const loadCart = async () => {
+  const loadAuthenticatedCart = async () => {
     try {
+      await mergeGuestCartIntoServerCart();
       const response = await cartApi.getCart();
       if (response.success && response.data) {
         setCart(response.data);
@@ -35,6 +68,12 @@ export default function CartPage() {
   };
 
   const updateQuantity = async (itemId: string, quantity: number) => {
+    if (!isAuthenticated) {
+      const nextCart: GuestCart = updateGuestCartQuantity(itemId, quantity);
+      setCart(nextCart);
+      return;
+    }
+
     if (quantity < 1) {
       await removeItem(itemId);
       return;
@@ -42,22 +81,28 @@ export default function CartPage() {
 
     try {
       await cartApi.updateCartItem(itemId, quantity);
-      loadCart();
+      loadAuthenticatedCart();
     } catch (error) {
       console.error('Failed to update cart item:', error);
     }
   };
 
   const removeItem = async (itemId: string) => {
+    if (!isAuthenticated) {
+      const nextCart: GuestCart = removeGuestCartItem(itemId);
+      setCart(nextCart);
+      return;
+    }
+
     try {
       await cartApi.removeFromCart(itemId);
-      loadCart();
+      loadAuthenticatedCart();
     } catch (error) {
       console.error('Failed to remove item:', error);
     }
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <p>Načítání košíku...</p>
@@ -93,9 +138,9 @@ export default function CartPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4">
             {cart.items.map((item) => {
-              const productImageUrl = item.product.mainImageUrl || 
-                                     item.product.imageUrls?.[0] || 
-                                     item.product.images?.[0] || 
+              const productImageUrl = item.product.mainImageUrl ||
+                                     item.product.imageUrls?.[0] ||
+                                     item.product.images?.[0] ||
                                      null;
               return (
               <div key={item.id} className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all">
@@ -188,4 +233,3 @@ export default function CartPage() {
     </div>
   );
 }
-

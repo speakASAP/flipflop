@@ -210,7 +210,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             {/* Add to Cart */}
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-              <AddToCartButton productId={product.id} />
+              <AddToCartButton productId={product.id} product={product} />
             </div>
 
             {/* Description */}

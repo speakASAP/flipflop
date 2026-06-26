@@ -60,9 +60,9 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   // Get the main image URL with fallback
   const getMainImageUrl = () => {
-    return product.mainImageUrl || 
-           product.imageUrls?.[0] || 
-           product.images?.[0] || 
+    return product.mainImageUrl ||
+           product.imageUrls?.[0] ||
+           product.images?.[0] ||
            null;
   };
 
@@ -94,7 +94,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Decorative circles */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full -mr-16 -mt-16"></div>
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/20 rounded-full -ml-12 -mb-12"></div>
-        
+
         {/* Stock Badge */}
         {product.stockQuantity && product.stockQuantity > 0 ? (
           <div className="absolute top-4 left-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm">
@@ -112,7 +112,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         )}
       </Link>
-      
+
       {/* Product Info */}
       <div className="p-5">
         {product.brand && (
@@ -125,7 +125,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             {product.name}
           </h3>
         </Link>
-        
+
         {/* Rating */}
         {product.rating && (
           <div className="flex items-center gap-2 mb-4">
@@ -136,7 +136,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <span className="text-xs text-gray-600 font-medium">({product.rating})</span>
           </div>
         )}
-        
+
         {/* Price */}
         <div className="flex items-baseline gap-3 mb-4">
           <span className="text-2xl font-extrabold text-blue-600">
@@ -148,10 +148,11 @@ export default function ProductCard({ product }: ProductCardProps) {
             </span>
           )}
         </div>
-        
+
         {/* Quick Add Button */}
         <AddToCartButton
           productId={product.id}
+          product={product}
           label="Přidat do košíku"
           className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-bold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 text-sm shadow-md hover:shadow-lg transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         />

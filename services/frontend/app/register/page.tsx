@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -14,8 +14,16 @@ export default function RegisterPage() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [redirectPath, setRedirectPath] = useState('/');
   const { register } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    const redirect = new URLSearchParams(window.location.search).get('redirect');
+    if (redirect?.startsWith('/') && !redirect.startsWith('//')) {
+      setRedirectPath(redirect);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +33,7 @@ export default function RegisterPage() {
     try {
       const success = await register(formData);
       if (success) {
-        router.push('/');
+        router.push(redirectPath);
       } else {
         setError('Registrace se nezdařila. Zkuste to znovu.');
       }
@@ -139,7 +147,7 @@ export default function RegisterPage() {
 
         <p className="mt-6 text-center text-gray-600">
           Již máte účet?{' '}
-          <Link href="/login" className="text-blue-600 hover:text-blue-700 font-semibold hover:underline">
+          <Link href={`/login?redirect=${encodeURIComponent(redirectPath)}`} className="text-blue-600 hover:text-blue-700 font-semibold hover:underline">
             Přihlásit se
           </Link>
         </p>
