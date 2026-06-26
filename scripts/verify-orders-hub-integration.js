@@ -61,6 +61,19 @@ assert(
     payloadBuilder.includes('shipping:'),
   'central Orders payload must use nested totals/payment/shipping contract fields',
 );
+
+assert(
+  payloadBuilder.includes('const catalogProductId = this.requireCatalogProductId(') &&
+    payloadBuilder.includes('item.catalogProductId ?? item.products?.catalogProductId') &&
+    payloadBuilder.includes('productId: catalogProductId') &&
+    !payloadBuilder.includes('productId: item.productId'),
+  'central Orders payload item.productId must be the canonical Catalog product ID, not the local FlipFlop product ID',
+);
+assert(
+  ordersService.includes('orderItems: order.order_items') &&
+    ordersService.includes('products: true'),
+  'central Orders forwarding must forward persisted order lines with Product relations',
+);
 assert(
   payloadBuilder.includes('shippingAddress: boundedAddress') &&
     payloadBuilder.includes('billingAddress: boundedAddress') &&
@@ -80,6 +93,11 @@ assert(
     ordersService.includes("'conflict'") &&
     ordersService.includes("'failed'"),
   'order-service must record accepted/conflict/failed central forwarding status',
+);
+assert(
+  ordersService.includes("message.includes('[MISSING: catalogProductId]')") &&
+    ordersService.includes('reason: forwardingReason'),
+  'order-service must record [MISSING: catalogProductId] as a bounded central forwarding blocker',
 );
 assert(
   ordersService.includes('message.includes(ORDER_IDEMPOTENCY_CONFLICT)') &&

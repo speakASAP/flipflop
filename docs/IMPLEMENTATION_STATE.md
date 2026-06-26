@@ -146,6 +146,17 @@ Orchestrator agents must not overwrite or revert those changes unless the owner 
   `outcome=success`.
 - Evaluated Leads Goal 26 cross-repo product-app adoption for FlipFlop after owner selection of FlipFlop as the Leads consumer. Reviewed Leads Goal 26 and product-app intake contract artifacts, searched FlipFlop editable source for existing lead/contact/newsletter/waitlist/inquiry submission paths, and recorded GOAL-07 as blocked because no existing path exists to adapt safely. No production lead submission, runtime code change, schema change, secret change, deployment, raw contact export, campaign execution, or AI/CRM export was performed.
 
+## 2026-06-26 - Catalog Goal 17 Canonical Orders Product IDs
+
+Catalog Goal 17 / FlipFlop channel workstream completed source validation without deployment.
+
+- Updated central Orders forwarding in `services/order-service/src/orders/orders.service.ts` so central payload item `productId` is the canonical `Product.catalogProductId`, not the local FlipFlop product ID.
+- Added explicit `[MISSING: catalogProductId]` blocking when an order item cannot be mapped to a Catalog product ID before forwarding.
+- Preserved local `OrderItem.productId` as the FlipFlop local FK by stripping `catalogProductId` before Prisma order-item persistence.
+- Updated `scripts/verify-orders-hub-integration.js` to assert canonical Catalog product ID forwarding and missing-ID blocking.
+- Validation passed: `python3 scripts/pre_coding_gate.py --root .`, `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues`, `npm run verify:orders-hub-integration`, `git diff --check`, and `cd services/order-service && npm run build`.
+- Deployment was intentionally not run.
+
 ## Next Step
 
 Active implementation goal: `GOAL-09-smarty-checkout-reference-ux`.

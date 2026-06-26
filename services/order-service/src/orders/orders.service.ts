@@ -637,14 +637,19 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       productSku?: string;
       productName: string;
       quantity: number;
-      unitPrice: number;
-      totalPrice: number;
+      unitPrice: number | Prisma.Decimal;
+      totalPrice: number | Prisma.Decimal;
+      catalogProductId?: string | null;
+      products?: { catalogProductId?: string | null } | null;
     }>;
     deliveryAddress: any;
     user?: { email?: string | null } | null;
   }) {
     const { order, orderItems, deliveryAddress, user } = params;
-    const customerName = `${deliveryAddress.firstName} ${deliveryAddress.lastName}`.trim();
+    const customerName = [deliveryAddress.firstName, deliveryAddress.lastName]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
     const boundedAddress = {
       name: customerName || undefined,
       street: deliveryAddress.street,
@@ -652,6 +657,23 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       postalCode: deliveryAddress.postalCode,
       country: deliveryAddress.country || 'CZ',
     };
+    const items = orderItems.map((item) => {
+      const catalogProductId = this.requireCatalogProductId(
+        {
+          catalogProductId: item.catalogProductId ?? item.products?.catalogProductId,
+          sku: item.productSku,
+        },
+        item.productId,
+      );
+      return {
+        productId: catalogProductId,
+        sku: item.productSku,
+        title: item.productName,
+        quantity: item.quantity,
+        unitPrice: Number(item.unitPrice),
+        totalPrice: Number(item.totalPrice),
+      };
+    });
 
     return {
       externalOrderId: order.orderNumber,
@@ -665,14 +687,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       },
       shippingAddress: boundedAddress,
       billingAddress: boundedAddress,
-      items: orderItems.map((item) => ({
-        productId: item.productId,
-        sku: item.productSku,
-        title: item.productName,
-        quantity: item.quantity,
-        unitPrice: Number(item.unitPrice),
-        totalPrice: Number(item.totalPrice),
-      })),
+      items,
       totals: {
         subtotal: Number(order.subtotal),
         shippingCost: Number(order.shippingCost),
@@ -688,6 +703,18 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         method: order.shippingProvider || 'standard',
       },
     };
+  }
+
+  private requireCatalogProductId(
+    product: { catalogProductId?: string | null; sku?: string | null },
+    localProductId: string,
+  ): string {
+    const catalogProductId = product.catalogProductId?.trim();
+    if (!catalogProductId) {
+      const productLabel = product.sku ? `${product.sku} (${localProductId})` : localProductId;
+      throw new BadRequestException(`[MISSING: catalogProductId] Product ${productLabel} cannot be forwarded to central Orders`);
+    }
+    return catalogProductId;
   }
 
   private getCentralOrdersChannelAccountId(): string {
@@ -1213,7 +1240,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     try {
       const orderData = this.buildCentralOrdersPayload({
         order,
-        orderItems,
+        orderItems: order.order_items,
         deliveryAddress,
         user,
       });
@@ -1230,8 +1257,14 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       const isIdempotencyConflict = message.includes(ORDER_IDEMPOTENCY_CONFLICT);
+      const isMissingCatalogProductId = message.includes('[MISSING: catalogProductId]');
+      const forwardingReason = isIdempotencyConflict
+        ? ORDER_IDEMPOTENCY_CONFLICT
+        : isMissingCatalogProductId
+          ? '[MISSING: catalogProductId]'
+          : 'CENTRAL_ORDERS_FORWARD_FAILED';
       await this.recordCentralOrdersForwarding(order, isIdempotencyConflict ? 'conflict' : 'failed', {
-        reason: isIdempotencyConflict ? ORDER_IDEMPOTENCY_CONFLICT : 'CENTRAL_ORDERS_FORWARD_FAILED',
+        reason: forwardingReason,
       });
       if (isIdempotencyConflict) {
         this.logger.warn('Central Orders idempotency conflict for FlipFlop order', {
@@ -1327,7 +1360,9 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         total,
         notes: this.normalizeGuestText(dto.notes, ''),
         metadata,
-        order_items: { create: orderItems },
+        order_items: {
+          create: orderItems,
+        },
         order_status_history: {
           create: {
             status: OrderStatus.pending,
@@ -1397,7 +1432,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     try {
       const orderData = this.buildCentralOrdersPayload({
         order,
-        orderItems,
+        orderItems: order.order_items,
         deliveryAddress,
         user: { email: guestEmail },
       });
@@ -1407,10 +1442,15 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
-      await this.recordCentralOrdersForwarding(order, message.includes(ORDER_IDEMPOTENCY_CONFLICT) ? 'conflict' : 'failed', {
-        reason: message.includes(ORDER_IDEMPOTENCY_CONFLICT)
-          ? ORDER_IDEMPOTENCY_CONFLICT
-          : 'CENTRAL_ORDERS_FORWARD_FAILED',
+      const isIdempotencyConflict = message.includes(ORDER_IDEMPOTENCY_CONFLICT);
+      const isMissingCatalogProductId = message.includes('[MISSING: catalogProductId]');
+      const forwardingReason = isIdempotencyConflict
+        ? ORDER_IDEMPOTENCY_CONFLICT
+        : isMissingCatalogProductId
+          ? '[MISSING: catalogProductId]'
+          : 'CENTRAL_ORDERS_FORWARD_FAILED';
+      await this.recordCentralOrdersForwarding(order, isIdempotencyConflict ? 'conflict' : 'failed', {
+        reason: forwardingReason,
       });
     }
 
