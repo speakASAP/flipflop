@@ -324,3 +324,88 @@ Remaining explicit gaps:
 - `[MISSING: auth-microservice magic-link or passwordless account API]` prevents real post-order account activation.
 - `[MISSING: production bank account]` prevents real bank-transfer QR generation.
 - Owner-approved production guest order-submit smoke is still required before claiming end-to-end purchase completion.
+
+Post-deploy continuation evidence:
+
+- `./scripts/deploy.sh` completed successfully in 172.53s after rebuilding and rolling out all six FlipFlop services.
+- Post-deploy browser smoke passed against `https://flipflop.alfares.cz`.
+- Verified optional account checkbox is passwordless in checkout: no `input[type=password]` fields were present after checking `Chci vytvořit účet`.
+- Evidence files: `reports/validation/guest-checkout-smoke/report-post-deploy.json`, `03-post-deploy-delivery-payment.png`, `04-post-deploy-details-passwordless.png`.
+
+## 2026-06-26 - GOAL-09 Bank Transfer QR Contract And Smoke
+
+Implemented QR payment behavior:
+
+- Added frontend dependency `qrcode` for local client-side QR SVG generation on `/payment-result`.
+- Added `BANK_TRANSFER_ACCOUNT_NUMBER` and `BANK_TRANSFER_ACCOUNT_IBAN` runtime contract in `.env.example` and `k8s/configmap.yaml`.
+- Order-service bank-transfer redirect now includes `bankAccountNumber` and `bankAccountIban` query parameters only when runtime env values are configured.
+- Payment-result keeps explicit `[MISSING: production bank account]` and `[MISSING: production IBAN]` states when payment recipient config is absent.
+- Payment-result renders a Czech QR Platba payload (`SPD*1.0*ACC:*AM:*CC:CZK*X-VS:*MSG:*`) when an IBAN, amount, and variable symbol are present.
+
+Validation passed:
+
+- `git diff --check`
+- `cd services/frontend && npm run build`
+- `cd services/order-service && npm run build`
+- `python3 scripts/pre_coding_gate.py --root .`
+- `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues`
+- `python3 scripts/deployment_readiness_gate.py --root .`
+- `node` QR package sanity check generated SVG output.
+
+Deployment and live QR smoke:
+
+- `./scripts/deploy.sh` completed successfully in 190.25s after applying ConfigMap updates and rolling out all six FlipFlop services.
+- Live browser smoke verified missing-IBAN placeholder on bank-transfer completion URL.
+- Live browser smoke verified a bank-transfer completion URL with a sample IBAN renders one local SVG QR element and no console/page errors.
+- Evidence files: `reports/validation/guest-checkout-smoke/report-payment-qr.json`, `05-bank-transfer-missing-iban.png`, `06-bank-transfer-rendered-qr.png`.
+
+Remaining explicit gaps:
+
+- `[MISSING: production bank account]` and `[MISSING: production IBAN]` are still unset in production config; QR generation is implemented and verified with a sample IBAN but production payment recipient data must be supplied before live customers see a real QR.
+- Owner-approved production guest order-submit smoke remains required before claiming a fully completed end-to-end purchase.
+
+## 2026-06-26 - GOAL-09 Repeatable Non-Mutating Verifier
+
+Added repeatable validation command:
+
+```bash
+npm run verify:guest-checkout-ui
+```
+
+Verifier scope:
+
+- Checks checkout source contract for guest cart loading, no hard login redirect, no checkout password fields, no pre-order `authApi.register`, optional `wantsAccount`, Czech delivery/payment/expedition sections, different-day delivery, operator-tip upsell, and order summary.
+- Checks frontend/backend guest-order contracts for `wantsAccount`, gateway `POST /api/orders/guest`, server-side product validation, and account activation metadata.
+- Checks bank-transfer QR contract for local `qrcode` dependency, QR Platba payload fields, missing-production-IBAN state, and bank-transfer env contract.
+- Checks required browser smoke evidence files under `reports/validation/guest-checkout-smoke/`.
+- Checks saved post-deploy smoke reports for no login redirect, no checkout password inputs, non-mutating final-submit behavior, missing-IBAN placeholder, and QR SVG rendering.
+- Checks live `/cart`, `/checkout`, `/payment-result?status=bank-transfer...`, and `/api/products?limit=1` endpoints return successful responses.
+
+Validation result:
+
+- `npm run verify:guest-checkout-ui` passed with `nonMutating: true`.
+
+Remaining explicit gaps:
+
+- Production `BANK_TRANSFER_ACCOUNT_NUMBER` and `BANK_TRANSFER_ACCOUNT_IBAN` are still required for customer-visible QR payment.
+- Owner-approved real guest-order submit smoke remains required for end-to-end order creation evidence.
+
+## 2026-06-26 - GOAL-09 Verifier Hardening And Checkout Fixes
+
+Additional fixes from subagent audit:
+
+- Fixed checkout marketing-consent checkbox to update the quoted `marketingConsent` form key and initialize it to `false`.
+- Fixed untracked `/auth/callback` page syntax and wrapped `useSearchParams` in `Suspense` for Next.js build compatibility.
+- Fixed shared auth magic-link helper syntax and exported `LeadsClientService` from shared index so order-service can compile with checkout follow-up integrations.
+- Removed accidental order-service package-lock churn from validation side effects.
+- Hardened `npm run verify:guest-checkout-ui` to catch the marketing-consent regression and current magic-link metadata states.
+
+Validation passed after fixes:
+
+- `npm run verify:guest-checkout-ui`
+- `cd services/frontend && npm run build`
+- `cd services/order-service && npm run build`
+- `git diff --check`
+- `python3 scripts/pre_coding_gate.py --root .`
+- `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues`
+- `python3 scripts/deployment_readiness_gate.py --root .`

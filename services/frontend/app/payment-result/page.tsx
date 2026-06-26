@@ -1,11 +1,55 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+import QRCode from 'qrcode';
 import Link from 'next/link';
 
 function CopyButton({ value }: { value: string }) {
   return <button type="button" onClick={() => navigator.clipboard?.writeText(value)} className="ml-2 border border-neutral-300 px-2 py-1 text-xs font-bold">kopírovat</button>;
+}
+
+const sanitizeQrValue = (value: string) => value.replace(/[\*\n\r]/g, ' ').trim();
+
+function buildQrPlatbaPayload({ iban, amount, variableSymbol, orderNumber }: { iban: string; amount: string; variableSymbol: string; orderNumber: string }) {
+  const numericAmount = Number(amount);
+  if (!iban || !Number.isFinite(numericAmount) || numericAmount <= 0 || !variableSymbol) return '';
+  const parts = [
+    'SPD',
+    '1.0',
+    `ACC:${sanitizeQrValue(iban).replace(/\s/g, '').toUpperCase()}`,
+    `AM:${numericAmount.toFixed(2)}`,
+    'CC:CZK',
+    `X-VS:${sanitizeQrValue(variableSymbol)}`,
+    `MSG:${sanitizeQrValue(`FlipFlop ${orderNumber || variableSymbol}`).slice(0, 60)}`,
+  ];
+  return parts.join('*');
+}
+
+function PaymentQr({ payload }: { payload: string }) {
+  const [svg, setSvg] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    if (!payload) {
+      setSvg('');
+      return;
+    }
+    QRCode.toString(payload, { type: 'svg', errorCorrectionLevel: 'M', margin: 1, width: 192 })
+      .then((nextSvg) => { if (active) setSvg(nextSvg); })
+      .catch(() => { if (active) setSvg(''); });
+    return () => { active = false; };
+  }, [payload]);
+
+  if (!payload) {
+    return <div className="mx-auto mt-8 flex h-48 w-48 items-center justify-center border border-dashed border-amber-700 bg-white p-4 text-sm font-bold text-amber-800">QR platba čeká na nastavení produkčního IBAN účtu.</div>;
+  }
+
+  if (!svg) {
+    return <div className="mx-auto mt-8 flex h-48 w-48 items-center justify-center border border-neutral-300 bg-white p-4 text-sm font-bold text-neutral-700">Generujeme QR platbu...</div>;
+  }
+
+  return <div aria-label="QR platba" className="mx-auto mt-8 h-48 w-48 bg-white p-2" dangerouslySetInnerHTML={{ __html: svg }} />;
 }
 
 function PaymentResultContent() {
@@ -16,6 +60,9 @@ function PaymentResultContent() {
   const orderNumber = params.get('orderNumber') || orderId || '';
   const variableSymbol = params.get('variableSymbol') || orderNumber.replace(/\D/g, '').slice(-10);
   const amount = params.get('amount') || '';
+  const bankAccountNumber = params.get('bankAccountNumber') || '';
+  const bankAccountIban = params.get('bankAccountIban') || '';
+  const qrPayload = useMemo(() => buildQrPlatbaPayload({ iban: bankAccountIban, amount, variableSymbol, orderNumber }), [amount, bankAccountIban, orderNumber, variableSymbol]);
 
   if (status === 'bank-transfer') {
     return (
@@ -38,11 +85,12 @@ function PaymentResultContent() {
               <div className="space-y-4 text-xl">
                 <p>Variabilní symbol: <strong>{variableSymbol || '[MISSING: variable symbol]'}</strong>{variableSymbol && <CopyButton value={variableSymbol} />}</p>
                 <p>Částka k úhradě: <strong>{amount ? Number(amount).toLocaleString('cs-CZ') + ' Kč' : '[MISSING: amount]'}</strong>{amount && <CopyButton value={amount} />}</p>
-                <p>Číslo účtu: <strong>[MISSING: production bank account]</strong></p>
+                <p>Číslo účtu: <strong>{bankAccountNumber || '[MISSING: production bank account]'}</strong>{bankAccountNumber && <CopyButton value={bankAccountNumber} />}</p>
+                <p>IBAN pro QR: <strong>{bankAccountIban || '[MISSING: production IBAN]'}</strong>{bankAccountIban && <CopyButton value={bankAccountIban} />}</p>
               </div>
-              <div className="mx-auto mt-8 flex h-48 w-48 items-center justify-center border border-dashed border-amber-700 bg-white p-4 text-sm font-bold text-amber-800">QR platba čeká na nastavení produkčního bankovního účtu.</div>
+              <PaymentQr payload={qrPayload} />
               <p className="mt-6 font-bold">Důležité upozornění</p>
-              <p className="mx-auto mt-2 max-w-xl">Jakmile bude produkční účet nastavený, QR platba bude generována z reálných platebních údajů bez ručního přepisování.</p>
+              <p className="mx-auto mt-2 max-w-xl">Jakmile bude produkční IBAN nastavený, QR platba se vygeneruje z reálných platebních údajů bez ručního přepisování.</p>
             </section>
             <section className="border border-neutral-200 bg-white p-8">
               <h2 className="mb-4 text-3xl font-black">Detail objednávky →</h2>

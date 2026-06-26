@@ -50,6 +50,10 @@ export class CreateGuestOrderDto {
   @IsBoolean()
   wantsAccount?: boolean;
 
+  @IsOptional()
+  @IsBoolean()
+  marketingConsent?: boolean;
+
   @IsObject()
   billingAddress: GuestCheckoutAddressDto;
 

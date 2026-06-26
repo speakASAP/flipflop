@@ -1,0 +1,82 @@
+# GOAL-09 Completion Audit: Smarty-Style Guest Checkout
+
+Date: 2026-06-26
+Repository: `/home/ssf/Documents/Github/flipflop-service`
+Production URL: `https://flipflop.alfares.cz`
+
+## Objective
+
+Rework FlipFlop checkout so customers can buy without mandatory registration, document the Smarty.cz reference flow from owner screenshots and live inspection, save reference evidence in the remote FlipFlop repo, and implement a Czech e-commerce checkout with guest/optional account, delivery, payment, order summary, upsell, and bank-transfer QR behavior.
+
+## Intent Preservation Chain
+
+- Vision: remove forced registration from purchase flow while matching the familiar Czech e-commerce checkout pattern represented by Smarty.cz.
+- Goal Impact: lower checkout friction and allow immediate purchase, while keeping account creation as an optional post-order convenience.
+- System: FlipFlop storefront, frontend checkout, API gateway, order-service, shared auth/client helpers, Kubernetes deployment.
+- Feature: guest checkout with optional account intent, Czech delivery/payment flow, sticky summary, upsell, and QR bank-transfer confirmation.
+- Task: implement, document, validate, and deploy the guest checkout flow.
+- Execution Plan: documented in `docs/reference/smarty-checkout/USER_FLOW.md` and GOAL-09 entries in `docs/IMPLEMENTATION_STATE.md`.
+- Coding Prompt: owner request from 2026-06-26 to mirror Smarty.cz checkout behavior and preserve screenshots as references.
+- Code: remote working tree changes listed by `git status --short` under GOAL-09.
+- Validation: commands and runtime evidence listed below.
+
+## Requirement Audit
+
+| Requirement | Status | Evidence |
+| --- | --- | --- |
+| Guest checkout does not require login | Proven | `/checkout` uses `getGuestCart()`; verifier asserts no hard login redirect; live post-deploy smoke report asserts `noLoginRedirect: true`. |
+| User can choose checkout without registration or optional account creation | Proven | Checkout has `Chci vytvořit účet`; verifier asserts no password fields and `wantsAccount` contract; order metadata records `accountActivation` intent. |
+| Registration is non-blocking | Proven | Checkout submits `wantsAccount` as metadata; optional account completion is magic-link style and order submission is not gated on password creation. |
+| Smarty.cz reference screenshots are saved | Proven | 13 PNG files exist in `docs/reference/smarty-checkout/screenshots/`, matching owner-provided screenshot inventory. |
+| Smarty.cz user flow is documented | Proven | `docs/reference/smarty-checkout/USER_FLOW.md` documents add-to-cart, cart, delivery/payment, details, completion, validation, summary, support, and unknowns. |
+| Accessory/upsell behavior is represented | Proven | Reference doc covers accessory upsell and sticky selected-product bar; checkout implementation includes operator-tip upsell and service-style cart upsell references. |
+| Delivery options are visible and selectable | Proven | Checkout source includes Czech delivery options; browser evidence `03-post-deploy-delivery-payment.png`; verifier checks delivery section. |
+| Delivery validation is section-specific | Proven | Reference doc captures red missing-delivery state; checkout source and browser evidence cover delivery/payment validation flow. |
+| Expedition is separate from delivery | Proven | Checkout source includes `Expedice`; summary includes `Standard - jedna zásilka`; verifier checks expedition section. |
+| Payment selection exists | Proven | Checkout source includes Czech payment methods; verifier checks payment section. |
+| Delivery in another day exists | Proven | Checkout source includes `Chci zboží doručit v jiný den`; verifier checks the option. |
+| Sticky order summary exists | Proven | Checkout source has `Souhrn objednávky` in sticky aside; post-deploy screenshots show live summary. |
+| Completion/payment instruction page exists | Proven | `/payment-result` returns `HTTP/2 200`; payment result source renders bank-transfer instructions, copy buttons, and order detail. |
+| Bank-transfer QR behavior is implemented | Proven with sample data | Payment result generates local SVG QR from QR Platba payload when IBAN/amount/VS are present; `report-payment-qr.json` asserts QR rendering with sample IBAN. |
+| Production bank-transfer QR is customer-ready | Incomplete | `BANK_TRANSFER_ACCOUNT_NUMBER` and `BANK_TRANSFER_ACCOUNT_IBAN` are intentionally blank in `k8s/configmap.yaml`; production recipient values are still `[MISSING: production bank account]` and `[MISSING: production IBAN]`. |
+| Real production guest order submit is proven end to end | Incomplete | Smoke tests intentionally stop before final submit to avoid creating a production order without owner approval. |
+| Subagent-driven development evidence exists | Proven | GOAL-09 implementation state records subagent audit fixes; verifier hardening reflects subagent findings. |
+
+## Current Validation Evidence
+
+Commands passed on 2026-06-26:
+
+```bash
+git diff --check
+npm run verify:guest-checkout-ui
+cd services/frontend && npm run build
+cd services/order-service && npm run build
+python3 scripts/pre_coding_gate.py --root .
+python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues
+python3 scripts/deployment_readiness_gate.py --root .
+```
+
+Deployment:
+
+```bash
+./scripts/deploy.sh
+```
+
+Result: completed successfully after rebuilding and rolling out all six FlipFlop services.
+
+Post-deploy live checks:
+
+```text
+flipflop-service           1/1 Running
+flipflop-frontend          1/1 Running
+flipflop-product-service   1/1 Running
+flipflop-cart-service      1/1 Running
+flipflop-order-service     1/1 Running
+flipflop-user-service      1/1 Running
+
+https://flipflop.alfares.cz/cart HTTP/2 200
+https://flipflop.alfares.cz/checkout HTTP/2 200
+https://flipflop.alfares.cz/payment-result?...bankAccountIban=... HTTP/2 200
+```
+
+## Remaining Completion Gates

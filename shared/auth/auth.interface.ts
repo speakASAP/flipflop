@@ -43,3 +43,15 @@ export interface RefreshTokenDto {
   refreshToken: string;
 }
 
+export interface MagicLinkRequestDto {
+  email: string;
+  return_url: string;
+  client_id?: string;
+  state?: string;
+  app_domain?: string;
+}
+
+export interface MagicLinkResponse {
+  success: boolean;
+}
+

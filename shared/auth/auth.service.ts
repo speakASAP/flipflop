@@ -1,6 +1,6 @@
 /**
  * Auth Service
- * Service to handle authentication via auth-microservice
+ * Service to handle authentication via 'auth-microservice'
  */
 
 import { Injectable, UnauthorizedException } from '@nestjs/common';
@@ -14,6 +14,8 @@ import {
   ValidateTokenResponse,
   RefreshTokenDto,
   AuthUser,
+  MagicLinkRequestDto,
+  MagicLinkResponse,
 } from './auth.interface';
 import { LoggerService } from '../logger/logger.service';
 import { CircuitBreakerService } from '../resilience/circuit-breaker.service';
@@ -46,7 +48,7 @@ export class AuthService {
   }
 
   /**
-   * Internal method to call auth-microservice via HTTP
+   * Internal method to call 'auth-microservice' via HTTP
    */
   private async callAuthService<T>(
     endpoint: string,
@@ -115,6 +117,53 @@ export class AuthService {
         stack: error.stack,
       });
 
+      throw error;
+    }
+  }
+
+  /**
+   * Request a passwordless magic-link account activation/login email.
+   * Auth owns token generation and email delivery; callers should treat this as best-effort.
+   */
+  async requestMagicLink(dto: MagicLinkRequestDto): Promise<MagicLinkResponse> {
+    const callFn = async () => this.callAuthService<MagicLinkResponse>('/auth/magic-link/request', dto);
+
+    const breaker = this.circuitBreakerService.create(
+      'auth-microservice',
+      callFn,
+    );
+
+    if (this.circuitBreakerService.isOpen('auth-microservice')) {
+      this.logger.warn('Auth service circuit breaker is open', {
+        action: 'requestMagicLink',
+        email: dto.email,
+      });
+      throw new UnauthorizedException('Authentication service is temporarily unavailable');
+    }
+
+    try {
+      const response = await this.retryService.execute(
+        async () => {
+          return await breaker.fire();
+        },
+        {
+          retryable: (error: any) => {
+            return error.statusCode !== 400 && error.statusCode !== 429;
+          },
+        },
+      );
+
+      this.resilienceMonitor.recordRetryAttempt('auth-microservice', true);
+      this.logger.log('Magic-link requested successfully', {
+        email: dto.email,
+      });
+      return response as MagicLinkResponse;
+    } catch (error: any) {
+      this.resilienceMonitor.recordRetryAttempt('auth-microservice', false);
+      this.logger.error('Failed to request magic-link', {
+        error: error.message,
+        email: dto.email,
+      });
       throw error;
     }
   }
@@ -275,4 +324,3 @@ export class AuthService {
     }
   }
 }
-

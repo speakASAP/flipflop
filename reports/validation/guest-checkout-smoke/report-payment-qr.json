@@ -1,0 +1,14 @@
+{
+  "assertions": {
+    "missingIbanPlaceholderRendered": true,
+    "configuredIbanRendersQrSvg": true,
+    "qrUsesLocalClientGenerator": true
+  },
+  "screenshots": [
+    "05-bank-transfer-missing-iban.png",
+    "06-bank-transfer-rendered-qr.png"
+  ],
+  "consoleMessages": [],
+  "pageErrors": [],
+  "createdAt": "2026-06-26T15:17:48.191Z"
+}

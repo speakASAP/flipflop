@@ -20,6 +20,24 @@ type ReplayOptions = {
   toOccurredAt?: string;
 };
 
+type SubmitFlipFlopCheckoutLeadInput = {
+  email: string;
+  phone?: string;
+  firstName?: string;
+  lastName?: string;
+  orderId: string;
+  orderNumber: string;
+  sourceUrl: string;
+  marketingConsent: boolean;
+  consentCapturedAt?: string;
+};
+
+type SubmitLeadResponse = {
+  leadId: string;
+  status: string;
+  confirmationSent?: boolean;
+};
+
 @Injectable()
 export class LeadsClientService {
   private readonly baseUrl: string;
@@ -29,6 +47,54 @@ export class LeadsClientService {
     private readonly logger: LoggerService,
   ) {
     this.baseUrl = process.env.LEADS_SERVICE_URL || "http://leads-microservice:4400";
+  }
+
+
+  async submitFlipFlopCheckoutLead(input: SubmitFlipFlopCheckoutLeadInput): Promise<SubmitLeadResponse> {
+    const consentCapturedAt = input.consentCapturedAt || new Date().toISOString();
+    const payload: Record<string, unknown> = {
+      sourceService: "flipflop",
+      sourceLabel: "checkout-customer",
+      sourceUrl: input.sourceUrl,
+      message: "FlipFlop checkout customer sync",
+      contactMethods: [{ type: "email", value: input.email }],
+      preferredChannel: "email",
+      fallbackChannels: [],
+      marketingConsent: input.marketingConsent,
+      metadata: {
+        intent: "checkout-customer-sync",
+        surface: "checkout",
+        productKey: "flipflop",
+        orderId: input.orderId,
+        orderNumber: input.orderNumber,
+        phonePresent: Boolean(input.phone),
+        namePresent: Boolean(input.firstName || input.lastName),
+      },
+    };
+    if (input.marketingConsent) {
+      payload.consentSource = "flipflop:checkout:v1";
+      payload.consentCapturedAt = consentCapturedAt;
+    }
+
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(`${this.baseUrl}/api/leads/submit`, payload, {
+          headers: { "Content-Type": "application/json" },
+          timeout: 10000,
+        }),
+      );
+      this.logger.log("FlipFlop checkout lead submitted", {
+        leadId: response.data?.leadId,
+        orderNumber: input.orderNumber,
+        marketingConsent: input.marketingConsent,
+      });
+      return response.data as SubmitLeadResponse;
+    } catch (error: unknown) {
+      const status = (error as { response?: { status?: number } })?.response?.status || HttpStatus.BAD_GATEWAY;
+      const message = error instanceof Error ? error.message : "Unknown error";
+      this.logger.warn(`FlipFlop checkout lead submission failed: ${message}`, "LeadsClient");
+      throw new HttpException("Failed to submit FlipFlop checkout lead", status);
+    }
   }
 
   async replayLeadLifecycleForFlipFlop(leadId: string, options: ReplayOptions = {}): Promise<any> {

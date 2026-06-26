@@ -84,6 +84,7 @@ export interface CreateGuestOrderData {
   email: string;
   phone?: string;
   wantsAccount?: boolean;
+  marketingConsent?: boolean;
   billingAddress: CheckoutAddressData;
   deliveryAddress?: CheckoutAddressData;
   items: GuestOrderItemData[];

@@ -65,6 +65,7 @@ export { ClientsModule } from './clients/clients.module';
 export * from './clients/catalog-client.service';
 export * from './clients/warehouse-client.service';
 export * from './clients/order-client.service';
+export * from './clients/leads-client.service';
 
 // RabbitMQ
 export * from './rabbitmq/rabbitmq.module';

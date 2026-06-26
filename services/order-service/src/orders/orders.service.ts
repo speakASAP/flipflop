@@ -24,6 +24,8 @@ import {
   WarehouseClientService,
   InventoryEventsPublisher,
   CustomerEventsPublisher,
+  AuthService,
+  LeadsClientService,
 } from '@flipflop/shared';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
@@ -45,6 +47,8 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     private readonly notificationService: NotificationService,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
+    private readonly authService: AuthService,
+    private readonly leadsClient: LeadsClientService,
     private readonly orderClient: OrderClientService,
     private readonly warehouseClient: WarehouseClientService,
     private readonly discountService: DiscountService,
@@ -708,25 +712,52 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     return typeof value === 'string' && value.trim() ? value.trim() : fallback;
   }
 
-  private buildGuestTechnicalEmail(): string {
-    return `guest+${randomUUID()}@flipflop.local`;
+  private guestPreferencesPatch(dto: any): Record<string, unknown> {
+    return {
+      checkoutMode: 'guest-or-account',
+      accountLoginDisabled: false,
+      lastGuestCheckoutAt: new Date().toISOString(),
+      lastGuestCheckoutWantsAccount: dto.wantsAccount === true,
+      lastGuestCheckoutMarketingConsent: dto.marketingConsent === true,
+    };
   }
 
-  private async createTechnicalGuestUser(dto: any): Promise<any> {
-    const address = dto.deliveryAddress || dto.billingAddress || {};
+  private async createOrUpdateCheckoutCustomer(dto: any, guestEmail: string): Promise<any> {
+    const address = dto.billingAddress || dto.deliveryAddress || {};
+    const firstName = this.normalizeGuestText(address.firstName, 'Guest');
+    const lastName = this.normalizeGuestText(address.lastName, 'Customer');
+    const phone = this.normalizeGuestText(dto.phone || address.phone, '');
+    const existing = await this.prisma.user.findUnique({ where: { email: guestEmail } });
+    const preferences = {
+      ...(existing?.preferences && typeof existing.preferences === 'object' && !Array.isArray(existing.preferences)
+        ? (existing.preferences as Record<string, unknown>)
+        : {}),
+      ...this.guestPreferencesPatch(dto),
+    } as Prisma.InputJsonValue;
+
+    if (existing) {
+      return this.prisma.user.update({
+        where: { id: existing.id },
+        data: {
+          firstName: existing.firstName || firstName,
+          lastName: existing.lastName || lastName,
+          phone: existing.phone || phone || null,
+          preferences,
+          updatedAt: new Date(),
+        },
+      });
+    }
+
     return this.prisma.user.create({
       data: {
-        email: this.buildGuestTechnicalEmail(),
-        password: `guest-checkout-disabled:${randomUUID()}`,
-        firstName: this.normalizeGuestText(address.firstName, 'Guest'),
-        lastName: this.normalizeGuestText(address.lastName, 'Customer'),
-        phone: this.normalizeGuestText(dto.phone || address.phone, ''),
+        email: guestEmail,
+        password: `magic-link-pending:${randomUUID()}`,
+        firstName,
+        lastName,
+        phone,
         isEmailVerified: false,
         isAdmin: false,
-        preferences: {
-          checkoutMode: 'guest',
-          accountLoginDisabled: true,
-        } as Prisma.InputJsonValue,
+        preferences,
       },
     });
   }
@@ -816,6 +847,8 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
   }
 
   private buildBankTransferRedirect(order: any, total: number): string {
+    const bankAccountNumber = process.env.BANK_TRANSFER_ACCOUNT_NUMBER?.trim() || '';
+    const bankAccountIban = process.env.BANK_TRANSFER_ACCOUNT_IBAN?.trim() || '';
     const params = new URLSearchParams({
       status: 'bank-transfer',
       orderId: order.id,
@@ -823,7 +856,108 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       variableSymbol: order.orderNumber.replace(/\D/g, '').slice(-10) || order.id.replace(/\D/g, '').slice(-10),
       amount: String(total),
     });
+    if (bankAccountNumber) params.set('bankAccountNumber', bankAccountNumber);
+    if (bankAccountIban) params.set('bankAccountIban', bankAccountIban);
     return `/payment-result?${params.toString()}`;
+  }
+
+  private getFrontendBaseUrl(): string {
+    return (
+      this.configService.get<string>('NEXT_PUBLIC_FRONTEND_URL') ||
+      this.configService.get<string>('FRONTEND_URL') ||
+      this.configService.get<string>('API_GATEWAY_URL') ||
+      'https://flipflop.alfares.cz'
+    ).replace(/\/$/, '');
+  }
+
+  private buildGuestAccountReturnUrl(orderId: string): string {
+    const next = `/orders?activatedOrderId=${encodeURIComponent(orderId)}`;
+    return `${this.getFrontendBaseUrl()}/auth/callback?next=${encodeURIComponent(next)}`;
+  }
+
+  private async mergeOrderMetadata(orderId: string, patch: Record<string, unknown>): Promise<void> {
+    const existing = await this.prisma.order.findUnique({ where: { id: orderId }, select: { metadata: true } });
+    const metadata = existing?.metadata && typeof existing.metadata === 'object' && !Array.isArray(existing.metadata)
+      ? { ...(existing.metadata as Record<string, unknown>) }
+      : {};
+    await this.prisma.order.update({
+      where: { id: orderId },
+      data: { metadata: { ...metadata, ...patch } as Prisma.InputJsonValue },
+    });
+  }
+
+  private async finalizeGuestCheckoutIntegrations(params: {
+    order: any;
+    dto: any;
+    guestEmail: string;
+    guestUser: any;
+    deliveryAddress: any;
+  }): Promise<void> {
+    const { order, dto, guestEmail, guestUser, deliveryAddress } = params;
+    const metadataPatch: Record<string, unknown> = {};
+
+    if (dto.wantsAccount === true) {
+      try {
+        await this.authService.requestMagicLink({
+          email: guestEmail,
+          return_url: this.buildGuestAccountReturnUrl(order.id),
+          client_id: 'flipflop',
+          state: `guest-checkout:${order.id}`,
+          app_domain: 'flipflop.alfares.cz',
+        });
+        metadataPatch.accountActivation = 'magic-link-sent';
+        metadataPatch.accountActivationRequestedAt = new Date().toISOString();
+      } catch (error: unknown) {
+        metadataPatch.accountActivation = 'magic-link-failed';
+        metadataPatch.accountActivationError = error instanceof Error ? error.message : String(error);
+        this.logger.warn('Guest checkout magic-link request failed', {
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          error: metadataPatch.accountActivationError,
+        });
+      }
+    }
+
+    try {
+      const lead = await this.leadsClient.submitFlipFlopCheckoutLead({
+        email: guestEmail,
+        phone: this.normalizeGuestText(dto.phone || deliveryAddress.phone, ''),
+        firstName: deliveryAddress.firstName,
+        lastName: deliveryAddress.lastName,
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        sourceUrl: `${this.getFrontendBaseUrl()}/checkout`,
+        marketingConsent: dto.marketingConsent === true,
+      });
+      metadataPatch.leadsSync = {
+        status: 'accepted',
+        leadId: lead.leadId,
+        leadStatus: lead.status,
+        confirmationSent: lead.confirmationSent ?? null,
+        syncedAt: new Date().toISOString(),
+      };
+      metadataPatch.leadId = lead.leadId;
+    } catch (error: unknown) {
+      metadataPatch.leadsSync = {
+        status: 'failed',
+        error: error instanceof Error ? error.message : String(error),
+        syncedAt: new Date().toISOString(),
+      };
+      this.logger.warn('Guest checkout lead sync failed', {
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        error: (metadataPatch.leadsSync as Record<string, unknown>).error,
+      });
+    }
+
+    metadataPatch.customerSync = {
+      status: 'local-customer-linked',
+      userId: guestUser.id,
+      email: guestEmail,
+      syncedAt: new Date().toISOString(),
+    };
+
+    await this.mergeOrderMetadata(order.id, metadataPatch);
   }
 
   private async recordCentralOrdersForwarding(
@@ -1098,7 +1232,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
    */
   async createGuestOrder(dto: any) {
     const guestEmail = this.normalizeGuestEmail(dto.email);
-    const guestUser = await this.createTechnicalGuestUser(dto);
+    const guestUser = await this.createOrUpdateCheckoutCustomer(dto, guestEmail);
     const deliveryAddress = await this.createCheckoutAddress(
       guestUser.id,
       dto.deliveryAddress || dto.billingAddress,
@@ -1132,7 +1266,8 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       checkoutMode: 'guest',
       guestEmail,
       wantsAccount: dto.wantsAccount === true,
-      accountActivation: dto.wantsAccount === true ? 'magic-link-required' : 'not-requested',
+      marketingConsent: dto.marketingConsent === true,
+      accountActivation: dto.wantsAccount === true ? 'magic-link-pending' : 'not-requested',
       deliveryMethod: this.normalizeGuestText(dto.deliveryMethod, 'standard'),
       expeditionMethod: this.normalizeGuestText(dto.expeditionMethod, 'standard'),
       wantsDifferentDeliveryDay: dto.wantsDifferentDeliveryDay === true,
@@ -1244,6 +1379,14 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
           : 'CENTRAL_ORDERS_FORWARD_FAILED',
       });
     }
+
+    await this.finalizeGuestCheckoutIntegrations({
+      order,
+      dto,
+      guestEmail,
+      guestUser,
+      deliveryAddress,
+    });
 
     const orderWithPayment = await this.prisma.order.findUnique({
       where: { id: order.id },
