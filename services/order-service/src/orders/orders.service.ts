@@ -1131,6 +1131,8 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     const metadata: Prisma.InputJsonValue = {
       checkoutMode: 'guest',
       guestEmail,
+      wantsAccount: dto.wantsAccount === true,
+      accountActivation: dto.wantsAccount === true ? 'magic-link-required' : 'not-requested',
       deliveryMethod: this.normalizeGuestText(dto.deliveryMethod, 'standard'),
       expeditionMethod: this.normalizeGuestText(dto.expeditionMethod, 'standard'),
       wantsDifferentDeliveryDay: dto.wantsDifferentDeliveryDay === true,

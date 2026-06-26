@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-06-26T14:17:20Z",
+  "created_at": "2026-06-26T15:03:43Z",
   "gate": "deployment_readiness",
   "next_step": "ready_for_deployment_review",
   "pre_coding_gate": {
@@ -52,6 +52,21 @@
       "path": "docs/IMPLEMENTATION_ORCHESTRATOR.md"
     },
     {
+      "line": 302,
+      "marker": "[MISSING: production bank account]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 324,
+      "marker": "[MISSING: auth-microservice magic-link or passwordless account API]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 325,
+      "marker": "[MISSING: production bank account]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
       "line": 114,
       "marker": "[MISSING: ...]",
       "path": "docs/INTENT_MEMORY.md"
@@ -60,11 +75,137 @@
       "line": 46,
       "marker": "[MISSING: ...]",
       "path": "docs/process/OPERATIONAL_GATES.md"
+    },
+    {
+      "line": 99,
+      "marker": "[MISSING: recommendation source]",
+      "path": "docs/reference/smarty-checkout/README.md"
+    },
+    {
+      "line": 102,
+      "marker": "[MISSING: service-product contract]",
+      "path": "docs/reference/smarty-checkout/README.md"
+    },
+    {
+      "line": 116,
+      "marker": "[MISSING: legal doc URL]",
+      "path": "docs/reference/smarty-checkout/README.md"
+    },
+    {
+      "line": 129,
+      "marker": "[UNKNOWN: exact Smarty font family and license]",
+      "path": "docs/reference/smarty-checkout/README.md"
+    },
+    {
+      "line": 55,
+      "marker": "[UNKNOWN: ...]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.coding-prompt.md"
+    },
+    {
+      "line": 55,
+      "marker": "[MISSING: ...]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.coding-prompt.md"
+    },
+    {
+      "line": 76,
+      "marker": "[MISSING: ...]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.context-package.md"
+    },
+    {
+      "line": 81,
+      "marker": "[UNKNOWN: auth-microservice magic-link or passwordless account API]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.context-package.md"
+    },
+    {
+      "line": 82,
+      "marker": "[MISSING: legal terms URL]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.context-package.md"
+    },
+    {
+      "line": 83,
+      "marker": "[MISSING: privacy policy URL]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.context-package.md"
+    },
+    {
+      "line": 84,
+      "marker": "[MISSING: shipping/delivery method source of truth]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.context-package.md"
+    },
+    {
+      "line": 85,
+      "marker": "[MISSING: expedition date source of truth]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.context-package.md"
+    },
+    {
+      "line": 86,
+      "marker": "[MISSING: service/warranty product contract]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.context-package.md"
+    },
+    {
+      "line": 87,
+      "marker": "[UNKNOWN: exact Smarty font family and license]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.context-package.md"
+    },
+    {
+      "line": 36,
+      "marker": "[UNKNOWN: auth-microservice magic-link or passwordless account API]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.md"
+    },
+    {
+      "line": 37,
+      "marker": "[MISSING: FlipFlop legal terms/privacy URLs for checkout submit copy]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.md"
+    },
+    {
+      "line": 38,
+      "marker": "[MISSING: shipping/delivery method source of truth]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.md"
+    },
+    {
+      "line": 39,
+      "marker": "[MISSING: service/warranty product contract]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.md"
+    },
+    {
+      "line": 93,
+      "marker": "[MISSING: auth-microservice magic-link or passwordless account API]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.md"
+    },
+    {
+      "line": 93,
+      "marker": "[MISSING: production bank account]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.md"
+    },
+    {
+      "line": 74,
+      "marker": "[UNKNOWN: auth-microservice magic-link or passwordless account API]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.validation-report.md"
+    },
+    {
+      "line": 75,
+      "marker": "[MISSING: legal terms URL]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.validation-report.md"
+    },
+    {
+      "line": 76,
+      "marker": "[MISSING: privacy policy URL]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.validation-report.md"
+    },
+    {
+      "line": 77,
+      "marker": "[MISSING: shipping/delivery method source of truth]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.validation-report.md"
+    },
+    {
+      "line": 78,
+      "marker": "[MISSING: service/warranty product contract]",
+      "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.validation-report.md"
     }
   ],
   "validation_reports": {
     "reports": [
-      "12_validation/VAL-TASK-001-flipflop-ips-baseline.md"
+      "12_validation/VAL-TASK-001-flipflop-ips-baseline.md",
+      "12_validation/VAL-TASK-002-smarty-checkout-reference-ux.md"
     ],
     "status": "pass",
     "target": null

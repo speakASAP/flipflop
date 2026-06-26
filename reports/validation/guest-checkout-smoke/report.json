@@ -1,0 +1,26 @@
+{
+  "base": "https://flipflop.alfares.cz",
+  "product": {
+    "id": "c0de0000-0000-4000-8000-000000000011",
+    "name": "Codex skladový traceability testovací set 1 Kč",
+    "price": 1,
+    "stockQuantity": 18
+  },
+  "assertions": {
+    "noLoginRedirect": true,
+    "deliveryPaymentStepRendered": true,
+    "differentDayControlWorks": true,
+    "operatorTipControlWorks": true,
+    "detailsStepRendered": true,
+    "optionalRegistrationCheckboxWorks": true,
+    "finalSubmitButtonEnabledBeforeClick": true,
+    "finalSubmitNotClickedToAvoidProductionOrderMutation": true
+  },
+  "screenshots": [
+    "01-delivery-payment.png",
+    "02-delivery-details-filled-guest.png"
+  ],
+  "consoleMessages": [],
+  "pageErrors": [],
+  "createdAt": "2026-06-26T14:58:04.509Z"
+}

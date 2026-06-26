@@ -83,6 +83,7 @@ export interface GuestOrderItemData {
 export interface CreateGuestOrderData {
   email: string;
   phone?: string;
+  wantsAccount?: boolean;
   billingAddress: CheckoutAddressData;
   deliveryAddress?: CheckoutAddressData;
   items: GuestOrderItemData[];
@@ -137,4 +138,3 @@ export const ordersApi = {
     return apiClient.post<PaymentResponse>(`/payu/create-payment/${orderId}`);
   },
 };
-

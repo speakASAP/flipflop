@@ -269,3 +269,58 @@ Validation checkpoint before code edits:
 
 - `python3 scripts/pre_coding_gate.py --root .` passed.
 - `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed 100/100.
+
+## 2026-06-26 - GOAL-09 Guest Checkout Implementation And Deployment Checkpoint
+
+Implemented checkout changes:
+
+- `/checkout` no longer requires an authenticated session before purchase.
+- Guest cart data from browser storage can proceed through delivery, expedition, payment, delivery details, and order submission.
+- Delivery/payment flow mirrors the owner-provided Smarty.cz reference structure: delivery method selection, expedition block, payment block, optional different delivery day, operator-tip upsell, sticky order summary, and final delivery data form.
+- Optional registration is handled as a low-friction checkbox (`Chci vytvořit účet`); when selected, password fields appear, but purchase remains guest-first.
+- Bank-transfer completion page includes variable-symbol/amount layout and an explicit QR placeholder.
+
+Validation passed:
+
+- `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues`
+- `python3 scripts/deployment_readiness_gate.py --root .`
+- `git diff --check`
+- `cd services/order-service && npm run build`
+- `cd services/api-gateway && npm run build`
+- `cd services/frontend && npm run build`
+
+Deployment and smoke checkpoint:
+
+- `./scripts/deploy.sh` rebuilt and applied all FlipFlop services, then timed out while waiting for rollout status.
+- Direct follow-up rollout checks completed successfully for `flipflop-frontend`, `flipflop-order-service`, and `flipflop-service`.
+- Kubernetes deployment readiness showed all six FlipFlop deployments at `1/1` ready/available/updated.
+- `GET https://flipflop.alfares.cz/cart` returned HTTP 200.
+- `GET https://flipflop.alfares.cz/checkout` returned HTTP 200.
+
+Remaining explicit contract gap:
+
+- `[MISSING: production bank account]` is required before generating a real bank-transfer QR code. The implementation intentionally does not hardcode dummy bank details or call a third-party QR generator with unverified payment data.
+
+## 2026-06-26 - GOAL-09 Continuation Browser Smoke And Optional Account Correction
+
+Additional checkout correction:
+
+- Removed checkout password and password-confirmation fields from optional account creation.
+- Removed pre-order `authApi.register` call from checkout; registration no longer blocks purchase.
+- Added `wantsAccount` to the frontend guest-order payload and backend guest-order DTO.
+- Guest order metadata now records `wantsAccount` and `accountActivation` (`magic-link-required` when selected) without pretending that a passwordless account API already exists.
+- Added `status=created` handling on `/payment-result` so a missing redirect does not render a false failure page.
+
+Non-mutating browser smoke evidence:
+
+- Live browser flow used `https://flipflop.alfares.cz` with a synthetic 1 Kč product seeded into guest localStorage.
+- Verified `/checkout` does not redirect to login.
+- Verified delivery/payment step, different-day delivery control, operator-tip control, details form, optional account checkbox, and enabled final submit button.
+- Final submit was intentionally not clicked because it would create a production order and forward to downstream order systems.
+- Evidence files: `reports/validation/guest-checkout-smoke/report.json`, `01-delivery-payment.png`, `02-delivery-details-filled-guest.png`.
+
+Remaining explicit gaps:
+
+- `[MISSING: auth-microservice magic-link or passwordless account API]` prevents real post-order account activation.
+- `[MISSING: production bank account]` prevents real bank-transfer QR generation.
+- Owner-approved production guest order-submit smoke is still required before claiming end-to-end purchase completion.

@@ -2,11 +2,11 @@
 
 ```yaml
 id: FF-GOAL-09-SMARTY-CHECKOUT-REFERENCE-UX
-status: draft
+status: in_progress
 owner: project owner
 created: 2026-06-26
 last_updated: 2026-06-26
-completeness_level: planned
+completeness_level: implementation_validation
 upstream:
   - ../00_constitution/CONSTITUTION.md
   - ../01_vision/VISION.md
@@ -90,4 +90,4 @@ After owner-approved deployment:
 
 ## Current Checkpoint
 
-Planning only. Reference screenshots are present under `docs/reference/smarty-checkout/screenshots/`. No GOAL-09 code implementation has started in this planning pass.
+Implementation is in progress and deployed. Reference screenshots are present under `docs/reference/smarty-checkout/screenshots/`. Guest checkout no longer redirects to login, optional account creation no longer exposes checkout password fields, and non-mutating browser smoke evidence is stored under `reports/validation/guest-checkout-smoke/`. Remaining dependency-gated gaps: `[MISSING: auth-microservice magic-link or passwordless account API]`, `[MISSING: production bank account]` for real payment QR, and owner-approved production order-submit smoke.

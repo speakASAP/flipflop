@@ -46,6 +46,10 @@ export class CreateGuestOrderDto {
   @IsString()
   phone?: string;
 
+  @IsOptional()
+  @IsBoolean()
+  wantsAccount?: boolean;
+
   @IsObject()
   billingAddress: GuestCheckoutAddressDto;
 
