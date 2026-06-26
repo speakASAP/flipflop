@@ -49,8 +49,6 @@ data:
   PAYMENT_CALLBACK_URL: "https://flipflop.alfares.cz/api/webhooks/payment-result"
   PAYMENT_CANCEL_URL: "https://flipflop.alfares.cz/payment-result?status=cancelled"
   PAYMENT_SUCCESS_URL: "https://flipflop.alfares.cz/payment-result?status=completed"
-  BANK_TRANSFER_ACCOUNT_NUMBER: ""
-  BANK_TRANSFER_ACCOUNT_IBAN: ""
 
   JWT_EXPIRES_IN: "7d"
   LOG_LEVEL: "info"

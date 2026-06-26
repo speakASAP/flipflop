@@ -5,8 +5,8 @@
 **Date:** 2026-06-26
 **Mode:** Goal-driven orchestration enabled
 **Active goal:** GOAL-09-smarty-checkout-reference-ux
-**Goal status:** planning
-**Current checkpoint:** Owner requested Smarty.cz-referenced checkout UX and guest checkout on 2026-06-26. Planning/reference artifacts were created before implementation. Code implementation has not started in this planning pass. Existing dirty checkout/cart source changes remain present and must be classified before coding.
+**Goal status:** implemented, deployed, and production-smoked
+**Current checkpoint:** GOAL-09 guest checkout, Smarty.cz reference documentation, optional account creation, delivery/payment/summary/upsell UI, bank-transfer QR behavior, guest-order route registration, server-side guest fee hardening, Vault-backed production bank-transfer secret wiring, and owner-approved synthetic production guest order are implemented and verified.
 
 ## Current Intent Summary
 
@@ -171,7 +171,7 @@ Next implementation step: before code edits, classify the existing dirty guest-c
 | `GOAL-06-orders-hub-integration` | done | closed with deployed live checkout and central Orders forwarding evidence |
 | `GOAL-08-leads-lifecycle-replay-consumer` | done for source/config verification; not deployed | deploy only after integration-owner approval and Leads internal trust/token provisioning |
 | `GOAL-07-leads-public-intake-adoption` | deployed | production smoke passed after owner approval |
-| `GOAL-09-smarty-checkout-reference-ux` | planning | classify dirty guest-cart changes, confirm magic-link contract, then implement guest checkout |
+| `GOAL-09-smarty-checkout-reference-ux` | done | closed with Smarty.cz reference docs, deployed guest checkout, Vault-backed bank-transfer QR, and approved synthetic production guest-order smoke |
 
 ## Owner Manual Follow-Up
 
@@ -241,6 +241,49 @@ Safety notes:
 - No payment provider, order total, price, cancellation, database migration, object storage, campaign execution, AI/CRM export, or manual secret change was performed.
 - Residual GOAL-02 payment-provider credential/webhook risk remains preserved.
 
+
+## 2026-06-26 - GOAL-09 Bank-Transfer Vault Wiring
+
+Owner confirmed that reusable bank-transfer account and IBAN values exist in the Alfares Kubernetes/Vault estate and approved using them for FlipFlop.
+
+Implemented source/config:
+
+- Added `BANK_TRANSFER_ACCOUNT_NUMBER` and `BANK_TRANSFER_ACCOUNT_IBAN` to `k8s/external-secret.yaml`.
+- Mapped both values from the existing Vault-backed `secret/prod/school-committee/payments` source used for QR payment generation elsewhere.
+- Removed blank `BANK_TRANSFER_ACCOUNT_NUMBER` and `BANK_TRANSFER_ACCOUNT_IBAN` entries from `k8s/configmap.yaml` so the ConfigMap cannot shadow Secret-provided runtime values.
+- Hardened `scripts/verify-guest-checkout-ui.js` to assert the ExternalSecret mapping and blank-shadow prevention.
+
+Validation and deployment:
+
+- `git diff --check` passed.
+- `npm run verify:guest-checkout-ui` passed.
+- `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed.
+- `./scripts/deploy.sh` completed successfully after applying ConfigMap and ExternalSecret updates.
+- Kubernetes `ExternalSecret flipflop-service-secret` reported `Ready=True`.
+- The generated Kubernetes Secret contains both bank-transfer keys, verified only by key presence and encoded length.
+- The running `flipflop-order-service` process sees both env vars as present; values were not printed.
+
+Remaining GOAL-09 completion gate:
+
+- Run one owner-approved synthetic production guest-order submit smoke to prove order creation, redirect/payment-result behavior, and optional account intent end to end.
+
+## 2026-06-26 - GOAL-09 Approved Production Guest-Order Smoke
+
+Owner approved one synthetic production guest-order submit to close the final GOAL-09 completion gate.
+
+Smoke result:
+
+- Created order `ORD-1782491906806-976` through public `POST /api/orders/guest`.
+- Used dedicated synthetic production SKU `CODEX-STOCK-TRACE-011`.
+- Used guest checkout with `wantsAccount=true`.
+- Used `paymentMethod=invoice`, which is the bank-transfer / zálohová faktura path.
+- Response redirect pointed to `/payment-result`.
+- Redirect contained non-empty bank account number, IBAN, variable symbol, and amount parameters; values were redacted.
+- `/payment-result` returned HTTP 200.
+- Database metadata confirmed `checkoutMode=guest`, `wantsAccount=true`, `accountActivation=magic-link-sent`, and central Orders forwarding `accepted`.
+- Machine-readable evidence was saved to `reports/validation/guest-checkout-smoke/report-production-guest-order-smoke.json`.
+
+GOAL-09 completion gates are closed.
 
 ## 2026-06-26 - GOAL-09 Guest Checkout And Smarty.cz Reference Flow
 
@@ -409,3 +452,38 @@ Validation passed after fixes:
 - `python3 scripts/pre_coding_gate.py --root .`
 - `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues`
 - `python3 scripts/deployment_readiness_gate.py --root .`
+
+## 2026-06-26 - GOAL-09 Guest Order Route And Fee Integrity Hardening
+
+Subagent completion audit found two non-mutating gaps:
+
+- Live `POST /api/orders/guest` returned 404 because `GuestOrdersController` was exported but not registered in `OrdersModule`.
+- Guest checkout totals accepted client-provided `shippingCost`, and frontend sent `operatorTip` both as `operatorTip` and inside `shippingCost`.
+
+Fixes:
+
+- Registered `GuestOrdersController` in `services/order-service/src/orders/orders.module.ts`.
+- Hardened `scripts/verify-guest-checkout-ui.js` to send a non-mutating invalid `POST /api/orders/guest` and fail if the route returns 404.
+- Moved guest delivery fee, payment method allowlist, and operator-tip allowlist into order-service server-side helpers.
+- Removed browser-computed `shippingCost` from the frontend guest order payload.
+- Hardened the verifier to assert no browser-computed `shippingCost` and server-side delivery/payment/tip calculation helpers.
+
+Validation passed:
+
+- `git diff --check`
+- `npm run verify:guest-checkout-ui`
+- `cd services/frontend && npm run build`
+- `cd services/order-service && npm run build`
+- `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues`
+
+Deployment and live evidence:
+
+- `./scripts/deploy.sh` completed successfully after rebuilding and rolling out all six FlipFlop services.
+- All six deployments reached `1/1`: `flipflop-service`, `flipflop-frontend`, `flipflop-product-service`, `flipflop-cart-service`, `flipflop-order-service`, `flipflop-user-service`.
+- Public endpoints returned `HTTP/2 200`: `/cart`, `/checkout`, and `/payment-result` with sample bank-transfer QR parameters.
+- Non-mutating invalid guest order probe returned HTTP 400, proving the live guest order route is mounted and validation rejects empty payloads before order creation.
+
+Remaining explicit gates:
+
+- `[MISSING: production bank account]` and `[MISSING: production IBAN]` still need owner-provided runtime values.
+- Owner-approved real production guest-order submit smoke remains required before claiming full end-to-end purchase completion.

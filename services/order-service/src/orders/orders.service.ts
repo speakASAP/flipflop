@@ -846,6 +846,39 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     return orderItems;
   }
 
+  private calculateGuestDeliveryCost(deliveryMethod: string): number {
+    const method = this.normalizeGuestText(deliveryMethod, 'zasilkovna-address');
+    const prices: Record<string, number> = {
+      store: 0,
+      'pickup-box': 59,
+      'prague-time': 89,
+      'zasilkovna-address': 89,
+      dpd: 89,
+    };
+    if (!(method in prices)) {
+      throw new BadRequestException('Unsupported delivery method');
+    }
+    return prices[method];
+  }
+
+  private normalizeGuestPaymentMethod(paymentMethod: string): string {
+    const method = this.normalizeGuestText(paymentMethod, 'invoice');
+    const allowed = new Set(['invoice', 'webpay', 'stripe', 'paypal', 'payu']);
+    if (!allowed.has(method)) {
+      throw new BadRequestException('Unsupported payment method');
+    }
+    return method;
+  }
+
+  private normalizeGuestOperatorTip(operatorTip: unknown): number {
+    const tip = Number.isFinite(Number(operatorTip)) ? Number(operatorTip) : 0;
+    const allowed = new Set([0, 10, 20, 30]);
+    if (!allowed.has(tip)) {
+      throw new BadRequestException('Unsupported operator tip');
+    }
+    return tip;
+  }
+
   private buildBankTransferRedirect(order: any, total: number): string {
     const bankAccountNumber = process.env.BANK_TRANSFER_ACCOUNT_NUMBER?.trim() || '';
     const bankAccountIban = process.env.BANK_TRANSFER_ACCOUNT_IBAN?.trim() || '';
@@ -1241,8 +1274,10 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     const orderItems = await this.buildGuestOrderItems(dto.items);
     const subtotal = orderItems.reduce((sum, item) => sum + item.totalPrice, 0);
     const tax = Math.round(subtotal * 0.21 * 100) / 100;
-    const shippingCost = Number.isFinite(Number(dto.shippingCost)) ? Math.max(0, Number(dto.shippingCost)) : 0;
-    const operatorTip = Number.isFinite(Number(dto.operatorTip)) ? Math.max(0, Number(dto.operatorTip)) : 0;
+    const paymentMethod = this.normalizeGuestPaymentMethod(dto.paymentMethod);
+    const deliveryMethod = this.normalizeGuestText(dto.deliveryMethod, 'zasilkovna-address');
+    const shippingCost = this.calculateGuestDeliveryCost(deliveryMethod);
+    const operatorTip = this.normalizeGuestOperatorTip(dto.operatorTip);
     const orderTotalBeforeDiscount = subtotal + tax + shippingCost + operatorTip;
     const trimmedDiscountCode =
       typeof dto.discountCode === 'string' && dto.discountCode.trim()
@@ -1261,14 +1296,13 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       discount = Math.round((orderTotalBeforeDiscount - after) * 100) / 100;
     }
     const total = Math.max(0, Math.round((orderTotalBeforeDiscount - discount) * 100) / 100);
-    const paymentMethod = this.normalizeGuestText(dto.paymentMethod, 'webpay');
     const metadata: Prisma.InputJsonValue = {
       checkoutMode: 'guest',
       guestEmail,
       wantsAccount: dto.wantsAccount === true,
       marketingConsent: dto.marketingConsent === true,
       accountActivation: dto.wantsAccount === true ? 'magic-link-pending' : 'not-requested',
-      deliveryMethod: this.normalizeGuestText(dto.deliveryMethod, 'standard'),
+      deliveryMethod,
       expeditionMethod: this.normalizeGuestText(dto.expeditionMethod, 'standard'),
       wantsDifferentDeliveryDay: dto.wantsDifferentDeliveryDay === true,
       requestedDeliveryDate: this.normalizeGuestText(dto.requestedDeliveryDate, ''),

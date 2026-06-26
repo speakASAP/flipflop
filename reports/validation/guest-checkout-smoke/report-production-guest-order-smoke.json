@@ -1,0 +1,25 @@
+{
+  "ok": true,
+  "createdAt": "2026-06-26T16:38:26+02:00",
+  "mutatingSmokeApprovedByOwner": true,
+  "productId": "c0de0000-0000-4000-8000-000000000011",
+  "productSku": "CODEX-STOCK-TRACE-011",
+  "orderId": "591bbcc8-92cb-4b4d-b466-5591d7af15bf",
+  "orderNumber": "ORD-1782491906806-976",
+  "paymentMethod": "invoice",
+  "paymentStatus": "pending",
+  "total": 90.21,
+  "redirectPath": "/payment-result",
+  "redirectHasBankAccountNumber": true,
+  "redirectHasBankAccountIban": true,
+  "redirectHasVariableSymbol": true,
+  "redirectHasAmount": true,
+  "paymentResultHttpStatus": 200,
+  "databaseEvidence": {
+    "checkoutMode": "guest",
+    "wantsAccount": "true",
+    "accountActivation": "magic-link-sent",
+    "centralOrdersForwardingStatus": "accepted"
+  },
+  "valuesRedacted": true
+}
