@@ -1,43 +1,20 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { getRedirectPathFromLocation, redirectToHostedAuth } from '@/lib/auth/hosted-auth';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
   const [redirectPath, setRedirectPath] = useState('/');
-  const { login } = useAuth();
-  const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const redirect = new URLSearchParams(window.location.search).get('redirect');
-    if (redirect?.startsWith('/') && !redirect.startsWith('//')) {
-      setRedirectPath(redirect);
-    }
+    setRedirectPath(getRedirectPathFromLocation());
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  const startLogin = () => {
     setLoading(true);
-
-    try {
-      const success = await login(email, password);
-      if (success) {
-        router.push(redirectPath);
-      } else {
-        setError('Neplatné přihlašovací údaje');
-      }
-    } catch {
-      setError('Došlo k chybě při přihlášení');
-    } finally {
-      setLoading(false);
-    }
+    redirectToHostedAuth('login', redirectPath);
   };
 
   return (
@@ -47,54 +24,17 @@ export default function LoginPage() {
           <h1 className="text-4xl font-extrabold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             Přihlášení
           </h1>
-          <p className="text-gray-600">Vítejte zpět!</p>
+          <p className="text-gray-600">Přihlášení zajišťuje Alfares Auth.</p>
         </div>
-        
-        {error && (
-          <div className="bg-gradient-to-r from-red-50 to-rose-50 border-2 border-red-300 text-red-700 px-4 py-3 rounded-xl mb-6 font-semibold">
-            {error}
-          </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="email" className="block text-gray-700 mb-2 font-semibold">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full border-2 border-gray-300 rounded-xl px-5 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-              placeholder="vas@email.cz"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-gray-700 mb-2 font-semibold">
-              Heslo
-            </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full border-2 border-gray-300 rounded-xl px-5 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-              placeholder="••••••••"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-          >
-            {loading ? 'Přihlašování...' : 'Přihlásit se'}
-          </button>
-        </form>
+        <button
+          type="button"
+          onClick={startLogin}
+          disabled={loading}
+          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? 'Přesměrování...' : 'Pokračovat přes Alfares Auth'}
+        </button>
 
         <p className="mt-6 text-center text-gray-600">
           Nemáte účet?{' '}
@@ -106,4 +46,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

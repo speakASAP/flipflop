@@ -2,7 +2,7 @@
  * Authentication API
  */
 
-import { apiClient } from './client';
+import { apiClient, ApiResponse } from './client';
 
 export interface User {
   id: string;
@@ -28,24 +28,51 @@ export interface RegisterData {
 
 export interface AuthResponse {
   user: User;
-  token: string;
+  accessToken: string;
+  refreshToken?: string;
+}
+
+type LegacyWrappedAuthResponse = ApiResponse<AuthResponse & { token?: string }>;
+type RawAuthResponse = AuthResponse & { token?: string };
+
+function isWrappedAuthResponse(response: LegacyWrappedAuthResponse | RawAuthResponse): response is LegacyWrappedAuthResponse {
+  return Object.prototype.hasOwnProperty.call(response, 'success');
+}
+
+function normalizeAuthResponse(response: LegacyWrappedAuthResponse | RawAuthResponse): ApiResponse<AuthResponse> {
+  if (isWrappedAuthResponse(response)) {
+    const token = response.data?.accessToken || response.data?.token;
+    if (response.success && response.data && token) {
+      apiClient.setToken(token);
+      return { success: true, data: { ...response.data, accessToken: token } };
+    }
+    return response as ApiResponse<AuthResponse>;
+  }
+
+  const token = response.accessToken || response.token;
+  if (response.user && token) {
+    apiClient.setToken(token);
+    return { success: true, data: { user: response.user, accessToken: token, refreshToken: response.refreshToken } };
+  }
+
+  return {
+    success: false,
+    error: {
+      code: 'AUTH_RESPONSE_ERROR',
+      message: 'Authentication service returned an unexpected response.',
+    },
+  };
 }
 
 export const authApi = {
   async login(credentials: LoginCredentials) {
-    const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
-    if (response.success && response.data) {
-      apiClient.setToken(response.data.token);
-    }
-    return response;
+    const response = await apiClient.post<AuthResponse>('/auth/login', credentials) as LegacyWrappedAuthResponse | RawAuthResponse;
+    return normalizeAuthResponse(response);
   },
 
   async register(data: RegisterData) {
-    const response = await apiClient.post<AuthResponse>('/auth/register', data);
-    if (response.success && response.data) {
-      apiClient.setToken(response.data.token);
-    }
-    return response;
+    const response = await apiClient.post<AuthResponse>('/auth/register', data) as LegacyWrappedAuthResponse | RawAuthResponse;
+    return normalizeAuthResponse(response);
   },
 
   async getProfile() {
@@ -60,4 +87,3 @@ export const authApi = {
     apiClient.setToken(null);
   },
 };
-
