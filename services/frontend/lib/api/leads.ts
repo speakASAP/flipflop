@@ -2,6 +2,7 @@ import { apiClient, ApiResponse } from './client';
 
 export interface LeadContactRequest {
   email: string;
+  phone: string;
   message: string;
   marketingConsent: boolean;
 }

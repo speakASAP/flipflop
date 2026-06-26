@@ -7,6 +7,11 @@ export class CreateLeadContactDto {
 
   @IsString()
   @IsNotEmpty()
+  @MaxLength(40)
+  phone!: string;
+
+  @IsString()
+  @IsNotEmpty()
   @MaxLength(1200)
   message!: string;
 

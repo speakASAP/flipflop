@@ -2,15 +2,22 @@
 
 import { FormEvent, useState } from 'react';
 import { leadsApi } from '@/lib/api/leads';
+import { useAuth } from '@/contexts/AuthContext';
 
 type FormState = 'idle' | 'submitting' | 'success' | 'error';
 
 export default function LeadContactForm() {
+  const { user, isAuthenticated, loading } = useAuth();
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
-  const [marketingConsent, setMarketingConsent] = useState(false);
+  const [marketingConsent, setMarketingConsent] = useState(true);
   const [state, setState] = useState<FormState>('idle');
   const [error, setError] = useState<string | null>(null);
+  const hasProfileEmail = Boolean(user?.email);
+  const hasProfilePhone = Boolean(user?.phone);
+  const showEmailInput = !isAuthenticated || !hasProfileEmail;
+  const showPhoneInput = !isAuthenticated || !hasProfilePhone;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -22,9 +29,19 @@ export default function LeadContactForm() {
       return;
     }
 
+    const contactEmail = user?.email || email;
+    const contactPhone = user?.phone || phone;
+
+    if (!contactEmail || !contactPhone) {
+      setState('error');
+      setError('Doplnte prosim e-mail a telefon, abychom vas mohli kontaktovat.');
+      return;
+    }
+
     setState('submitting');
     const response = await leadsApi.submitContact({
-      email,
+      email: contactEmail,
+      phone: contactPhone,
       message,
       marketingConsent,
     });
@@ -32,8 +49,9 @@ export default function LeadContactForm() {
     if (response.success) {
       setState('success');
       setEmail('');
+      setPhone('');
       setMessage('');
-      setMarketingConsent(false);
+      setMarketingConsent(true);
       return;
     }
 
@@ -45,22 +63,49 @@ export default function LeadContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-      <div>
-        <label htmlFor="lead-email" className="block text-sm font-semibold text-slate-700 mb-2">
-          E-mail
-        </label>
-        <input
-          id="lead-email"
-          type="email"
-          required
-          maxLength={160}
-          autoComplete="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-          placeholder="vas@email.cz"
-        />
-      </div>
+      {showEmailInput && (
+        <div>
+          <label htmlFor="lead-email" className="block text-sm font-semibold text-slate-700 mb-2">
+            E-mail
+          </label>
+          <input
+            id="lead-email"
+            type="email"
+            required
+            maxLength={160}
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            placeholder="vas@email.cz"
+          />
+        </div>
+      )}
+
+      {showPhoneInput && (
+        <div>
+          <label htmlFor="lead-phone" className="block text-sm font-semibold text-slate-700 mb-2">
+            Telefon
+          </label>
+          <input
+            id="lead-phone"
+            type="tel"
+            required
+            maxLength={40}
+            autoComplete="tel"
+            value={phone}
+            onChange={(event) => setPhone(event.target.value)}
+            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            placeholder="+420 123 456 789"
+          />
+        </div>
+      )}
+
+      {isAuthenticated && hasProfileEmail && hasProfilePhone && (
+        <p className="rounded-lg bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
+          Kontaktni udaje pouzijeme z vaseho uctu.
+        </p>
+      )}
 
       <div>
         <label htmlFor="lead-message" className="block text-sm font-semibold text-slate-700 mb-2">
@@ -86,13 +131,13 @@ export default function LeadContactForm() {
           className="mt-1 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
         />
         <span>
-          Souhlasim, aby me FlipFlop kontaktoval e-mailem k teto poptavce a navazujici nabidce.
+          Souhlasim, aby me FlipFlop kontaktoval e-mailem nebo telefonem k teto poptavce a navazujici nabidce.
         </span>
       </label>
 
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || loading}
         className="w-full rounded-xl bg-slate-900 px-6 py-3 font-bold text-white shadow-lg transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
       >
         {isSubmitting ? 'Odesilam...' : 'Odeslat poptavku'}
@@ -100,7 +145,7 @@ export default function LeadContactForm() {
 
       {state === 'success' && (
         <p className="rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
-          Dekujeme. Poptavku jsme prijali a ozveme se vam e-mailem.
+          Dekujeme. Poptavku jsme prijali a ozveme se vam e-mailem nebo telefonem.
         </p>
       )}
 

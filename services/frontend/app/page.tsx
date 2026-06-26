@@ -162,7 +162,7 @@ export default async function HomePage() {
       </section>
 
       {/* Contact Lead Form */}
-      <section className="py-20 bg-white">
+      <section id="kontakt" className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-10 items-start">
             <div className="max-w-2xl">
@@ -171,7 +171,7 @@ export default async function HomePage() {
                 Potrebujete poradit s vyberem?
               </h2>
               <p className="text-lg text-slate-600 leading-relaxed mb-6">
-                Napiste, co hledate, a tym FlipFlop se ozve e-mailem s doporucenim nebo dalsim postupem.
+                Napiste, co hledate, a tym FlipFlop se ozve e-mailem nebo telefonem s doporucenim nebo dalsim postupem.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-slate-700">
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -199,28 +199,21 @@ export default async function HomePage() {
       {/* Features Section - Compact */}
       <section className="py-20 bg-gradient-to-b from-white to-gray-50">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            <div className="flex items-start gap-5 p-8 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-100 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            <Link href="/doprava" className="flex items-start gap-5 p-8 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-100 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
               <div className="text-5xl filter drop-shadow-md">🚀</div>
               <div>
                 <h3 className="text-xl font-bold mb-2 text-slate-900">Rychlé doručení</h3>
                 <p className="text-slate-600">Expresní doručení do 24 hodin po celé ČR</p>
               </div>
-            </div>
-            <div className="flex items-start gap-5 p-8 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-100 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-              <div className="text-5xl filter drop-shadow-md">🔒</div>
-              <div>
-                <h3 className="text-xl font-bold mb-2 text-slate-900">Bezpečné platby</h3>
-                <p className="text-slate-600">Zabezpečené platby přes PayU a karty</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-5 p-8 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-100 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            </Link>
+            <Link href="/products?assistant=shop" className="flex items-start gap-5 p-8 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-100 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
               <div className="text-5xl filter drop-shadow-md">💬</div>
               <div>
                 <h3 className="text-xl font-bold mb-2 text-slate-900">AI Asistent</h3>
                 <p className="text-slate-600">Inteligentní pomoc s výběrem produktů</p>
               </div>
-            </div>
+            </Link>
           </div>
         </div>
       </section>

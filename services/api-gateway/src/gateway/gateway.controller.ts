@@ -65,6 +65,7 @@ export class GatewayController {
     try {
       const response = await this.gatewayService.submitFlipFlopLead({
         email: payload.email,
+        phone: payload.phone,
         message: payload.message,
         marketingConsent: payload.marketingConsent,
         sourceUrl: this.getSourceUrl(req),

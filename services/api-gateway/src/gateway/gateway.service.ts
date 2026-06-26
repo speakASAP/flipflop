@@ -46,6 +46,7 @@ export class GatewayService {
    */
   async submitFlipFlopLead(payload: {
     email: string;
+    phone: string;
     message: string;
     marketingConsent: boolean;
     sourceUrl?: string;
@@ -56,6 +57,7 @@ export class GatewayService {
 
     const message = payload.message.trim();
     const email = payload.email.trim();
+    const phone = payload.phone.trim();
     const leadPayload = {
       sourceService: 'flipflop',
       sourceLabel: 'support-contact',
@@ -66,15 +68,20 @@ export class GatewayService {
           type: 'email',
           value: email,
         },
+        {
+          type: 'phone',
+          value: phone,
+        },
       ],
       preferredChannel: 'email',
       marketingConsent: true,
-      consentSource: 'flipflop-home-contact:v1',
+      consentSource: 'flipflop-home-contact:v2',
       consentCapturedAt: new Date().toISOString(),
       metadata: {
         intent: 'support_contact',
         surface: 'home_contact',
         locale: 'cs-CZ',
+        allowedContactChannels: 'email,phone',
       },
     };
 
