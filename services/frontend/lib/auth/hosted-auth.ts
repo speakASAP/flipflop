@@ -1,5 +1,5 @@
-const AUTH_BASE_URL = process.env.NEXT_PUBLIC_AUTH_URL || 'https://auth.alfares.cz';
-const CLIENT_ID = 'flipflop';
+export const AUTH_BASE_URL = process.env.NEXT_PUBLIC_AUTH_URL || 'https://auth.alfares.cz';
+export const CLIENT_ID = 'flipflop';
 const STATE_KEY = 'flipflop_auth_state';
 const NEXT_KEY = 'flipflop_auth_next';
 
@@ -25,6 +25,12 @@ export function getRedirectPathFromLocation(): string {
   return safeNextPath(params.get('redirect') || params.get('next'));
 }
 
+function buildCallbackUrl(nextPath: string): URL {
+  const callbackUrl = new URL('/auth/callback', window.location.origin);
+  callbackUrl.searchParams.set('next', safeNextPath(nextPath));
+  return callbackUrl;
+}
+
 export function buildHostedAuthUrl(flow: HostedAuthFlow, redirectPath: string): string {
   if (typeof window === 'undefined') return AUTH_BASE_URL;
 
@@ -33,14 +39,20 @@ export function buildHostedAuthUrl(flow: HostedAuthFlow, redirectPath: string): 
   window.localStorage.setItem(STATE_KEY, state);
   window.localStorage.setItem(NEXT_KEY, nextPath);
 
-  const callbackUrl = new URL('/auth/callback', window.location.origin);
-  callbackUrl.searchParams.set('next', nextPath);
-
   const authUrl = new URL(`/${flow}`, AUTH_BASE_URL);
   authUrl.searchParams.set('client_id', CLIENT_ID);
-  authUrl.searchParams.set('return_url', callbackUrl.toString());
+  authUrl.searchParams.set('return_url', buildCallbackUrl(nextPath).toString());
   authUrl.searchParams.set('state', state);
   return authUrl.toString();
+}
+
+export function buildHostedPasswordResetUrl(redirectPath: string): string {
+  if (typeof window === 'undefined') return `${AUTH_BASE_URL}/reset-password`;
+
+  const resetUrl = new URL('/reset-password', AUTH_BASE_URL);
+  resetUrl.searchParams.set('client_id', CLIENT_ID);
+  resetUrl.searchParams.set('return_url', buildCallbackUrl(redirectPath).toString());
+  return resetUrl.toString();
 }
 
 export function redirectToHostedAuth(flow: HostedAuthFlow, redirectPath: string): void {

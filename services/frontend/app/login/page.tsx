@@ -2,14 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { getRedirectPathFromLocation, redirectToHostedAuth } from '@/lib/auth/hosted-auth';
+import { buildHostedPasswordResetUrl, getRedirectPathFromLocation, redirectToHostedAuth } from '@/lib/auth/hosted-auth';
 
 export default function LoginPage() {
   const [redirectPath, setRedirectPath] = useState('/');
+  const [resetPasswordUrl, setResetPasswordUrl] = useState('https://auth.alfares.cz/reset-password');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setRedirectPath(getRedirectPathFromLocation());
+    const nextPath = getRedirectPathFromLocation();
+    setRedirectPath(nextPath);
+    setResetPasswordUrl(buildHostedPasswordResetUrl(nextPath));
   }, []);
 
   const startLogin = () => {
@@ -36,12 +39,20 @@ export default function LoginPage() {
           {loading ? 'Přesměrování...' : 'Pokračovat přes Alfares Auth'}
         </button>
 
-        <p className="mt-6 text-center text-gray-600">
-          Nemáte účet?{' '}
-          <Link href={`/register?redirect=${encodeURIComponent(redirectPath)}`} className="text-blue-600 hover:text-blue-700 font-semibold hover:underline">
-            Registrovat se
-          </Link>
-        </p>
+        <div className="mt-6 space-y-3 text-center text-gray-600">
+          <p>
+            Nemáte účet?{' '}
+            <Link href={`/register?redirect=${encodeURIComponent(redirectPath)}`} className="text-blue-600 hover:text-blue-700 font-semibold hover:underline">
+              Registrovat se
+            </Link>
+          </p>
+          <p>
+            Nejste si jistí heslem?{' '}
+            <a href={resetPasswordUrl} className="text-blue-600 hover:text-blue-700 font-semibold hover:underline">
+              Obnovit přístup
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );

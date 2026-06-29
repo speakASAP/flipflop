@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-06-26T19:33:21Z",
+  "created_at": "2026-06-29T11:57:50Z",
   "gate": "deployment_readiness",
   "next_step": "ready_for_deployment_review",
   "pre_coding_gate": {
@@ -52,47 +52,52 @@
       "path": "docs/IMPLEMENTATION_ORCHESTRATOR.md"
     },
     {
-      "line": 345,
+      "line": 154,
+      "marker": "[MISSING: catalogProductId]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 356,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 367,
+      "line": 378,
       "marker": "[MISSING: auth-microservice magic-link or passwordless account API]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 368,
+      "line": 379,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 385,
+      "line": 396,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 385,
+      "line": 396,
       "marker": "[MISSING: production IBAN]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 407,
+      "line": 418,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 407,
+      "line": 418,
       "marker": "[MISSING: production IBAN]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 488,
+      "line": 499,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 488,
+      "line": 499,
       "marker": "[MISSING: production IBAN]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },

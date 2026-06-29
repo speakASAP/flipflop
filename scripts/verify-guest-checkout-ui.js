@@ -52,6 +52,9 @@ async function main() {
   assert(!checkout.includes('authApi.register'), 'Checkout must not register users before order submission');
   assert(!checkout.includes('type="password"') && !checkout.includes('PasswordField'), 'Checkout must not expose password fields');
   assert(checkout.includes('wantsAccount: form.createAccount'), 'Checkout must pass optional account intent as wantsAccount');
+  assert(checkout.includes("const CHECKOUT_DETAILS_PATH = '/checkout?step=details'"), 'Checkout login/register redirect must target the details step');
+  assert(checkout.includes("new URLSearchParams(window.location.search).get('step') === 'details'"), 'Checkout must restore the details step from redirect query state');
+  assert(checkout.includes('loginRedirectHref') && checkout.includes('registerRedirectHref') && checkout.includes('passwordResetHref'), 'Checkout account prompt must offer login, registration, and access recovery without leaving the details step');
   assert(checkout.includes("marketingConsent: false"), 'Checkout must initialize marketingConsent to false');
   assert(checkout.includes("updateForm('marketingConsent', event.target.checked)"), 'Checkout marketing consent checkbox must update the quoted marketingConsent key');
   assert(!checkout.includes('updateForm(marketingConsent'), 'Checkout must not reference an undefined marketingConsent variable');
