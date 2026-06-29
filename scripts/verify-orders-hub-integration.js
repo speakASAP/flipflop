@@ -16,6 +16,7 @@ function assert(condition, message) {
 const orderClient = read('shared/clients/order-client.service.ts');
 const ordersService = read('services/order-service/src/orders/orders.service.ts');
 const configmap = read('k8s/configmap.yaml');
+const warehouseClient = read('shared/clients/warehouse-client.service.ts');
 const payloadBuilder = ordersService.slice(
   ordersService.indexOf('private buildCentralOrdersPayload'),
   ordersService.indexOf('private getCentralOrdersChannelAccountId'),
@@ -70,6 +71,21 @@ assert(
   'central Orders payload item.productId must be the canonical Catalog product ID, not the local FlipFlop product ID',
 );
 assert(
+  payloadBuilder.includes('warehouseId: string') &&
+    payloadBuilder.includes('const { order, orderItems, deliveryAddress, user, warehouseId } = params') &&
+    payloadBuilder.includes('warehouseId,'),
+  'central Orders payload items must include the Warehouse reservation authority id',
+);
+assert(
+  ordersService.includes('private async requireReservationWarehouseId') &&
+    ordersService.includes("'[MISSING: warehouseId] Cannot create order without Warehouse reservation authority'") &&
+    ordersService.includes('private requireReservationCatalogProductId') &&
+    ordersService.includes('reservationWarehouseId = await this.reserveOrderLines') &&
+    ordersService.includes('warehouseId: reservationWarehouseId') &&
+    !ordersService.includes("Stock reserve skipped: no default warehouse"),
+  'order-service must fail closed when Warehouse reservation authority data is missing',
+);
+assert(
   ordersService.includes('orderItems: order.order_items') &&
     ordersService.includes('products: true'),
   'central Orders forwarding must forward persisted order lines with Product relations',
@@ -114,6 +130,19 @@ const forbiddenForwardingTerms = [
   'clientSecret',
   'apiKey',
 ];
+
+assert(
+  !warehouseClient.includes("from 'pg'") &&
+    !warehouseClient.includes('warehouseDbPool') &&
+    !warehouseClient.includes('getTotalAvailableFromDatabase') &&
+    !warehouseClient.includes('WAREHOUSE_DB_'),
+  'Warehouse client must not use direct database fallback for sellable stock checks',
+);
+assert(
+  warehouseClient.includes('HttpStatus.BAD_GATEWAY') &&
+    warehouseClient.includes('Failed to get total stock from warehouse-microservice'),
+  'Warehouse stock availability reads must fail closed when warehouse-microservice is unavailable',
+);
 
 for (const term of forbiddenForwardingTerms) {
   assert(!ordersService.includes(term), `order-service must not forward or log forbidden term: ${term}`);

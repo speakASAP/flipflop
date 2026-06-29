@@ -124,12 +124,8 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
   /**
    * Reserve catalog stock in warehouse-microservice for each line (orderNumber = reservation key).
    */
-  private async reserveOrderLines(orderNumber: string, orderItems: any[]): Promise<void> {
-    const warehouseId = await this.warehouseClient.getDefaultWarehouseId();
-    if (!warehouseId) {
-      this.logger.warn('Stock reserve skipped: no default warehouse', { orderNumber });
-      return;
-    }
+  private async reserveOrderLines(orderNumber: string, orderItems: any[]): Promise<string> {
+    const warehouseId = await this.requireReservationWarehouseId(orderNumber);
     const completed: Array<{ catalogProductId: string; quantity: number }> = [];
     for (const item of orderItems) {
       const product =
@@ -137,10 +133,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         (await this.prisma.product.findUnique({
           where: { id: item.productId },
         }));
-      const catalogProductId = product?.catalogProductId;
-      if (!catalogProductId) {
-        continue;
-      }
+      const catalogProductId = this.requireReservationCatalogProductId(product, item.productId);
       try {
         await this.warehouseClient.reserveStock(
           catalogProductId,
@@ -171,11 +164,33 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         throw new BadRequestException(`Stock reservation failed: ${message}`);
       }
     }
+    return warehouseId;
   }
 
   /**
    * Release reservations for order lines (best-effort; logs on failure).
    */
+  private async requireReservationWarehouseId(orderNumber: string): Promise<string> {
+    const warehouseId = await this.warehouseClient.getDefaultWarehouseId();
+    if (!warehouseId) {
+      this.logger.error('Stock reservation failed: no default warehouse', { orderNumber });
+      throw new BadRequestException('[MISSING: warehouseId] Cannot create order without Warehouse reservation authority');
+    }
+    return warehouseId;
+  }
+
+  private requireReservationCatalogProductId(
+    product: { catalogProductId?: string | null; sku?: string | null } | null | undefined,
+    localProductId: string,
+  ): string {
+    const catalogProductId = product?.catalogProductId?.trim();
+    if (!catalogProductId) {
+      const productLabel = product?.sku ? `${product.sku} (${localProductId})` : localProductId;
+      throw new BadRequestException(`[MISSING: catalogProductId] Product ${productLabel} cannot be reserved in Warehouse`);
+    }
+    return catalogProductId;
+  }
+
   private async unreserveOrderLines(orderNumber: string, orderItems: any[]): Promise<void> {
     const warehouseId = await this.warehouseClient.getDefaultWarehouseId();
     if (!warehouseId) {
@@ -644,8 +659,9 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     }>;
     deliveryAddress: any;
     user?: { email?: string | null } | null;
+    warehouseId: string;
   }) {
-    const { order, orderItems, deliveryAddress, user } = params;
+    const { order, orderItems, deliveryAddress, user, warehouseId } = params;
     const customerName = [deliveryAddress.firstName, deliveryAddress.lastName]
       .filter(Boolean)
       .join(' ')
@@ -672,6 +688,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         quantity: item.quantity,
         unitPrice: Number(item.unitPrice),
         totalPrice: Number(item.totalPrice),
+        warehouseId,
       };
     });
 
@@ -1174,8 +1191,9 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       },
     });
 
+    let reservationWarehouseId: string;
     try {
-      await this.reserveOrderLines(order.orderNumber, order.order_items);
+      reservationWarehouseId = await this.reserveOrderLines(order.orderNumber, order.order_items);
     } catch (err: unknown) {
       await this.prisma.order.delete({ where: { id: order.id } });
       throw err;
@@ -1243,6 +1261,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         orderItems: order.order_items,
         deliveryAddress,
         user,
+        warehouseId: reservationWarehouseId,
       });
 
       const centralOrder = await this.orderClient.createOrder(orderData);
@@ -1381,8 +1400,9 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       },
     });
 
+    let reservationWarehouseId: string;
     try {
-      await this.reserveOrderLines(order.orderNumber, order.order_items);
+      reservationWarehouseId = await this.reserveOrderLines(order.orderNumber, order.order_items);
     } catch (err: unknown) {
       await this.prisma.order.delete({ where: { id: order.id } });
       throw err;
@@ -1435,6 +1455,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         orderItems: order.order_items,
         deliveryAddress,
         user: { email: guestEmail },
+        warehouseId: reservationWarehouseId,
       });
       const centralOrder = await this.orderClient.createOrder(orderData);
       await this.recordCentralOrdersForwarding(order, 'accepted', {
