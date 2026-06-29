@@ -17,10 +17,29 @@ export class WarehouseClientService {
     this.baseUrl = process.env.WAREHOUSE_SERVICE_URL || 'http://warehouse-microservice:3201';
   }
 
+  private requestOptions() {
+    const token = (
+      process.env.WAREHOUSE_SERVICE_TOKEN ||
+      process.env.JWT_TOKEN ||
+      process.env.SERVICE_TOKEN ||
+      ''
+    ).trim();
+
+    if (!token) {
+      return {};
+    }
+
+    return {
+      headers: {
+        Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
+      },
+    };
+  }
+
   async getStockByProduct(productId: string): Promise<any[]> {
     try {
       const response = await firstValueFrom(
-        this.httpService.get(`${this.baseUrl}/api/stock/${productId}`)
+        this.httpService.get(`${this.baseUrl}/api/stock/${productId}`, this.requestOptions())
       );
       return response.data.data || [];
     } catch (error: unknown) {
@@ -33,7 +52,7 @@ export class WarehouseClientService {
   async getTotalAvailable(productId: string): Promise<number> {
     try {
       const response = await firstValueFrom(
-        this.httpService.get(`${this.baseUrl}/api/stock/${productId}/total`)
+        this.httpService.get(`${this.baseUrl}/api/stock/${productId}/total`, this.requestOptions())
       );
       return response.data.data?.totalAvailable || 0;
     } catch (error: unknown) {
@@ -54,7 +73,7 @@ export class WarehouseClientService {
           warehouseId,
           quantity,
           orderId,
-        })
+        }, this.requestOptions())
       );
       return response.data.data;
     } catch (error: unknown) {
@@ -73,7 +92,7 @@ export class WarehouseClientService {
           warehouseId,
           quantity,
           reason,
-        })
+        }, this.requestOptions())
       );
       return response.data.data;
     } catch (error: unknown) {
