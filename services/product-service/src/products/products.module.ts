@@ -16,8 +16,8 @@ import {
   RedisModule,
   ClientsModule,
   RabbitMQModule,
-  RolesGuard,
 } from '@flipflop/shared';
+import { ProductJwtAuthGuard, ProductRolesGuard } from '../auth/product-auth.guards';
 import * as https from 'https';
 
 @Module({
@@ -43,7 +43,7 @@ import * as https from 'https';
     }),
   ],
   controllers: [ProductsController, CategoriesController, AdminProductsController],
-  providers: [ProductsService, WarehouseService, RolesGuard, Reflector],
+  providers: [ProductsService, WarehouseService, ProductJwtAuthGuard, ProductRolesGuard, Reflector],
   exports: [ProductsService, WarehouseService],
 })
 export class ProductsModule {}

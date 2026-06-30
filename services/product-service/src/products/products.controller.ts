@@ -16,7 +16,8 @@ import {
   Request,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { JwtAuthGuard, RolesGuard, Roles, ApiResponse } from '@flipflop/shared';
+import { Roles, ApiResponse } from '@flipflop/shared';
+import { ProductJwtAuthGuard, ProductRolesGuard } from '../auth/product-auth.guards';
 
 @Controller('products')
 export class ProductsController {
@@ -58,7 +59,7 @@ export class CategoriesController {
 }
 
 @Controller('products')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(ProductJwtAuthGuard, ProductRolesGuard)
 @Roles('global:superadmin', 'global:platform_admin', 'app:flipflop-service:admin', 'app:catalog-microservice:admin', 'catalog:write')
 export class AdminProductsController {
   constructor(private readonly productsService: ProductsService) {}

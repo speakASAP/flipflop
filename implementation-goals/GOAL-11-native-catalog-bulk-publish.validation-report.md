@@ -4,7 +4,7 @@
 id: VAL-GOAL-11-NATIVE-CATALOG-BULK-PUBLISH
 status: passed
 created: 2026-06-30
-updated: 2026-06-30T21:22:38Z 2026-06-30T21:21:28Z
+updated: 2026-06-30T22:00:00Z
 repository: /home/ssf/Documents/Github/flipflop-service-bulk-publish
 branch: codex/flipflop-native-bulk-publish
 ```
@@ -17,9 +17,13 @@ branch: codex/flipflop-native-bulk-publish
 - `cd services/product-service && npm run build` passed using validation-only `node_modules` symlinks, then symlinks were removed.
 - `python3 scripts/deployment_readiness_gate.py --root .` passed.
 
-## Pending Evidence
+## Deploy Evidence
 
-- Production deploy and protected route smoke if deploy proceeds.
+- Docker product-service build passed after forcing stale dist cleanup before compile.
+- kubectl rollout status for deployment/flipflop-product-service in statex-apps passed.
+- Product-service logs registered POST /products/publish/bulk and GET /products/publish/:catalogProductId/status.
+- Direct in-pod smoke for POST /products/publish/bulk without Authorization returned HTTP 401.
+- Public gateway smoke for POST https://flipflop.alfares.cz/api/products/publish/bulk without Authorization returned HTTP 401.
 
 ## Boundary Check
 
