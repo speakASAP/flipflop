@@ -36,4 +36,4 @@ RUN ln -sf /app/shared /shared
 
 EXPOSE 3000
 
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/services/api-gateway/src/main.js"]

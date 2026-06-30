@@ -33,6 +33,7 @@ RUN npm run build
 # Build service
 WORKDIR /app/services/product-service
 RUN npm install --include=dev
+RUN npx prisma generate --schema=/app/prisma/schema.prisma
 RUN npm run build
 
 # Expose port
