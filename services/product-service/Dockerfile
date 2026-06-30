@@ -47,5 +47,5 @@ EXPOSE 3002
 ENV NODE_PATH=/app/shared/node_modules:/app/node_modules
 
 # Start service
-CMD ["node", "dist/main.js"]
+CMD ["sh", "-c", "if [ -f dist/main.js ]; then exec node dist/main.js; fi; exec node dist/services/product-service/src/main.js"]
 
