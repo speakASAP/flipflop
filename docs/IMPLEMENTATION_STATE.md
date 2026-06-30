@@ -22,7 +22,7 @@ Implemented FlipFlop sales-channel stock sync parity with the Allegro Warehouse-
 - Default pacing is one product-cache write per second via `FLIPFLOP_STOCK_SYNC_RATE_LIMIT_MS=1000`.
 - `[UNKNOWN: whether Warehouse getTotalAvailable includes reservations or only physical available stock]` is preserved in the policy snapshot.
 
-Validation evidence is recorded in this task final response after gates complete.
+Validation and deployment evidence: git diff --check pass; Prisma generate pass; shared build pass; product-service build pass; pre-coding gate pass; strict doc audit pass; deployment readiness gate pass. Commit 3b150c5 was pushed to origin/main. ./scripts/deploy.sh initially timed out while backend replacement pods were stuck in kubelet/containerd sandbox/image-pull startup, then integration follow-up recreated the stuck replacement pods and all FlipFlop deployments reached NewReplicaSetAvailable with ready=1 updated=1 available=1. Production smoke: https://flipflop.alfares.cz/ HTTP 200 and /api/products?limit=1 HTTP 200.
 
 ## 2026-06-29 - Checkout Login Return Loop Fix
 
