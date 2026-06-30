@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -
 
 # Copy shared module first (required by package-lock.json symlink resolution)
 COPY shared ./shared
+RUN cd /app/shared && npm install --legacy-peer-deps --no-package-lock
 
 # Install service dependencies
 COPY services/api-gateway/package*.json ./
@@ -18,9 +19,11 @@ RUN npm install --no-save --legacy-peer-deps --no-package-lock prisma@5.22.0 @pr
 # Generate Prisma client and sync to shared/node_modules (where shared/dist resolves it)
 COPY prisma ./prisma
 RUN cd /app/shared && /app/node_modules/.bin/prisma generate --schema=/app/prisma/schema.prisma && \
+    mkdir -p /app/shared/node_modules/@prisma && \
     rm -rf /app/shared/node_modules/@prisma/client /app/shared/node_modules/.prisma && \
     cp -r /app/node_modules/@prisma/client /app/shared/node_modules/@prisma/client && \
-    cp -r /app/node_modules/.prisma /app/shared/node_modules/.prisma
+    cp -r /app/node_modules/.prisma /app/shared/node_modules/.prisma && \
+    npm run build
 
 # Copy pre-built dist (already compiled in repo)
 COPY services/api-gateway/dist ./dist
