@@ -63,6 +63,15 @@ export class CategoriesController {
 export class AdminProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  @Get(':id/catalog-content-preview')
+  async getCatalogContentPreview(@Request() req: any, @Param('id') id: string) {
+    const preview = await this.productsService.getCatalogContentPreview(
+      id,
+      req.headers.authorization,
+    );
+    return ApiResponse.success(preview);
+  }
+
   @Post()
   async createProduct(@Request() req: any, @Body() dto: any) {
     const product = await this.productsService.createProduct(dto);

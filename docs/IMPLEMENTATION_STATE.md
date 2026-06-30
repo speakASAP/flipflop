@@ -2,13 +2,73 @@
 
 ## Current Status
 
-**Date:** 2026-06-29
+**Date:** 2026-06-30
 **Mode:** Goal-driven orchestration enabled
-**Active goal:** GOAL-09-smarty-checkout-reference-ux
-**Goal status:** implemented, deployed, and production-smoked
-**Current checkpoint:** GOAL-09 guest checkout, Smarty.cz reference documentation, optional account creation, delivery/payment/summary/upsell UI, bank-transfer QR behavior, guest-order route registration, server-side guest fee hardening, Vault-backed production bank-transfer secret wiring, owner-approved synthetic production guest order, and checkout-login return-loop prevention are implemented, deployed, and verified.
+**Active goal:** GOAL-10-catalog-connector-content-preview
+**Goal status:** implemented and validated, not deployed
+**Current checkpoint:** Catalog canonical `flipflop` connector previews are exposed through a protected read-only product-service endpoint and shown in the admin sync flow. Deployment was intentionally not run.
 
 
+
+## 2026-06-30 - GOAL-10 Catalog Connector Content Preview Implementation
+
+Implemented a bounded no-deploy Catalog connector preview lane:
+
+- Added `CatalogClientService.getProductContentPreview(...)` for Catalog canonical content previews with marketplace key `flipflop`.
+- Added protected product-service `GET products/:id/catalog-content-preview` under the existing products gateway path.
+- Added frontend admin API typing and method for the preview response.
+- Replaced the admin sync page's live Allegro dependency with a Catalog product list and selected connector preview display.
+- Preserved storefront, checkout, cart, order, payment, pricing, stock, Prisma, Kubernetes, secret, supplier-service, and deploy boundaries.
+
+Parallel execution section completion:
+
+- Backend connector preview endpoint: completed; validation owner original thread.
+- Frontend admin preview surface: completed after backend contract; validation owner original thread.
+- IPS/state integration: completed after source validation; merge order docs, backend, frontend, validation/state.
+
+Validation passed:
+
+- `python3 scripts/pre_coding_gate.py --root .`
+- `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues`
+- `git diff --check`
+- `cd services/product-service && npm run build`
+- `cd services/frontend && npm run build`
+
+Validation notes:
+
+- Strict documentation audit initially failed on new-doc route literals and graph edges; docs were corrected and final audit passed 100/100.
+- Product-service build initially failed on stale generated shared declarations; source was adjusted without generated shared-dist churn and final build passed.
+- Frontend build passed with non-blocking baseline-browser-mapping age and Next.js workspace-root warnings.
+
+Deployment: not run by owner instruction.
+
+Next step: owner review and deployment approval if the admin preview should be released.
+
+## 2026-06-30 - GOAL-10 Catalog Connector Content Preview Planning
+
+Owner requested a bounded no-deploy FlipFlop lane to expose Catalog canonical content connector previews in the product-service/admin flow. Scope is limited to a read-only `flipflop` marketplace preview path and one admin product/sync surface. Forbidden areas remain supplier-service deployment wiring, `/api/allegro` live route repair, checkout/cart/order/payment/pricing/stock ownership, Prisma migrations, Kubernetes, secrets, and deployment.
+
+Planning artifacts added:
+
+- `implementation-goals/GOAL-10-catalog-connector-content-preview.md`
+- `implementation-goals/GOAL-10-catalog-connector-content-preview.execution-plan.md`
+- `implementation-goals/GOAL-10-catalog-connector-content-preview.context-package.md`
+- `implementation-goals/GOAL-10-catalog-connector-content-preview.coding-prompt.md`
+- `implementation-goals/GOAL-10-catalog-connector-content-preview.validation-report.md`
+- `11_tasks/TASK-003-catalog-connector-content-preview.md`
+- `22_goal_impact/GOAL-IMPACT-TASK-003-catalog-connector-content-preview.md`
+- `21_execution_plans/EP-TASK-003-catalog-connector-content-preview.md`
+- `13_context_packages/CP-TASK-003-catalog-connector-content-preview.md`
+- `14_prompts/PROMPT-TASK-003-catalog-connector-content-preview.md`
+- `12_validation/VAL-TASK-003-catalog-connector-content-preview.md`
+
+Parallel execution section:
+
+- Backend connector preview endpoint: ready now; owner role worker; allowed files `shared/clients/catalog-client.service.ts`, `services/product-service/src/products/products.controller.ts`, `services/product-service/src/products/products.service.ts`; validation owner original thread.
+- Frontend admin preview surface: dependency-gated on backend response type; owner role worker; allowed files `services/frontend/lib/api/admin.ts`, `services/frontend/app/admin/sync/page.tsx`; validation owner original thread.
+- IPS/state integration: final integration; owner role original thread; shared files `implementation-goals/README.md`, `docs/IMPLEMENTATION_STATE.md`, validation reports; merge order docs, backend, frontend, validation/state.
+
+Next checkpoint: run IPS pre-coding and strict documentation gates before source edits.
 
 ## 2026-06-30 - Warehouse Stock Event Orchestration
 

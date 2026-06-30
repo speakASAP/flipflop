@@ -40,6 +40,18 @@ export class ProductsService {
     private readonly warehouseClient: WarehouseClientService,
   ) {}
 
+  async getCatalogContentPreview(productId: string, authorizationHeader?: string) {
+    const catalogClient = this.catalogClient as unknown as {
+      getProductContentPreview: (
+        productId: string,
+        marketplace: string,
+        authorizationHeader?: string,
+      ) => Promise<unknown>;
+    };
+
+    return catalogClient.getProductContentPreview(productId, 'flipflop', authorizationHeader);
+  }
+
   /**
    * Get products with pagination and filtering
    * Fetches from catalog-microservice and enriches with stock from warehouse-microservice

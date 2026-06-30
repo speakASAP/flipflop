@@ -128,6 +128,28 @@ export interface User {
   updatedAt: string;
 }
 
+export interface CatalogContentPreview {
+  marketplace: string;
+  label: string;
+  format: string;
+  product: Record<string, unknown>;
+  content: {
+    title: string;
+    plainText: string;
+    html?: string;
+    blocks?: unknown[];
+    sections?: unknown[];
+  };
+  source: {
+    canonicalDocumentVersion: string;
+    legacyDescriptionFallback: boolean;
+    sourceHash: string;
+    generatedAt: string;
+  };
+  overridesApplied: unknown;
+  warnings: string[];
+}
+
 export interface UpdateOrderStatusDto {
   status?: OrderStatus;
   paymentStatus?: PaymentStatus;
@@ -301,6 +323,12 @@ export const adminApi = {
 
   async deleteProduct(id: string) {
     return apiClient.delete(`/products/${id}`);
+  },
+
+  async getCatalogContentPreview(productId: string) {
+    return apiClient.get<CatalogContentPreview>(
+      `/products/${encodeURIComponent(productId)}/catalog-content-preview`,
+    );
   },
 
   // Orders (Admin)

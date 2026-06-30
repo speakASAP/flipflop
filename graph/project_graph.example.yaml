@@ -11,30 +11,45 @@ nodes:
   - id: TASK-002
     type: Task
     path: ../11_tasks/TASK-002-smarty-checkout-reference-ux.md
+  - id: TASK-003
+    type: Task
+    path: ../11_tasks/TASK-003-catalog-connector-content-preview.md
   - id: EP-TASK-001
     type: ExecutionPlan
     path: ../21_execution_plans/EP-TASK-001-flipflop-ips-baseline.md
   - id: EP-TASK-002
     type: ExecutionPlan
     path: ../21_execution_plans/EP-TASK-002-smarty-checkout-reference-ux.md
+  - id: EP-TASK-003
+    type: ExecutionPlan
+    path: ../21_execution_plans/EP-TASK-003-catalog-connector-content-preview.md
   - id: CP-TASK-001
     type: ContextPackage
     path: ../13_context_packages/CP-TASK-001-flipflop-ips-baseline.md
   - id: CP-TASK-002
     type: ContextPackage
     path: ../13_context_packages/CP-TASK-002-smarty-checkout-reference-ux.md
+  - id: CP-TASK-003
+    type: ContextPackage
+    path: ../13_context_packages/CP-TASK-003-catalog-connector-content-preview.md
   - id: PROMPT-TASK-001-flipflop-ips-baseline
     type: CodingPrompt
     path: ../14_prompts/PROMPT-TASK-001-flipflop-ips-baseline.md
   - id: PROMPT-TASK-002-smarty-checkout-reference-ux
     type: CodingPrompt
     path: ../14_prompts/PROMPT-TASK-002-smarty-checkout-reference-ux.md
+  - id: PROMPT-TASK-003-catalog-connector-content-preview
+    type: CodingPrompt
+    path: ../14_prompts/PROMPT-TASK-003-catalog-connector-content-preview.md
   - id: VAL-TASK-001-flipflop-ips-baseline
     type: ValidationReport
     path: ../12_validation/VAL-TASK-001-flipflop-ips-baseline.md
   - id: VAL-TASK-002-smarty-checkout-reference-ux
     type: ValidationReport
     path: ../12_validation/VAL-TASK-002-smarty-checkout-reference-ux.md
+  - id: VAL-TASK-003-catalog-connector-content-preview
+    type: ValidationReport
+    path: ../12_validation/VAL-TASK-003-catalog-connector-content-preview.md
   - id: ADR-001
     type: ADR
     path: ../07_decisions/ADR-001-adopt-intent-preservation-system.md
@@ -94,3 +109,30 @@ edges:
   - from: VAL-TASK-002-smarty-checkout-reference-ux
     type: validates
     to: TASK-002
+  - from: TASK-003
+    type: impacts_goal
+    to: FF-GOALS
+  - from: TASK-003
+    type: implements
+    to: FEAT-001
+  - from: TASK-003
+    type: decomposes_into
+    to: EP-TASK-003
+  - from: EP-TASK-003
+    type: derives_from
+    to: TASK-003
+  - from: EP-TASK-003
+    type: generates
+    to: PROMPT-TASK-003-catalog-connector-content-preview
+  - from: EP-TASK-003
+    type: constrained_by
+    to: ADR-001
+  - from: PROMPT-TASK-003-catalog-connector-content-preview
+    type: derives_from
+    to: EP-TASK-003
+  - from: PROMPT-TASK-003-catalog-connector-content-preview
+    type: included_in_context
+    to: CP-TASK-003
+  - from: VAL-TASK-003-catalog-connector-content-preview
+    type: validates
+    to: TASK-003

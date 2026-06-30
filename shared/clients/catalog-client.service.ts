@@ -3,6 +3,28 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { LoggerService } from '../logger/logger.service';
 
+export interface CatalogContentPreview {
+  marketplace: string;
+  label: string;
+  format: string;
+  product: Record<string, unknown>;
+  content: {
+    title: string;
+    plainText: string;
+    html?: string;
+    blocks?: unknown[];
+    sections?: unknown[];
+  };
+  source: {
+    canonicalDocumentVersion: string;
+    legacyDescriptionFallback: boolean;
+    sourceHash: string;
+    generatedAt: string;
+  };
+  overridesApplied: unknown;
+  warnings: string[];
+}
+
 /**
  * API client for catalog-microservice
  * Fetches product data from the central catalog
@@ -16,6 +38,42 @@ export class CatalogClientService {
     private readonly logger: LoggerService,
   ) {
     this.baseUrl = process.env.CATALOG_SERVICE_URL || 'http://catalog-microservice:3200';
+  }
+
+  async getProductContentPreview(
+    productId: string,
+    marketplace: string,
+    authorizationHeader?: string,
+  ): Promise<CatalogContentPreview> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `${this.baseUrl}/api/products/${encodeURIComponent(productId)}/content-previews/${encodeURIComponent(marketplace)}`,
+          {
+            headers: authorizationHeader ? { Authorization: authorizationHeader } : undefined,
+          },
+        ),
+      );
+
+      if (!response.data?.success || !response.data?.data) {
+        throw new HttpException('Catalog content preview not available', HttpStatus.BAD_GATEWAY);
+      }
+
+      return response.data.data;
+    } catch (error: unknown) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(
+        `Failed to get ${marketplace} content preview for product ${productId}: ${errorMessage}`,
+        errorStack,
+        'CatalogClient',
+      );
+      throw new HttpException('Catalog content preview not available', HttpStatus.BAD_GATEWAY);
+    }
   }
 
   async getProductById(productId: string): Promise<any> {

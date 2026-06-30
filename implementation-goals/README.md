@@ -48,6 +48,7 @@ python3 scripts/deployment_readiness_gate.py --root .
 | `GOAL-07-leads-public-intake-adoption` | deployed | Leads Goal 26 owner selection of FlipFlop and 2026-06-21 owner approvals | Public FlipFlop contact surface submits through gateway to Leads public intake; production smoke passed |
 | `GOAL-09-smarty-checkout-reference-ux` | planned | Owner 2026-06-26 checkout UX correction and GOAL-02 payment-safety constraints | Guest checkout modeled on Smarty.cz, optional account creation by magic link, no mandatory registration before purchase |
 | `GOAL-09-guest-checkout-smarty-flow` | active | Owner 2026-06-26 checkout UX request | Guest checkout, Smarty.cz-inspired Czech checkout flow, optional registration, and bank-transfer QR completion |
+| `GOAL-10-catalog-connector-content-preview` | done, not deployed | Goal 03 and Catalog content preview contract | Admins can inspect Catalog canonical `flipflop` connector previews without touching Allegro, checkout, pricing, stock, or deployment ownership |
 
 ## Orchestrator Rule
 
