@@ -17,7 +17,7 @@ related_adrs:
 
 ## Summary
 
-The Catalog connector content preview lane is implemented and validated without deployment. Product-service exposes a protected read-only preview endpoint, and the admin sync page now lists Catalog products and displays selected `flipflop` connector preview content and metadata.
+The Catalog connector content preview lane is implemented, validated, deployed, and runtime-smoked. Product-service exposes a protected read-only preview endpoint, and the admin sync page now lists Catalog products and displays selected `flipflop` connector preview content and metadata.
 
 ## Upstream goal
 
@@ -39,9 +39,16 @@ The Catalog connector content preview lane is implemented and validated without 
 - Initial product-service build failed because the repo-local package build resolved stale generated shared declarations; the source was adjusted without adding shared generated-dist churn, and the final build passed.
 - Live endpoint smoke was not run because this lane is no-deploy by owner instruction.
 
+## Runtime deployment addendum
+
+- FlipFlop deployment completed after commit `0c199ce` repaired gateway/product-service runtime packaging.
+- `./scripts/deploy.sh` completed successfully in 140.60s.
+- Public smoke passed: `/` HTTP 200 and `/api/products?limit=1` HTTP 200.
+- Protected preview route is mapped as `GET /products/:id/catalog-content-preview`; anonymous access is blocked by the existing JWT guard. Missing/invalid token errors currently surface as HTTP 500 and are tracked as optional auth hardening, not as a connector rendering failure.
+
 ## Recommendation
 
-Review the diff. Deploy only after owner approval if the admin preview should be released to production.
+Goal 10/TASK-003 connector preview is released. Optional follow-up: normalize shared guard missing/invalid token failures to HTTP 401.
 
 ## Traceability confirmation
 

@@ -5,10 +5,27 @@
 **Date:** 2026-06-30
 **Mode:** Goal-driven orchestration enabled
 **Active goal:** GOAL-10-catalog-connector-content-preview
-**Goal status:** implemented and validated, not deployed
-**Current checkpoint:** Catalog canonical `flipflop` connector previews are exposed through a protected read-only product-service endpoint and shown in the admin sync flow. Deployment was intentionally not run.
+**Goal status:** implemented, validated, deployed, and runtime-smoked
+**Current checkpoint:** Catalog canonical `flipflop` connector previews are deployed through the protected read-only product-service endpoint and admin sync flow. Runtime deployment completed after repairing gateway CMD layout and product-service Prisma client packaging.
 
 
+
+## 2026-06-30 - GOAL-10 Runtime Deployment Addendum
+
+Deployment status changed from no-deploy source lane to deployed Goal 19 channel integration after owner requested full connector rollout.
+
+Runtime deployment evidence:
+
+- Commit `1580942` added the Catalog connector preview endpoint and admin sync UI.
+- Commit `0c199ce` repaired runtime image packaging: gateway now starts whichever compiled layout is present, and product-service syncs generated Prisma client into service-local `node_modules`.
+- `./scripts/deploy.sh` completed successfully in 140.60s.
+- New pods reached `1/1 Running`: `flipflop-service-69dd6bd79c-gftbh`, `flipflop-product-service-78f4677dc6-dgkv5`, `flipflop-frontend-cd4fbc5df-zqpnp`, `flipflop-cart-service-6f59647847-ckm2x`, `flipflop-order-service-6d44c6db6c-flpm7`, and `flipflop-user-service-79ddfdf4d8-psb5t`.
+- Production smoke returned `https://flipflop.alfares.cz/` HTTP 200 and `https://flipflop.alfares.cz/api/products?limit=1` HTTP 200.
+- The protected preview route is mapped as `GET /products/:id/catalog-content-preview`; anonymous calls are blocked by the existing JWT guard, although missing/invalid token exceptions currently surface as HTTP 500 because of the shared guard exception-class boundary.
+
+Boundary decision: no checkout, cart, order, payment, pricing, stock, supplier-service, storefront ownership, marketplace publish, or customer-data mutation was performed.
+
+Next action: optional hardening to normalize shared guard missing/invalid token failures to HTTP 401.
 
 ## 2026-06-30 - GOAL-10 Catalog Connector Content Preview Implementation
 
