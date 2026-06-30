@@ -59,9 +59,26 @@ export class CategoriesController {
 
 @Controller('products')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('global:superadmin', 'app:flipflop-service:admin')
+@Roles('global:superadmin', 'global:platform_admin', 'app:flipflop-service:admin', 'app:catalog-microservice:admin', 'catalog:write')
 export class AdminProductsController {
   constructor(private readonly productsService: ProductsService) {}
+
+
+  @Post('publish/bulk')
+  async publishCatalogProducts(@Request() req: any, @Body() dto: any) {
+    const result = await this.productsService.publishCatalogProductsFromCatalog(dto, {
+      id: req.user?.id || req.user?.sub,
+      email: req.user?.email,
+      roles: req.user?.roles,
+    });
+    return ApiResponse.success(result);
+  }
+
+  @Get('publish/:catalogProductId/status')
+  async getCatalogPublishStatus(@Param('catalogProductId') catalogProductId: string) {
+    const result = await this.productsService.getCatalogPublishStatus(catalogProductId);
+    return ApiResponse.success(result);
+  }
 
   @Post()
   async createProduct(@Request() req: any, @Body() dto: any) {

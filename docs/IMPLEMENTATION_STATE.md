@@ -543,3 +543,24 @@ Remaining explicit gates:
 
 - `[MISSING: production bank account]` and `[MISSING: production IBAN]` still need owner-provided runtime values.
 - Owner-approved real production guest-order submit smoke remains required before claiming full end-to-end purchase completion.
+
+## 2026-06-30 - Native Catalog Bulk Publish Endpoint
+
+GOAL-11 `native-catalog-bulk-publish` is active in branch `codex/flipflop-native-bulk-publish`.
+
+Implemented source changes:
+
+- Added protected product-service `POST /products/publish/bulk` for Catalog-origin FlipFlop publication.
+- Added protected product-service `GET /products/publish/:catalogProductId/status` for per-item lifecycle status.
+- FlipFlop now fetches Catalog product truth, checks Warehouse sellable stock, upserts the local storefront Product row, and records `flipflop_catalog_publish_attempts` lifecycle rows per item.
+- Catalog Goal 20 is expected to call this native endpoint for FlipFlop instead of treating projection availability as publication.
+
+Validation passed before deploy:
+
+- Pre-coding gate passed.
+- Strict documentation audit passed.
+- `git diff --check` passed.
+- Product-service build passed.
+- Deployment-readiness gate passed.
+
+Next checkpoint: commit and deploy FlipFlop before deploying the Catalog caller switch.
