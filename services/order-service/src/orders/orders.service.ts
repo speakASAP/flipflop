@@ -294,6 +294,23 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  private async releaseLocalReservationAfterCentralForward(order: {
+    orderNumber: string;
+    order_items: any[];
+  }): Promise<void> {
+    try {
+      await this.unreserveOrderLines(order.orderNumber, order.order_items);
+      this.logger.log('Released local warehouse reservation after central Orders accepted order', {
+        orderNumber: order.orderNumber,
+      });
+    } catch (err: unknown) {
+      this.logger.warn('Local reservation release after central Orders acceptance failed', {
+        orderNumber: order.orderNumber,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
   /**
    * Hourly: cancel stale unpaid orders and release reserved stock.
    */
@@ -1385,6 +1402,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       await this.recordCentralOrdersForwarding(order, 'accepted', {
         centralOrderId: centralOrder?.id,
       });
+      await this.releaseLocalReservationAfterCentralForward(order);
       this.logger.log('Order forwarded to orders-microservice', {
         orderId: order.id,
         orderNumber: order.orderNumber,
@@ -1581,6 +1599,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       await this.recordCentralOrdersForwarding(order, 'accepted', {
         centralOrderId: centralOrder?.id,
       });
+      await this.releaseLocalReservationAfterCentralForward(order);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       const isIdempotencyConflict = message.includes(ORDER_IDEMPOTENCY_CONFLICT);
