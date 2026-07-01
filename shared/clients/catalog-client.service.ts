@@ -40,6 +40,23 @@ export class CatalogClientService {
     this.baseUrl = process.env.CATALOG_SERVICE_URL || 'http://catalog-microservice:3200';
   }
 
+  private catalogHeaders(extraHeaders?: Record<string, string>): Record<string, string> {
+    const internalToken =
+      process.env.CATALOG_INTERNAL_SERVICE_TOKEN ||
+      process.env.CATALOG_SERVICE_TOKEN ||
+      process.env.INTERNAL_SERVICE_TOKEN;
+
+    return {
+      ...(internalToken
+        ? {
+            'x-internal-service-token': internalToken,
+            'x-service-name': process.env.SERVICE_NAME || 'flipflop-service',
+          }
+        : {}),
+      ...(extraHeaders || {}),
+    };
+  }
+
   async getProductContentPreview(
     productId: string,
     marketplace: string,
@@ -50,7 +67,9 @@ export class CatalogClientService {
         this.httpService.get(
           `${this.baseUrl}/api/products/${encodeURIComponent(productId)}/content-previews/${encodeURIComponent(marketplace)}`,
           {
-            headers: authorizationHeader ? { Authorization: authorizationHeader } : undefined,
+            headers: authorizationHeader
+              ? this.catalogHeaders({ Authorization: authorizationHeader })
+              : this.catalogHeaders(),
           },
         ),
       );
@@ -79,7 +98,9 @@ export class CatalogClientService {
   async getProductById(productId: string): Promise<any> {
     try {
       const response = await firstValueFrom(
-        this.httpService.get(`${this.baseUrl}/api/products/${productId}`)
+        this.httpService.get(`${this.baseUrl}/api/products/${productId}`, {
+          headers: this.catalogHeaders(),
+        }),
       );
       return response.data.data;
     } catch (error: unknown) {
@@ -93,7 +114,9 @@ export class CatalogClientService {
   async getProductBySku(sku: string): Promise<any> {
     try {
       const response = await firstValueFrom(
-        this.httpService.get(`${this.baseUrl}/api/products/sku/${sku}`)
+        this.httpService.get(`${this.baseUrl}/api/products/sku/${sku}`, {
+          headers: this.catalogHeaders(),
+        }),
       );
       if (!response.data.success || !response.data.data) {
         return null;
@@ -122,7 +145,9 @@ export class CatalogClientService {
       if (query.limit) params.append('limit', String(query.limit));
 
       const response = await firstValueFrom(
-        this.httpService.get(`${this.baseUrl}/api/products?${params.toString()}`)
+        this.httpService.get(`${this.baseUrl}/api/products?${params.toString()}`, {
+          headers: this.catalogHeaders(),
+        }),
       );
       return {
         items: response.data.data || [],
@@ -141,7 +166,9 @@ export class CatalogClientService {
   async getCategories(): Promise<any[]> {
     try {
       const response = await firstValueFrom(
-        this.httpService.get(`${this.baseUrl}/api/categories`)
+        this.httpService.get(`${this.baseUrl}/api/categories`, {
+          headers: this.catalogHeaders(),
+        }),
       );
       return response.data.data || [];
     } catch (error: unknown) {
@@ -155,7 +182,9 @@ export class CatalogClientService {
   async getProductPricing(productId: string): Promise<any> {
     try {
       const response = await firstValueFrom(
-        this.httpService.get(`${this.baseUrl}/api/pricing/product/${productId}/current`)
+        this.httpService.get(`${this.baseUrl}/api/pricing/product/${productId}/current`, {
+          headers: this.catalogHeaders(),
+        }),
       );
       return response.data.data;
     } catch (error) {
@@ -167,7 +196,9 @@ export class CatalogClientService {
   async getProductMedia(productId: string): Promise<any[]> {
     try {
       const response = await firstValueFrom(
-        this.httpService.get(`${this.baseUrl}/api/media/product/${productId}`)
+        this.httpService.get(`${this.baseUrl}/api/media/product/${productId}`, {
+          headers: this.catalogHeaders(),
+        }),
       );
       return response.data.data || [];
     } catch (error) {
