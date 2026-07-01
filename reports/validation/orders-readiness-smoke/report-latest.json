@@ -1,0 +1,42 @@
+{
+  "ok": false,
+  "generatedAt": "2026-07-01T06:44:49.235Z",
+  "mutatingSmokeApprovedByOwner": true,
+  "liveSmokeRun": false,
+  "prerequisites": {
+    "deploymentReady": "1/1",
+    "deploymentAvailable": "1/1",
+    "externalSecretReady": true,
+    "ordersTokenSecretPresent": true,
+    "envPresence": {
+      "ORDERS_SERVICE_URL": true,
+      "ORDERS_MICROSERVICE_URL": true,
+      "ORDERS_SERVICE_TOKEN": true,
+      "WAREHOUSE_SERVICE_URL": true,
+      "WAREHOUSE_SERVICE_TOKEN": false,
+      "JWT_TOKEN": true,
+      "DEFAULT_WAREHOUSE_ID": false,
+      "TEST_PASSWORD": true
+    },
+    "ordersProbe": {
+      "httpStatus": 401,
+      "authorized": false
+    },
+    "warehouseProbe": {
+      "httpStatus": 401,
+      "authorized": false,
+      "warehouseIdPresent": false
+    },
+    "blockers": [
+      "[MISSING: valid ORDERS_SERVICE_TOKEN accepted by orders-microservice]",
+      "[MISSING: warehouseId]",
+      "[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]"
+    ]
+  },
+  "result": null,
+  "blockers": [
+    "[MISSING: valid ORDERS_SERVICE_TOKEN accepted by orders-microservice]",
+    "[MISSING: warehouseId]",
+    "[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]"
+  ]
+}

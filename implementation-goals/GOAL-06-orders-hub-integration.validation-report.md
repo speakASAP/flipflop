@@ -81,3 +81,41 @@ central Orders log evidence query for ORD-1781378332000-840
   owner-approved GOAL-02 bypass, outside this goal.
 - Next step: return to H8 candidate application integration decisions and pick
   the next application/service to migrate into central Orders.
+
+
+## 2026-07-01 Goal 7.2 Recheck Addendum
+
+Status: source-ready, runtime-blocked, and no live order mutation performed.
+
+Commands:
+
+```bash
+git status --short --branch
+npm run verify:orders-hub-integration
+node --check scripts/smoke-orders-readiness.js
+RUN_LIVE_ORDERS_SMOKE=1 node scripts/smoke-orders-readiness.js
+```
+
+Results:
+
+- Source verifier: PASS. The current source still sends `orders.create.v1`, keeps stable channel/idempotency fields, uses canonical Catalog product ids, and requires exactly one Warehouse reservation authority id.
+- Sanitized smoke runner: PASS for syntax and blocker recording. It writes only sanitized metadata to `reports/validation/orders-readiness-smoke/report-latest.json`.
+- Live smoke: NOT RUN. The runner exited before mutation with `liveSmokeRun=false`.
+- Runtime blockers:
+  - `[MISSING: valid ORDERS_SERVICE_TOKEN accepted by orders-microservice]` because the in-pod central Orders probe returned HTTP 401.
+  - `[MISSING: warehouseId]` because the in-pod Warehouse probe returned HTTP 401 and no `DEFAULT_WAREHOUSE_ID` is configured.
+  - `[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]` because no dedicated Warehouse token is projected and the available token did not authorize `/api/warehouses`.
+- Unknowns preserved:
+  - `[UNKNOWN: whether warehouse-microservice should accept the existing JWT_TOKEN for /api/warehouses or requires a dedicated WAREHOUSE_SERVICE_TOKEN]`
+
+Sanitized report:
+
+- `reports/validation/orders-readiness-smoke/report-latest.json`
+
+Intent Compliance Report:
+
+- Vision preserved: FlipFlop remains a production storefront using shared Orders and Warehouse services, not a local-only order silo.
+- Goal impact preserved: readiness is now machine-actionable without printing secrets, token values, customer data, raw ids, or order numbers.
+- System boundary preserved: this lane did not edit Orders, Warehouse, Catalog, Leads, Marketing, or unrelated FlipFlop service behavior.
+- Feature/task preserved: the central Orders create/idempotency/Warehouse-reservation smoke is prepared and gated, but runtime prerequisites block execution.
+- Validation preserved: source verification passed; live mutation is blocked until the exact `[MISSING: ...]` markers are resolved.
