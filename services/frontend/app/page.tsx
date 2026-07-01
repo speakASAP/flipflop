@@ -68,13 +68,21 @@ export default async function HomePage() {
               </h1>
               <p className="text-sm text-gray-600 md:text-base">První výběr dostupných produktů</p>
             </div>
-            <Link 
-              href="/products"
-              className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 md:text-base group"
-            >
-              Zobrazit vše
-              <span className="transform group-hover:translate-x-1 transition-transform">→</span>
-            </Link>
+            <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center sm:gap-3">
+              <Link
+                href="/register"
+                className="inline-flex items-center justify-center bg-blue-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-blue-700"
+              >
+                Registrovat
+              </Link>
+              <Link
+                href="/products"
+                className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 md:text-base group"
+              >
+                Zobrazit vše
+                <span className="transform group-hover:translate-x-1 transition-transform">→</span>
+              </Link>
+            </div>
           </div>
           
           {products.length > 0 ? (

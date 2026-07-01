@@ -92,12 +92,6 @@ export default function Header() {
                 <Link href="/login" className="px-2 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:text-blue-600">
                   Přihlásit
                 </Link>
-                <Link
-                  href="/register"
-                  className="bg-blue-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-blue-700"
-                >
-                  Registrovat
-                </Link>
               </>
             )}
           </div>
