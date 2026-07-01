@@ -3,8 +3,9 @@
  * Handles user profile and address management
  */
 
+import { randomUUID } from 'crypto';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@flipflop/shared';
+import { AuthService, AuthUser, PrismaService } from '@flipflop/shared';
 import { LoggerService } from '@flipflop/shared';
 
 @Injectable()
@@ -12,20 +13,144 @@ export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
+    private readonly authService: AuthService,
   ) {}
 
-  /**
-   * Get user profile
-   */
-  async getProfile(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
+  private async ensureLocalUser(authUser: AuthUser, authorization?: string) {
+    authUser = await this.resolveCanonicalAuthUser(authUser, authorization);
+
+    const existingById = await this.prisma.user.findUnique({
+      where: { id: authUser.id },
     });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
+    if (existingById) {
+      return this.refreshLocalUserFromAuth(existingById, authUser);
     }
 
+    const existingByEmail = await this.prisma.user.findUnique({
+      where: { email: authUser.email },
+    });
+
+    if (existingByEmail) {
+      return this.refreshLocalUserFromAuth(existingByEmail, authUser);
+    }
+
+    const user = await this.prisma.user.create({
+      data: {
+        id: authUser.id,
+        email: authUser.email,
+        password: `magic-link-pending:${randomUUID()}`,
+        firstName: authUser.firstName || null,
+        lastName: authUser.lastName || null,
+        phone: this.authPhone(authUser) || null,
+        isEmailVerified: Boolean(authUser.isVerified),
+        isAdmin: this.hasAdminRole(authUser),
+        preferences: this.buildAuthPreferences(null, authUser),
+      },
+    });
+
+    this.logger.log('Created local FlipFlop profile from Auth user', {
+      userId: user.id,
+      authUserId: authUser.id,
+    });
+    return user;
+  }
+
+  private async resolveCanonicalAuthUser(authUser: AuthUser, authorization?: string): Promise<AuthUser> {
+    const token = this.extractBearerToken(authorization);
+    if (!token) {
+      return authUser;
+    }
+
+    try {
+      return await this.authService.getProfile(token);
+    } catch (error: any) {
+      this.logger.warn('Falling back to validated Auth token claims for local profile sync', {
+        authUserId: authUser.id,
+        error: error.message,
+      });
+      return authUser;
+    }
+  }
+
+  private extractBearerToken(authorization?: string): string | null {
+    if (!authorization?.startsWith('Bearer ')) {
+      return null;
+    }
+    return authorization.slice('Bearer '.length);
+  }
+
+  private async refreshLocalUserFromAuth(user: any, authUser: AuthUser) {
+    const data = {
+      firstName: user.firstName || authUser.firstName || null,
+      lastName: user.lastName || authUser.lastName || null,
+      phone: user.phone || this.authPhone(authUser) || null,
+      isEmailVerified: user.isEmailVerified || Boolean(authUser.isVerified),
+      isAdmin: user.isAdmin || this.hasAdminRole(authUser),
+      preferences: this.buildAuthPreferences(user.preferences, authUser),
+      updatedAt: new Date(),
+    };
+
+    return this.prisma.user.update({
+      where: { id: user.id },
+      data,
+    });
+  }
+
+  private buildAuthPreferences(existing: unknown, authUser: AuthUser) {
+    const base = existing && typeof existing === 'object' && !Array.isArray(existing)
+      ? existing as Record<string, unknown>
+      : {};
+    const existingSources = base.authSources && typeof base.authSources === 'object' && !Array.isArray(base.authSources)
+      ? base.authSources as Record<string, unknown>
+      : {};
+
+    return {
+      ...base,
+      authUserId: authUser.id,
+      authSources: {
+        ...existingSources,
+        ...this.extractAuthSources(authUser),
+        flipflop: true,
+      },
+      lastAuthProfileSyncAt: new Date().toISOString(),
+    };
+  }
+
+  private authPhone(authUser: AuthUser): string | null {
+    if (authUser.phone) {
+      return authUser.phone;
+    }
+
+    const primaryPhone = authUser.contactInfo?.find((contact) => contact.type === 'phone' && contact.isPrimary)?.value;
+    if (primaryPhone) {
+      return primaryPhone;
+    }
+
+    return authUser.contactInfo?.find((contact) => contact.type === 'phone')?.value || null;
+  }
+
+  private extractAuthSources(authUser: AuthUser): Record<string, unknown> {
+    const preferences = authUser.perApplicationPreferences;
+    if (!preferences || typeof preferences !== 'object' || Array.isArray(preferences)) {
+      return {};
+    }
+
+    const sources = preferences.authSources;
+    return sources && typeof sources === 'object' && !Array.isArray(sources)
+      ? sources as Record<string, unknown>
+      : {};
+  }
+
+  private hasAdminRole(authUser: AuthUser): boolean {
+    return Boolean(authUser.roles?.some((role) => (
+      role === 'admin' ||
+      role === 'flipflop:admin' ||
+      role === 'app:flipflop:admin'
+    )));
+  }
+
+  private toProfile(user: any) {
     return {
       id: user.id,
       email: user.email,
@@ -37,11 +162,20 @@ export class UsersService {
   }
 
   /**
+   * Get user profile
+   */
+  async getProfile(authUser: AuthUser, authorization?: string) {
+    const user = await this.ensureLocalUser(authUser, authorization);
+    return this.toProfile(user);
+  }
+
+  /**
    * Update user profile
    */
-  async updateProfile(userId: string, dto: any) {
+  async updateProfile(authUser: AuthUser, authorization: string | undefined, dto: any) {
+    const localUser = await this.ensureLocalUser(authUser, authorization);
     const user = await this.prisma.user.update({
-      where: { id: userId },
+      where: { id: localUser.id },
       data: {
         firstName: dto.firstName,
         lastName: dto.lastName,
@@ -49,23 +183,17 @@ export class UsersService {
       },
     });
 
-    this.logger.log('User profile updated', { userId });
-    return {
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      phone: user.phone,
-      isAdmin: user.isAdmin,
-    };
+    this.logger.log('User profile updated', { userId: user.id, authUserId: authUser.id });
+    return this.toProfile(user);
   }
 
   /**
    * Get user's delivery addresses
    */
-  async getAddresses(userId: string) {
+  async getAddresses(authUser: AuthUser, authorization?: string) {
+    const localUser = await this.ensureLocalUser(authUser, authorization);
     const addresses = await this.prisma.deliveryAddress.findMany({
-      where: { userId },
+      where: { userId: localUser.id },
       orderBy: [
         { isDefault: 'desc' },
         { createdAt: 'desc' },
@@ -90,18 +218,19 @@ export class UsersService {
   /**
    * Create delivery address
    */
-  async createAddress(userId: string, dto: any) {
+  async createAddress(authUser: AuthUser, authorization: string | undefined, dto: any) {
+    const localUser = await this.ensureLocalUser(authUser, authorization);
     // If this is set as default, unset other defaults
     if (dto.isDefault) {
       await this.prisma.deliveryAddress.updateMany({
-        where: { userId, isDefault: true },
+        where: { userId: localUser.id, isDefault: true },
         data: { isDefault: false },
       });
     }
 
     const address = await this.prisma.deliveryAddress.create({
       data: {
-        userId,
+        userId: localUser.id,
         firstName: dto.firstName,
         lastName: dto.lastName,
         street: dto.street,
@@ -113,7 +242,7 @@ export class UsersService {
       },
     });
 
-    this.logger.log('Delivery address created', { userId, addressId: address.id });
+    this.logger.log('Delivery address created', { userId: localUser.id, authUserId: authUser.id, addressId: address.id });
     return {
       id: address.id,
       firstName: address.firstName,
@@ -132,11 +261,12 @@ export class UsersService {
   /**
    * Update delivery address
    */
-  async updateAddress(userId: string, addressId: string, dto: any) {
+  async updateAddress(authUser: AuthUser, authorization: string | undefined, addressId: string, dto: any) {
+    const localUser = await this.ensureLocalUser(authUser, authorization);
     const address = await this.prisma.deliveryAddress.findFirst({
       where: {
         id: addressId,
-        userId,
+        userId: localUser.id,
       },
     });
 
@@ -147,7 +277,7 @@ export class UsersService {
     // If this is set as default, unset other defaults
     if (dto.isDefault) {
       await this.prisma.deliveryAddress.updateMany({
-        where: { userId, isDefault: true, id: { not: addressId } },
+        where: { userId: localUser.id, isDefault: true, id: { not: addressId } },
         data: { isDefault: false },
       });
     }
@@ -166,7 +296,7 @@ export class UsersService {
       },
     });
 
-    this.logger.log('Delivery address updated', { userId, addressId });
+    this.logger.log('Delivery address updated', { userId: localUser.id, authUserId: authUser.id, addressId });
     return {
       id: updated.id,
       firstName: updated.firstName,
@@ -185,11 +315,12 @@ export class UsersService {
   /**
    * Delete delivery address
    */
-  async deleteAddress(userId: string, addressId: string) {
+  async deleteAddress(authUser: AuthUser, authorization: string | undefined, addressId: string) {
+    const localUser = await this.ensureLocalUser(authUser, authorization);
     const address = await this.prisma.deliveryAddress.findFirst({
       where: {
         id: addressId,
-        userId,
+        userId: localUser.id,
       },
     });
 
@@ -201,7 +332,7 @@ export class UsersService {
       where: { id: addressId },
     });
 
-    this.logger.log('Delivery address deleted', { userId, addressId });
+    this.logger.log('Delivery address deleted', { userId: localUser.id, authUserId: authUser.id, addressId });
     return { success: true };
   }
 }

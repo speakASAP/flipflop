@@ -15,12 +15,20 @@ export interface LoginDto {
   password: string;
 }
 
+export interface AuthContactInfo {
+  type: string;
+  value: string;
+  isPrimary?: boolean;
+}
+
 export interface AuthUser {
   id: string;
   email: string;
   firstName?: string;
   lastName?: string;
   phone?: string;
+  contactInfo?: AuthContactInfo[];
+  perApplicationPreferences?: Record<string, unknown>;
   isActive: boolean;
   isVerified: boolean;
   roles?: string[];

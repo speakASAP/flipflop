@@ -115,14 +115,6 @@ spec:
               value: "http://flipflop-service:3000/api"
             - name: NEXT_PUBLIC_API_URL
               value: "https://flipflop.alfares.cz/api"
-            - name: GOOGLE_PLACES_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: flipflop-address-autocomplete-secret
-                  key: GOOGLE_PLACES_API_KEY
-                  optional: true
-            - name: ADDRESS_AUTOCOMPLETE_COUNTRIES
-              value: "cz,sk"
           startupProbe:
             httpGet:
               path: /

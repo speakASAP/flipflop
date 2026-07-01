@@ -275,6 +275,36 @@ export class AuthService {
   }
 
   /**
+   * Read the canonical Auth-owned profile for a validated browser token.
+   */
+  async getProfile(accessToken: string): Promise<AuthUser> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get<{ user: AuthUser }>(
+          `${this.authServiceUrl}/auth/profile`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+            timeout: 10000,
+          },
+        ),
+      );
+
+      if (!response.data?.user) {
+        throw new UnauthorizedException('Invalid profile response');
+      }
+
+      return response.data.user;
+    } catch (error: any) {
+      this.logger.error('Failed to read Auth profile', {
+        error: error.message,
+      });
+      throw error;
+    }
+  }
+
+  /**
    * Refresh access token
    */
   async refreshToken(refreshToken: string): Promise<AuthResponse> {

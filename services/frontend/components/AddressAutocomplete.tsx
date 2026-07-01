@@ -174,7 +174,7 @@ export default function AddressAutocomplete({
             </div>
           )}
         </span>
-        {!configured && <span className="mt-2 block text-sm font-semibold text-neutral-500">Adresní našeptávač čeká na konfiguraci mapového klíče.</span>}
+        {!configured && <span className="mt-2 block text-sm font-semibold text-neutral-500">Adresní našeptávač čeká na import databáze RÚIAN.</span>}
       </label>
       <label className={fieldClassName}>
         {cityLabel}{required ? ' *' : ''}

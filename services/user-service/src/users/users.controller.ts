@@ -24,37 +24,37 @@ export class UsersController {
 
   @Get('profile')
   async getProfile(@Request() req: any) {
-    const profile = await this.usersService.getProfile(req.user.id);
+    const profile = await this.usersService.getProfile(req.user, req.headers.authorization);
     return ApiResponse.success(profile);
   }
 
   @Put('profile')
   async updateProfile(@Request() req: any, @Body() dto: any) {
-    const profile = await this.usersService.updateProfile(req.user.id, dto);
+    const profile = await this.usersService.updateProfile(req.user, req.headers.authorization, dto);
     return ApiResponse.success(profile);
   }
 
   @Get('addresses')
   async getAddresses(@Request() req: any) {
-    const addresses = await this.usersService.getAddresses(req.user.id);
+    const addresses = await this.usersService.getAddresses(req.user, req.headers.authorization);
     return ApiResponse.success(addresses);
   }
 
   @Post('addresses')
   async createAddress(@Request() req: any, @Body() dto: any) {
-    const address = await this.usersService.createAddress(req.user.id, dto);
+    const address = await this.usersService.createAddress(req.user, req.headers.authorization, dto);
     return ApiResponse.success(address);
   }
 
   @Put('addresses/:id')
   async updateAddress(@Request() req: any, @Param('id') id: string, @Body() dto: any) {
-    const address = await this.usersService.updateAddress(req.user.id, id, dto);
+    const address = await this.usersService.updateAddress(req.user, req.headers.authorization, id, dto);
     return ApiResponse.success(address);
   }
 
   @Delete('addresses/:id')
   async deleteAddress(@Request() req: any, @Param('id') id: string) {
-    const result = await this.usersService.deleteAddress(req.user.id, id);
+    const result = await this.usersService.deleteAddress(req.user, req.headers.authorization, id);
     return ApiResponse.success(result);
   }
 }

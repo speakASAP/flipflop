@@ -11,6 +11,30 @@
 
 
 
+## 2026-07-01 - Hosted Auth Local Profile Sync Hotfix
+
+Objective: stop hosted Auth users from being logged out immediately after returning to FlipFlop when no local FlipFlop profile exists yet.
+
+IPS chain:
+
+- Vision: Preserve checkout-to-first-revenue and shared ecosystem Auth at `https://flipflop.alfares.cz/`.
+- Goal Impact: Lets existing Alfares Auth users stay signed in on FlipFlop without requiring app-local login/register forms.
+- System: Auth-hosted login, FlipFlop api-gateway JWT validation, `flipflop-user-service`, local FlipFlop customer profile rows.
+- Feature: Post-handoff local customer profile synchronization.
+- Task: Resolve or create the local FlipFlop profile from the validated Auth user before returning `/api/users/profile` or address data.
+- Execution Plan: Keep Auth as credential/token owner; never copy passwords; create only a local application profile using the existing `magic-link-pending:<uuid>` placeholder pattern when no local profile exists; preserve existing local profile rows by email when present.
+- Coding Prompt: Do not change Auth JWT issuance, hosted Auth routes, checkout totals, payment state, order state, secrets, or production user data manually.
+- Code: Updated `services/user-service/src/users/users.service.ts` and `services/user-service/src/users/users.controller.ts` so user profile/address operations resolve a local profile from the validated Auth user and create one on first login if needed.
+- Validation: `python3 scripts/pre_coding_gate.py --root .` passed; `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed before code edits; `git diff --check -- services/user-service/src/users/users.service.ts services/user-service/src/users/users.controller.ts` passed; `cd services/user-service && npm exec -- tsc --noEmit` passed. `cd services/user-service && npm run build` is blocked by pre-existing service-local dependency layout: `tsc-alias: not found` after TypeScript compilation.
+
+Parallel execution section:
+
+- User-service profile sync lane: complete in source; owner role Auth consumer integrator; allowed files `services/user-service/src/users/users.service.ts`, `services/user-service/src/users/users.controller.ts`; validation owner original thread.
+- Runtime deployment lane: ready after deployment-readiness gate; owner role integration/deploy operator; forbidden scope Auth microservice secrets, production DB manual edits, payment/order/stock mutations; validation owner original thread.
+
+Next action: run deployment-readiness gate, deploy FlipFlop, then smoke hosted Auth callback/profile behavior.
+
+
 ## 2026-07-01 - Fio QR Payment Via Payments Microservice
 
 Objective: add QR-code bank payment to FlipFlop checkout using the same shared `payments-microservice` Fio provider contract that Marathon uses.
@@ -61,36 +85,38 @@ Next action: optional owner-approved live `fiobanka` test order/payment smoke if
 
 ## 2026-07-01 - Checkout Address Autocomplete
 
-Objective: let FlipFlop customers choose billing and delivery addresses from search suggestions during checkout/profile address entry instead of manually filling street, city, and PSČ.
+Objective: let FlipFlop customers choose Czech billing and delivery addresses from search suggestions during checkout/profile address entry instead of manually filling street, city, and PSČ.
 
 IPS chain:
 
 - Vision: Make FlipFlop production-ready and revenue-capable while preserving guest checkout and shared ecosystem service boundaries.
 - Goal Impact: Reduces checkout friction and address-entry mistakes without changing order totals, payment status, stock, auth, or customer-data contracts.
-- System: FlipFlop Next.js frontend, server-side Next route proxy, optional Kubernetes runtime secret for the map provider key.
-- Feature: Czech/Slovak address autocomplete for checkout billing/delivery and saved delivery addresses.
-- Task: Add a reusable address autocomplete component, provider proxy route, checkout/profile integration, env docs, verifier coverage, and optional deployment env wiring.
-- Execution Plan: Keep provider credentials server-side; proxy Google Places Autocomplete/Details through `/api/address-autocomplete`; fill street, city, postalCode, and country from the selected result; leave manual fields usable when the provider key is missing.
+- System: FlipFlop Next.js frontend, api-gateway public `/api/address-autocomplete`, PostgreSQL `ruian_address_points`, and a controlled RÚIAN/ČÚZK import script.
+- Feature: Czech address autocomplete for checkout billing/delivery and saved delivery addresses.
+- Task: Replace paid Google Places dependency with local RÚIAN address search, preserve manual fallback fields, document the free source, and add validation coverage.
+- Execution Plan: Import official ČÚZK RÚIAN address points into PostgreSQL; search normalized local address text through api-gateway; return street, city, PSČ, country, and stable `ruian:<id>` suggestions to the existing frontend component.
 - Coding Prompt: Do not change order payload shape, shipping/payment calculation, product/cart behavior, hosted Auth flow, pricing, stock, or payment state.
-- Code: Added `services/frontend/components/AddressAutocomplete.tsx`, `services/frontend/app/api/address-autocomplete/route.ts`, checkout/profile integrations, `.env.example` provider variables, verifier assertions, and optional `flipflop-address-autocomplete-secret` runtime env wiring for the frontend deployment.
-- Validation: `python3 scripts/pre_coding_gate.py --root .` passed; `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed; `git diff --check` passed; `cd services/frontend && npm run build` passed; `node scripts/verify-guest-checkout-ui.js` passed; `kubectl apply --dry-run=client -f k8s/deployment.yaml` passed.
+- Code: Added `ruian_address_points` migration, `AddressAutocompleteService`, public api-gateway route, local dev frontend proxy, RÚIAN importer script, env docs, verifier assertions, and removed Google Places frontend secret wiring.
+- Validation: `python3 scripts/pre_coding_gate.py --root .` passed before implementation; `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed before implementation. Post-change validation is tracked in the implementation handoff.
 
 Provider decision:
 
 - The public OpenStreetMap Nominatim service was rejected for this use because its current usage policy forbids autocomplete against the public API.
-- Google Places is implemented behind a server-side proxy using `GOOGLE_PLACES_API_KEY`, `GOOGLE_MAPS_API_KEY`, or `ADDRESS_AUTOCOMPLETE_API_KEY`; no provider key is sent through `NEXT_PUBLIC_*`.
+- Google Places was rejected because Maps Platform billing is required for production Places usage.
+- Official ČÚZK/RÚIAN address data is the selected free Czech-only source. Current import default: `https://services.cuzk.gov.cz/vfr/202604/20260403_ST_UADS.xml.zip`.
 
 Runtime blocker:
 
-- `[MISSING: production Google Places-compatible API key in Kubernetes secret flipflop-address-autocomplete-secret/GOOGLE_PLACES_API_KEY]`
+- `[MISSING: production ruian_address_points import until migration is applied and scripts/import-ruian-addresses.js is run with DATABASE_URL]`
 
 Parallel execution section:
 
-- Frontend checkout/profile lane: complete; owner role frontend integrator; files changed `services/frontend/app/checkout/page.tsx`, `services/frontend/app/profile/addresses/page.tsx`, `services/frontend/components/AddressAutocomplete.tsx`; validation owner original thread.
-- Provider/runtime secret lane: ready now; owner role platform/secrets operator; allowed scope create/project `flipflop-address-autocomplete-secret` with `GOOGLE_PLACES_API_KEY` or approved equivalent provider key; forbidden scope checkout/order/payment code; validation owner integration owner.
-- Production deploy lane: dependency-gated on provider key unless owner accepts fallback-only deployment; merge order source, provider secret, deploy, production smoke.
+- Backend/local data lane: complete in source; owner role backend integrator; files changed `services/api-gateway/src/gateway/*`, `prisma/migrations/20260701_ruian_address_points/migration.sql`, `scripts/import-ruian-addresses.js`; validation owner original thread.
+- Frontend checkout/profile lane: complete; owner role frontend integrator; files changed `services/frontend/components/AddressAutocomplete.tsx`, `services/frontend/app/api/address-autocomplete/route.ts`; validation owner original thread.
+- Data import lane: ready now after migration; owner role platform/database operator; allowed scope run importer with `DATABASE_URL`; forbidden scope order/payment/product mutations; validation owner integration owner.
+- Production deploy lane: dependency-gated on migration/import validation; merge order source, migration, sample import, full import, deploy, production smoke.
 
-Next action: add the production autocomplete provider key to `flipflop-address-autocomplete-secret`, then deploy and smoke `/checkout?step=details` address suggestions.
+Next action: apply the migration, run a sample RÚIAN import, then run the full import and smoke `/checkout?step=details` address suggestions.
 
 ## 2026-07-01 - Goal 7.2 Orders Smoke Production Readiness Recheck
 

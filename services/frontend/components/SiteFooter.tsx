@@ -8,13 +8,13 @@ export default function SiteFooter() {
         <section>
           <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">FlipFlop</h2>
           <p className="mt-3 leading-6">
-            Chintamani s.r.o.<br />
-            Vilémovice 106<br />
-            584 01 Vilémovice
+            Alfares s.r.o.<br />
+            Cetechovice 70<br />
+            768 02 Cetechovice
           </p>
           <p className="mt-3 leading-6">
             <a className="hover:text-slate-800" href="mailto:flipflop@flipflop.cz">flipflop@flipflop.cz</a><br />
-            <a className="hover:text-slate-800" href="tel:+420770125450">+420 770 125 450</a>
+            <a className="hover:text-slate-800" href="tel:+420720780770">+420 720 780 770</a>
           </p>
         </section>
 
@@ -44,19 +44,14 @@ export default function SiteFooter() {
             <li>
               <Link className="hover:text-slate-800" href="/blog">Blog</Link>
             </li>
-            <li>
-              <a className="hover:text-slate-800" href="https://www.mall.cz/partner/chintamani-s-r-o" target="_blank" rel="noreferrer">
-                Jsme na MALL.CZ
-              </a>
-            </li>
           </ul>
         </section>
 
         <section>
           <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Platby a nastavení</h2>
           <ul className="mt-3 space-y-2">
-            <li>Bankovní účet ČR: 2000666557/2010</li>
-            <li>IBAN: CZ3520100000002000666557</li>
+            <li>Bankovní účet CZK: 2500429013/2010</li>
+            <li>IBAN: CZ1220100000002500429013</li>
             <li>
               <Link className="hover:text-slate-800" href="/cookies">
                 Nastavení cookies

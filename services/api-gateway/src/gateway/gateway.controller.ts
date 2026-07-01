@@ -7,19 +7,25 @@ import {
   All,
   Body,
   Controller,
+  Get,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
 import { GatewayService } from './gateway.service';
+import { AddressAutocompleteService } from './address-autocomplete.service';
 import { JwtAuthGuard } from '@flipflop/shared';
 import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import { CreateLeadContactDto } from './dto/create-lead-contact.dto';
 
 @Controller('api')
 export class GatewayController {
-  constructor(private readonly gatewayService: GatewayService) {}
+  constructor(
+    private readonly gatewayService: GatewayService,
+    private readonly addressAutocompleteService: AddressAutocompleteService,
+  ) {}
 
   /**
    * Route auth requests to external auth service
@@ -80,6 +86,23 @@ export class GatewayController {
         },
       });
     }
+  }
+
+  /**
+   * Czech address autocomplete backed by local RUIAN data.
+   */
+  @Get('address-autocomplete')
+  async addressAutocompleteRoute(
+    @Query('q') query = '',
+    @Query('placeId') placeId = '',
+  ) {
+    if (placeId.trim()) {
+      const suggestion = await this.addressAutocompleteService.details(placeId.trim());
+      return { success: Boolean(suggestion), configured: true, suggestion };
+    }
+
+    const suggestions = await this.addressAutocompleteService.suggest(query);
+    return { success: true, configured: true, suggestions };
   }
 
   /**

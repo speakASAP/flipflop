@@ -8,7 +8,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GatewayController } from './gateway.controller';
 import { PaymentWebhookController } from './payment-webhook.controller';
 import { GatewayService } from './gateway.service';
-import { AuthModule } from '@flipflop/shared';
+import { AddressAutocompleteService } from './address-autocomplete.service';
+import { AuthModule, PrismaModule } from '@flipflop/shared';
 import * as https from 'https';
 
 @Module({
@@ -30,9 +31,10 @@ import * as https from 'https';
       inject: [ConfigService],
     }),
     AuthModule,
+    PrismaModule,
   ],
   controllers: [GatewayController, PaymentWebhookController],
-  providers: [GatewayService],
+  providers: [GatewayService, AddressAutocompleteService],
   exports: [GatewayService],
 })
 export class GatewayModule {}
