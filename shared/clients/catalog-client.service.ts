@@ -32,29 +32,31 @@ export interface CatalogContentPreview {
 @Injectable()
 export class CatalogClientService {
   private readonly baseUrl: string;
+  private readonly internalServiceToken?: string;
+  private readonly serviceName: string;
 
   constructor(
     private readonly httpService: HttpService,
     private readonly logger: LoggerService,
   ) {
     this.baseUrl = process.env.CATALOG_SERVICE_URL || 'http://catalog-microservice:3200';
-  }
-
-  private catalogHeaders(extraHeaders?: Record<string, string>): Record<string, string> {
-    const internalToken =
+    this.internalServiceToken = (
       process.env.CATALOG_INTERNAL_SERVICE_TOKEN ||
       process.env.CATALOG_SERVICE_TOKEN ||
-      process.env.INTERNAL_SERVICE_TOKEN;
+      process.env.INTERNAL_SERVICE_TOKEN
+    )?.trim();
+    this.serviceName = process.env.SERVICE_NAME || 'flipflop-service';
+  }
 
-    return {
-      ...(internalToken
-        ? {
-            'x-internal-service-token': internalToken,
-            'x-service-name': process.env.SERVICE_NAME || 'flipflop-service',
-          }
-        : {}),
-      ...(extraHeaders || {}),
-    };
+  private catalogHeaders(extraHeaders?: Record<string, string>): Record<string, string> | undefined {
+    const headers = { ...(extraHeaders || {}) };
+
+    if (this.internalServiceToken) {
+      headers['x-internal-service-token'] = this.internalServiceToken;
+      headers['x-service-name'] = this.serviceName;
+    }
+
+    return Object.keys(headers).length ? headers : undefined;
   }
 
   async getProductContentPreview(
@@ -67,9 +69,9 @@ export class CatalogClientService {
         this.httpService.get(
           `${this.baseUrl}/api/products/${encodeURIComponent(productId)}/content-previews/${encodeURIComponent(marketplace)}`,
           {
-            headers: authorizationHeader
-              ? this.catalogHeaders({ Authorization: authorizationHeader })
-              : this.catalogHeaders(),
+            headers: this.catalogHeaders(
+              authorizationHeader ? { Authorization: authorizationHeader } : undefined,
+            ),
           },
         ),
       );
@@ -124,7 +126,7 @@ export class CatalogClientService {
       return response.data.data;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      this.logger.warn(`Product not found by SKU ${sku}: ${errorMessage}`, 'CatalogClient');
+      this.logger.warn(`Product not found by SKU ${sku}: ${errorMessage}`, "CatalogClient");
       return null;
     }
   }
@@ -138,11 +140,11 @@ export class CatalogClientService {
   }): Promise<{ items: any[]; total: number; page: number; limit: number }> {
     try {
       const params = new URLSearchParams();
-      if (query.search) params.append('search', query.search);
-      if (query.isActive !== undefined) params.append('isActive', String(query.isActive));
-      if (query.categoryId) params.append('categoryId', query.categoryId);
-      if (query.page) params.append('page', String(query.page));
-      if (query.limit) params.append('limit', String(query.limit));
+      if (query.search) params.append("search", query.search);
+      if (query.isActive !== undefined) params.append("isActive", String(query.isActive));
+      if (query.categoryId) params.append("categoryId", query.categoryId);
+      if (query.page) params.append("page", String(query.page));
+      if (query.limit) params.append("limit", String(query.limit));
 
       const response = await firstValueFrom(
         this.httpService.get(`${this.baseUrl}/api/products?${params.toString()}`, {
@@ -188,7 +190,7 @@ export class CatalogClientService {
       );
       return response.data.data;
     } catch (error) {
-      this.logger.warn(`Pricing not found for product ${productId}`, 'CatalogClient');
+      this.logger.warn(`Pricing not found for product ${productId}`, "CatalogClient");
       return null;
     }
   }
@@ -202,7 +204,7 @@ export class CatalogClientService {
       );
       return response.data.data || [];
     } catch (error) {
-      this.logger.warn(`Media not found for product ${productId}`, 'CatalogClient');
+      this.logger.warn(`Media not found for product ${productId}`, "CatalogClient");
       return [];
     }
   }
