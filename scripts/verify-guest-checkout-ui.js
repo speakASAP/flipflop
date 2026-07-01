@@ -65,6 +65,7 @@ async function main() {
   assert(!checkout.includes('Cena bude přepočítána serverem při odeslání.'), 'Checkout must not include server-price recalculation note');
   assert(!checkout.includes('Standard - jedna zásilka'), 'Checkout must not include standard one-shipment expedition row');
   assert(!checkout.includes('Zálohová faktura'), 'Checkout must not include advance-invoice payment option');
+  assert(checkout.includes("'fiobanka'") && checkout.includes('QR platba bankovním převodem'), 'Checkout must expose payments-microservice Fio QR payment option');
   assert(!checkout.includes('Poděkování operátorům expedice'), 'Checkout must not include operator-tip upsell');
   assert(!checkout.includes('Tentokrát ne'), 'Checkout must not include no-tip option');
   assert(checkout.includes('Souhrn objednávky'), 'Checkout must include order summary');
@@ -83,6 +84,7 @@ async function main() {
   assert(ordersModule.includes('GuestOrdersController'), 'Order module must register GuestOrdersController so /orders/guest is mounted');
   assert(orderService.includes('buildGuestOrderItems') && orderService.includes('Product ${productId} is not available'), 'Guest order path must recalculate/validate product items server-side');
   assert(orderService.includes('calculateGuestDeliveryCost') && orderService.includes('normalizeGuestPaymentMethod') && orderService.includes('normalizeGuestOperatorTip'), 'Guest order path must calculate delivery, payment, and tip costs server-side');
+  assert(orderService.includes("'fiobanka'") && orderService.includes('getPaymentSuccessUrl') && orderService.includes('getPaymentCancelUrl'), 'Guest order path must allow Fio QR and pass hosted payment result URLs');
   assert(!orderService.includes('const shippingCost = Number.isFinite(Number(dto.shippingCost))'), 'Guest order path must not trust client-provided shippingCost');
 
   assert(frontendPackage.dependencies && frontendPackage.dependencies.qrcode, 'Frontend must depend on qrcode for local QR rendering');
@@ -95,6 +97,7 @@ async function main() {
   assert(externalSecret.includes('secretKey: BANK_TRANSFER_ACCOUNT_NUMBER') && externalSecret.includes('property: PAYMENT_ACCOUNT_NUMBER'), 'ExternalSecret must map bank-transfer account number from Vault');
   assert(externalSecret.includes('secretKey: BANK_TRANSFER_ACCOUNT_IBAN') && externalSecret.includes('property: PAYMENT_ACCOUNT_IBAN'), 'ExternalSecret must map bank-transfer IBAN from Vault');
   assert(envExample.includes('BANK_TRANSFER_ACCOUNT_NUMBER=') && envExample.includes('BANK_TRANSFER_ACCOUNT_IBAN='), '.env.example must document bank-transfer env contract');
+  assert(read('shared/payments/payment.service.ts').includes('payload.successUrl') && read('shared/payments/payment.service.ts').includes('payload.cancelUrl'), 'Shared payment client must forward success/cancel URLs to payments-microservice');
 
   const requiredEvidence = [
     '01-delivery-payment.png',

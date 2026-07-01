@@ -13,7 +13,7 @@ import AddressAutocomplete, { AddressValue } from '@/components/AddressAutocompl
 
 type CheckoutStep = 'delivery' | 'details';
 type CartView = Cart | GuestCart;
-type PaymentMethod = 'invoice' | 'webpay' | 'stripe' | 'paypal' | 'payu';
+type PaymentMethod = 'invoice' | 'webpay' | 'stripe' | 'paypal' | 'payu' | 'fiobanka';
 
 type FormState = {
   email: string;
@@ -46,6 +46,7 @@ const CHECKOUT_DETAILS_PATH = '/checkout?step=details';
 const PAYMENT_OPTIONS: Array<{ id: PaymentMethod; label: string; price: number; meta: string }> = [
   { id: 'webpay', label: 'Platební karta GP WebPay', price: 0, meta: 'Přesměrování na platební bránu' },
   { id: 'stripe', label: 'Platební karta Stripe', price: 0, meta: 'Mezinárodní platební karta' },
+  { id: 'fiobanka', label: 'QR platba bankovním převodem', price: 0, meta: 'QR kód pro platbu z bankovní aplikace' },
   { id: 'paypal', label: 'PayPal', price: 0, meta: 'PayPal účet nebo karta' },
   { id: 'payu', label: 'PayU', price: 0, meta: 'Online platba přes PayU' },
 ];

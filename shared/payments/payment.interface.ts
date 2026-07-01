@@ -15,6 +15,7 @@ export interface CreatePaymentDto {
     name?: string;
   };
   description?: string;
+  successUrl?: string;
   returnUrl?: string;
   cancelUrl?: string;
   metadata?: Record<string, any>;

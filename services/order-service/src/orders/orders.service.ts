@@ -744,6 +744,32 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     return configured || 'flipflop-service';
   }
 
+  private getPaymentResultUrl(status: 'completed' | 'cancelled', orderId?: string): string {
+    const envKey = status === 'completed' ? 'PAYMENT_SUCCESS_URL' : 'PAYMENT_CANCEL_URL';
+    const configured = this.configService.get<string>(envKey)?.trim() || process.env[envKey]?.trim();
+    if (configured) {
+      return configured;
+    }
+    const publicBase = (
+      this.configService.get<string>('PUBLIC_BASE_URL') ||
+      this.configService.get<string>('API_GATEWAY_URL') ||
+      'https://flipflop.alfares.cz'
+    ).replace(/\/$/, '');
+    const params = new URLSearchParams({ status });
+    if (orderId) {
+      params.set('orderId', orderId);
+    }
+    return `${publicBase}/payment-result?${params.toString()}`;
+  }
+
+  private getPaymentSuccessUrl(orderId?: string): string {
+    return this.getPaymentResultUrl('completed', orderId);
+  }
+
+  private getPaymentCancelUrl(orderId?: string): string {
+    return this.getPaymentResultUrl('cancelled', orderId);
+  }
+
 
   private normalizeGuestEmail(email: unknown): string {
     if (typeof email !== 'string' || !email.includes('@')) {
@@ -907,7 +933,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
 
   private normalizeGuestPaymentMethod(paymentMethod: string): string {
     const method = this.normalizeGuestText(paymentMethod, 'invoice');
-    const allowed = new Set(['invoice', 'webpay', 'stripe', 'paypal', 'payu']);
+    const allowed = new Set(['invoice', 'webpay', 'stripe', 'paypal', 'payu', 'fiobanka']);
     if (!allowed.has(method)) {
       throw new BadRequestException('Unsupported payment method');
     }
@@ -1213,6 +1239,8 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         currency: 'CZK',
         paymentMethod: dto.paymentMethod || 'webpay',
         callbackUrl,
+        successUrl: this.getPaymentSuccessUrl(order.id),
+        cancelUrl: this.getPaymentCancelUrl(order.id),
         customer: {
           email: user?.email || '',
           name: `${deliveryAddress.firstName} ${deliveryAddress.lastName}`.trim(),
@@ -1424,6 +1452,8 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
           currency: 'CZK',
           paymentMethod,
           callbackUrl,
+          successUrl: this.getPaymentSuccessUrl(order.id),
+          cancelUrl: this.getPaymentCancelUrl(order.id),
           customer: {
             email: guestEmail,
             name: `${deliveryAddress.firstName} ${deliveryAddress.lastName}`.trim(),
@@ -1585,6 +1615,8 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       currency: 'CZK',
       paymentMethod: order.paymentMethod || 'webpay',
       callbackUrl,
+      successUrl: this.getPaymentSuccessUrl(order.id),
+      cancelUrl: this.getPaymentCancelUrl(order.id),
       customer: {
         email: user?.email || '',
         name: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : '',

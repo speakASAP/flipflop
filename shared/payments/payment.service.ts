@@ -168,6 +168,12 @@ export class PaymentService {
     if (dto.description) {
       payload.description = dto.description;
     }
+    if (dto.successUrl) {
+      payload.successUrl = dto.successUrl;
+    }
+    if (dto.cancelUrl) {
+      payload.cancelUrl = dto.cancelUrl;
+    }
     if (dto.metadata) {
       payload.metadata = dto.metadata;
     }

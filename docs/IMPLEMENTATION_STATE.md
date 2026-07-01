@@ -11,6 +11,40 @@
 
 
 
+## 2026-07-01 - Fio QR Payment Via Payments Microservice
+
+Objective: add QR-code bank payment to FlipFlop checkout using the same shared `payments-microservice` Fio provider contract that Marathon uses.
+
+IPS chain:
+
+- Vision: Preserve checkout-to-first-revenue through shared ecosystem payments at `https://flipflop.alfares.cz/`.
+- Goal Impact: Adds a customer-visible QR bank-transfer option without changing prices, discounts, order totals, stock logic, or payment-state transitions.
+- System: Next.js checkout, NestJS order-service, shared payment client, `payments-microservice` Fio provider.
+- Feature: `fiobanka` QR payment option in checkout.
+- Task: Expose `fiobanka` in checkout, allow it through guest-order validation, forward `successUrl` and `cancelUrl` to `payments-microservice`, and verify runtime callback configuration.
+- Execution Plan: Keep local `invoice` bank-transfer QR unchanged; route the new customer QR option through `payments-microservice` with `applicationId=flipflop-service`, `paymentMethod=fiobanka`, callback URL, and hosted result URLs.
+- Coding Prompt: Do not mutate order totals, payment status, webhook trust, provider credentials, Stripe/PayPal keys, stock reservation logic, or local invoice QR rendering.
+- Code: Updated checkout payment options, order-service payment validation/request payloads, shared payment client success/cancel forwarding, and guest-checkout verifier assertions.
+- Validation: pending in this session.
+
+Runtime evidence before config repair:
+
+- `payments-microservice` allows `flipflop-service` in `PAYMENT_ALLOWED_APPLICATION_IDS`.
+- `payments-microservice` has Stripe and PayPal provider credentials present by env-name check only.
+- `payments-microservice` has `FIO_BANKA_ACCOUNT_NUMBER` present by env-name check only.
+- `[MISSING: flipflop-service entry in payments-microservice PAYMENT_CALLBACK_API_KEYS]` was found before runtime callback-map repair.
+
+Parallel execution section:
+
+- Frontend checkout lane: complete in this session; owner role frontend integrator; allowed file `services/frontend/app/checkout/page.tsx`; validation owner original thread.
+- Backend payment contract lane: complete in this session; owner role payment integration; allowed files `services/order-service/src/orders/orders.service.ts`, `shared/payments/payment.service.ts`, `shared/payments/payment.interface.ts`; validation owner original thread.
+- Runtime callback-map lane: in progress in this session; owner role platform/secrets operator; allowed scope Kubernetes secret value merge for `PAYMENT_CALLBACK_API_KEYS`; forbidden scope provider keys and payment account values; validation owner original thread.
+- Deployment lane: dependency-gated on source validation and callback-map repair; merge order source, runtime callback map, deploy, smoke.
+
+Next action: run source validation, repair the callback map, deploy FlipFlop, and smoke the payment surface.
+
+
+
 ## 2026-07-01 - Checkout Address Autocomplete
 
 Objective: let FlipFlop customers choose billing and delivery addresses from search suggestions during checkout/profile address entry instead of manually filling street, city, and PSČ.
