@@ -1,6 +1,6 @@
 {
   "ok": false,
-  "generatedAt": "2026-07-01T08:39:33.833Z",
+  "generatedAt": "2026-07-01T08:44:59.078Z",
   "mutatingSmokeApprovedByOwner": true,
   "liveSmokeRun": true,
   "prerequisites": {
@@ -32,6 +32,6 @@
   },
   "result": null,
   "blockers": [
-    "POST /orders failed: 400 Request failed with status code 400"
+    "userId is not defined"
   ]
 }
