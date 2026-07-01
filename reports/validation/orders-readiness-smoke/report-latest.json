@@ -1,6 +1,6 @@
 {
   "ok": false,
-  "generatedAt": "2026-07-01T06:44:49.235Z",
+  "generatedAt": "2026-07-01T07:39:27.031Z",
   "mutatingSmokeApprovedByOwner": true,
   "liveSmokeRun": false,
   "prerequisites": {
@@ -19,8 +19,9 @@
       "TEST_PASSWORD": true
     },
     "ordersProbe": {
-      "httpStatus": 401,
-      "authorized": false
+      "httpStatus": 400,
+      "authAccepted": true,
+      "validationRejectedSyntheticBody": true
     },
     "warehouseProbe": {
       "httpStatus": 401,
@@ -28,14 +29,12 @@
       "warehouseIdPresent": false
     },
     "blockers": [
-      "[MISSING: valid ORDERS_SERVICE_TOKEN accepted by orders-microservice]",
       "[MISSING: warehouseId]",
       "[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]"
     ]
   },
   "result": null,
   "blockers": [
-    "[MISSING: valid ORDERS_SERVICE_TOKEN accepted by orders-microservice]",
     "[MISSING: warehouseId]",
     "[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]"
   ]

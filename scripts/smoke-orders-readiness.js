@@ -142,10 +142,19 @@ function prerequisiteSnapshot() {
 
   const podCheck = parseJson(kubectlNode(`
     (async () => {
-      const authHeader = (value) => {
+      const bearerHeader = (value) => {
         const token = (value || '').trim();
         if (!token) return {};
         return { Authorization: token.startsWith('Bearer ') ? token : 'Bearer ' + token };
+      };
+      const ordersInternalHeaders = (value) => {
+        const token = (value || '').trim();
+        if (!token) return { 'content-type': 'application/json' };
+        return {
+          'content-type': 'application/json',
+          'x-internal-service-token': token,
+          'x-service-name': 'flipflop-service'
+        };
       };
       const envPresence = Object.fromEntries([
         'ORDERS_SERVICE_URL',
@@ -159,16 +168,24 @@ function prerequisiteSnapshot() {
       ].map((key) => [key, Boolean((process.env[key] || '').trim())]));
       const out = { envPresence };
       try {
-        const url = (process.env.ORDERS_SERVICE_URL || 'http://orders-microservice:3203') + '/api/orders?channel=flipflop&limit=1';
-        const res = await fetch(url, { headers: authHeader(process.env.ORDERS_SERVICE_TOKEN) });
-        out.ordersProbe = { httpStatus: res.status, authorized: res.status >= 200 && res.status < 300 };
+        const url = (process.env.ORDERS_SERVICE_URL || 'http://orders-microservice:3203') + '/api/orders';
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: ordersInternalHeaders(process.env.ORDERS_SERVICE_TOKEN),
+          body: JSON.stringify({ contractVersion: 'orders.create.v1', channel: 'flipflop' })
+        });
+        out.ordersProbe = {
+          httpStatus: res.status,
+          authAccepted: res.status === 400,
+          validationRejectedSyntheticBody: res.status === 400
+        };
       } catch (error) {
-        out.ordersProbe = { httpStatus: null, authorized: false, error: String(error.message || error).slice(0, 120) };
+        out.ordersProbe = { httpStatus: null, authAccepted: false, error: String(error.message || error).slice(0, 120) };
       }
       try {
         const token = process.env.WAREHOUSE_SERVICE_TOKEN || process.env.JWT_TOKEN || process.env.SERVICE_TOKEN || '';
         const url = (process.env.WAREHOUSE_SERVICE_URL || 'http://warehouse-microservice:3201') + '/api/warehouses';
-        const res = await fetch(url, { headers: authHeader(token) });
+        const res = await fetch(url, { headers: bearerHeader(token) });
         const body = await res.json().catch(() => ({}));
         out.warehouseProbe = {
           httpStatus: res.status,
@@ -195,7 +212,7 @@ function prerequisiteSnapshot() {
   if (!podCheck.envPresence?.ORDERS_SERVICE_TOKEN) {
     blockers.push('[MISSING: ORDERS_SERVICE_TOKEN projected into flipflop-order-service]');
   }
-  if (!podCheck.ordersProbe?.authorized) {
+  if (!podCheck.ordersProbe?.authAccepted) {
     blockers.push('[MISSING: valid ORDERS_SERVICE_TOKEN accepted by orders-microservice]');
   }
   if (!podCheck.warehouseProbe?.warehouseIdPresent && !podCheck.envPresence?.DEFAULT_WAREHOUSE_ID) {

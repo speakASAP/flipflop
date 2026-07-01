@@ -37,6 +37,12 @@ assert(
   'FlipFlop configmap must expose ORDERS_SERVICE_URL for the central Orders client',
 );
 assert(
+  orderClient.includes("'x-internal-service-token': token") &&
+    orderClient.includes("'x-service-name': 'flipflop-service'") &&
+    !orderClient.includes('Authorization: token.startsWith'),
+  'central Orders client must authenticate as the FlipFlop channel service through Orders internal service headers',
+);
+assert(
   orderClient.includes("export const ORDER_IDEMPOTENCY_CONFLICT = 'ORDER_IDEMPOTENCY_CONFLICT'"),
   'central Orders client must export the idempotency conflict marker',
 );
@@ -142,6 +148,10 @@ assert(
   warehouseClient.includes('HttpStatus.BAD_GATEWAY') &&
     warehouseClient.includes('Failed to get total stock from warehouse-microservice'),
   'Warehouse stock availability reads must fail closed when warehouse-microservice is unavailable',
+);
+assert(
+  warehouseClient.includes('this.httpService.get(`${this.baseUrl}/api/warehouses`, this.requestOptions())'),
+  'Warehouse default warehouse discovery must send the same auth headers as stock reservation calls',
 );
 
 for (const term of forbiddenForwardingTerms) {

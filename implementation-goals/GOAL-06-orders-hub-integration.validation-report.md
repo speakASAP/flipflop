@@ -85,7 +85,7 @@ central Orders log evidence query for ORD-1781378332000-840
 
 ## 2026-07-01 Goal 7.2 Recheck Addendum
 
-Status: source-ready, runtime-blocked, and no live order mutation performed.
+Status: Orders-auth source fix complete, Warehouse runtime-blocked, and no live order mutation performed.
 
 Commands:
 
@@ -93,20 +93,22 @@ Commands:
 git status --short --branch
 npm run verify:orders-hub-integration
 node --check scripts/smoke-orders-readiness.js
+cd shared && npm run build
+cd services/order-service && npm run build
 RUN_LIVE_ORDERS_SMOKE=1 node scripts/smoke-orders-readiness.js
 ```
 
 Results:
 
-- Source verifier: PASS. The current source still sends `orders.create.v1`, keeps stable channel/idempotency fields, uses canonical Catalog product ids, and requires exactly one Warehouse reservation authority id.
-- Sanitized smoke runner: PASS for syntax and blocker recording. It writes only sanitized metadata to `reports/validation/orders-readiness-smoke/report-latest.json`.
+- Source verifier: PASS. The current source sends `orders.create.v1`, keeps stable channel/idempotency fields, authenticates to Orders through `x-internal-service-token` and `x-service-name=flipflop-service`, uses canonical Catalog product ids, and requires exactly one Warehouse reservation authority id.
+- Sanitized smoke runner: PASS for syntax and blocker recording. It writes only sanitized metadata to `reports/validation/orders-readiness-smoke/report-latest.json` and uses a non-mutating invalid create request to prove Orders auth reaches validation.
+- Build checks: PASS for `shared` and `services/order-service`.
 - Live smoke: NOT RUN. The runner exited before mutation with `liveSmokeRun=false`.
 - Runtime blockers:
-  - `[MISSING: valid ORDERS_SERVICE_TOKEN accepted by orders-microservice]` because the in-pod central Orders probe returned HTTP 401.
   - `[MISSING: warehouseId]` because the in-pod Warehouse probe returned HTTP 401 and no `DEFAULT_WAREHOUSE_ID` is configured.
   - `[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]` because no dedicated Warehouse token is projected and the available token did not authorize `/api/warehouses`.
 - Unknowns preserved:
-  - `[UNKNOWN: whether warehouse-microservice should accept the existing JWT_TOKEN for /api/warehouses or requires a dedicated WAREHOUSE_SERVICE_TOKEN]`
+  - `[UNKNOWN: approved Auth/Vault runtime path for a FlipFlop-to-Warehouse service principal token with the Warehouse-required role]`
 
 Sanitized report:
 
@@ -117,5 +119,5 @@ Intent Compliance Report:
 - Vision preserved: FlipFlop remains a production storefront using shared Orders and Warehouse services, not a local-only order silo.
 - Goal impact preserved: readiness is now machine-actionable without printing secrets, token values, customer data, raw ids, or order numbers.
 - System boundary preserved: this lane did not edit Orders, Warehouse, Catalog, Leads, Marketing, or unrelated FlipFlop service behavior.
-- Feature/task preserved: the central Orders create/idempotency/Warehouse-reservation smoke is prepared and gated, but runtime prerequisites block execution.
-- Validation preserved: source verification passed; live mutation is blocked until the exact `[MISSING: ...]` markers are resolved.
+- Feature/task preserved: the central Orders create/idempotency/Warehouse-reservation smoke is prepared and gated; Orders auth now passes the non-mutating create-route probe, while Warehouse prerequisites block execution.
+- Validation preserved: source verification and focused builds passed; live mutation is blocked until the exact `[MISSING: ...]` markers are resolved.

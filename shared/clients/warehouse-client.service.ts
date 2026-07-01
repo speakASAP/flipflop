@@ -163,7 +163,7 @@ export class WarehouseClientService {
   async getWarehouses(): Promise<any[]> {
     try {
       const response = await firstValueFrom(
-        this.httpService.get(`${this.baseUrl}/api/warehouses`)
+        this.httpService.get(`${this.baseUrl}/api/warehouses`, this.requestOptions())
       );
       return response.data.data || [];
     } catch (error: unknown) {
@@ -189,4 +189,3 @@ export class WarehouseClientService {
     }
   }
 }
-

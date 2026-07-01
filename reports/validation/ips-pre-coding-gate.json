@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-07-01T06:44:17Z",
+  "created_at": "2026-07-01T07:39:54Z",
   "execution_plans": {
     "execution_plan_count": 3,
     "execution_plan_files": [
@@ -20,7 +20,7 @@
     "00_constitution/CONSTITUTION.md",
     "01_vision/VISION.md"
   ],
-  "root": "/home/ssf/Documents/Github/flipflop-service-bulk-publish",
+  "root": "/home/ssf/Documents/Github/flipflop-service",
   "schema_version": "1.0.0",
   "sensitive_data_findings": [],
   "shared_principles_with_dos": {

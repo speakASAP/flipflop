@@ -24,32 +24,31 @@ IPS chain:
 - Execution Plan: Use `scripts/smoke-orders-readiness.js`; it runs non-mutating deployment/env/auth probes first, writes `reports/validation/orders-readiness-smoke/report-latest.json`, and only creates a live test order when prerequisites pass and `RUN_LIVE_ORDERS_SMOKE=1` is set.
 - Coding Prompt: Keep edits to lane-local smoke/validation docs only; do not edit Orders, Warehouse, Catalog, Leads, Marketing, or unrelated FlipFlop service code; do not print secret values.
 - Code: Added `scripts/smoke-orders-readiness.js` as a sanitized, prerequisite-gated runner.
-- Validation: `npm run verify:orders-hub-integration` passed; `node --check scripts/smoke-orders-readiness.js` passed; `RUN_LIVE_ORDERS_SMOKE=1 node scripts/smoke-orders-readiness.js` stopped before mutation and wrote the blocker report.
+- Validation: `npm run verify:orders-hub-integration` passed; `node --check scripts/smoke-orders-readiness.js` passed; `cd shared && npm run build` passed; `cd services/order-service && npm run build` passed; `RUN_LIVE_ORDERS_SMOKE=1 node scripts/smoke-orders-readiness.js` stopped before mutation and wrote the blocker report.
 
 Runtime prerequisite result:
 
 - `flipflop-order-service` deployment ready/available: 1/1.
 - `flipflop-service-secret` ExternalSecret Ready=True and `ORDERS_SERVICE_TOKEN` Kubernetes Secret data is present.
 - Deployed order-service env presence: `ORDERS_SERVICE_URL`, `ORDERS_MICROSERVICE_URL`, `ORDERS_SERVICE_TOKEN`, `WAREHOUSE_SERVICE_URL`, `JWT_TOKEN`, and `TEST_PASSWORD` are present by name; `WAREHOUSE_SERVICE_TOKEN` and `DEFAULT_WAREHOUSE_ID` are not present.
-- Central Orders auth probe from the deployed order-service pod returned HTTP 401 using the projected Orders token.
-- Warehouse `/api/warehouses` probe from the deployed order-service pod returned HTTP 401 and no Warehouse id was available.
+- Central Orders auth probe from the deployed order-service pod now uses `x-internal-service-token` plus `x-service-name=flipflop-service`; the non-mutating synthetic create probe returned HTTP 400, proving auth reached create-body validation without creating an order.
+- Warehouse `/api/warehouses` probe from the deployed order-service pod still returned HTTP 401 and no Warehouse id was available.
 
 Blockers:
 
-- `[MISSING: valid ORDERS_SERVICE_TOKEN accepted by orders-microservice]`
 - `[MISSING: warehouseId]`
 - `[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]`
-- `[UNKNOWN: whether warehouse-microservice should accept the existing JWT_TOKEN for /api/warehouses or requires a dedicated WAREHOUSE_SERVICE_TOKEN]`
+- `[UNKNOWN: approved Auth/Vault runtime path for a FlipFlop-to-Warehouse service principal token with the Warehouse-required role]`
 
 Live smoke status: not run; the runner stopped before creating an order because runtime prerequisites are missing.
 
 Parallel execution section:
 
-- Orders auth lane: ready now; owner role Orders/Auth/Secrets operator; allowed files outside this FlipFlop lane are the central Orders auth/token source and Vault secret value only; forbidden files are FlipFlop service code and Warehouse code; expected output is a projected `ORDERS_SERVICE_TOKEN` that central Orders accepts with HTTP 2xx; validation owner FlipFlop integration owner; handoff command `RUN_LIVE_ORDERS_SMOKE=1 node scripts/smoke-orders-readiness.js`.
-- Warehouse reservation lane: ready now; owner role Warehouse/Auth/Secrets operator; allowed scope is Warehouse service auth/token/default-warehouse configuration; forbidden files are FlipFlop order payload code and Orders code; expected output is either Warehouse accepting the deployed FlipFlop service token for `/api/warehouses` or a valid `DEFAULT_WAREHOUSE_ID` approved by Warehouse ownership; validation owner FlipFlop integration owner.
-- FlipFlop final smoke lane: dependency-gated; owner role this integration lane; allowed files `scripts/smoke-orders-readiness.js`, `reports/validation/orders-readiness-smoke/*`, and this status addendum; forbidden files Orders/Warehouse/Catalog/Leads/Marketing repos and unrelated dirty FlipFlop files; merge order Orders auth, Warehouse reservation, FlipFlop rerun.
+- Orders auth lane: complete in FlipFlop source; `OrderClientService` now sends Orders internal service headers and the sanitized probe verifies create-route auth acceptance without mutation.
+- Warehouse reservation lane: ready now; owner role Warehouse/Auth/Secrets operator; allowed scope is Warehouse/Auth service-principal provisioning and Vault/Kubernetes projection for `WAREHOUSE_SERVICE_TOKEN`, plus an approved default warehouse source if required; forbidden files are Orders code and unrelated FlipFlop service behavior; expected output is Warehouse accepting the deployed FlipFlop service token for `/api/warehouses` and reservation endpoints, with one Warehouse-owned `warehouseId` available; validation owner FlipFlop integration owner.
+- FlipFlop final smoke lane: dependency-gated; owner role this integration lane; allowed files `scripts/smoke-orders-readiness.js`, `reports/validation/orders-readiness-smoke/*`, and this status addendum; forbidden files Orders/Warehouse/Catalog/Leads/Marketing repos unless owner explicitly opens those lanes; merge order Warehouse service principal/default warehouse, FlipFlop rerun.
 
-Next action: fix the runtime token/warehouse blockers, then rerun `RUN_LIVE_ORDERS_SMOKE=1 node scripts/smoke-orders-readiness.js`.
+Next action: provision/project an Auth-compatible Warehouse service token and a Warehouse-owned default id for FlipFlop, then rerun `RUN_LIVE_ORDERS_SMOKE=1 node scripts/smoke-orders-readiness.js`.
 
 ## 2026-06-30 - GOAL-10 Runtime Deployment Addendum
 

@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-06-30T21:22:13Z",
+  "created_at": "2026-07-01T07:39:55Z",
   "gate": "deployment_readiness",
   "next_step": "ready_for_deployment_review",
   "pre_coding_gate": {
@@ -11,7 +11,7 @@
     "status": "pass",
     "stderr": ""
   },
-  "root": "/home/ssf/Documents/Github/flipflop-service-bulk-publish",
+  "root": "/home/ssf/Documents/Github/flipflop-service",
   "schema_version": "1.0.0",
   "status": "pass",
   "strict_doc_audit": {
@@ -52,57 +52,72 @@
       "path": "docs/IMPLEMENTATION_ORCHESTRATOR.md"
     },
     {
-      "line": 23,
+      "line": 39,
+      "marker": "[MISSING: warehouseId]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 40,
+      "marker": "[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 41,
+      "marker": "[UNKNOWN: approved Auth/Vault runtime path for a FlipFlop-to-Warehouse service principal token with the Warehouse-required role]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 141,
       "marker": "[UNKNOWN: whether Warehouse getTotalAvailable includes reservations or only physical available stock]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 199,
+      "line": 317,
       "marker": "[MISSING: catalogProductId]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 401,
+      "line": 519,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 423,
+      "line": 541,
       "marker": "[MISSING: auth-microservice magic-link or passwordless account API]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 424,
+      "line": 542,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 441,
+      "line": 559,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 441,
+      "line": 559,
       "marker": "[MISSING: production IBAN]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 463,
+      "line": 581,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 463,
+      "line": 581,
       "marker": "[MISSING: production IBAN]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 544,
+      "line": 662,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 544,
+      "line": 662,
       "marker": "[MISSING: production IBAN]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
@@ -135,6 +150,26 @@
       "line": 129,
       "marker": "[UNKNOWN: exact Smarty font family and license]",
       "path": "docs/reference/smarty-checkout/README.md"
+    },
+    {
+      "line": 108,
+      "marker": "[MISSING: warehouseId]",
+      "path": "implementation-goals/GOAL-06-orders-hub-integration.validation-report.md"
+    },
+    {
+      "line": 109,
+      "marker": "[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]",
+      "path": "implementation-goals/GOAL-06-orders-hub-integration.validation-report.md"
+    },
+    {
+      "line": 111,
+      "marker": "[UNKNOWN: approved Auth/Vault runtime path for a FlipFlop-to-Warehouse service principal token with the Warehouse-required role]",
+      "path": "implementation-goals/GOAL-06-orders-hub-integration.validation-report.md"
+    },
+    {
+      "line": 123,
+      "marker": "[MISSING: ...]",
+      "path": "implementation-goals/GOAL-06-orders-hub-integration.validation-report.md"
     },
     {
       "line": 55,
@@ -245,7 +280,8 @@
   "validation_reports": {
     "reports": [
       "12_validation/VAL-TASK-001-flipflop-ips-baseline.md",
-      "12_validation/VAL-TASK-002-smarty-checkout-reference-ux.md"
+      "12_validation/VAL-TASK-002-smarty-checkout-reference-ux.md",
+      "12_validation/VAL-TASK-003-catalog-connector-content-preview.md"
     ],
     "status": "pass",
     "target": null
