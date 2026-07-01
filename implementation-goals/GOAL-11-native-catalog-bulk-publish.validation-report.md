@@ -4,7 +4,7 @@
 id: VAL-GOAL-11-NATIVE-CATALOG-BULK-PUBLISH
 status: passed
 created: 2026-06-30
-updated: 2026-06-30T22:00:00Z
+updated: 2026-07-01T07:10:00Z
 repository: /home/ssf/Documents/Github/flipflop-service-bulk-publish
 branch: codex/flipflop-native-bulk-publish
 ```
@@ -24,6 +24,11 @@ branch: codex/flipflop-native-bulk-publish
 - Product-service logs registered POST /products/publish/bulk and GET /products/publish/:catalogProductId/status.
 - Direct in-pod smoke for POST /products/publish/bulk without Authorization returned HTTP 401.
 - Public gateway smoke for POST https://flipflop.alfares.cz/api/products/publish/bulk without Authorization returned HTTP 401.
+- Auth service principal `flipflop-service@internal` was provisioned with `internal:warehouse-microservice:admin`; the issued token was not printed.
+- Live Kubernetes Secret `flipflop-warehouse-token` mounted `WAREHOUSE_SERVICE_TOKEN` into `flipflop-product-service`; Auth validate returned valid service identity and Warehouse stock total returned HTTP 200.
+- Catalog bulk publication smoke with marketplace `[flipflop]` and three stock-positive products returned requested=3, succeeded=3, failed=0, blocked=0.
+- Follow-up status reads returned `published=true` for all three FlipFlop lifecycle attempts.
+- Vault-backed durable storage for `WAREHOUSE_SERVICE_TOKEN` is still pending because the available Vault token returned 403 on write.
 
 ## Boundary Check
 
