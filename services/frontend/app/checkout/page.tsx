@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Cart } from '@/lib/api/cart';
 import { CreateGuestOrderData, ordersApi } from '@/lib/api/orders';
-import { clearGuestCart, getGuestCart, GuestCart } from '@/lib/guest-cart';
+import { productsApi } from '@/lib/api/products';
+import { clearGuestCart, getGuestCart, GuestCart, GuestCartItem, removeGuestCartItem } from '@/lib/guest-cart';
 import { useAuth } from '@/contexts/AuthContext';
 import { buildHostedPasswordResetUrl } from '@/lib/auth/hosted-auth';
 import AddressAutocomplete, { AddressValue } from '@/components/AddressAutocomplete';
@@ -56,6 +57,28 @@ const initialForm: FormState = {
 
 const getCartProduct = (item: any) => item.product || item.products;
 const money = (value: number) => Math.round(value).toLocaleString('cs-CZ') + ' Kč';
+
+const getLiveUnavailableItems = async (items: Array<GuestCartItem>) => {
+  const checks = await Promise.all(items.map(async (item) => {
+    const response = await productsApi.getProduct(item.productId, true);
+    if (!response.success || !response.data) {
+      return { item, availableStock: 0 };
+    }
+
+    const liveProduct = response.data;
+    const liveVariant = item.variantId
+      ? liveProduct.variants?.find((variant) => variant.id === item.variantId)
+      : undefined;
+    const stockValue = liveVariant?.stockQuantity ?? liveProduct.stockQuantity;
+    const availableStock = typeof stockValue === 'number' && Number.isFinite(stockValue)
+      ? Math.floor(stockValue)
+      : 0;
+
+    return availableStock >= item.quantity ? null : { item, availableStock };
+  }));
+
+  return checks.filter((check): check is { item: GuestCartItem; availableStock: number } => Boolean(check));
+};
 
 export default function CheckoutPage() {
   const [cart, setCart] = useState<CartView | null>(null);
@@ -132,6 +155,18 @@ export default function CheckoutPage() {
     if (!validContact) { setError('Doplňte prosím kontaktní údaje.'); return; }
     if (!validAddress) { setError('Doplňte prosím fakturační adresu.'); return; }
     setProcessing(true);
+    const unavailableItems = await getLiveUnavailableItems(cart.items as Array<GuestCartItem>);
+    if (unavailableItems.length > 0) {
+      unavailableItems.forEach(({ item }) => removeGuestCartItem(item.id));
+      setCart(getGuestCart());
+      const names = unavailableItems
+        .map(({ item }) => getCartProduct(item)?.name || 'Produkt')
+        .slice(0, 2)
+        .join(', ');
+      setError(`Některé položky už nejsou skladem a odebrali jsme je z košíku${names ? `: ${names}` : '.'}`);
+      setProcessing(false);
+      return;
+    }
     try {
       const billingAddress = { firstName: form.firstName, lastName: form.lastName, street: form.street, city: form.city, postalCode: form.postalCode, country: form.country, phone: form.phone };
       const payload: CreateGuestOrderData = {

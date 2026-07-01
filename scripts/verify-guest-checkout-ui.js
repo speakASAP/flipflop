@@ -48,6 +48,7 @@ async function main() {
   const frontendPackage = JSON.parse(read('services/frontend/package.json'));
 
   assert(checkout.includes('getGuestCart()'), 'Checkout must load guest cart without requiring login');
+  assert(checkout.includes('getLiveUnavailableItems') && checkout.includes('productsApi.getProduct') && checkout.includes('removeGuestCartItem(item.id)'), 'Checkout must recheck live stock and remove stale guest-cart items before guest order submission');
   assert(!checkout.includes("router.push('/login"), 'Checkout must not hard-redirect guests to login');
   assert(!checkout.includes('authApi.register'), 'Checkout must not register users before order submission');
   assert(!checkout.includes('type="password"') && !checkout.includes('PasswordField'), 'Checkout must not expose password fields');

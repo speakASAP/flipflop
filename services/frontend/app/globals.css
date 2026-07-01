@@ -39,3 +39,77 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+
+.legal-document {
+  color: rgb(51 65 85);
+  font-size: 0.95rem;
+  line-height: 1.75;
+}
+
+.legal-document h2,
+.legal-document h3,
+.legal-document h4 {
+  color: rgb(15 23 42);
+  font-weight: 800;
+  line-height: 1.25;
+  margin-top: 2rem;
+}
+
+.legal-document h2 {
+  font-size: 1.5rem;
+}
+
+.legal-document h3 {
+  font-size: 1.2rem;
+}
+
+.legal-document p,
+.legal-document ul,
+.legal-document ol,
+.legal-document .legal-table-scroll {
+  margin-top: 1rem;
+}
+
+.legal-document ul,
+.legal-document ol {
+  padding-left: 1.5rem;
+}
+
+.legal-document ul {
+  list-style: disc;
+}
+
+.legal-document ol {
+  list-style: decimal;
+}
+
+.legal-document a {
+  color: rgb(37 99 235);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.legal-document table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.legal-document td,
+.legal-document th {
+  border: 1px solid rgb(226 232 240);
+  padding: 0.75rem;
+  vertical-align: top;
+}
+
+.legal-document tr:first-child td,
+.legal-document th {
+  background: rgb(248 250 252);
+  color: rgb(15 23 42);
+  font-weight: 700;
+}
+
+.legal-table-scroll {
+  overflow-x: auto;
+}

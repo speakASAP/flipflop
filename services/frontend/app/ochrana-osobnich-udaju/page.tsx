@@ -2,7 +2,7 @@ import LegalDocumentPage from '@/components/LegalDocumentPage';
 import { findLegalDocument } from '@/lib/legal-documents';
 import { notFound } from 'next/navigation';
 
-const document = findLegalDocument('doprava');
+const document = findLegalDocument('ochrana-osobnich-udaju');
 
 export const metadata = {
   title: `${document?.title ?? 'Dokument'} | FlipFlop`,

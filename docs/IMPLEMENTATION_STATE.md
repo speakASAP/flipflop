@@ -10,6 +10,40 @@
 
 
 
+
+## 2026-07-01 - Checkout Address Autocomplete
+
+Objective: let FlipFlop customers choose billing and delivery addresses from search suggestions during checkout/profile address entry instead of manually filling street, city, and PSČ.
+
+IPS chain:
+
+- Vision: Make FlipFlop production-ready and revenue-capable while preserving guest checkout and shared ecosystem service boundaries.
+- Goal Impact: Reduces checkout friction and address-entry mistakes without changing order totals, payment status, stock, auth, or customer-data contracts.
+- System: FlipFlop Next.js frontend, server-side Next route proxy, optional Kubernetes runtime secret for the map provider key.
+- Feature: Czech/Slovak address autocomplete for checkout billing/delivery and saved delivery addresses.
+- Task: Add a reusable address autocomplete component, provider proxy route, checkout/profile integration, env docs, verifier coverage, and optional deployment env wiring.
+- Execution Plan: Keep provider credentials server-side; proxy Google Places Autocomplete/Details through `/api/address-autocomplete`; fill street, city, postalCode, and country from the selected result; leave manual fields usable when the provider key is missing.
+- Coding Prompt: Do not change order payload shape, shipping/payment calculation, product/cart behavior, hosted Auth flow, pricing, stock, or payment state.
+- Code: Added `services/frontend/components/AddressAutocomplete.tsx`, `services/frontend/app/api/address-autocomplete/route.ts`, checkout/profile integrations, `.env.example` provider variables, verifier assertions, and optional `flipflop-address-autocomplete-secret` runtime env wiring for the frontend deployment.
+- Validation: `python3 scripts/pre_coding_gate.py --root .` passed; `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed; `git diff --check` passed; `cd services/frontend && npm run build` passed; `node scripts/verify-guest-checkout-ui.js` passed; `kubectl apply --dry-run=client -f k8s/deployment.yaml` passed.
+
+Provider decision:
+
+- The public OpenStreetMap Nominatim service was rejected for this use because its current usage policy forbids autocomplete against the public API.
+- Google Places is implemented behind a server-side proxy using `GOOGLE_PLACES_API_KEY`, `GOOGLE_MAPS_API_KEY`, or `ADDRESS_AUTOCOMPLETE_API_KEY`; no provider key is sent through `NEXT_PUBLIC_*`.
+
+Runtime blocker:
+
+- `[MISSING: production Google Places-compatible API key in Kubernetes secret flipflop-address-autocomplete-secret/GOOGLE_PLACES_API_KEY]`
+
+Parallel execution section:
+
+- Frontend checkout/profile lane: complete; owner role frontend integrator; files changed `services/frontend/app/checkout/page.tsx`, `services/frontend/app/profile/addresses/page.tsx`, `services/frontend/components/AddressAutocomplete.tsx`; validation owner original thread.
+- Provider/runtime secret lane: ready now; owner role platform/secrets operator; allowed scope create/project `flipflop-address-autocomplete-secret` with `GOOGLE_PLACES_API_KEY` or approved equivalent provider key; forbidden scope checkout/order/payment code; validation owner integration owner.
+- Production deploy lane: dependency-gated on provider key unless owner accepts fallback-only deployment; merge order source, provider secret, deploy, production smoke.
+
+Next action: add the production autocomplete provider key to `flipflop-address-autocomplete-secret`, then deploy and smoke `/checkout?step=details` address suggestions.
+
 ## 2026-07-01 - Goal 7.2 Orders Smoke Production Readiness Recheck
 
 Objective: prepare a sanitized FlipFlop-to-Orders create/idempotency/Warehouse-reservation production smoke and run it only if runtime prerequisites are present.
@@ -690,3 +724,28 @@ Validation passed before deploy:
 - Deployment-readiness gate passed.
 
 Next checkpoint: commit and deploy FlipFlop before deploying the Catalog caller switch.
+
+## 2026-07-01 - Storefront Footer Legal Document Parity
+
+Objective: add a quiet site-wide footer and make the customer/legal documents visible on every FlipFlop storefront page, matching the document set exposed by `flipflop.cz` while keeping the visual treatment aligned with `flipflop.alfares.cz`.
+
+IPS chain:
+
+- Vision: Make FlipFlop production-ready and legally complete for customer-facing commerce.
+- Goal Impact: Customers can reach terms, privacy, claims, delivery, cookies, contact, size-table, blog, and marketplace references from every page without disrupting checkout, catalog, cart, order, payment, pricing, stock, auth, or admin flows.
+- System: Next.js storefront root layout, footer component, static legal/customer document pages, shared legal document data module, and document styling.
+- Feature: Site-wide understated footer with complete customer/legal document access.
+- Task: Import the current public `flipflop.cz` document set, render it in local FlipFlop styling, add aliases for source routes where useful, and ensure the footer is mounted in the root layout.
+- Execution Plan: Keep the source content static and sanitized from the source document body only; avoid third-party scripts/tracking/header markup; preserve downloadable claim/return/exchange form links from the source document; use a subdued footer so it does not compete with the storefront.
+- Coding Prompt: Do not alter checkout, cart, order, payment, pricing, stock, product API, auth, or Kubernetes behavior.
+- Code: Added `services/frontend/lib/legal-documents.ts`, `services/frontend/components/SiteFooter.tsx`, `services/frontend/components/LegalDocumentPage.tsx`, document routes for `kontakty`, `kontakt`, `obchodni-podminky`, `ochrana-osobnich-udaju`, `reklamace`, `doprava`, `doprava-a-platba`, `cookies`, `tabulky-velikosti-crocs`, and `blog`; replaced the root layout footer with `SiteFooter`; added `.legal-document` styles.
+- Validation: `python3 scripts/pre_coding_gate.py --root .` passed; `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed; `git diff --check` passed; `cd services/frontend && npm run build` passed.
+
+Parallel execution section:
+
+- Source document parity lane: complete; owner role frontend/content integrator; allowed files `services/frontend/lib/legal-documents.ts` and legal/customer route pages; validation owner original thread.
+- Site-wide footer lane: complete; owner role frontend integrator; allowed files `services/frontend/components/SiteFooter.tsx`, `services/frontend/app/layout.tsx`, and `services/frontend/app/globals.css`; validation owner original thread.
+- Deployment lane: ready now after deployment-readiness gate; owner role original thread; merge order source, validation, deploy, production smoke.
+
+Next action: run deployment-readiness gate, deploy, then smoke homepage and representative legal document routes.
+

@@ -156,7 +156,9 @@ export class GatewayService {
 
       return response.data;
     } catch (error: any) {
-      this.logger.error(`Error forwarding request to ${serviceName}: ${error.message}`);
+      const status = error.response?.status;
+      const upstreamMessage = error.response?.data?.error?.message || error.response?.data?.message || error.message;
+      this.logger.error(`Error forwarding request to ${serviceName}: status=${status || 'n/a'} message=${upstreamMessage}`);
       throw error;
     }
   }
