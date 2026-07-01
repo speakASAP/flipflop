@@ -126,7 +126,7 @@ export class CatalogClientService {
       return response.data.data;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      this.logger.warn(`Product not found by SKU ${sku}: ${errorMessage}`, "CatalogClient");
+      this.logger.warn(`Product not found by SKU ${sku}: ${errorMessage}`, 'CatalogClient');
       return null;
     }
   }
@@ -140,11 +140,11 @@ export class CatalogClientService {
   }): Promise<{ items: any[]; total: number; page: number; limit: number }> {
     try {
       const params = new URLSearchParams();
-      if (query.search) params.append("search", query.search);
-      if (query.isActive !== undefined) params.append("isActive", String(query.isActive));
-      if (query.categoryId) params.append("categoryId", query.categoryId);
-      if (query.page) params.append("page", String(query.page));
-      if (query.limit) params.append("limit", String(query.limit));
+      if (query.search) params.append('search', query.search);
+      if (query.isActive !== undefined) params.append('isActive', String(query.isActive));
+      if (query.categoryId) params.append('categoryId', query.categoryId);
+      if (query.page) params.append('page', String(query.page));
+      if (query.limit) params.append('limit', String(query.limit));
 
       const response = await firstValueFrom(
         this.httpService.get(`${this.baseUrl}/api/products?${params.toString()}`, {
@@ -190,7 +190,7 @@ export class CatalogClientService {
       );
       return response.data.data;
     } catch (error) {
-      this.logger.warn(`Pricing not found for product ${productId}`, "CatalogClient");
+      this.logger.warn(`Pricing not found for product ${productId}`, 'CatalogClient');
       return null;
     }
   }
@@ -204,7 +204,7 @@ export class CatalogClientService {
       );
       return response.data.data || [];
     } catch (error) {
-      this.logger.warn(`Media not found for product ${productId}`, "CatalogClient");
+      this.logger.warn(`Media not found for product ${productId}`, 'CatalogClient');
       return [];
     }
   }
