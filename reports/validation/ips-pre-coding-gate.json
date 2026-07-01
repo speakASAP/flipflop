@@ -20,7 +20,7 @@
     "00_constitution/CONSTITUTION.md",
     "01_vision/VISION.md"
   ],
-  "root": "/home/ssf/Documents/Github/flipflop-service",
+  "root": "/home/ssf/Documents/Github/flipflop-service-bulk-publish",
   "schema_version": "1.0.0",
   "sensitive_data_findings": [],
   "shared_principles_with_dos": {

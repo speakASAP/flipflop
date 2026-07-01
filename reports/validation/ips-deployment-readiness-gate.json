@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-06-30T11:20:49Z",
+  "created_at": "2026-06-30T21:22:13Z",
   "gate": "deployment_readiness",
   "next_step": "ready_for_deployment_review",
   "pre_coding_gate": {
@@ -11,7 +11,7 @@
     "status": "pass",
     "stderr": ""
   },
-  "root": "/home/ssf/Documents/Github/flipflop-service",
+  "root": "/home/ssf/Documents/Github/flipflop-service-bulk-publish",
   "schema_version": "1.0.0",
   "status": "pass",
   "strict_doc_audit": {

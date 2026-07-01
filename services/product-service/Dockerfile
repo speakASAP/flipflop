@@ -38,6 +38,7 @@ RUN /app/shared/node_modules/.bin/prisma generate --schema=/app/prisma/schema.pr
     mkdir -p node_modules/@prisma node_modules/.prisma && \
     cp -r /app/node_modules/@prisma/client node_modules/@prisma/client && \
     cp -r /app/node_modules/.prisma/client node_modules/.prisma/client
+RUN rm -rf dist
 RUN npm run build
 
 # Expose port
