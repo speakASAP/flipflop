@@ -31,6 +31,9 @@ COPY services/api-gateway/dist ./dist
 # Ensure @flipflop/shared is properly resolved in node_modules
 RUN mkdir -p /app/node_modules/@flipflop && ln -sf /app/shared /app/node_modules/@flipflop/shared
 
+# Set shared runtime modules on the Node resolution path
+ENV NODE_PATH=/app/shared/node_modules:/app/node_modules
+
 # dist files compiled with ../../../../shared path — create symlink at /shared
 RUN ln -sf /app/shared /shared
 
