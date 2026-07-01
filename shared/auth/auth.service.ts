@@ -14,6 +14,7 @@ import {
   ValidateTokenResponse,
   RefreshTokenDto,
   AuthUser,
+  UpdateAuthProfileDto,
   MagicLinkRequestDto,
   MagicLinkResponse,
 } from './auth.interface';
@@ -298,6 +299,39 @@ export class AuthService {
       return response.data.user;
     } catch (error: any) {
       this.logger.error('Failed to read Auth profile', {
+        error: error.message,
+      });
+      throw error;
+    }
+  }
+
+
+  /**
+   * Update the canonical Auth-owned profile for a validated browser token.
+   */
+  async updateProfile(accessToken: string, dto: UpdateAuthProfileDto): Promise<AuthUser> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.patch<{ user: AuthUser }>(
+          `${this.authServiceUrl}/auth/profile`,
+          dto,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+            timeout: 10000,
+          },
+        ),
+      );
+
+      if (!response.data?.user) {
+        throw new UnauthorizedException('Invalid profile update response');
+      }
+
+      return response.data.user;
+    } catch (error: any) {
+      this.logger.error('Failed to update Auth profile', {
         error: error.message,
       });
       throw error;

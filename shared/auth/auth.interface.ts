@@ -21,6 +21,24 @@ export interface AuthContactInfo {
   isPrimary?: boolean;
 }
 
+export interface AuthProfileAddress {
+  firstName?: string;
+  lastName?: string;
+  street?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
+  phone?: string;
+}
+
+export interface UpdateAuthProfileDto {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  address?: AuthProfileAddress;
+  profile?: Record<string, unknown>;
+}
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -28,6 +46,7 @@ export interface AuthUser {
   lastName?: string;
   phone?: string;
   contactInfo?: AuthContactInfo[];
+  profileAddress?: AuthProfileAddress;
   perApplicationPreferences?: Record<string, unknown>;
   isActive: boolean;
   isVerified: boolean;

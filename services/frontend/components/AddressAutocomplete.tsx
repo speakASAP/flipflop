@@ -35,6 +35,7 @@ type AddressAutocompleteProps = {
   fieldClassName?: string;
   inputClassName?: string;
   selectClassName?: string;
+  disabled?: boolean;
 };
 
 const defaultInputClass = 'w-full border border-neutral-300 px-4 py-3 focus:border-pink-600 focus:outline-none';
@@ -55,6 +56,7 @@ export default function AddressAutocomplete({
   fieldClassName = defaultFieldClass,
   inputClassName = defaultInputClass,
   selectClassName = defaultInputClass,
+  disabled = false,
 }: AddressAutocompleteProps) {
   const [query, setQuery] = useState(value.street || '');
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
@@ -71,7 +73,7 @@ export default function AddressAutocomplete({
 
   useEffect(() => {
     const trimmed = query.trim();
-    if (trimmed.length < minQueryLength || trimmed === lastSelectedRef.current) {
+    if (disabled || trimmed.length < minQueryLength || trimmed === lastSelectedRef.current) {
       setSuggestions([]);
       setOpen(false);
       return;
@@ -104,7 +106,7 @@ export default function AddressAutocomplete({
       controller.abort();
       clearTimeout(timeout);
     };
-  }, [query]);
+  }, [query, disabled]);
 
   const patch = (patchValue: Partial<AddressValue>) => onChange({ ...value, ...patchValue });
 
@@ -142,6 +144,7 @@ export default function AddressAutocomplete({
         <span className="relative mt-2 block">
           <input
             value={query}
+            disabled={disabled}
             onChange={(event) => {
               const next = event.target.value;
               lastSelectedRef.current = '';
@@ -150,7 +153,7 @@ export default function AddressAutocomplete({
             }}
             onFocus={() => setOpen(suggestions.length > 0)}
             autoComplete="street-address"
-            className={`${inputClassName} pr-10`}
+            className={`${inputClassName} pr-10 ${disabled ? 'bg-neutral-100 text-neutral-600' : ''}`}
           />
           {loading && <span className="absolute right-3 top-3 text-sm font-black text-neutral-400">...</span>}
           {open && (
@@ -178,16 +181,16 @@ export default function AddressAutocomplete({
       </label>
       <label className={fieldClassName}>
         {cityLabel}{required ? ' *' : ''}
-        <input value={value.city} onChange={(event) => patch({ city: event.target.value })} autoComplete="address-level2" className={`mt-2 ${inputClassName}`} />
+        <input value={value.city} disabled={disabled} onChange={(event) => patch({ city: event.target.value })} autoComplete="address-level2" className={`mt-2 ${inputClassName} ${disabled ? 'bg-neutral-100 text-neutral-600' : ''}`} />
       </label>
       <label className={fieldClassName}>
         {postalCodeLabel}{required ? ' *' : ''}
-        <input value={value.postalCode} onChange={(event) => patch({ postalCode: event.target.value })} autoComplete="postal-code" className={`mt-2 ${inputClassName}`} />
+        <input value={value.postalCode} disabled={disabled} onChange={(event) => patch({ postalCode: event.target.value })} autoComplete="postal-code" className={`mt-2 ${inputClassName} ${disabled ? 'bg-neutral-100 text-neutral-600' : ''}`} />
       </label>
       {showCountry && (
         <label className={fieldClassName}>
           {countryLabel}
-          <select value={value.country || countryOptions[0]} onChange={(event) => patch({ country: event.target.value })} autoComplete="country-name" className={`mt-2 ${selectClassName}`}>
+          <select value={value.country || countryOptions[0]} disabled={disabled} onChange={(event) => patch({ country: event.target.value })} autoComplete="country-name" className={`mt-2 ${selectClassName} ${disabled ? 'bg-neutral-100 text-neutral-600' : ''}`}>
             {countryOptions.map((country) => <option key={country}>{country}</option>)}
           </select>
         </label>

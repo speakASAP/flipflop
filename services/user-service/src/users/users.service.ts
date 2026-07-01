@@ -5,7 +5,7 @@
 
 import { randomUUID } from 'crypto';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { AuthService, AuthUser, PrismaService } from '@flipflop/shared';
+import { AuthProfileAddress, AuthService, AuthUser, PrismaService, UpdateAuthProfileDto } from '@flipflop/shared';
 import { LoggerService } from '@flipflop/shared';
 
 @Injectable()
@@ -151,48 +151,143 @@ export class UsersService {
     )));
   }
 
-  private toProfile(user: any) {
+  private canonicalAddress(authUser: AuthUser): AuthProfileAddress | null {
+    if (authUser.profileAddress) {
+      return authUser.profileAddress;
+    }
+
+    const canonicalProfile = authUser.perApplicationPreferences?.canonicalProfile;
+    if (!canonicalProfile || typeof canonicalProfile !== 'object' || Array.isArray(canonicalProfile)) {
+      return null;
+    }
+
+    const address = (canonicalProfile as Record<string, unknown>).address;
+    return address && typeof address === 'object' && !Array.isArray(address)
+      ? address as AuthProfileAddress
+      : null;
+  }
+
+  private toProfile(user: any, authUser?: AuthUser) {
     return {
       id: user.id,
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
       phone: user.phone,
+      profileAddress: authUser ? this.canonicalAddress(authUser) : undefined,
       isAdmin: user.isAdmin,
     };
+  }
+
+  private addressFromDto(dto: any): AuthProfileAddress {
+    return {
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      street: dto.street,
+      city: dto.city,
+      postalCode: dto.postalCode,
+      country: dto.country || 'Czech Republic',
+      phone: dto.phone,
+    };
+  }
+
+  private async syncDefaultAddressSnapshot(userId: string, address: AuthProfileAddress) {
+    const existing = await this.prisma.deliveryAddress.findFirst({
+      where: { userId, isDefault: true },
+      orderBy: { updatedAt: 'desc' },
+    });
+    const data = {
+      firstName: address.firstName || '',
+      lastName: address.lastName || '',
+      street: address.street || '',
+      city: address.city || '',
+      postalCode: address.postalCode || '',
+      country: address.country || 'Czech Republic',
+      phone: address.phone || null,
+      isDefault: true,
+    };
+
+    if (existing) {
+      return this.prisma.deliveryAddress.update({
+        where: { id: existing.id },
+        data,
+      });
+    }
+
+    return this.prisma.deliveryAddress.create({
+      data: {
+        userId,
+        ...data,
+      },
+    });
   }
 
   /**
    * Get user profile
    */
   async getProfile(authUser: AuthUser, authorization?: string) {
-    const user = await this.ensureLocalUser(authUser, authorization);
-    return this.toProfile(user);
+    const canonicalUser = await this.resolveCanonicalAuthUser(authUser, authorization);
+    const user = await this.ensureLocalUser(canonicalUser, authorization);
+    return this.toProfile(user, canonicalUser);
   }
 
   /**
    * Update user profile
    */
   async updateProfile(authUser: AuthUser, authorization: string | undefined, dto: any) {
-    const localUser = await this.ensureLocalUser(authUser, authorization);
-    const user = await this.prisma.user.update({
-      where: { id: localUser.id },
-      data: {
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        phone: dto.phone,
-      },
-    });
+    const token = this.extractBearerToken(authorization);
+    if (!token) {
+      throw new NotFoundException('Authenticated Auth token is required to update profile');
+    }
 
-    this.logger.log('User profile updated', { userId: user.id, authUserId: authUser.id });
-    return this.toProfile(user);
+    const payload: UpdateAuthProfileDto = {
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      phone: dto.phone,
+      address: dto.address || (
+        dto.street || dto.city || dto.postalCode || dto.country
+          ? this.addressFromDto(dto)
+          : undefined
+      ),
+      profile: {
+        updatedFrom: 'flipflop',
+      },
+    };
+    const updatedAuthUser = await this.authService.updateProfile(token, payload);
+    const user = await this.ensureLocalUser(updatedAuthUser, authorization);
+
+    if (payload.address) {
+      await this.syncDefaultAddressSnapshot(user.id, payload.address);
+    }
+
+    this.logger.log('User profile updated in Auth canonical profile', { userId: user.id, authUserId: authUser.id });
+    return this.toProfile(user, updatedAuthUser);
   }
 
   /**
    * Get user's delivery addresses
    */
   async getAddresses(authUser: AuthUser, authorization?: string) {
-    const localUser = await this.ensureLocalUser(authUser, authorization);
+    const canonicalUser = await this.resolveCanonicalAuthUser(authUser, authorization);
+    const localUser = await this.ensureLocalUser(canonicalUser, authorization);
+    const canonicalAddress = this.canonicalAddress(canonicalUser);
+    if (canonicalAddress?.street && canonicalAddress.city && canonicalAddress.postalCode) {
+      const snapshot = await this.syncDefaultAddressSnapshot(localUser.id, canonicalAddress);
+      return [{
+        id: snapshot.id,
+        firstName: snapshot.firstName,
+        lastName: snapshot.lastName,
+        street: snapshot.street,
+        city: snapshot.city,
+        postalCode: snapshot.postalCode,
+        country: snapshot.country,
+        phone: snapshot.phone || undefined,
+        isDefault: true,
+        createdAt: snapshot.createdAt.toISOString(),
+        updatedAt: snapshot.updatedAt.toISOString(),
+      }];
+    }
+
     const addresses = await this.prisma.deliveryAddress.findMany({
       where: { userId: localUser.id },
       orderBy: [
@@ -220,28 +315,26 @@ export class UsersService {
    * Create delivery address
    */
   async createAddress(authUser: AuthUser, authorization: string | undefined, dto: any) {
-    const localUser = await this.ensureLocalUser(authUser, authorization);
-    // If this is set as default, unset other defaults
-    if (dto.isDefault) {
-      await this.prisma.deliveryAddress.updateMany({
-        where: { userId: localUser.id, isDefault: true },
-        data: { isDefault: false },
-      });
+    const token = this.extractBearerToken(authorization);
+    if (!token) {
+      throw new NotFoundException('Authenticated Auth token is required to update address');
     }
 
-    const address = await this.prisma.deliveryAddress.create({
-      data: {
-        userId: localUser.id,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        street: dto.street,
-        city: dto.city,
-        postalCode: dto.postalCode,
-        country: dto.country || 'Czech Republic',
-        phone: dto.phone,
-        isDefault: dto.isDefault || false,
-      },
+    const addressPayload = this.addressFromDto(dto);
+    const updatedAuthUser = await this.authService.updateProfile(token, {
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      phone: dto.phone,
+      address: addressPayload,
+      profile: { updatedFrom: 'flipflop-addresses' },
     });
+    const localUser = await this.ensureLocalUser(updatedAuthUser, authorization);
+    await this.prisma.deliveryAddress.updateMany({
+      where: { userId: localUser.id, isDefault: true },
+      data: { isDefault: false },
+    });
+
+    const address = await this.syncDefaultAddressSnapshot(localUser.id, addressPayload);
 
     this.logger.log('Delivery address created', { userId: localUser.id, authUserId: authUser.id, addressId: address.id });
     return {
@@ -263,39 +356,43 @@ export class UsersService {
    * Update delivery address
    */
   async updateAddress(authUser: AuthUser, authorization: string | undefined, addressId: string, dto: any) {
-    const localUser = await this.ensureLocalUser(authUser, authorization);
-    const address = await this.prisma.deliveryAddress.findFirst({
+    const token = this.extractBearerToken(authorization);
+    if (!token) {
+      throw new NotFoundException('Authenticated Auth token is required to update address');
+    }
+
+    const addressPayload = this.addressFromDto(dto);
+    const updatedAuthUser = await this.authService.updateProfile(token, {
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      phone: dto.phone,
+      address: addressPayload,
+      profile: { updatedFrom: 'flipflop-addresses' },
+    });
+    const localUser = await this.ensureLocalUser(updatedAuthUser, authorization);
+
+    const existing = await this.prisma.deliveryAddress.findFirst({
       where: {
         id: addressId,
         userId: localUser.id,
       },
     });
 
-    if (!address) {
-      throw new NotFoundException('Address not found');
-    }
-
-    // If this is set as default, unset other defaults
-    if (dto.isDefault) {
-      await this.prisma.deliveryAddress.updateMany({
-        where: { userId: localUser.id, isDefault: true, id: { not: addressId } },
-        data: { isDefault: false },
-      });
-    }
-
-    const updated = await this.prisma.deliveryAddress.update({
-      where: { id: addressId },
-      data: {
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        street: dto.street,
-        city: dto.city,
-        postalCode: dto.postalCode,
-        country: dto.country,
-        phone: dto.phone,
-        isDefault: dto.isDefault,
-      },
-    });
+    const updated = existing
+      ? await this.prisma.deliveryAddress.update({
+          where: { id: addressId },
+          data: {
+            firstName: addressPayload.firstName || '',
+            lastName: addressPayload.lastName || '',
+            street: addressPayload.street || '',
+            city: addressPayload.city || '',
+            postalCode: addressPayload.postalCode || '',
+            country: addressPayload.country || 'Czech Republic',
+            phone: addressPayload.phone || null,
+            isDefault: true,
+          },
+        })
+      : await this.syncDefaultAddressSnapshot(localUser.id, addressPayload);
 
     this.logger.log('Delivery address updated', { userId: localUser.id, authUserId: authUser.id, addressId });
     return {

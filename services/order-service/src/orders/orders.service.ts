@@ -125,8 +125,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
    * Reserve catalog stock in warehouse-microservice for each line (orderNumber = reservation key).
    */
   private async reserveOrderLines(orderNumber: string, orderItems: any[]): Promise<string> {
-    const warehouseId = await this.requireReservationWarehouseId(orderNumber);
-    const completed: Array<{ catalogProductId: string; quantity: number }> = [];
+    const completed: Array<{ catalogProductId: string; warehouseId: string; quantity: number }> = [];
     for (const item of orderItems) {
       const product =
         item.products ||
@@ -135,20 +134,26 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         }));
       const catalogProductId = this.requireReservationCatalogProductId(product, item.productId);
       try {
+        const warehouseId = await this.resolveReservationWarehouseId(
+          catalogProductId,
+          item.quantity,
+          orderNumber,
+          'reserve',
+        );
         await this.warehouseClient.reserveStock(
           catalogProductId,
           warehouseId,
           item.quantity,
           orderNumber,
         );
-        completed.push({ catalogProductId, quantity: item.quantity });
+        completed.push({ catalogProductId, warehouseId, quantity: item.quantity });
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
         for (const row of completed.slice().reverse()) {
           try {
             await this.warehouseClient.unreserveStock(
               row.catalogProductId,
-              warehouseId,
+              row.warehouseId,
               row.quantity,
               orderNumber,
             );
@@ -164,7 +169,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         throw new BadRequestException(`Stock reservation failed: ${message}`);
       }
     }
-    return warehouseId;
+    return completed[0]?.warehouseId || (await this.requireReservationWarehouseId(orderNumber));
   }
 
   /**
@@ -177,6 +182,70 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       throw new BadRequestException('[MISSING: warehouseId] Cannot create order without Warehouse reservation authority');
     }
     return warehouseId;
+  }
+
+  private async resolveReservationWarehouseId(
+    catalogProductId: string,
+    quantity: number,
+    orderNumber: string,
+    purpose: 'reserve' | 'release' | 'decrement',
+  ): Promise<string> {
+    const stockRows = await this.warehouseClient.getStockByProduct(catalogProductId);
+    const activeRows = Array.isArray(stockRows)
+      ? stockRows.filter((row: any) => row?.warehouseId && row?.warehouse?.isActive !== false)
+      : [];
+    const rowsWithEnoughAvailable = activeRows.filter(
+      (row: any) => Number(row.available ?? 0) >= quantity,
+    );
+    const rowsWithEnoughReserved = activeRows.filter(
+      (row: any) => Number(row.reserved ?? 0) >= quantity,
+    );
+    const candidateRows =
+      purpose === 'reserve'
+        ? rowsWithEnoughAvailable
+        : rowsWithEnoughReserved.length > 0
+          ? rowsWithEnoughReserved
+          : activeRows;
+    const selected = this.pickWarehouseStockRow(candidateRows, purpose);
+
+    if (selected?.warehouseId) {
+      return selected.warehouseId;
+    }
+
+    this.logger.error('Stock reservation failed: no usable warehouse stock row', {
+      orderNumber,
+      catalogProductId,
+      quantity,
+      purpose,
+      stockRowCount: activeRows.length,
+    });
+    throw new BadRequestException(
+      `[MISSING: warehouseStock] Product ${catalogProductId} has no warehouse stock row for ${purpose}`,
+    );
+  }
+
+  private pickWarehouseStockRow(rows: any[], purpose: 'reserve' | 'release' | 'decrement'): any | null {
+    if (!rows.length) {
+      return null;
+    }
+
+    return rows.slice().sort((a: any, b: any) => {
+      const reservedDiff =
+        purpose === 'reserve' ? 0 : Number(b.reserved ?? 0) - Number(a.reserved ?? 0);
+      if (reservedDiff !== 0) {
+        return reservedDiff;
+      }
+      const availableDiff = Number(b.available ?? 0) - Number(a.available ?? 0);
+      if (availableDiff !== 0) {
+        return availableDiff;
+      }
+      const aPriority = Number(a.warehouse?.priority ?? Number.MAX_SAFE_INTEGER);
+      const bPriority = Number(b.warehouse?.priority ?? Number.MAX_SAFE_INTEGER);
+      if (aPriority !== bPriority) {
+        return aPriority - bPriority;
+      }
+      return String(a.warehouseId).localeCompare(String(b.warehouseId));
+    })[0];
   }
 
   private requireReservationCatalogProductId(
@@ -192,11 +261,6 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async unreserveOrderLines(orderNumber: string, orderItems: any[]): Promise<void> {
-    const warehouseId = await this.warehouseClient.getDefaultWarehouseId();
-    if (!warehouseId) {
-      this.logger.warn('Stock unreserve skipped: no default warehouse', { orderNumber });
-      return;
-    }
     for (const item of orderItems) {
       const product =
         item.products ||
@@ -208,6 +272,12 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         continue;
       }
       try {
+        const warehouseId = await this.resolveReservationWarehouseId(
+          catalogProductId,
+          item.quantity,
+          orderNumber,
+          'release',
+        );
         await this.warehouseClient.unreserveStock(
           catalogProductId,
           warehouseId,
@@ -326,56 +396,75 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
 
       await this.tryAccrueLoyaltyPointsForOrder(order.id);
 
-      const warehouseId = await this.warehouseClient.getDefaultWarehouseId();
-      if (warehouseId) {
-        for (const item of order.order_items) {
-          const product = await this.prisma.product.findUnique({
-            where: { id: item.productId },
+      for (const item of order.order_items) {
+        const product = await this.prisma.product.findUnique({
+          where: { id: item.productId },
+        });
+        const catalogProductId = product?.catalogProductId;
+        if (!catalogProductId) {
+          continue;
+        }
+        let warehouseId: string;
+        try {
+          warehouseId = await this.resolveReservationWarehouseId(
+            catalogProductId,
+            item.quantity,
+            order.orderNumber,
+            'release',
+          );
+          await this.warehouseClient.unreserveStock(
+            catalogProductId,
+            warehouseId,
+            item.quantity,
+            order.orderNumber,
+          );
+        } catch (err: unknown) {
+          this.logger.warn('Stock unreserve after payment (non-fatal)', {
+            orderNumber: order.orderNumber,
+            productId: item.productId,
+            error: err instanceof Error ? err.message : String(err),
           });
-          const catalogProductId = product?.catalogProductId;
-          if (!catalogProductId) {
-            continue;
-          }
           try {
-            await this.warehouseClient.unreserveStock(
+            warehouseId = await this.resolveReservationWarehouseId(
               catalogProductId,
-              warehouseId,
               item.quantity,
               order.orderNumber,
+              'decrement',
             );
-          } catch (err: unknown) {
-            this.logger.warn('Stock unreserve after payment (non-fatal)', {
+          } catch (inner: unknown) {
+            this.logger.error('Stock decrement skipped after payment: no warehouse stock row', {
               orderNumber: order.orderNumber,
               productId: item.productId,
-              error: err instanceof Error ? err.message : String(err),
+              error: inner instanceof Error ? inner.message : String(inner),
             });
+            continue;
           }
-          try {
-            await this.warehouseClient.decrementStock(
-              catalogProductId,
-              warehouseId,
-              item.quantity,
-              `flipflop_order:${order.orderNumber}`,
-            );
-            const totalAvailable = await this.warehouseClient.getTotalAvailable(catalogProductId);
-            const lowTh = OrdersService.DEFAULT_LOW_STOCK_THRESHOLD;
-            if (totalAvailable < lowTh) {
-              void this.inventoryEventsPublisher.publishLowStock({
-                productId: item.productId,
-                productName: item.productName,
-                currentStock: totalAvailable,
-                threshold: lowTh,
-                timestamp: new Date().toISOString(),
-              });
-            }
-          } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : String(err);
-            this.logger.error('Stock decrement failed after payment', {
-              message,
-              orderNumber: order.orderNumber,
+        }
+        try {
+          await this.warehouseClient.decrementStock(
+            catalogProductId,
+            warehouseId,
+            item.quantity,
+            `flipflop_order:${order.orderNumber}`,
+          );
+          const totalAvailable = await this.warehouseClient.getTotalAvailable(catalogProductId);
+          const lowTh = OrdersService.DEFAULT_LOW_STOCK_THRESHOLD;
+          if (totalAvailable < lowTh) {
+            void this.inventoryEventsPublisher.publishLowStock({
               productId: item.productId,
+              productName: item.productName,
+              currentStock: totalAvailable,
+              threshold: lowTh,
+              timestamp: new Date().toISOString(),
             });
           }
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : String(err);
+          this.logger.error('Stock decrement failed after payment', {
+            message,
+            orderNumber: order.orderNumber,
+            productId: item.productId,
+          });
         }
       }
 

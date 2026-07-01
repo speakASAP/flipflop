@@ -4,13 +4,31 @@
 
 import { apiClient, ApiResponse } from './client';
 
+export interface ProfileAddress {
+  firstName?: string;
+  lastName?: string;
+  street?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
+  phone?: string;
+}
+
 export interface User {
   id: string;
   email: string;
   firstName?: string;
   lastName?: string;
   phone?: string;
+  profileAddress?: ProfileAddress;
   isAdmin?: boolean;
+}
+
+export interface UpdateProfileData {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  address?: ProfileAddress;
 }
 
 export interface LoginCredentials {
@@ -79,7 +97,7 @@ export const authApi = {
     return apiClient.get<User>('/users/profile');
   },
 
-  async updateProfile(data: Partial<User>) {
+  async updateProfile(data: UpdateProfileData) {
     return apiClient.put<User>('/users/profile', data);
   },
 
