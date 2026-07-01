@@ -179,8 +179,9 @@ export default function CheckoutPage() {
       },
     });
     setProfileSaving(false);
-    if (response.success && response.data) {
-      setForm((current) => prefillContactFromUser(current, response.data));
+    const updatedUser = response.data;
+    if (response.success && updatedUser) {
+      setForm((current) => prefillContactFromUser(current, updatedUser));
       setProfileEditing(false);
       setProfileMessage('Údaje byly uloženy do centrálního profilu.');
       return;
