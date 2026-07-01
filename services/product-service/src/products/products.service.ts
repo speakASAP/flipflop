@@ -80,6 +80,71 @@ export class ProductsService {
     private readonly warehouseClient: WarehouseClientService,
   ) {}
 
+  private async getLocalStorefrontProducts(filters: any) {
+    const page = Math.max(1, Number(filters.page) || 1);
+    const limit = Math.max(1, Math.min(200, Number(filters.limit) || 20));
+    const search = typeof filters.search === 'string' ? filters.search.trim().toLowerCase() : '';
+    const isActive =
+      filters.isActive === undefined
+        ? true
+        : !['false', '0'].includes(String(filters.isActive).toLowerCase());
+
+    const rows = await this.prisma.product.findMany({
+      where: { isActive },
+      include: {
+        product_categories: {
+          include: {
+            categories: true,
+          },
+        },
+        product_variants: true,
+      },
+      orderBy: [
+        { stockQuantity: 'desc' },
+        { updatedAt: 'desc' },
+      ],
+    });
+
+    const searched = search
+      ? rows.filter((product: any) =>
+          [
+            product.name,
+            product.sku,
+            product.description,
+            product.shortDescription,
+            product.brand,
+          ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase()
+            .includes(search),
+        )
+      : rows;
+
+    const items = searched
+      .map((product: any) => this.mapProduct(product))
+      .sort((a: any, b: any) => {
+        const aStock = Number(a.stockQuantity || a.warehouse?.stockQuantity || 0);
+        const bStock = Number(b.stockQuantity || b.warehouse?.stockQuantity || 0);
+        return bStock - aStock;
+      });
+    const start = (page - 1) * limit;
+    const pagedItems = items.slice(start, start + limit);
+    const totalPages = Math.ceil(items.length / limit);
+
+    return {
+      items: pagedItems,
+      pagination: {
+        page,
+        limit,
+        total: items.length,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
+  }
+
   async getCatalogContentPreview(productId: string, authorizationHeader?: string) {
     const catalogClient = this.catalogClient as unknown as {
       getProductContentPreview: (
@@ -92,11 +157,19 @@ export class ProductsService {
     return catalogClient.getProductContentPreview(productId, 'flipflop', authorizationHeader);
   }
 
+  async getProducts(filters: any) {
+    if (String(filters.source || '').toLowerCase() === 'catalog') {
+      return this.getCatalogProducts(filters);
+    }
+
+    return this.getLocalStorefrontProducts(filters);
+  }
+
   /**
    * Get products with pagination and filtering
    * Fetches from catalog-microservice and enriches with stock from warehouse-microservice
    */
-  async getProducts(filters: any) {
+  private async getCatalogProducts(filters: any) {
     try {
       const resolvedCategoryId = await this.resolveCategoryId(filters.categoryId, filters.category);
 
@@ -214,6 +287,25 @@ export class ProductsService {
    */
   async getProduct(id: string, includeWarehouse: boolean = true) {
     try {
+      const localProduct = await this.prisma.product.findFirst({
+        where: {
+          isActive: true,
+          OR: [
+            { id },
+            { catalogProductId: id },
+          ],
+        },
+        include: {
+          product_categories: {
+            include: { categories: true },
+          },
+          product_variants: true,
+        },
+      });
+      if (localProduct) {
+        return this.mapProduct(localProduct);
+      }
+
       // Fetch product from catalog-microservice
       const product = await this.catalogClient.getProductById(id);
       if (!product) {
