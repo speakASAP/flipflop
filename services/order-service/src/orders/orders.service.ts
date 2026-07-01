@@ -832,7 +832,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  private async createCheckoutAddress(userId: string, rawAddress: any, phone?: string): Promise<any> {
+  private async createCheckoutAddress(userId: string, rawAddress: any, phone?: string, label = 'billing'): Promise<any> {
     const address = rawAddress || {};
     const firstName = this.normalizeGuestText(address.firstName);
     const lastName = this.normalizeGuestText(address.lastName);
@@ -841,7 +841,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     const postalCode = this.normalizeGuestText(address.postalCode);
 
     if (!firstName || !lastName || !street || !city || !postalCode) {
-      throw new BadRequestException('Complete billing address is required');
+      throw new BadRequestException(`Complete ${label} address is required`);
     }
 
     return this.prisma.deliveryAddress.create({
@@ -1350,6 +1350,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       guestUser.id,
       dto.deliveryAddress || dto.billingAddress,
       dto.phone,
+      dto.deliveryAddress ? 'delivery' : 'billing',
     );
     const orderItems = await this.buildGuestOrderItems(dto.items);
     const subtotal = orderItems.reduce((sum, item) => sum + item.totalPrice, 0);

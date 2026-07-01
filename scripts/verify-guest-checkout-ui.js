@@ -52,7 +52,9 @@ async function main() {
   assert(!checkout.includes("router.push('/login"), 'Checkout must not hard-redirect guests to login');
   assert(!checkout.includes('authApi.register'), 'Checkout must not register users before order submission');
   assert(!checkout.includes('type="password"') && !checkout.includes('PasswordField'), 'Checkout must not expose password fields');
-  assert(checkout.includes('wantsAccount: form.createAccount'), 'Checkout must pass optional account intent as wantsAccount');
+  assert(checkout.includes('const showAccountCreationPrompt = !user'), 'Checkout must only show optional account creation to guests');
+  assert(checkout.includes('wantsAccount: showAccountCreationPrompt && form.createAccount'), 'Checkout must not request account creation for already authenticated users');
+  assert(checkout.includes('createAccount: false }));'), 'Checkout must clear pending account creation intent when a user is authenticated');
   assert(checkout.includes("const CHECKOUT_DETAILS_PATH = '/checkout?step=details'"), 'Checkout login/register redirect must target the details step');
   assert(checkout.includes("new URLSearchParams(window.location.search).get('step') === 'details'"), 'Checkout must restore the details step from redirect query state');
   assert(checkout.includes('loginRedirectHref') && checkout.includes('registerRedirectHref') && checkout.includes('passwordResetHref'), 'Checkout account prompt must offer login, registration, and access recovery without leaving the details step');
