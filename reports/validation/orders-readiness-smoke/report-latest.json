@@ -1,6 +1,6 @@
 {
-  "ok": false,
-  "generatedAt": "2026-07-01T08:44:59.078Z",
+  "ok": true,
+  "generatedAt": "2026-07-01T08:49:21.084Z",
   "mutatingSmokeApprovedByOwner": true,
   "liveSmokeRun": true,
   "prerequisites": {
@@ -30,8 +30,25 @@
     },
     "blockers": []
   },
-  "result": null,
-  "blockers": [
-    "userId is not defined"
-  ]
+  "result": {
+    "channel": "flipflop",
+    "idempotencyKeyShape": {
+      "channelAccountIdPresent": true,
+      "externalOrderIdShapeOk": true
+    },
+    "httpStatus": 201,
+    "orderIdPresent": true,
+    "redirectUrlPresent": true,
+    "centralOrders": {
+      "status": "accepted",
+      "centralOrderIdPresent": true,
+      "contractVersion": "orders.create.v1"
+    },
+    "warehouseReservation": {
+      "statusPresent": true,
+      "exactlyOneWarehouseId": true
+    },
+    "valuesRedacted": true
+  },
+  "blockers": []
 }

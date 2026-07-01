@@ -116,19 +116,34 @@ async function selectLocalSmokeProduct(candidates) {
         : {};
       const baseUrl = (process.env.WAREHOUSE_SERVICE_URL || 'http://warehouse-microservice:3201').replace(/\\/$/, '');
 
+      const warehousesResponse = await fetch(baseUrl + '/api/warehouses', { headers });
+      if (!warehousesResponse.ok) {
+        console.log(JSON.stringify(null));
+        return;
+      }
+      const warehousesBody = await warehousesResponse.json().catch(() => ({}));
+      const defaultWarehouseId = Array.isArray(warehousesBody.data) && warehousesBody.data[0]
+        ? warehousesBody.data[0].id
+        : null;
+      if (!defaultWarehouseId) {
+        console.log(JSON.stringify(null));
+        return;
+      }
+
       for (const candidate of candidates) {
         const catalogProductId = String(candidate.catalogProductId || '').trim();
         if (!candidate.id || !catalogProductId) continue;
         try {
-          const response = await fetch(baseUrl + '/api/stock/' + encodeURIComponent(catalogProductId) + '/total', { headers });
+          const response = await fetch(baseUrl + '/api/stock/' + encodeURIComponent(catalogProductId), { headers });
           if (!response.ok) continue;
           const body = await response.json().catch(() => ({}));
-          const totalAvailable = Number(body.data?.totalAvailable || 0);
-          if (totalAvailable > 0) {
+          const rows = Array.isArray(body.data) ? body.data : [];
+          if (rows.some((row) => row && row.warehouseId === defaultWarehouseId && Number(row.available || 0) > 0)) {
             console.log(JSON.stringify({
               id: candidate.id,
               catalogProductIdPresent: true,
-              warehouseStockPositive: true
+              warehouseStockPositive: true,
+              defaultWarehouseStockPositive: true
             }));
             return;
           }
@@ -309,14 +324,6 @@ async function runLiveSmoke() {
   }).join(',\n');
 
   psql(`
-    INSERT INTO users (id, email, password, "firstName", "lastName", "isEmailVerified", "isAdmin", "createdAt", "updatedAt")
-    VALUES (${sqlString(userId)}::uuid, ${sqlString(email)}, 'external-auth-user', 'Test', 'User', true, false, now(), now())
-    ON CONFLICT (email) DO UPDATE SET
-      id = EXCLUDED.id,
-      "firstName" = EXCLUDED."firstName",
-      "lastName" = EXCLUDED."lastName",
-      "updatedAt" = now();
-
     INSERT INTO products (
       id, "catalogProductId", name, sku, description, "shortDescription", price, "mainImageUrl",
       "imageUrls", "stockQuantity", "trackInventory", "isActive", brand, "createdAt", "updatedAt"
