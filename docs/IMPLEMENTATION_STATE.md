@@ -40,9 +40,22 @@ Parallel execution section:
 - Frontend checkout lane: complete in this session; owner role frontend integrator; allowed file `services/frontend/app/checkout/page.tsx`; validation owner original thread.
 - Backend payment contract lane: complete in this session; owner role payment integration; allowed files `services/order-service/src/orders/orders.service.ts`, `shared/payments/payment.service.ts`, `shared/payments/payment.interface.ts`; validation owner original thread.
 - Runtime callback-map lane: complete in this session; owner role platform/secrets operator; allowed scope Kubernetes secret value merge for `PAYMENT_CALLBACK_API_KEYS`; forbidden scope provider keys and payment account values; validation owner original thread.
-- Deployment lane: in progress in this session; merge order source, runtime callback map, deploy, smoke.
+- Deployment lane: complete in this session; `./scripts/deploy.sh` built and pushed images, timed out on k3s/containerd rollout waits, then manual recovery waited all deployments ready and removed stuck old terminating pods.
 
-Next action: run deployment readiness, deploy FlipFlop, and smoke the payment surface.
+Post-deploy evidence:
+
+- `python3 scripts/deployment_readiness_gate.py --root .` passed.
+- `./scripts/deploy.sh` built/pushed FlipFlop images and applied manifests; rollout needed manual wait/cleanup for the known stale terminating pod condition.
+- Final deployments are `1/1` ready/available for `flipflop-service`, `flipflop-frontend`, `flipflop-product-service`, `flipflop-cart-service`, `flipflop-order-service`, and `flipflop-user-service`.
+- Public smoke returned HTTP 200 for `/`, `/checkout`, `GET /api/products?limit=1`, and `https://payments.alfares.cz/health`.
+- Deployed checkout JavaScript contains the `QR platba bankovnim prevodem` option text.
+- Deployed order-service runtime has `PAYMENT_APPLICATION_ID=flipflop-service`, payment service URL, success/cancel result URLs, API key, and webhook key present by env-name check only.
+- Deployed `payments-microservice` runtime allows `flipflop-service`, has `flipflop-service` in callback keys, and has Fio account, Stripe, and PayPal provider config present by env-name check only.
+- `npm run verify:guest-checkout-ui` passed after deploy and remained non-mutating.
+
+Live payment mutation: not run in this session; no production order/payment was created without a separate owner-approved mutating smoke.
+
+Next action: optional owner-approved live `fiobanka` test order/payment smoke if provider-level QR creation evidence is required.
 
 
 
