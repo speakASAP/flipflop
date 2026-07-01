@@ -8,7 +8,7 @@ const reportPath = path.join(reportDir, 'report-latest.json');
 const baseUrl = process.env.BASE_URL || 'https://flipflop.alfares.cz/api';
 const authEnvPath = process.env.AUTH_ENV_PATH || '/home/ssf/Documents/Github/auth-microservice/.env';
 const email = process.env.TEST_EMAIL || 'test@example.com';
-const paymentMethod = process.env.SMOKE_PAYMENT_METHOD || 'bank_transfer';
+const paymentMethod = process.env.SMOKE_PAYMENT_METHOD || 'invoice';
 
 function readEnvFile(filePath) {
   const out = {};
@@ -280,28 +280,6 @@ function prerequisiteSnapshot() {
 }
 
 async function runLiveSmoke() {
-  const authEnv = readEnvFile(authEnvPath);
-  const flipEnv = readEnvFile('/home/ssf/Documents/Github/flipflop-service/.env');
-  const password = process.env.TEST_PASSWORD || authEnv.TEST_PASSWORD || authEnv.TEST_LOGIN_PASSWORD || flipEnv.TEST_PASSWORD;
-  if (!password) {
-    throw new Error('[MISSING: TEST_PASSWORD]');
-  }
-
-  const login = await request('/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
-  });
-  const token = login.data?.accessToken || login.data?.token || login.accessToken || login.token;
-  if (!token) {
-    throw new Error('[MISSING: test access token]');
-  }
-
-  const payload = parseJson(b64UrlDecode(token.split('.')[1]));
-  const userId = payload.sub || payload.id || payload.userId;
-  if (!userId) {
-    throw new Error('[MISSING: test user id claim]');
-  }
-
   const productsResponse = await request('/products?limit=20');
   const products = productsResponse.data?.items || [];
   if (!products.length) {
@@ -379,45 +357,34 @@ async function runLiveSmoke() {
     throw new Error('[MISSING: local FlipFlop smoke product with Warehouse stock]');
   }
 
-  const authHeaders = { authorization: `Bearer ${token}` };
-  const addresses = await request('/users/addresses', { headers: authHeaders });
-  let address = (addresses.data || [])[0];
-  if (!address) {
-    const created = await request('/users/addresses', {
-      method: 'POST',
-      headers: authHeaders,
-      body: JSON.stringify({
-        firstName: 'Test',
-        lastName: 'User',
-        street: 'Testovaci 1',
-        city: 'Praha',
-        postalCode: '11000',
-        country: 'Czech Republic',
-        phone: '+420000000000',
-        isDefault: true,
-      }),
-    });
-    address = created.data;
-  }
+  const smokeAddress = {
+    firstName: 'Test',
+    lastName: 'User',
+    street: 'Testovaci 1',
+    city: 'Praha',
+    postalCode: '11000',
+    country: 'Czech Republic',
+    phone: '+420000000000',
+  };
 
-  await request('/cart', { method: 'DELETE', headers: authHeaders });
-  await request('/cart/items', {
+  const orderResult = await request('/orders/guest', {
     method: 'POST',
-    headers: authHeaders,
-    body: JSON.stringify({ productId: localSmokeProduct.id, quantity: 1 }),
-  });
-  const cart = await request('/cart', { headers: authHeaders });
-  if (!cart.data?.items?.length) {
-    throw new Error('[MISSING: cart item after add]');
-  }
-
-  const orderResult = await request('/orders', {
-    method: 'POST',
-    headers: authHeaders,
     body: JSON.stringify({
-      deliveryAddressId: address.id,
+      email,
+      phone: '+420000000000',
+      billingAddress: smokeAddress,
+      deliveryAddress: smokeAddress,
+      items: [
+        {
+          productId: localSmokeProduct.id,
+          quantity: 1,
+        },
+      ],
       paymentMethod,
-      shippingCost: 0,
+      deliveryMethod: 'zasilkovna-address',
+      expeditionMethod: 'standard',
+      wantsAccount: false,
+      marketingConsent: false,
       notes: 'Automated Orders readiness smoke test',
     }),
   });
