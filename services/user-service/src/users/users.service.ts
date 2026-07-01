@@ -81,12 +81,13 @@ export class UsersService {
   }
 
   private async refreshLocalUserFromAuth(user: any, authUser: AuthUser) {
+    const authPhone = this.authPhone(authUser);
     const data = {
-      firstName: user.firstName || authUser.firstName || null,
-      lastName: user.lastName || authUser.lastName || null,
-      phone: user.phone || this.authPhone(authUser) || null,
-      isEmailVerified: user.isEmailVerified || Boolean(authUser.isVerified),
-      isAdmin: user.isAdmin || this.hasAdminRole(authUser),
+      firstName: authUser.firstName || user.firstName || null,
+      lastName: authUser.lastName || user.lastName || null,
+      phone: authPhone || user.phone || null,
+      isEmailVerified: Boolean(authUser.isVerified) || user.isEmailVerified,
+      isAdmin: this.hasAdminRole(authUser) || user.isAdmin,
       preferences: this.buildAuthPreferences(user.preferences, authUser),
       updatedAt: new Date(),
     };
