@@ -25,6 +25,14 @@ Implemented as a source-only frontend change. Deployment and live checkout smoke
 - Checkout treats Auth wallet data as optional. If the Auth wallet endpoint fails, returns 404, or returns no data, wallet selectors stay hidden and the existing user profile/manual checkout behavior remains.
 - Profile addresses use Auth wallet CRUD only after Auth wallet listing succeeds. If listing is unavailable, the page uses the existing local address API.
 
+
+## Manual Edit Race Follow-Up
+
+- Follow-up source fix added a manual-edit guard for checkout fields that Auth wallet defaults can prefill.
+- If an authenticated user starts editing contact, billing, or different-delivery fields before the Auth wallet request resolves, automatic default wallet prefill is skipped.
+- Explicit user selection from the wallet selectors still applies the selected invoice profile or delivery address.
+- Follow-up validation rerun after this guard passed: `git diff --check`, `python3 scripts/pre_coding_gate.py --root .`, `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues`, `cd services/frontend && npm exec -- tsc --noEmit`, and `cd services/frontend && npm run build`.
+
 ## Validation
 
 ```bash
