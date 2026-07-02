@@ -32,6 +32,7 @@ export class CreateOrderDto {
     source?: string;
     sourceProductId?: string;
     productIds?: string[];
+    catalogCandidateId?: string;
   };
 }
 

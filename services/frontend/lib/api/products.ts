@@ -93,6 +93,8 @@ export interface Category {
 export interface ProductRecommendationBundle {
   source: 'catalog_order_affinity' | 'purchase_history' | 'related_fallback' | string;
   products: Product[];
+  catalogCandidateId?: string;
+  catalogProductIds?: string[];
   subtotal: number;
   bundlePrice: number;
   merchandiseSavings: number;

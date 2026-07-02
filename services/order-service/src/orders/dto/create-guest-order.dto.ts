@@ -133,5 +133,6 @@ export class CreateGuestOrderDto {
     source?: string;
     sourceProductId?: string;
     productIds?: string[];
+    catalogCandidateId?: string;
   };
 }

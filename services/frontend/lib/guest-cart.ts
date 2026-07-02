@@ -41,6 +41,7 @@ export interface GuestBundleIntent {
   sourceProductId: string;
   productIds: string[];
   estimatedSavings?: number;
+  catalogCandidateId?: string;
   currency: 'CZK';
   createdAt: string;
 }
@@ -233,6 +234,7 @@ export const setGuestBundleIntent = (intent: Omit<GuestBundleIntent, 'source' | 
     sourceProductId: intent.sourceProductId,
     productIds,
     estimatedSavings: normalizePrice(intent.estimatedSavings),
+    ...(typeof intent.catalogCandidateId === 'string' && intent.catalogCandidateId.trim() ? { catalogCandidateId: intent.catalogCandidateId.trim() } : {}),
     currency: 'CZK',
     createdAt: new Date().toISOString(),
   } satisfies GuestBundleIntent));
@@ -258,6 +260,7 @@ export const getGuestBundleIntent = (): GuestBundleIntent | null => {
       sourceProductId: parsed.sourceProductId,
       productIds,
       estimatedSavings: normalizePrice(parsed.estimatedSavings),
+      ...(typeof parsed.catalogCandidateId === 'string' && parsed.catalogCandidateId.trim() ? { catalogCandidateId: parsed.catalogCandidateId.trim() } : {}),
       currency: 'CZK',
       createdAt: typeof parsed.createdAt === 'string' ? parsed.createdAt : '',
     };

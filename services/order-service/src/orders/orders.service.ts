@@ -52,6 +52,7 @@ type BundleDiscountIntent = {
   source: 'product_detail_buy_together';
   sourceProductId: string;
   productIds: string[];
+  catalogCandidateId?: string;
 };
 
 type BundleDiscountApplication = {
@@ -1207,7 +1208,63 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     if (!productIds.includes(sourceProductId)) {
       throw new BadRequestException('Bundle discount source product must be included in the set');
     }
-    return { source: 'product_detail_buy_together', sourceProductId, productIds };
+    const catalogCandidateId = this.normalizeGuestText(row.catalogCandidateId);
+    return {
+      source: 'product_detail_buy_together',
+      sourceProductId,
+      productIds,
+      ...(catalogCandidateId ? { catalogCandidateId } : {}),
+    };
+  }
+
+  private async getCatalogBundleCandidateTargetIds(bundleIntent: BundleDiscountIntent): Promise<Set<string> | null> {
+    if (!bundleIntent.catalogCandidateId) return null;
+
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: bundleIntent.productIds }, isActive: true },
+      select: { id: true, catalogProductId: true },
+    });
+    const byProductId = new Map(products.map((product: any) => [product.id, product]));
+    const sourceProduct = byProductId.get(bundleIntent.sourceProductId);
+    if (!sourceProduct?.catalogProductId || products.length !== bundleIntent.productIds.length) {
+      throw new BadRequestException('Catalog bundle candidate products are not available');
+    }
+
+    const localCatalogIds = new Set<string>();
+    for (const productId of bundleIntent.productIds) {
+      const catalogProductId = byProductId.get(productId)?.catalogProductId;
+      if (!catalogProductId) {
+        throw new BadRequestException('Catalog bundle candidate products are not mapped');
+      }
+      localCatalogIds.add(catalogProductId);
+    }
+
+    const response = await this.catalogClient.getProductBundleCandidates(sourceProduct.catalogProductId, {
+      limit: 10,
+      freeShippingThreshold: BUNDLE_FREE_SHIPPING_THRESHOLD_CZK,
+      currency: 'CZK',
+    });
+    const candidate = response?.candidates?.find((item: any) => item?.candidateId === bundleIntent.catalogCandidateId);
+    if (!candidate || !Array.isArray(candidate.productIds)) {
+      throw new BadRequestException('Catalog bundle candidate is not available');
+    }
+
+    const candidateCatalogIds = new Set(candidate.productIds.filter((id: unknown): id is string => typeof id === 'string' && Boolean(id)));
+    for (const catalogProductId of localCatalogIds) {
+      if (!candidateCatalogIds.has(catalogProductId)) {
+        throw new BadRequestException('Catalog bundle candidate does not match checkout products');
+      }
+    }
+
+    const blockers = [
+      ...(Array.isArray(response?.blockers) ? response.blockers : []),
+      ...(Array.isArray(candidate?.pricing?.blockers) ? candidate.pricing.blockers : []),
+    ];
+    if (blockers.length > 0) {
+      throw new BadRequestException('Catalog bundle candidate is blocked for checkout');
+    }
+
+    return new Set(bundleIntent.productIds.filter((productId) => productId !== bundleIntent.sourceProductId));
   }
 
   private async getEligibleBundleTargetIds(sourceProductId: string): Promise<string[]> {
@@ -1274,7 +1331,8 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         throw new BadRequestException('Bundle discount products must all be present in the order');
       }
     }
-    const eligibleTargets = new Set(await this.getEligibleBundleTargetIds(params.bundleIntent.sourceProductId));
+    const eligibleTargets = await this.getCatalogBundleCandidateTargetIds(params.bundleIntent)
+      ?? new Set(await this.getEligibleBundleTargetIds(params.bundleIntent.sourceProductId));
     const invalidTargets = params.bundleIntent.productIds
       .filter((productId) => productId !== params.bundleIntent.sourceProductId)
       .filter((productId) => !eligibleTargets.has(productId));
@@ -1293,6 +1351,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       source: 'product_detail_buy_together',
       sourceProductId: params.bundleIntent.sourceProductId,
       productIds: params.bundleIntent.productIds,
+      ...(params.bundleIntent.catalogCandidateId ? { catalogCandidateId: params.bundleIntent.catalogCandidateId } : {}),
       eligible: true,
       merchandiseSubtotal,
       merchandiseSavings,

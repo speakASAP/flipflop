@@ -44,8 +44,12 @@ assert(guestCart.includes('BUNDLE_INTENT_KEY'), 'frontend stores bundle intent s
 assert(guestCart.includes('getGuestBundleIntentForProductIds'), 'frontend validates bundle intent against cart product ids before submit');
 assert(bundleButton.includes('setGuestBundleIntent'), 'bundle button stores bundle intent');
 assert(bundleButton.includes('estimatedSavings'), 'bundle button stores display-only estimated savings');
+assert(bundleButton.includes('catalogCandidateId'), 'bundle button stores Catalog candidate provenance when present');
 assert(productPage.includes('sourceProductId={product.id}'), 'product detail passes source product id');
 assert(checkoutPage.includes('bundleIntent: bundleIntent ?'), 'checkout submits bundle intent identifiers');
+assert(checkoutPage.includes('catalogCandidateId: bundleIntent.catalogCandidateId'), 'checkout submits Catalog candidate id as identifier only');
+assert(orderService.includes('getCatalogBundleCandidateTargetIds'), 'order-service revalidates Catalog candidate id server-side');
+assert(orderService.includes('Catalog bundle candidate does not match checkout products'), 'order-service rejects mismatched Catalog candidate products');
 assert(checkoutPage.includes('cartApi.getCart'), 'checkout preserves authenticated cart loading');
 assert(checkoutPage.includes('clearGuestBundleIntent'), 'checkout clears bundle intent after successful order');
 assert(checkoutPage.includes('Setová úspora'), 'checkout renders CZK savings copy');

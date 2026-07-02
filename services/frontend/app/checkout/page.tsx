@@ -480,6 +480,7 @@ export default function CheckoutPage() {
           source: bundleIntent.source,
           sourceProductId: bundleIntent.sourceProductId,
           productIds: bundleIntent.productIds,
+          catalogCandidateId: bundleIntent.catalogCandidateId,
         } : undefined,
       };
       const response = await ordersApi.createGuestOrder(payload);

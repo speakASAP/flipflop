@@ -11,6 +11,7 @@ interface AddBundleToCartButtonProps {
   products: Product[];
   sourceProductId?: string;
   estimatedSavings?: number;
+  catalogCandidateId?: string;
   redirectTo?: string;
   className?: string;
 }
@@ -21,6 +22,7 @@ export default function AddBundleToCartButton({
   products,
   sourceProductId,
   estimatedSavings,
+  catalogCandidateId,
   redirectTo = '/checkout',
   className,
 }: AddBundleToCartButtonProps) {
@@ -75,6 +77,7 @@ export default function AddBundleToCartButton({
           sourceProductId: sourceProductId || bundleProductIds[0],
           productIds: bundleProductIds,
           estimatedSavings,
+          catalogCandidateId,
         });
         showMessage(skipped > 0 ? 'Set je v košíku, některé položky už tam byly.' : 'Set je v košíku.');
         router.push(isAuthenticated ? '/cart' : redirectTo);

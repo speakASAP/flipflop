@@ -80,6 +80,8 @@ type ProductRecommendationSource = 'catalog_order_affinity' | 'purchase_history'
 type ProductRecommendationBundle = {
   source: ProductRecommendationSource;
   products: any[];
+  catalogCandidateId?: string;
+  catalogProductIds?: string[];
   subtotal: number;
   bundlePrice: number;
   merchandiseSavings: number;
@@ -703,7 +705,8 @@ export class ProductsService {
   async getProductRecommendations(id: string) {
     const currentProduct = await this.getLocalRecommendationProduct(id);
     const catalogRelatedProducts = await this.getCatalogRelatedProducts(currentProduct, 8);
-    const catalogBundleProducts = await this.getCatalogBundleCandidateProducts(currentProduct, 3);
+    const catalogBundle = await this.getCatalogBundleCandidateProducts(currentProduct, 3);
+    const catalogBundleProducts = catalogBundle.products;
     const historyProducts = await this.getFrequentlyBoughtTogetherProducts(currentProduct.id, 8);
     const fallbackProducts = await this.getFallbackRelatedProducts(currentProduct, 8);
     const relatedProducts = this.uniqueProducts([
@@ -731,6 +734,9 @@ export class ProductsService {
     const bundle = this.buildRecommendationBundle(
       bundleProducts.length > 1 ? bundleProducts : [currentProduct, ...relatedProducts.slice(0, 1)],
       recommendationSource,
+      catalogBundleProducts.length > 1
+        ? { catalogCandidateId: catalogBundle.candidateId, catalogProductIds: catalogBundle.catalogProductIds }
+        : undefined,
     );
 
     return {
@@ -782,9 +788,9 @@ export class ProductsService {
     return offer;
   }
 
-  private async getCatalogBundleCandidateProducts(product: any, limit: number) {
+  private async getCatalogBundleCandidateProducts(product: any, limit: number): Promise<{ products: any[]; candidateId?: string; catalogProductIds: string[] }> {
     if (!product?.catalogProductId) {
-      return [];
+      return { products: [], catalogProductIds: [] };
     }
 
     try {
@@ -804,7 +810,7 @@ export class ProductsService {
       )).slice(0, limit);
 
       if (catalogProductIds.length < 2) {
-        return [];
+        return { products: [], catalogProductIds: [] };
       }
 
       const targetCatalogIds: string[] = catalogProductIds.filter((catalogProductId): catalogProductId is string => (
@@ -832,10 +838,14 @@ export class ProductsService {
       );
       offerByCatalogId.set(product.catalogProductId, product);
 
-      return catalogProductIds
-        .map((catalogProductId) => offerByCatalogId.get(catalogProductId))
-        .filter(Boolean)
-        .slice(0, limit);
+      return {
+        products: catalogProductIds
+          .map((catalogProductId) => offerByCatalogId.get(catalogProductId))
+          .filter(Boolean)
+          .slice(0, limit),
+        candidateId: typeof candidate?.candidateId === 'string' ? candidate.candidateId : undefined,
+        catalogProductIds,
+      };
     } catch (error: any) {
       await this.logger.warn('Catalog bundle-candidates lookup failed; using recommendation fallback', {
         context: 'ProductsService',
@@ -843,7 +853,7 @@ export class ProductsService {
         catalogProductId: product.catalogProductId,
         reason: error?.message || 'unknown error',
       });
-      return [];
+      return { products: [], catalogProductIds: [] };
     }
   }
 
@@ -1017,7 +1027,11 @@ export class ProductsService {
     return unique;
   }
 
-  private buildRecommendationBundle(products: any[], source: ProductRecommendationSource): ProductRecommendationBundle | null {
+  private buildRecommendationBundle(
+    products: any[],
+    source: ProductRecommendationSource,
+    catalogMetadata?: { catalogCandidateId?: string; catalogProductIds?: string[] },
+  ): ProductRecommendationBundle | null {
     const bundleProducts = products.filter((product) => product?.id && Number(product.price) > 0);
     if (bundleProducts.length < 2) {
       return null;
@@ -1031,6 +1045,8 @@ export class ProductsService {
     return {
       source,
       products: bundleProducts,
+      ...(catalogMetadata?.catalogCandidateId ? { catalogCandidateId: catalogMetadata.catalogCandidateId } : {}),
+      ...(catalogMetadata?.catalogProductIds?.length ? { catalogProductIds: catalogMetadata.catalogProductIds } : {}),
       subtotal,
       bundlePrice,
       merchandiseSavings,

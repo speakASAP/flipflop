@@ -125,6 +125,7 @@ export interface BundleIntentData {
   source: 'product_detail_buy_together';
   sourceProductId: string;
   productIds: string[];
+  catalogCandidateId?: string;
 }
 
 export interface CreateGuestOrderData {

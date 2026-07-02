@@ -20,6 +20,7 @@ assert(productController.includes("@Get(':id/recommendations')"), 'product-servi
 assert(productService.includes('getProductRecommendations'), 'product-service implements recommendation method');
 assert(catalogClient.includes('getRelatedProducts'), 'Catalog client reads Catalog related-products endpoint');
 assert(catalogClient.includes('getProductBundleCandidates'), 'Catalog client reads Catalog bundle-candidates endpoint');
+assert(productService.includes('catalogCandidateId'), 'product-service preserves Catalog bundle candidate provenance for checkout intent');
 assert(catalogClient.includes('/api/products/${encodeURIComponent(productId)}/related'), 'Catalog client targets Catalog related-products route');
 assert(productService.includes('getCatalogRelatedProducts'), 'product-service prefers Catalog related-products when available');
 assert(productService.includes('catalog_order_affinity_then_purchase_history_then_category_fallback'), 'recommendation policy records Catalog relation precedence');
