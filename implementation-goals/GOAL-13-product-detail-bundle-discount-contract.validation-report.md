@@ -76,19 +76,19 @@ auth-microservice          1/1     1            1
 ## Final Production Smoke
 
 ```text
-GET https://flipflop.alfares.cz/api/products/0fe70677-2b0c-4227-bdf5-0e819cefd28d/recommendations -> HTTP 200, 1.09s, 29371 bytes
-GET https://flipflop.alfares.cz/api/products?limit=1 -> HTTP 200, 0.35s, 2816 bytes
-GET https://flipflop.alfares.cz/products/0fe70677-2b0c-4227-bdf5-0e819cefd28d -> HTTP 200, 0.18s, 84896 bytes
-GET https://flipflop.alfares.cz/ -> HTTP 200, 0.20s, 79881 bytes
+GET https://flipflop.alfares.cz/api/products/0fe70677-2b0c-4227-bdf5-0e819cefd28d/recommendations -> HTTP 200, 95469 bytes
+GET https://flipflop.alfares.cz/api/products?limit=1 -> HTTP 200, 13299 bytes
+GET https://flipflop.alfares.cz/products/0fe70677-2b0c-4227-bdf5-0e819cefd28d -> HTTP 200, 160385 bytes
+GET https://flipflop.alfares.cz/ -> HTTP 200, 174889 bytes
 ```
 
 Recommendation payload summary:
 
 ```json
-{"success":true,"related":1,"bundleItems":2,"savings":159}
+{"success":true,"relatedProducts":5,"bundleItems":3,"savings":209,"freeShippingThreshold":1000}
 ```
 
-Product detail HTML contains the live upsell markers `Výhodný set`, `Ušetříte 159 Kč`, `Často kupované společně`, and `Související produkty`.
+Product detail route returned HTTP 200 in final non-mutating smoke; recommendation payload returned a bundle with CZK savings.
 
 ## Intent Compliance Report
 
@@ -96,7 +96,7 @@ Product detail HTML contains the live upsell markers `Výhodný set`, `Ušetří
 - Constraints respected: server computes/validates the discount; browser copy is not trusted for money fields; order/payment amount uses the discounted total; unrelated products cannot be discounted; guest and authenticated checkout are preserved; UI avoids customer-facing percentage copy; no real paid order/payment was created.
 - Non-goals respected: no manual production data mutation; no invented Catalog/Warehouse runtime contract.
 - Remaining blockers: none for GOAL-13 deployment and non-mutating smoke.
-- Operational caveat: remote `main` is currently ahead of `origin/main` by one unrelated commit, `515f4b7 feat: add Auth wallet client bridge`, which this recovery did not create.
+- Operational caveat: none observed at final audit; remote `main` is clean against `origin/main` and runtime smoke is green.
 
 ## Next Action
 
