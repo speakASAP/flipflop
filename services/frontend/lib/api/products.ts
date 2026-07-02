@@ -64,7 +64,7 @@ export interface Category {
 }
 
 export interface ProductRecommendationBundle {
-  source: 'purchase_history' | 'related_fallback' | string;
+  source: 'catalog_order_affinity' | 'purchase_history' | 'related_fallback' | string;
   products: Product[];
   subtotal: number;
   bundlePrice: number;

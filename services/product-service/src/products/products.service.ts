@@ -68,7 +68,7 @@ type FlipFlopOfferReconciliationProduct = {
   updatedAt?: Date | string | null;
 };
 
-type ProductRecommendationSource = 'purchase_history' | 'related_fallback';
+type ProductRecommendationSource = 'catalog_order_affinity' | 'purchase_history' | 'related_fallback';
 
 type ProductRecommendationBundle = {
   source: ProductRecommendationSource;
@@ -685,14 +685,28 @@ export class ProductsService {
    */
   async getProductRecommendations(id: string) {
     const currentProduct = await this.getLocalRecommendationProduct(id);
+    const catalogRelatedProducts = await this.getCatalogRelatedProducts(currentProduct, 8);
     const historyProducts = await this.getFrequentlyBoughtTogetherProducts(currentProduct.id, 8);
     const fallbackProducts = await this.getFallbackRelatedProducts(currentProduct, 8);
-    const relatedProducts = this.uniqueProducts([...historyProducts, ...fallbackProducts], currentProduct.id).slice(0, 8);
-    const bundleCandidates = historyProducts.length > 0 ? historyProducts : fallbackProducts;
+    const relatedProducts = this.uniqueProducts([
+      ...catalogRelatedProducts,
+      ...historyProducts,
+      ...fallbackProducts,
+    ], currentProduct.id).slice(0, 8);
+    const bundleCandidates = catalogRelatedProducts.length > 0
+      ? catalogRelatedProducts
+      : historyProducts.length > 0
+        ? historyProducts
+        : fallbackProducts;
+    const recommendationSource: ProductRecommendationSource = catalogRelatedProducts.length > 0
+      ? 'catalog_order_affinity'
+      : historyProducts.length > 0
+        ? 'purchase_history'
+        : 'related_fallback';
     const bundleProducts = this.uniqueProducts([currentProduct, ...bundleCandidates], currentProduct.id, true).slice(0, 3);
     const bundle = this.buildRecommendationBundle(
       bundleProducts.length > 1 ? bundleProducts : [currentProduct, ...relatedProducts.slice(0, 1)],
-      historyProducts.length > 0 ? 'purchase_history' : 'related_fallback',
+      recommendationSource,
     );
 
     return {
@@ -701,7 +715,11 @@ export class ProductsService {
       relatedProducts,
       bundle,
       policy: {
-        source: historyProducts.length > 0 ? 'purchase_history_then_category_fallback' : 'category_fallback',
+        source: catalogRelatedProducts.length > 0
+          ? 'catalog_order_affinity_then_purchase_history_then_category_fallback'
+          : historyProducts.length > 0
+            ? 'purchase_history_then_category_fallback'
+            : 'category_fallback',
         usesAi: false,
         mutatesPrices: false,
         mutatesOrders: false,
@@ -738,6 +756,59 @@ export class ProductsService {
     }
 
     return offer;
+  }
+
+  private async getCatalogRelatedProducts(product: any, limit: number) {
+    if (!product?.catalogProductId) {
+      return [];
+    }
+
+    try {
+      const relations = await this.catalogClient.getRelatedProducts(product.catalogProductId, {
+        relationType: 'order_affinity',
+      });
+      const targetCatalogIds = Array.from(new Set(
+        relations
+          .map((relation: any) => relation?.targetProductId)
+          .filter((id: unknown): id is string => typeof id === 'string' && id.trim().length > 0),
+      )).slice(0, limit);
+
+      if (targetCatalogIds.length === 0) {
+        return [];
+      }
+
+      const rows = await this.prisma.product.findMany({
+        where: {
+          catalogProductId: { in: targetCatalogIds },
+          isActive: true,
+        },
+        include: {
+          product_categories: {
+            include: { categories: true },
+          },
+          product_variants: true,
+        },
+      });
+      const offers = await Promise.all(rows.map((row: any) => this.catalogLinkedProductToOffer(row)));
+      const offerByCatalogId = new Map(
+        offers
+          .filter(Boolean)
+          .map((offer: any) => [offer.catalogProductId, offer]),
+      );
+
+      return targetCatalogIds
+        .map((catalogProductId) => offerByCatalogId.get(catalogProductId))
+        .filter(Boolean)
+        .slice(0, limit);
+    } catch (error: any) {
+      await this.logger.warn('Catalog related-products lookup failed; using local recommendation fallback', {
+        context: 'ProductsService',
+        productId: product.id,
+        catalogProductId: product.catalogProductId,
+        reason: error?.message || 'unknown error',
+      });
+      return [];
+    }
   }
 
   private async getFrequentlyBoughtTogetherProducts(productId: string, limit: number) {
