@@ -141,12 +141,13 @@ Intent Preservation Chain:
 - Task: Add `POST /orders/guest/quote` in order-service, proxy it as `POST /api/orders/guest/quote`, make the Holiday process version configurable, deploy, and validate canary/non-canary behavior.
 - Execution Plan: Reuse the existing guest checkout item/total/discount calculation path, skip user/address/order/payment/stock writes, return `sideEffects: []`, and keep the code fail-closed when Catalog facts are missing or ineligible.
 - Coding Prompt: Do not create production orders or payments during validation; preserve unresolved runtime contracts as `[MISSING: ...]`.
-- Code: commit `4543385 feat: add non-mutating holiday discount quote`.
+- Code: commits `4543385 feat: add non-mutating holiday discount quote` and `f758f94 fix: strip catalog ids from order item writes`.
 - Validation: static verifier, order-service build, gateway build, public quote smoke, deploy rollout status, and database side-effect check passed.
 
 Deployment evidence:
 
 - `./scripts/deploy.sh 4543385` built and pushed all FlipFlop images. The script timed out while waiting for rollout completion, but follow-up Kubernetes checks showed all six FlipFlop deployments at ready/updated/available `1/1` with observed generation current.
+- `./scripts/deploy.sh f758f94` was run after the Prisma write-shape fix. It built and pushed images, but Kubernetes rollout timed out while new pods were stuck in `ContainerCreating` / old replicas were pending termination due cluster-level sandbox/runtime pressure. Existing healthy pods kept the public quote endpoint available.
 - Runtime pod evidence: `flipflop-order-service-95c7f6d7-2bbb5` mapped `/orders/guest/quote`, had `FLIPFLOP_HOLIDAY_DISCOUNT_PROCESS_VERSION=2`, and returned `/health` 200.
 - Branch cleanup evidence: local branches are `main`; remote branches are `origin/main`.
 
@@ -164,9 +165,11 @@ Validation commands:
 - `git diff --check` passed before commit.
 - `kubectl get deploy -n statex-apps` confirmed all FlipFlop deployments ready after deploy.
 - Public quote smoke confirmed canary `applied=true` and non-canary `applied=false` without database writes.
+- Post-fix public quote smoke after `f758f94` returned HTTP 200 with `holidayDiscount.applied=true`, `discount=99.9`, and `sideEffects=[]` through the still-available public endpoint.
 
 Remaining blockers:
 
+- `[MISSING: Kubernetes/container-runtime cleanup for completing the f758f94 pod replacement rollout]`.
 - `[MISSING: final paid checkout rollout decision for applying Holiday Discount to order creation]`.
 - `[MISSING: final orders.applied-discounts.v1 snapshot field contract in orders.create.v1]`.
 - `[MISSING: notification template provider contract for Holiday Discount post-purchase messages]`.
