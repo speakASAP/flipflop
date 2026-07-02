@@ -127,3 +127,46 @@ Remaining blockers:
 - `[MISSING: automated order-affinity backfill/replay over historical Orders events]`.
 - `[MISSING: broad order_affinity coverage for more live storefront products]`.
 - `[MISSING: approved bundle checkout contract owned by FlipFlop/Orders/Payments]` for future server-authoritative bundle pricing beyond current display/intent flow.
+
+## 2026-07-03 - Holiday Discount Quote Canary V2
+
+Status: implemented, pushed, deployed, and validated with non-mutating public quote smoke.
+
+Intent Preservation Chain:
+
+- Vision: Holiday Discount business-process changes should be testable end to end without creating orders, payments, reservations, or customer records.
+- Goal Impact: FlipFlop can now verify BPCP/Catalog discount eligibility through a public quote endpoint before enabling paid checkout behavior.
+- System: BPCP publishes active process version 2, Catalog projects discount eligibility facts, and FlipFlop order-service calculates a quote without side effects.
+- Feature: Non-mutating Holiday Discount guest quote path.
+- Task: Add `POST /orders/guest/quote` in order-service, proxy it as `POST /api/orders/guest/quote`, make the Holiday process version configurable, deploy, and validate canary/non-canary behavior.
+- Execution Plan: Reuse the existing guest checkout item/total/discount calculation path, skip user/address/order/payment/stock writes, return `sideEffects: []`, and keep the code fail-closed when Catalog facts are missing or ineligible.
+- Coding Prompt: Do not create production orders or payments during validation; preserve unresolved runtime contracts as `[MISSING: ...]`.
+- Code: commit `4543385 feat: add non-mutating holiday discount quote`.
+- Validation: static verifier, order-service build, gateway build, public quote smoke, deploy rollout status, and database side-effect check passed.
+
+Deployment evidence:
+
+- `./scripts/deploy.sh 4543385` built and pushed all FlipFlop images. The script timed out while waiting for rollout completion, but follow-up Kubernetes checks showed all six FlipFlop deployments at ready/updated/available `1/1` with observed generation current.
+- Runtime pod evidence: `flipflop-order-service-95c7f6d7-2bbb5` mapped `/orders/guest/quote`, had `FLIPFLOP_HOLIDAY_DISCOUNT_PROCESS_VERSION=2`, and returned `/health` 200.
+- Branch cleanup evidence: local branches are `main`; remote branches are `origin/main`.
+
+Runtime smoke evidence:
+
+- Canary product quote: `POST https://flipflop.alfares.cz/api/orders/guest/quote` for local product `ffb4883f-ec48-4745-8147-b836f3fb2b88` / Catalog product `ce4a51aa-2d12-4ab7-a965-7a36609d01fc` returned HTTP 200, `schemaVersion=flipflop.checkout-quote.v1`, `sideEffects=[]`, `holidayDiscount.processVersion=2`, `holidayDiscount.applied=true`, `discount=99.9`, and line blockers `[]`.
+- Non-canary product quote: `POST https://flipflop.alfares.cz/api/orders/guest/quote` for local product `038aff5a-6591-409f-8bcb-fade3e8c5c7c` / Catalog product `dbc51dde-fc66-4511-b178-f929183f4647` returned HTTP 200, `sideEffects=[]`, `holidayDiscount.processVersion=2`, `holidayDiscount.applied=false`, `discount=0`, and reason `PRODUCT_NOT_IN_HOLIDAY_ELIGIBILITY_SET`.
+- Database side-effect check for the quote smoke emails returned `users=0` and `orders=0`.
+
+Validation commands:
+
+- `node scripts/verify-holiday-discount-quote.js` passed.
+- `cd services/order-service && npm run build` passed.
+- `cd services/api-gateway && npm run build` passed.
+- `git diff --check` passed before commit.
+- `kubectl get deploy -n statex-apps` confirmed all FlipFlop deployments ready after deploy.
+- Public quote smoke confirmed canary `applied=true` and non-canary `applied=false` without database writes.
+
+Remaining blockers:
+
+- `[MISSING: final paid checkout rollout decision for applying Holiday Discount to order creation]`.
+- `[MISSING: final orders.applied-discounts.v1 snapshot field contract in orders.create.v1]`.
+- `[MISSING: notification template provider contract for Holiday Discount post-purchase messages]`.
