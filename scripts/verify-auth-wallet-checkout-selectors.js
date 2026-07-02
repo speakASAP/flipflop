@@ -112,6 +112,21 @@ assert(!selectDelivery.includes('walletAutofillBlockedRef'), 'explicit delivery 
 
 assert(checkout.includes('walletInvoiceProfiles.length > 0') && checkout.includes('selectWalletInvoiceProfile(event.target.value)'), 'checkout UI must render invoice selector when Auth profiles exist');
 assert(checkout.includes('walletDeliveryAddresses.length > 0') && checkout.includes('selectWalletDeliveryAddress(event.target.value)'), 'checkout UI must render delivery selector when Auth addresses exist');
+for (const label of ['Firma', 'IČO', 'Daňové ID', 'DIČ', 'E-mail pro fakturu']) {
+  assert(checkout.includes(`Field label="${label}"`), `checkout must expose manual invoice field ${label}`);
+}
+
+assert(checkout.includes('const buildInvoiceProfilePayload = (form: FormState, walletProfileCount: number)'), 'checkout must build Auth invoice profile payloads from edited form state');
+assert(checkout.includes('const buildDeliveryAddressPayload = (form: FormState, walletAddressCount: number)'), 'checkout must build Auth delivery address payloads from edited form state');
+assert(checkout.includes('const upsertWalletEntry = <T extends { id: string }>(entries: T[], entry: T)'), 'checkout must merge saved Auth wallet entries back into selector state');
+const saveProfile = extractFunction(checkout, 'saveAuthProfile');
+assert(saveProfile.includes('authApi.updateProfile'), 'checkout save must update the canonical Auth profile');
+assert(saveProfile.includes('authApi.updateInvoiceProfile') && saveProfile.includes('authApi.createInvoiceProfile'), 'checkout save must update or create Auth invoice profiles explicitly');
+assert(saveProfile.includes('authApi.updateDeliveryAddress') && saveProfile.includes('authApi.createDeliveryAddress'), 'checkout save must update or create Auth delivery addresses explicitly');
+assert(saveProfile.includes('selectedWalletInvoiceProfileId') && saveProfile.includes('setSelectedWalletInvoiceProfileId(savedInvoiceProfile.id)'), 'checkout save must retain the saved Auth invoice profile selection');
+assert(saveProfile.includes('selectedWalletDeliveryAddressId') && saveProfile.includes('setSelectedWalletDeliveryAddressId(savedDeliveryAddress.id)'), 'checkout save must retain the saved Auth delivery address selection');
+assert(saveProfile.includes('form.differentDelivery') && saveProfile.includes('buildDeliveryAddressPayload'), 'checkout save must only save delivery-address entries when a separate delivery address is present');
+assert(saveProfile.includes('walletSaveFailed'), 'checkout save must surface partial Auth wallet save failures');
 
 const submitOrder = extractSubmitOrder(checkout);
 assert(submitOrder.includes('const billingAddress = { firstName: form.firstName'), 'checkout must build an immutable billing snapshot for Orders');
@@ -148,6 +163,7 @@ console.log(JSON.stringify({
     manualEditBeforeWalletResponseGuard: true,
     explicitSelectorOverride: true,
     profileAddressAuthFallback: true,
+    checkoutWalletSaveBack: true,
     orderPayloadSnapshotBoundary: true,
   },
 }, null, 2));

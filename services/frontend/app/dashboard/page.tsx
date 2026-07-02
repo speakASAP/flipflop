@@ -274,7 +274,7 @@ export default function UserDashboardPage() {
         {/* Quick Actions */}
         <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 mb-8">
           <h2 className="text-2xl font-extrabold text-slate-900 mb-6">⚡ Rychlé akce</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <Link
               href="/products"
               className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-2xl hover:border-blue-500 hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 transition-all shadow-sm hover:shadow-md transform hover:scale-105"
@@ -302,6 +302,13 @@ export default function UserDashboardPage() {
             >
               <span className="text-4xl mb-3">📍</span>
               <span className="text-sm font-bold text-gray-700">Adresy</span>
+            </Link>
+            <Link
+              href="/profile/invoice-profiles"
+              className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-2xl hover:border-blue-500 hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 transition-all shadow-sm hover:shadow-md transform hover:scale-105"
+            >
+              <span className="text-4xl mb-3">🧾</span>
+              <span className="text-sm font-bold text-gray-700">Fakturace</span>
             </Link>
           </div>
         </div>

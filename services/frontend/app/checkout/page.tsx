@@ -134,6 +134,42 @@ const mergeDeliveryAddressIntoForm = (current: FormState, address: AuthDeliveryA
   deliveryPostalCode: address.postalCode || current.deliveryPostalCode,
 });
 
+const buildInvoiceProfilePayload = (form: FormState, walletProfileCount: number) => ({
+  label: form.companyName || [form.firstName, form.lastName].filter(Boolean).join(' ') || 'Fakturační profil',
+  type: form.companyName || form.companyId || form.taxId || form.vatId ? 'company' as const : 'person' as const,
+  firstName: form.firstName,
+  lastName: form.lastName,
+  companyName: form.companyName || undefined,
+  companyId: form.companyId || undefined,
+  taxId: form.taxId || undefined,
+  vatId: form.vatId || undefined,
+  street: form.street,
+  city: form.city,
+  postalCode: form.postalCode,
+  country: form.country,
+  email: form.invoiceEmail || form.email,
+  phone: form.phone,
+  isDefault: walletProfileCount === 0,
+});
+
+const buildDeliveryAddressPayload = (form: FormState, walletAddressCount: number) => ({
+  label: [form.deliveryStreet, form.deliveryCity, form.deliveryPostalCode].filter(Boolean).join(', ') || 'Dodací adresa',
+  firstName: form.firstName,
+  lastName: form.lastName,
+  street: form.deliveryStreet,
+  city: form.deliveryCity,
+  postalCode: form.deliveryPostalCode,
+  country: form.country,
+  phone: form.phone,
+  isDefault: walletAddressCount === 0,
+});
+
+const upsertWalletEntry = <T extends { id: string }>(entries: T[], entry: T) => (
+  entries.some((item) => item.id === entry.id)
+    ? entries.map((item) => (item.id === entry.id ? entry : item))
+    : [...entries, entry]
+);
+
 const getCartProduct = (item: any) => item.product || item.products;
 const money = (value: number) => Math.round(value).toLocaleString('cs-CZ') + ' Kč';
 
@@ -333,29 +369,68 @@ export default function CheckoutPage() {
     setProfileSaving(true);
     setProfileMessage(null);
     setError(null);
-    const response = await authApi.updateProfile({
-      firstName: form.firstName,
-      lastName: form.lastName,
-      phone: form.phone,
-      address: {
+
+    try {
+      const response = await authApi.updateProfile({
         firstName: form.firstName,
         lastName: form.lastName,
-        street: form.street,
-        city: form.city,
-        postalCode: form.postalCode,
-        country: form.country,
         phone: form.phone,
-      },
-    });
-    setProfileSaving(false);
-    const updatedUser = response.data;
-    if (response.success && updatedUser) {
+        address: {
+          firstName: form.firstName,
+          lastName: form.lastName,
+          street: form.street,
+          city: form.city,
+          postalCode: form.postalCode,
+          country: form.country,
+          phone: form.phone,
+        },
+      });
+
+      const updatedUser = response.data;
+      if (!response.success || !updatedUser) {
+        setProfileMessage('Údaje se nepodařilo uložit do centrálního profilu.');
+        return;
+      }
+
+      let walletSaveFailed = false;
+      if (form.street.trim() && form.city.trim() && form.postalCode.trim()) {
+        const invoicePayload = buildInvoiceProfilePayload(form, walletInvoiceProfiles.length);
+        const invoiceResponse = selectedWalletInvoiceProfileId
+          ? await authApi.updateInvoiceProfile(selectedWalletInvoiceProfileId, invoicePayload)
+          : await authApi.createInvoiceProfile(invoicePayload);
+
+        if (invoiceResponse.success && invoiceResponse.data) {
+          const savedInvoiceProfile = invoiceResponse.data;
+          setWalletInvoiceProfiles((current) => upsertWalletEntry<AuthInvoiceProfile>(current, savedInvoiceProfile));
+          setSelectedWalletInvoiceProfileId(savedInvoiceProfile.id);
+        } else {
+          walletSaveFailed = true;
+        }
+      }
+
+      if (form.differentDelivery && form.deliveryStreet.trim() && form.deliveryCity.trim() && form.deliveryPostalCode.trim()) {
+        const deliveryPayload = buildDeliveryAddressPayload(form, walletDeliveryAddresses.length);
+        const deliveryResponse = selectedWalletDeliveryAddressId
+          ? await authApi.updateDeliveryAddress(selectedWalletDeliveryAddressId, deliveryPayload)
+          : await authApi.createDeliveryAddress(deliveryPayload);
+
+        if (deliveryResponse.success && deliveryResponse.data) {
+          const savedDeliveryAddress = deliveryResponse.data;
+          setWalletDeliveryAddresses((current) => upsertWalletEntry<AuthDeliveryAddress>(current, savedDeliveryAddress));
+          setSelectedWalletDeliveryAddressId(savedDeliveryAddress.id);
+        } else {
+          walletSaveFailed = true;
+        }
+      }
+
       setForm((current) => prefillContactFromUser(current, updatedUser));
       setProfileEditing(false);
-      setProfileMessage('Údaje byly uloženy do centrálního profilu.');
-      return;
+      setProfileMessage(walletSaveFailed
+        ? 'Základní profil byl uložen, ale některé údaje peněženky se nepodařilo uložit.'
+        : 'Údaje byly uloženy do centrálního profilu a peněženky.');
+    } finally {
+      setProfileSaving(false);
     }
-    setProfileMessage('Údaje se nepodařilo uložit do centrálního profilu.');
   };
 
   const goToDelivery = () => {
@@ -440,7 +515,7 @@ export default function CheckoutPage() {
                 <section className="space-y-5"><label className="flex items-center gap-3 font-semibold"><input type="checkbox" checked={differentDay} onChange={(event) => setDifferentDay(event.target.checked)} className="h-5 w-5 accent-pink-600" />Chci zboží doručit v jiný den</label>{differentDay && <input type="date" value={requestedDate} onChange={(event) => setRequestedDate(event.target.value)} className="border border-neutral-300 px-4 py-3" />}<div className="grid gap-3 sm:grid-cols-2"><button type="button" onClick={() => router.push('/cart')} className="border border-neutral-300 px-8 py-5 text-xl font-black text-neutral-800 hover:border-pink-600 hover:text-pink-700">← Vrátit se na předchozí krok</button><button onClick={goToDetails} className="bg-green-600 px-8 py-5 text-xl font-black text-white hover:bg-green-700">Pokračovat na osobní údaje →</button></div></section>
               </div>
             ) : (
-              <form onSubmit={submitOrder} className="space-y-10"><button type="button" onClick={goToDelivery} className="border border-neutral-300 px-6 py-3 font-black text-neutral-800 hover:border-pink-600 hover:text-pink-700">← Vrátit se na předchozí krok</button><section className="border border-neutral-200 p-8">{!user && <div className="mb-8 rounded border border-neutral-200 bg-neutral-50 p-5"><p className="font-semibold">Máte již u nás účet?</p><p><Link href={loginRedirectHref} className="font-bold text-pink-700 underline">Přihlaste se</Link><span> a my vše předvyplníme přímo tady.</span></p><p className="mt-3 text-sm font-semibold text-neutral-700">Pokud účet nenajdete, zůstanete v tomto kroku checkoutu. Můžete pokračovat jako host, <Link href={registerRedirectHref} className="text-pink-700 underline">zaregistrovat se</Link> nebo <a href={passwordResetHref} className="text-pink-700 underline">obnovit přístup</a>.</p></div>}<div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"><h1 className="text-4xl font-black">Kontaktní údaje</h1>{user && <div className="flex flex-wrap items-center gap-3">{profileMessage && <span className="text-sm font-semibold text-neutral-600">{profileMessage}</span>}{profileLocked ? <button type="button" onClick={() => setProfileEditing(true)} className="border border-neutral-300 px-4 py-2 font-bold text-neutral-800 hover:border-pink-600 hover:text-pink-700">Upravit údaje</button> : <button type="button" onClick={saveAuthProfile} disabled={profileSaving} className="bg-pink-700 px-4 py-2 font-bold text-white hover:bg-pink-800 disabled:opacity-60">{profileSaving ? 'Ukládáme...' : 'Uložit údaje'}</button>}</div>}</div><div className="grid gap-5 md:grid-cols-2"><Field label="E-mail *" value={form.email} valid={form.email.includes('@')} disabled={Boolean(user)} onChange={(value) => updateForm('email', value)} /><Field label="Telefon *" value={form.phone} valid={Boolean(form.phone.trim())} disabled={profileLocked} onChange={(value) => updateForm('phone', value)} /><Field label="Jméno *" value={form.firstName} valid={Boolean(form.firstName.trim())} disabled={profileLocked} onChange={(value) => updateForm('firstName', value)} /><Field label="Příjmení *" value={form.lastName} valid={Boolean(form.lastName.trim())} disabled={profileLocked} onChange={(value) => updateForm('lastName', value)} /></div><h2 className="mb-6 mt-10 text-3xl font-black">Fakturační údaje</h2>{walletInvoiceProfiles.length > 0 && <label className="mb-5 block font-semibold">Fakturační profil<select value={selectedWalletInvoiceProfileId} onChange={(event) => selectWalletInvoiceProfile(event.target.value)} className="mt-2 w-full border border-neutral-300 bg-white px-4 py-3 focus:border-pink-600 focus:outline-none"><option value="">Vyplnit ručně</option>{walletInvoiceProfiles.map((profile) => <option key={profile.id} value={profile.id}>{formatInvoiceProfileLabel(profile)}</option>)}</select></label>}<AddressAutocomplete required disabled={profileLocked} value={{ street: form.street, city: form.city, postalCode: form.postalCode, country: form.country }} onChange={updateBillingAddress} />{walletDeliveryAddresses.length > 0 && <label className="mt-8 block font-semibold">Dodací adresa<select value={selectedWalletDeliveryAddressId} onChange={(event) => selectWalletDeliveryAddress(event.target.value)} className="mt-2 w-full border border-neutral-300 bg-white px-4 py-3 focus:border-pink-600 focus:outline-none"><option value="">Použít fakturační údaje</option>{walletDeliveryAddresses.map((address) => <option key={address.id} value={address.id}>{formatWalletAddressLabel(address)}</option>)}</select></label>}<label className="mt-8 flex items-center gap-3 font-semibold"><input type="checkbox" checked={form.differentDelivery} onChange={(event) => updateForm('differentDelivery', event.target.checked)} className="h-5 w-5 accent-pink-600" />Dodací údaje jsou jiné než fakturační</label>{form.differentDelivery && <AddressAutocomplete value={{ street: form.deliveryStreet, city: form.deliveryCity, postalCode: form.deliveryPostalCode, country: form.country }} onChange={updateDeliveryAddress} showCountry={false} streetLabel="Dodací ulice" cityLabel="Dodací město" postalCodeLabel="Dodací PSČ" wrapperClassName="mt-5 grid gap-5 md:grid-cols-3" />}<label className="mt-8 block font-semibold">Poznámka<textarea value={form.note} onChange={(event) => updateForm('note', event.target.value)} className="mt-2 h-24 w-full border border-neutral-300 px-4 py-3" /></label>{showAccountCreationPrompt && <><label className="mt-8 flex items-center gap-3 font-semibold"><input type="checkbox" checked={form.createAccount} onChange={(event) => updateForm('createAccount', event.target.checked)} className="h-5 w-5 accent-pink-600" />Chci vytvořit účet</label>{form.createAccount && <p className="mt-3 max-w-xl text-sm font-semibold text-neutral-600">Po dokončení objednávky vám pošleme e-mail pro bezpečné dokončení účtu. Objednávka tím není podmíněná.</p>}</>}<label className="mt-8 flex items-start gap-3 font-semibold"><input type="checkbox" checked={form.marketingConsent} onChange={(event) => updateForm('marketingConsent', event.target.checked)} className="mt-1 h-5 w-5 accent-pink-600" /><span>Souhlasím se zasíláním marketingových informací a nabídek e-mailem.</span></label></section>{error && <div className="border border-red-500 bg-red-50 px-5 py-4 font-semibold text-red-700">{error}</div>}<button disabled={processing} className="w-full bg-green-600 px-8 py-5 text-xl font-black text-white hover:bg-green-700 disabled:opacity-60">{processing ? 'Odesíláme objednávku...' : 'Odeslat objednávku s povinností platby →'}</button><p className="text-center text-sm text-neutral-500">Dokončením objednávky souhlasíte s obchodními podmínkami a zpracováním osobních údajů.</p><button type="button" onClick={goToDelivery} className="font-bold underline">← Vrátit se na předchozí krok</button></form>
+              <form onSubmit={submitOrder} className="space-y-10"><button type="button" onClick={goToDelivery} className="border border-neutral-300 px-6 py-3 font-black text-neutral-800 hover:border-pink-600 hover:text-pink-700">← Vrátit se na předchozí krok</button><section className="border border-neutral-200 p-8">{!user && <div className="mb-8 rounded border border-neutral-200 bg-neutral-50 p-5"><p className="font-semibold">Máte již u nás účet?</p><p><Link href={loginRedirectHref} className="font-bold text-pink-700 underline">Přihlaste se</Link><span> a my vše předvyplníme přímo tady.</span></p><p className="mt-3 text-sm font-semibold text-neutral-700">Pokud účet nenajdete, zůstanete v tomto kroku checkoutu. Můžete pokračovat jako host, <Link href={registerRedirectHref} className="text-pink-700 underline">zaregistrovat se</Link> nebo <a href={passwordResetHref} className="text-pink-700 underline">obnovit přístup</a>.</p></div>}<div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"><h1 className="text-4xl font-black">Kontaktní údaje</h1>{user && <div className="flex flex-wrap items-center gap-3">{profileMessage && <span className="text-sm font-semibold text-neutral-600">{profileMessage}</span>}{profileLocked ? <button type="button" onClick={() => setProfileEditing(true)} className="border border-neutral-300 px-4 py-2 font-bold text-neutral-800 hover:border-pink-600 hover:text-pink-700">Upravit údaje</button> : <button type="button" onClick={saveAuthProfile} disabled={profileSaving} className="bg-pink-700 px-4 py-2 font-bold text-white hover:bg-pink-800 disabled:opacity-60">{profileSaving ? 'Ukládáme...' : 'Uložit údaje'}</button>}</div>}</div><div className="grid gap-5 md:grid-cols-2"><Field label="E-mail *" value={form.email} valid={form.email.includes('@')} disabled={Boolean(user)} onChange={(value) => updateForm('email', value)} /><Field label="Telefon *" value={form.phone} valid={Boolean(form.phone.trim())} disabled={profileLocked} onChange={(value) => updateForm('phone', value)} /><Field label="Jméno *" value={form.firstName} valid={Boolean(form.firstName.trim())} disabled={profileLocked} onChange={(value) => updateForm('firstName', value)} /><Field label="Příjmení *" value={form.lastName} valid={Boolean(form.lastName.trim())} disabled={profileLocked} onChange={(value) => updateForm('lastName', value)} /></div><h2 className="mb-6 mt-10 text-3xl font-black">Fakturační údaje</h2>{walletInvoiceProfiles.length > 0 && <label className="mb-5 block font-semibold">Fakturační profil<select value={selectedWalletInvoiceProfileId} onChange={(event) => selectWalletInvoiceProfile(event.target.value)} className="mt-2 w-full border border-neutral-300 bg-white px-4 py-3 focus:border-pink-600 focus:outline-none"><option value="">Vyplnit ručně</option>{walletInvoiceProfiles.map((profile) => <option key={profile.id} value={profile.id}>{formatInvoiceProfileLabel(profile)}</option>)}</select></label>}<div className="mb-5 grid gap-5 md:grid-cols-2"><Field label="Firma" value={form.companyName} valid={Boolean(form.companyName.trim())} disabled={profileLocked} onChange={(value) => updateForm('companyName', value)} /><Field label="IČO" value={form.companyId} valid={Boolean(form.companyId.trim())} disabled={profileLocked} onChange={(value) => updateForm('companyId', value)} /><Field label="Daňové ID" value={form.taxId} valid={Boolean(form.taxId.trim())} disabled={profileLocked} onChange={(value) => updateForm('taxId', value)} /><Field label="DIČ" value={form.vatId} valid={Boolean(form.vatId.trim())} disabled={profileLocked} onChange={(value) => updateForm('vatId', value)} /><Field label="E-mail pro fakturu" value={form.invoiceEmail} valid={Boolean(form.invoiceEmail.includes('@'))} disabled={profileLocked} onChange={(value) => updateForm('invoiceEmail', value)} /></div><AddressAutocomplete required disabled={profileLocked} value={{ street: form.street, city: form.city, postalCode: form.postalCode, country: form.country }} onChange={updateBillingAddress} />{walletDeliveryAddresses.length > 0 && <label className="mt-8 block font-semibold">Dodací adresa<select value={selectedWalletDeliveryAddressId} onChange={(event) => selectWalletDeliveryAddress(event.target.value)} className="mt-2 w-full border border-neutral-300 bg-white px-4 py-3 focus:border-pink-600 focus:outline-none"><option value="">Použít fakturační údaje</option>{walletDeliveryAddresses.map((address) => <option key={address.id} value={address.id}>{formatWalletAddressLabel(address)}</option>)}</select></label>}<label className="mt-8 flex items-center gap-3 font-semibold"><input type="checkbox" checked={form.differentDelivery} onChange={(event) => updateForm('differentDelivery', event.target.checked)} className="h-5 w-5 accent-pink-600" />Dodací údaje jsou jiné než fakturační</label>{form.differentDelivery && <AddressAutocomplete value={{ street: form.deliveryStreet, city: form.deliveryCity, postalCode: form.deliveryPostalCode, country: form.country }} onChange={updateDeliveryAddress} showCountry={false} streetLabel="Dodací ulice" cityLabel="Dodací město" postalCodeLabel="Dodací PSČ" wrapperClassName="mt-5 grid gap-5 md:grid-cols-3" />}<label className="mt-8 block font-semibold">Poznámka<textarea value={form.note} onChange={(event) => updateForm('note', event.target.value)} className="mt-2 h-24 w-full border border-neutral-300 px-4 py-3" /></label>{showAccountCreationPrompt && <><label className="mt-8 flex items-center gap-3 font-semibold"><input type="checkbox" checked={form.createAccount} onChange={(event) => updateForm('createAccount', event.target.checked)} className="h-5 w-5 accent-pink-600" />Chci vytvořit účet</label>{form.createAccount && <p className="mt-3 max-w-xl text-sm font-semibold text-neutral-600">Po dokončení objednávky vám pošleme e-mail pro bezpečné dokončení účtu. Objednávka tím není podmíněná.</p>}</>}<label className="mt-8 flex items-start gap-3 font-semibold"><input type="checkbox" checked={form.marketingConsent} onChange={(event) => updateForm('marketingConsent', event.target.checked)} className="mt-1 h-5 w-5 accent-pink-600" /><span>Souhlasím se zasíláním marketingových informací a nabídek e-mailem.</span></label></section>{error && <div className="border border-red-500 bg-red-50 px-5 py-4 font-semibold text-red-700">{error}</div>}<button disabled={processing} className="w-full bg-green-600 px-8 py-5 text-xl font-black text-white hover:bg-green-700 disabled:opacity-60">{processing ? 'Odesíláme objednávku...' : 'Odeslat objednávku s povinností platby →'}</button><p className="text-center text-sm text-neutral-500">Dokončením objednávky souhlasíte s obchodními podmínkami a zpracováním osobních údajů.</p><button type="button" onClick={goToDelivery} className="font-bold underline">← Vrátit se na předchozí krok</button></form>
             )}
           </section>
           <aside className="lg:sticky lg:top-6 lg:self-start"><div className="border border-neutral-200 bg-white p-6 shadow-lg"><h2 className="mb-6 text-3xl font-black">Souhrn objednávky</h2><div className="space-y-5">{cart.items.map((item: any) => { const product = getCartProduct(item); return <div key={item.id} className="flex gap-4 border-b border-neutral-200 pb-4"><div className="h-16 w-16 overflow-hidden border border-neutral-200 bg-neutral-50">{product?.mainImageUrl ? <img src={product.mainImageUrl} alt={product.name} className="h-full w-full object-cover" /> : null}</div><div className="flex-1"><p className="text-sm font-black">{product?.name || 'Produkt'}</p><p className="text-sm text-neutral-500">{item.quantity}×</p></div><p className="font-bold">{money(item.price * item.quantity)}</p></div>; })}<SummaryRow label="Produkty v košíku v hodnotě" value={money(subtotal)} /><SummaryRow label={selectedDelivery.label} value={selectedDelivery.price === 0 ? 'ZDARMA' : money(selectedDelivery.price)} />{bundleEstimatedSavings > 0 ? <SummaryRow label="Setová úspora" value={'-' + money(bundleEstimatedSavings)} /> : null}{operatorTip > 0 && <SummaryRow label="Poděkování expedici" value={money(operatorTip)} />}<div className="border-t border-neutral-200 pt-5"><div className="flex justify-between text-2xl font-black text-pink-700"><span>Celkem k zaplacení</span><span>{money(total)}</span></div></div></div></div></aside>

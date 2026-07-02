@@ -450,7 +450,7 @@ export class AuthService {
     id: string,
   ): Promise<AuthDeliveryAddress> {
     const response = await this.callAuthProfileResource<unknown>(
-      'PATCH',
+      'POST',
       `/auth/profile/delivery-addresses/${encodeURIComponent(id)}/default`,
       accessToken,
     );
@@ -513,7 +513,7 @@ export class AuthService {
     id: string,
   ): Promise<AuthInvoiceProfile> {
     const response = await this.callAuthProfileResource<unknown>(
-      'PATCH',
+      'POST',
       `/auth/profile/invoice-profiles/${encodeURIComponent(id)}/default`,
       accessToken,
     );

@@ -150,6 +150,9 @@ export default function Header() {
                 <Link href="/profile" className="text-slate-700 font-medium hover:text-blue-600 transition-colors px-3 py-2 rounded-lg hover:bg-blue-50 hidden sm:block">
                   {user?.firstName || 'Profil'}
                 </Link>
+                <Link href="/profile/invoice-profiles" className="text-slate-700 font-medium hover:text-blue-600 transition-colors px-3 py-2 rounded-lg hover:bg-blue-50 hidden lg:block">
+                  Fakturace
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="text-red-600 hover:text-red-700 font-medium px-3 py-2 rounded-lg hover:bg-red-50 transition-colors"

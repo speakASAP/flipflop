@@ -23,7 +23,8 @@
     "verify:flipflop-reconciliation": "node scripts/verify-flipflop-reconciliation.js",
     "reconcile:flipflop-offers": "npm --prefix services/product-service run reconcile:offers:dev",
     "verify:product-detail-upsell": "node scripts/verify-product-detail-upsell.js",
-    "verify:product-detail-bundle-discount": "node scripts/verify-product-detail-bundle-discount.js"
+    "verify:product-detail-bundle-discount": "node scripts/verify-product-detail-bundle-discount.js",
+    "verify:auth-wallet-profile-ui": "node scripts/verify-auth-wallet-profile-ui.js"
   },
   "dependencies": {
     "@nestjs-modules/ioredis": "^2.2.1",

@@ -178,6 +178,12 @@ export default function ProfilePage() {
                 >
                   📍 Dodací adresy
                 </Link>
+                <Link
+                  href="/profile/invoice-profiles"
+                  className="block bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl px-5 py-3 font-semibold text-blue-700 hover:from-blue-100 hover:to-indigo-100 transition-all shadow-sm hover:shadow-md"
+                >
+                  Fakturační profily
+                </Link>
               </div>
             </div>
           </div>
