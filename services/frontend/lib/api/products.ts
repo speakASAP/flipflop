@@ -4,6 +4,32 @@
 
 import { apiClient } from './client';
 
+export interface CatalogProductQualityIssue {
+  code: string;
+  field?: string | null;
+  severity?: string | null;
+  message?: string | null;
+  source?: string | null;
+  [key: string]: unknown;
+}
+
+export interface CatalogProductQualityStatus {
+  policyId: string;
+  productId: string | null;
+  checked: boolean;
+  blocked: boolean;
+  canActivate: boolean;
+  failedClosed: boolean;
+  lookupFailed: boolean;
+  lookupError: string | null;
+  blockingIssues: CatalogProductQualityIssue[];
+  mandatoryBlockers: CatalogProductQualityIssue[];
+  optionalOpportunities: CatalogProductQualityIssue[];
+  completionScore: number | null;
+  nextAction: string;
+  source: string;
+}
+
 export interface Product {
   id: string;
   catalogProductId?: string;
@@ -20,6 +46,7 @@ export interface Product {
   variants?: ProductVariant[];
   seoData?: ProductSeoData | null;
   tags?: string[];
+  quality?: CatalogProductQualityStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -121,7 +148,18 @@ export interface SellerCatalogProduct extends Product {
 export interface SellerCatalogPublishResponse {
   success: boolean;
   totals?: { requested: number; succeeded: number; failed: number; blocked: number };
-  results?: Array<{ catalogProductId: string; status: string; success: boolean; blocked: boolean; message: string; listingUrl?: string }>;
+  results?: Array<{
+    catalogProductId: string;
+    status: string;
+    success: boolean;
+    blocked: boolean;
+    message: string;
+    reason?: string | null;
+    nextAction?: string;
+    listingUrl?: string;
+    quality?: CatalogProductQualityStatus;
+    blockedReasons?: Array<{ reason: string; message: string; field?: string | null; policyId?: string }>;
+  }>;
   sellerOwnershipContract?: string;
 }
 

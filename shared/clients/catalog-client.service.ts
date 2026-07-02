@@ -38,7 +38,51 @@ export interface CatalogContentPreview {
     generatedAt: string;
   };
   overridesApplied: unknown;
+
   warnings: string[];
+}
+
+export interface CatalogProductQualityIssue {
+  code: string;
+  field?: string | null;
+  severity?: string | null;
+  message?: string | null;
+  source?: string | null;
+  [key: string]: unknown;
+}
+
+export interface CatalogProductQualityReviewItem {
+  productId: string;
+  sku?: string | null;
+  title?: string | null;
+  lifecycle?: string | null;
+  canActivate?: boolean;
+  completionScore?: number;
+  blockingIssues?: CatalogProductQualityIssue[];
+  optionalOpportunities?: CatalogProductQualityIssue[];
+  nextAction?: string;
+  [key: string]: unknown;
+}
+
+export interface CatalogProductQualityReviewResponse {
+  policyId: string;
+  blockers: string[];
+  items: CatalogProductQualityReviewItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface CatalogProductQualityReviewQuery {
+  page?: number;
+  limit?: number;
+  search?: string;
+  missingField?: string;
+  severity?: 'blocking' | 'optional';
+  catalogScope?: string;
+  catalogSources?: string | string[];
+  isActive?: boolean;
+  lifecycle?: string;
 }
 
 /**
@@ -145,6 +189,62 @@ export class CatalogClientService {
       );
       throw new HttpException('Catalog content preview not available', HttpStatus.BAD_GATEWAY);
     }
+  }
+
+
+  async getProductQualityReview(
+  query: CatalogProductQualityReviewQuery = {},
+  options: CatalogProductRequestOptions = {},
+  ): Promise<CatalogProductQualityReviewResponse> {
+    try {
+    const params = new URLSearchParams();
+    if (query.page) params.append('page', String(query.page));
+    if (query.limit) params.append('limit', String(query.limit));
+    if (query.search) params.append('search', query.search);
+    if (query.missingField) params.append('missingField', query.missingField);
+    if (query.severity) params.append('severity', query.severity);
+    if (query.catalogScope || options.catalogScope) params.append('catalogScope', String(query.catalogScope || options.catalogScope));
+    if (query.catalogSources) {
+      params.append('catalogSources', Array.isArray(query.catalogSources) ? query.catalogSources.join(',') : query.catalogSources);
+    }
+    if (query.isActive !== undefined) params.append('isActive', String(query.isActive));
+    if (query.lifecycle) params.append('lifecycle', query.lifecycle);
+
+    const queryString = params.toString();
+    const response = await firstValueFrom(
+      this.httpService.get(
+        `${this.baseUrl}/api/products/review/quality${queryString ? `?${queryString}` : ''}`,
+        {
+          headers: this.catalogHeaders(
+            options.authorizationHeader ? { Authorization: options.authorizationHeader } : undefined,
+          ),
+        },
+      ),
+    );
+
+    const items = Array.isArray(response.data?.data)
+      ? response.data.data
+      : Array.isArray(response.data?.items)
+        ? response.data.items
+        : [];
+    const pagination = response.data?.pagination || {};
+
+    return {
+      policyId: response.data?.policyId || 'catalog.product_quality.v1',
+      blockers: Array.isArray(response.data?.blockers) ? response.data.blockers : [],
+      items,
+      total: Number(pagination.total ?? response.data?.total ?? items.length),
+      page: Number(pagination.page ?? query.page ?? 1),
+      limit: Number(pagination.limit ?? query.limit ?? items.length ?? 0),
+    };
+  } catch (error: unknown) {
+    const err = error as { response?: { status?: number; data?: any }; stack?: string; message?: string };
+    const responseMessage = err.response?.data?.error?.message || err.response?.data?.message;
+    const errorMessage = responseMessage || err.message || 'Unknown error';
+    const status = err.response?.status || HttpStatus.BAD_GATEWAY;
+    this.logger.error(`Failed to get Catalog product quality review: ${errorMessage}`, err.stack, 'CatalogClient');
+    throw new HttpException(errorMessage, status);
+  }
   }
 
   async getProductById(productId: string, options: CatalogProductRequestOptions = {}): Promise<any> {

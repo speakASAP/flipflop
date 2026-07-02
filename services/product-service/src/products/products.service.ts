@@ -8,6 +8,11 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { createHash } from 'crypto';
 import { PrismaService, LoggerService, CatalogClientService, WarehouseClientService } from '@flipflop/shared';
 import { WarehouseService } from './warehouse.service';
+import {
+  type CatalogProductQualityStatus,
+  catalogProductQualityBlockedReasons,
+  normalizeCatalogProductQualityStatus,
+} from './catalog-product-quality.policy';
 
 type FlipFlopBulkPublishRequest = {
   productIds?: string[];
@@ -38,6 +43,8 @@ type FlipFlopPublishResult = {
   message: string;
   nextAction: string;
   availableStock?: number;
+  quality?: CatalogProductQualityStatus;
+  blockedReasons?: Array<Record<string, any>>;
   attempt?: Record<string, any>;
   dependencyStatus?: number | null;
   dependencyMessage?: string | null;
@@ -322,6 +329,8 @@ export class ProductsService {
           item.catalogState = this.catalogStateSnapshot(catalogProduct);
           item.blockedReasons.push(...this.catalogLifecycleBlockedReasons(catalogProduct));
           item.blockedReasons.push(...this.catalogSellabilityBlockedReasons(catalogProduct));
+          item.catalogQuality = await this.catalogProductQualityStatus(catalogProduct);
+          item.blockedReasons.push(...this.catalogQualityBlockedReasons(item.catalogQuality));
         } catch (error: any) {
           item.blockedReasons.push({
             reason: 'catalog_product_missing',
@@ -550,7 +559,10 @@ export class ProductsService {
 
     return {
       success: true,
-      product: this.mapCatalogSelectionProduct({ ...product, ...(updated || {}), resaleEnabled }),
+      product: this.mapCatalogSelectionProduct(
+        { ...product, ...(updated || {}), resaleEnabled },
+        await this.catalogProductQualityStatus({ ...product, ...(updated || {}), resaleEnabled }, actor.authorizationHeader),
+      ),
     };
   }
 
@@ -576,7 +588,12 @@ export class ProductsService {
       }
 
       if (catalogScope === 'effective') {
-        const items = catalogResult.items.map((product: any) => this.mapCatalogSelectionProduct(product));
+        const items = await Promise.all(
+          catalogResult.items.map(async (product: any) => this.mapCatalogSelectionProduct(
+            product,
+            await this.catalogProductQualityStatus(product, filters.authorizationHeader),
+          )),
+        );
         const total = Number(catalogResult.total || items.length);
         const totalPages = Math.ceil(total / catalogResult.limit);
 
@@ -1176,7 +1193,7 @@ export class ProductsService {
     };
   }
 
-  async getCatalogPublishStatus(catalogProductId: string) {
+  async getCatalogPublishStatus(catalogProductId: string, authorizationHeader?: string) {
     await this.ensureCatalogPublishAttemptTable();
     const rows = await this.prisma.$queryRawUnsafe<any[]>(
       'SELECT * FROM "flipflop_catalog_publish_attempts" WHERE "catalogProductId" = $1::uuid ORDER BY "createdAt" DESC LIMIT 1',
@@ -1202,7 +1219,7 @@ export class ProductsService {
     } else {
       try {
         const catalogProduct = await this.catalogClient.getProductById(catalogProductId);
-        policySnapshot = await this.catalogProductPublishPolicy(catalogProduct);
+        policySnapshot = await this.catalogProductPublishPolicy(catalogProduct, { authorizationHeader });
         blockedReasons.push(...(policySnapshot.blockedReasons || []));
         status = policySnapshot.publishable ? 'published' : 'blocked';
       } catch (error: any) {
@@ -1256,7 +1273,9 @@ export class ProductsService {
 
     try {
       const catalogProduct = await this.catalogClient.getProductById(catalogProductId);
-      const policySnapshot = await this.catalogProductPublishPolicy(catalogProduct);
+      const policySnapshot = await this.catalogProductPublishPolicy(catalogProduct, {
+        authorizationHeader: actor.authorizationHeader || undefined,
+      });
 
       if (!policySnapshot.publishable) {
         const result = this.blockedFlipFlopPublishResult(catalogProductId, listingUrl, policySnapshot);
@@ -1284,6 +1303,7 @@ export class ProductsService {
           message: 'FlipFlop publish preflight passed. Dry run did not update storefront product state.',
           nextAction: 'publish_flipflop_listing',
           availableStock: policySnapshot.availableStock,
+          quality: policySnapshot.quality,
         };
         await this.recordCatalogPublishAttempt({
           ...attemptBase,
@@ -1309,6 +1329,7 @@ export class ProductsService {
         message: 'Product published to FlipFlop storefront lifecycle.',
         nextAction: 'view_flipflop_listing',
         availableStock: policySnapshot.availableStock,
+        quality: policySnapshot.quality,
       };
       await this.recordCatalogPublishAttempt({
         ...attemptBase,
@@ -1430,7 +1451,10 @@ export class ProductsService {
     return ownerValues.some((value) => actorValues.includes(value));
   }
 
-  private async catalogProductOfferPolicy(catalogProduct: any) {
+  private async catalogProductOfferPolicy(
+    catalogProduct: any,
+    options: { authorizationHeader?: string | null } = {},
+  ) {
     const blockedReasons: Array<{ reason: string; message: string }> = [];
     const price = this.getCatalogPrice(catalogProduct);
     let availableStock = 0;
@@ -1444,6 +1468,9 @@ export class ProductsService {
     if (price <= 0) {
       blockedReasons.push({ reason: 'price_required', message: 'A positive Catalog price is required before FlipFlop publication.' });
     }
+
+    const quality = await this.catalogProductQualityStatus(catalogProduct, options.authorizationHeader);
+    blockedReasons.push(...this.catalogQualityBlockedReasons(quality));
 
     if (catalogProduct?.id) {
       try {
@@ -1465,19 +1492,83 @@ export class ProductsService {
       blockedReasons,
       price,
       availableStock,
+      quality,
       source: 'catalog-microservice+warehouse-microservice',
       mutatesCatalog: false,
       mutatesPrices: false,
     };
   }
 
-  private async catalogProductPublishPolicy(catalogProduct: any) {
-    const policy = await this.catalogProductOfferPolicy(catalogProduct);
+  private async catalogProductPublishPolicy(
+    catalogProduct: any,
+    options: { authorizationHeader?: string | null } = {},
+  ) {
+    const policy = await this.catalogProductOfferPolicy(catalogProduct, options);
 
     return {
       ...policy,
       publishable: policy.sellable,
     };
+  }
+
+  private async catalogProductQualityStatus(
+    catalogProduct: any,
+    authorizationHeader?: string | null,
+  ): Promise<CatalogProductQualityStatus> {
+    const productId = String(catalogProduct?.id || '').trim();
+    if (!productId) {
+      return normalizeCatalogProductQualityStatus({
+        productId: null,
+        lookupError: 'Catalog product is missing an ID for quality review.',
+      });
+    }
+
+    const search = this.catalogQualitySearchTerm(catalogProduct);
+    const lookup = async (searchTerm?: string) => this.catalogClient.getProductQualityReview({
+      page: 1,
+      limit: searchTerm ? 50 : 200,
+      search: searchTerm,
+      catalogScope: authorizationHeader ? 'effective' : undefined,
+    }, {
+      authorizationHeader: authorizationHeader || undefined,
+    });
+
+    try {
+      let review = await lookup(search);
+      let item = this.findCatalogQualityItem(review.items, productId);
+
+      if (!item && search) {
+        review = await lookup(undefined);
+        item = this.findCatalogQualityItem(review.items, productId);
+      }
+
+      return normalizeCatalogProductQualityStatus({
+        item,
+        policyId: review.policyId,
+        productId,
+        lookupError: item ? null : `Catalog quality review did not return product ${productId}.`,
+      });
+    } catch (error: any) {
+      return normalizeCatalogProductQualityStatus({
+        productId,
+        lookupError: `Catalog quality review lookup failed: ${error?.message || 'unknown error'}`,
+      });
+    }
+  }
+
+  private findCatalogQualityItem(items: any[], productId: string) {
+    return (items || []).find((item: any) => String(item?.productId || item?.id || '').trim() === productId) || null;
+  }
+
+  private catalogQualitySearchTerm(catalogProduct: any): string | undefined {
+    const candidates = [catalogProduct?.sku, catalogProduct?.title, catalogProduct?.name]
+      .map((value) => String(value || '').trim())
+      .filter(Boolean);
+    return candidates[0];
+  }
+
+  private catalogQualityBlockedReasons(quality: CatalogProductQualityStatus) {
+    return catalogProductQualityBlockedReasons(quality);
   }
 
   private catalogLifecycleBlockedReasons(catalogProduct: any): Array<{ reason: string; message: string }> {
@@ -1598,8 +1689,10 @@ export class ProductsService {
       listingUrl,
       reason: firstReason?.reason || 'flipflop_publish_blocked',
       message: firstReason?.message || 'FlipFlop publication is blocked by product readiness policy.',
-      nextAction: 'resolve_flipflop_requirements',
+      nextAction: policySnapshot.quality?.nextAction || 'resolve_flipflop_requirements',
       availableStock: policySnapshot.availableStock,
+      quality: policySnapshot.quality,
+      blockedReasons: policySnapshot.blockedReasons || [],
     };
   }
 
@@ -1917,7 +2010,7 @@ export class ProductsService {
     return match?.id;
   }
 
-  private mapCatalogSelectionProduct(catalogProduct: any) {
+  private mapCatalogSelectionProduct(catalogProduct: any, quality?: CatalogProductQualityStatus) {
     const imageUrls = this.catalogImageUrls(catalogProduct);
     const stockQuantity = this.toNonNegativeInteger(
       catalogProduct.stockQuantity ??
@@ -1953,6 +2046,7 @@ export class ProductsService {
         ownerUserId: catalogProduct.ownerUserId ?? null,
         resaleEnabled: catalogProduct.resaleEnabled ?? null,
       },
+      quality,
       createdAt: this.dateToResponseValue(catalogProduct.createdAt),
       updatedAt: this.dateToResponseValue(catalogProduct.updatedAt),
     };

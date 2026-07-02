@@ -80,7 +80,7 @@ export default function UserDashboardPage() {
       });
       if (response.success && response.data) {
         setSellerProducts(response.data.items || []);
-        setSelectedSellerProductIds((current) => current.filter((id) => response.data?.items.some((item) => item.id === id)));
+        setSelectedSellerProductIds((current) => current.filter((id) => response.data?.items.some((item) => item.id === id && !catalogQualityIsBlocked(item))));
       } else {
         setSellerError(response.error?.message || 'Catalog produkty se nepodarilo nacist.');
       }
@@ -102,22 +102,49 @@ export default function UserDashboardPage() {
     });
   };
 
+  const catalogQualityIsBlocked = (product: SellerCatalogProduct) => {
+    const quality = product.quality;
+    return Boolean(
+      quality?.blocked ||
+      quality?.failedClosed ||
+      quality?.lookupFailed ||
+      (quality?.mandatoryBlockers?.length || 0) > 0,
+    );
+  };
+
+  const catalogQualityBlockerCodes = (product: SellerCatalogProduct) => {
+    const blockers = product.quality?.mandatoryBlockers?.length
+      ? product.quality.mandatoryBlockers
+      : product.quality?.blockingIssues || [];
+    return blockers.map((issue) => issue.code).filter(Boolean);
+  };
+
+  const selectedPublishableProductIds = () => selectedSellerProductIds.filter((id) => {
+    const product = sellerProducts.find((item) => item.id === id);
+    return product && !catalogQualityIsBlocked(product);
+  });
+
   const toggleSellerProductSelection = (id: string) => {
+    const product = sellerProducts.find((item) => item.id === id);
+    if (product && catalogQualityIsBlocked(product)) {
+      return;
+    }
     setSelectedSellerProductIds((current) => current.includes(id)
       ? current.filter((item) => item !== id)
       : [...current, id]);
   };
 
   const publishSelectedProducts = async () => {
-    if (!selectedSellerProductIds.length) return;
+    const publishableIds = selectedPublishableProductIds();
+    if (!publishableIds.length) return;
     setPublishingProducts(true);
     setSellerError(null);
     setSellerMessage(null);
     try {
-      const response = await sellerCatalogApi.publishProducts(selectedSellerProductIds);
+      const response = await sellerCatalogApi.publishProducts(publishableIds);
       if (response.success && response.data) {
         const result = response.data as SellerCatalogPublishResponse;
-        setSellerMessage(`Publikovano ${result.totals?.succeeded || 0} z ${result.totals?.requested || selectedSellerProductIds.length} produktu na FlipFlop.`);
+        setSellerMessage(`Publikovano ${result.totals?.succeeded || 0} z ${result.totals?.requested || publishableIds.length} produktu na FlipFlop.`);
         setSelectedSellerProductIds([]);
         await loadSellerCatalog();
       } else {
@@ -370,10 +397,10 @@ export default function UserDashboardPage() {
             <button
               type="button"
               onClick={publishSelectedProducts}
-              disabled={!selectedSellerProductIds.length || publishingProducts}
+              disabled={!selectedPublishableProductIds().length || publishingProducts}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-gray-300"
             >
-              {publishingProducts ? 'Publikuji...' : `Publikovat vybrane (${selectedSellerProductIds.length})`}
+              {publishingProducts ? 'Publikuji...' : `Publikovat vybrane (${selectedPublishableProductIds().length})`}
             </button>
           </div>
 
@@ -385,11 +412,13 @@ export default function UserDashboardPage() {
           ) : sellerProducts.length ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {sellerProducts.map((product) => {
-                const selected = selectedSellerProductIds.includes(product.id);
+                const qualityBlocked = catalogQualityIsBlocked(product);
+                const blockerCodes = catalogQualityBlockerCodes(product);
+                const selected = selectedSellerProductIds.includes(product.id) && !qualityBlocked;
                 const resaleOn = product.resaleEnabled === true || product.source?.resaleEnabled === true;
                 const ownedByUser = isOwnedSellerProduct(product);
                 return (
-                  <article key={product.id} className={`rounded-xl border p-4 ${selected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}>
+                  <article key={product.id} className={`rounded-xl border p-4 ${qualityBlocked ? 'border-red-200 bg-red-50' : selected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}>
                     <div className="flex gap-3">
                       {product.mainImageUrl ? (
                         <img src={product.mainImageUrl} alt={product.name} className="h-20 w-20 rounded-lg object-cover" />
@@ -400,15 +429,32 @@ export default function UserDashboardPage() {
                         <h3 className="line-clamp-2 text-sm font-extrabold text-gray-900">{product.name}</h3>
                         <p className="mt-1 text-xs text-gray-500">{product.sku}</p>
                         <p className="mt-2 text-xs font-bold text-blue-700">{productSourceLabel(product)}</p>
+                        {product.quality && (
+                          <p className={`mt-1 text-xs font-bold ${qualityBlocked ? 'text-red-700' : 'text-emerald-700'}`}>
+                            {qualityBlocked ? 'Catalog blokuje publikaci' : 'Catalog kvalita OK'}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="mt-4 flex items-center justify-between gap-3">
                       <label className="inline-flex items-center gap-2 text-sm font-bold text-gray-700">
-                        <input type="checkbox" checked={selected} onChange={() => toggleSellerProductSelection(product.id)} />
-                        Prodat na FlipFlop
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          disabled={qualityBlocked}
+                          onChange={() => toggleSellerProductSelection(product.id)}
+                        />
+                        {qualityBlocked ? 'Nelze publikovat' : 'Prodat na FlipFlop'}
                       </label>
                       <span className="text-sm font-extrabold text-blue-700">{new Intl.NumberFormat('cs-CZ', { style: 'currency', currency: 'CZK' }).format(product.price || 0)}</span>
                     </div>
+                    {qualityBlocked && (
+                      <div className="mt-3 rounded-lg border border-red-200 bg-white px-3 py-2 text-xs text-red-700">
+                        <div className="font-bold">Catalog product quality</div>
+                        <div className="mt-1 break-words">{blockerCodes.join(', ') || product.quality?.nextAction || 'quality_review'}</div>
+                        {product.quality?.lookupError && <div className="mt-1">{product.quality.lookupError}</div>}
+                      </div>
+                    )}
                     <div className="mt-3 flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600">
                       <span>Community resale</span>
                       <button

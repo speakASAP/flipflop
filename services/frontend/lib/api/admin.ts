@@ -4,7 +4,7 @@
  */
 
 import { apiClient } from './client';
-import { Product, PaginatedResponse } from './products';
+import { Product, PaginatedResponse, CatalogProductQualityStatus } from './products';
 import { Order, OrderStatus, PaymentStatus } from './orders';
 import type {
   RevenueMoM,
@@ -20,7 +20,7 @@ import type {
 } from '../admin';
 
 // Re-export Order type for convenience
-export type { Order };
+export type { Order, CatalogProductQualityStatus };
 export type {
   RevenueMoM,
   ConversionRate,

@@ -23,6 +23,23 @@ function formatValue(value: unknown): string {
   return JSON.stringify(value, null, 2);
 }
 
+function catalogQualityIsBlocked(product: Product | null): boolean {
+  const quality = product?.quality;
+  return Boolean(
+    quality?.blocked ||
+    quality?.failedClosed ||
+    quality?.lookupFailed ||
+    (quality?.mandatoryBlockers?.length || 0) > 0,
+  );
+}
+
+function catalogQualityBlockerCodes(product: Product | null): string[] {
+  const blockers = product?.quality?.mandatoryBlockers?.length
+    ? product.quality.mandatoryBlockers
+    : product?.quality?.blockingIssues || [];
+  return blockers.map((issue) => issue.code).filter(Boolean);
+}
+
 function formatDate(value: string | undefined): string {
   if (!value) {
     return 'Neni k dispozici';
@@ -52,6 +69,8 @@ export default function AdminSyncPage() {
     [products, selectedProductId],
   );
   const selectedCatalogProductId = selectedProduct?.catalogProductId || selectedProduct?.id || '';
+  const selectedQualityBlocked = catalogQualityIsBlocked(selectedProduct);
+  const selectedQualityBlockerCodes = catalogQualityBlockerCodes(selectedProduct);
 
   const loadCatalogProducts = useCallback(async () => {
     setLoadingProducts(true);
@@ -169,15 +188,21 @@ export default function AdminSyncPage() {
                       Produkt
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Kvalita
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Akce
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {products.map((product) => (
+                  {products.map((product) => {
+                    const qualityBlocked = catalogQualityIsBlocked(product);
+                    const blockerCodes = catalogQualityBlockerCodes(product);
+                    return (
                     <tr
                       key={product.id}
-                      className={product.id === selectedProductId ? 'bg-blue-50' : 'hover:bg-gray-50'}
+                      className={product.id === selectedProductId ? 'bg-blue-50' : qualityBlocked ? 'bg-red-50' : 'hover:bg-gray-50'}
                     >
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                         {product.sku}
@@ -185,6 +210,20 @@ export default function AdminSyncPage() {
                       <td className="px-4 py-3 text-sm text-gray-700">
                         <div className="font-medium text-gray-900">{product.name}</div>
                         <div className="text-xs text-gray-500">{product.id}</div>
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        {product.quality ? (
+                          <div className={qualityBlocked ? 'text-red-700' : 'text-emerald-700'}>
+                            <div className="font-bold">{qualityBlocked ? 'Blokovano' : 'OK'}</div>
+                            {qualityBlocked && (
+                              <div className="mt-1 max-w-[180px] break-words text-xs">
+                                {blockerCodes.join(', ') || product.quality.nextAction}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">Bez kontroly</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <button
@@ -196,7 +235,8 @@ export default function AdminSyncPage() {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -220,6 +260,16 @@ export default function AdminSyncPage() {
                 </p>
               )}
             </div>
+            {selectedProduct?.quality && (
+              <div className={`rounded-lg border px-3 py-2 text-sm ${selectedQualityBlocked ? 'border-red-200 bg-red-50 text-red-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'}`}>
+                <div className="font-bold">{selectedQualityBlocked ? 'Catalog quality blokuje publikaci' : 'Catalog quality OK'}</div>
+                {selectedQualityBlocked && (
+                  <div className="mt-1 break-words text-xs">
+                    {selectedQualityBlockerCodes.join(', ') || selectedProduct.quality.nextAction}
+                  </div>
+                )}
+              </div>
+            )}
             {selectedProductId && (
               <button
                 onClick={() => loadPreview(selectedProductId)}

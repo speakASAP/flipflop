@@ -50,6 +50,22 @@ nodes:
   - id: VAL-TASK-003-catalog-connector-content-preview
     type: ValidationReport
     path: ../12_validation/VAL-TASK-003-catalog-connector-content-preview.md
+
+  - id: TASK-004
+    type: Task
+    path: ../11_tasks/TASK-004-catalog-product-quality-review-consumer.md
+  - id: EP-TASK-004-CATALOG-PRODUCT-QUALITY-REVIEW-CONSUMER
+    type: ExecutionPlan
+    path: ../21_execution_plans/EP-TASK-004-catalog-product-quality-review-consumer.md
+  - id: CP-TASK-004-catalog-product-quality-review-consumer
+    type: ContextPackage
+    path: ../13_context_packages/CP-TASK-004-catalog-product-quality-review-consumer.md
+  - id: PROMPT-TASK-004-catalog-product-quality-review-consumer
+    type: CodingPrompt
+    path: ../14_prompts/PROMPT-TASK-004-catalog-product-quality-review-consumer.md
+  - id: VAL-TASK-004-catalog-product-quality-review-consumer
+    type: ValidationReport
+    path: ../12_validation/VAL-TASK-004-catalog-product-quality-review-consumer.md
   - id: ADR-001
     type: ADR
     path: ../07_decisions/ADR-001-adopt-intent-preservation-system.md
@@ -136,3 +152,31 @@ edges:
   - from: VAL-TASK-003-catalog-connector-content-preview
     type: validates
     to: TASK-003
+
+  - from: TASK-004
+    type: impacts_goal
+    to: FF-GOALS
+  - from: TASK-004
+    type: implements
+    to: FEAT-001
+  - from: TASK-004
+    type: decomposes_into
+    to: EP-TASK-004-CATALOG-PRODUCT-QUALITY-REVIEW-CONSUMER
+  - from: EP-TASK-004-CATALOG-PRODUCT-QUALITY-REVIEW-CONSUMER
+    type: derives_from
+    to: TASK-004
+  - from: EP-TASK-004-CATALOG-PRODUCT-QUALITY-REVIEW-CONSUMER
+    type: generates
+    to: PROMPT-TASK-004-catalog-product-quality-review-consumer
+  - from: EP-TASK-004-CATALOG-PRODUCT-QUALITY-REVIEW-CONSUMER
+    type: constrained_by
+    to: ADR-001
+  - from: PROMPT-TASK-004-catalog-product-quality-review-consumer
+    type: derives_from
+    to: EP-TASK-004-CATALOG-PRODUCT-QUALITY-REVIEW-CONSUMER
+  - from: PROMPT-TASK-004-catalog-product-quality-review-consumer
+    type: included_in_context
+    to: CP-TASK-004-catalog-product-quality-review-consumer
+  - from: VAL-TASK-004-catalog-product-quality-review-consumer
+    type: validates
+    to: TASK-004

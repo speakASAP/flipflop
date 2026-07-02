@@ -123,13 +123,17 @@ export class AdminProductsController {
       id: req.user?.id || req.user?.sub,
       email: req.user?.email,
       roles: req.user?.roles,
+      authorizationHeader: req.headers?.authorization,
     });
     return ApiResponse.success(result);
   }
 
   @Get('publish/:catalogProductId/status')
-  async getCatalogPublishStatus(@Param('catalogProductId') catalogProductId: string) {
-    const result = await this.productsService.getCatalogPublishStatus(catalogProductId);
+  async getCatalogPublishStatus(@Request() req: any, @Param('catalogProductId') catalogProductId: string) {
+    const result = await this.productsService.getCatalogPublishStatus(
+      catalogProductId,
+      req.headers?.authorization,
+    );
     return ApiResponse.success(result);
   }
 
