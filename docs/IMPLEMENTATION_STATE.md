@@ -9,6 +9,40 @@
 **Current checkpoint:** Catalog canonical `flipflop` connector previews are deployed through the protected read-only product-service endpoint and admin sync flow. Runtime deployment completed after repairing gateway CMD layout, product-service Prisma client packaging, and product-service entrypoint layout tolerance.
 
 
+## 2026-07-02 - Catalog/Warehouse Offer Gate Correction
+
+Objective: stop FlipFlop from showing or selling local products that are no longer active in Catalog or have no sellable Warehouse stock.
+
+IPS chain:
+
+- Vision: FlipFlop storefront must show sellable products from shared Catalog and Warehouse data.
+- Goal Impact: Removes stale local product rows from the public offer surface so deleted Catalog products or zero-stock Warehouse products cannot be bought.
+- System: FlipFlop product-service public product API, cart-service add/update validation, shared Catalog client, shared Warehouse client, guest checkout verifier.
+- Feature: Catalog-backed FlipFlop offer gate.
+- Task: Treat local Product rows as FlipFlop listing records only; before public listing/detail/cart use, resolve Catalog truth and Warehouse availability live, fail closed when either source is missing, inactive, deleted, archived, or zero stock.
+- Execution Plan: Keep schema unchanged; do not mutate Catalog, Warehouse, prices, orders, payments, or stock; only tighten public offer eligibility and add a repeatable verifier.
+- Coding Prompt: Do not preserve local `stockQuantity` as sellable truth; do not reintroduce local-only product fallback; keep Warehouse as quantity authority.
+- Code: Updated product-service to default public `GET /products` and `GET /products/:id` to Catalog-linked, Warehouse-positive offers only; added `source=local` as an explicit legacy/admin escape hatch; updated cart-service to reject local-only or Catalog-inactive products before Warehouse stock checks; added `scripts/verify-flipflop-offer-gate.js` and `npm run verify:flipflop-offer-gate`.
+- Validation: `python3 scripts/pre_coding_gate.py --root .` passed; `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed; `node scripts/verify-flipflop-offer-gate.js` passed; `cd services/product-service && npm run build` passed; `cd services/cart-service && npm exec -- tsc --noEmit` passed; `cd services/cart-service && npm run build` still stops after TypeScript on pre-existing `tsc-alias: not found`; `git diff --check` passed; `node scripts/verify-orders-hub-integration.js` passed; `npm run verify:guest-checkout-ui` passed.
+
+Parallel execution section:
+
+- Product offer gate lane: complete in source; owner role storefront/catalog integrator; allowed file `services/product-service/src/products/products.service.ts`; validation owner original thread.
+- Cart sellability gate lane: complete in source; owner role cart/stock integrator; allowed file `services/cart-service/src/cart/cart.service.ts`; validation owner original thread.
+- Admin preview compatibility lane: complete in source; owner role frontend integration; allowed files `services/frontend/lib/api/products.ts`, `services/frontend/app/admin/sync/page.tsx`; validation owner original thread.
+- Deployment lane: ready now after deployment-readiness gate; owner role original thread; merge order source, validation, deploy, production smoke.
+
+Post-deploy evidence:
+
+- `./scripts/deploy.sh` completed successfully in 425.67s after building and rolling out all six FlipFlop workloads.
+- Final pods are `1/1 Running` for `flipflop-service`, `flipflop-frontend`, `flipflop-product-service`, `flipflop-cart-service`, `flipflop-order-service`, and `flipflop-user-service`; old terminating pods self-cleared.
+- Public `GET https://flipflop.alfares.cz/api/products?limit=8` returned `success=true`, `count=3`, and every item had `catalogProductId`, positive `stockQuantity`, and `warehouse.source=warehouse-microservice`.
+- Public `GET https://flipflop.alfares.cz/api/products/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa4` returned HTTP 404 for a stale local sample product that was previously shown on the storefront.
+- Post-deploy `npm run verify:guest-checkout-ui` passed and remained non-mutating.
+- Post-deploy `npm run verify:flipflop-offer-gate` passed.
+
+Next action: monitor Catalog bulk publication volume; if the public storefront should show more products, publish additional Catalog products through the native FlipFlop lifecycle after Warehouse stock is positive.
+
 
 
 ## 2026-07-01 - Hosted Auth Local Profile Sync Hotfix
@@ -822,4 +856,3 @@ Parallel execution section:
 - Deployment lane: ready now after deployment-readiness gate; owner role original thread; merge order source, validation, deploy, production smoke.
 
 Next action: run deployment-readiness gate, deploy, then smoke homepage and representative legal document routes.
-

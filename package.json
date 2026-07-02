@@ -16,6 +16,7 @@
     "smoke:checkout": "node scripts/smoke-checkout.js",
     "verify:leads-public-intake": "node scripts/verify-leads-public-intake.js",
     "verify:guest-checkout-ui": "node scripts/verify-guest-checkout-ui.js",
+    "verify:flipflop-offer-gate": "node scripts/verify-flipflop-offer-gate.js",
     "import:ruian-addresses": "node scripts/import-ruian-addresses.js"
   },
   "dependencies": {

@@ -51,6 +51,7 @@ export default function AdminSyncPage() {
     () => products.find((product) => product.id === selectedProductId) || null,
     [products, selectedProductId],
   );
+  const selectedCatalogProductId = selectedProduct?.catalogProductId || selectedProduct?.id || '';
 
   const loadCatalogProducts = useCallback(async () => {
     setLoadingProducts(true);
@@ -87,7 +88,9 @@ export default function AdminSyncPage() {
     setLoadingPreview(true);
     setError(null);
     try {
-      const response = await adminApi.getCatalogContentPreview(productId);
+      const product = products.find((item) => item.id === productId);
+      const catalogProductId = product?.catalogProductId || productId;
+      const response = await adminApi.getCatalogContentPreview(catalogProductId);
       if (response.success && response.data) {
         setPreview(response.data);
       } else {
@@ -100,7 +103,7 @@ export default function AdminSyncPage() {
     } finally {
       setLoadingPreview(false);
     }
-  }, []);
+  }, [products]);
 
   useEffect(() => {
     loadCatalogProducts();
@@ -207,6 +210,11 @@ export default function AdminSyncPage() {
               {selectedProduct && (
                 <p className="text-sm text-gray-600 mt-1">
                   {selectedProduct.name} ({selectedProduct.sku})
+                  {selectedCatalogProductId && selectedCatalogProductId !== selectedProduct.id && (
+                    <span className="block text-xs text-gray-500">
+                      Catalog ID: {selectedCatalogProductId}
+                    </span>
+                  )}
                 </p>
               )}
             </div>

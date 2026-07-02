@@ -6,6 +6,7 @@ import { apiClient } from './client';
 
 export interface Product {
   id: string;
+  catalogProductId?: string;
   name: string;
   sku: string;
   description?: string;
