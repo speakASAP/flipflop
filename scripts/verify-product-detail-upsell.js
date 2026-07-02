@@ -35,12 +35,12 @@ assert(!productPage.includes('5%') && !productPage.includes('0.05'), 'product pa
 assert(bundleButton.includes('cartApi.addToCart'), 'bundle button uses existing authenticated cart add path');
 assert(bundleButton.includes('addGuestCartItem'), 'bundle button uses existing guest cart add path');
 
-if (checkoutPage.includes(bundleIntent) || orderService.includes(calculateBundleDiscount)) {
-  assert(checkoutPage.includes(bundleIntent), GOAL-13 checkout carries bundle intent identifiers only);
-  assert(orderService.includes(calculateBundleDiscount), GOAL-13 order service owns bundle discount totals);
+if (checkoutPage.includes('bundleIntent') || orderService.includes('calculateBundleDiscount')) {
+  assert(checkoutPage.includes('bundleIntent'), 'GOAL-13 checkout carries bundle intent identifiers only');
+  assert(orderService.includes('calculateBundleDiscount'), 'GOAL-13 order service owns bundle discount totals');
 } else {
-  assert(!checkoutPage.includes(bundle) && !checkoutPage.includes(Bundle), checkout page was not changed for bundle discount totals);
-  assert(!orderService.includes(bundle) && !orderService.includes(Bundle), order service was not changed for bundle discount totals);
+  assert(!checkoutPage.includes('bundle') && !checkoutPage.includes('Bundle'), 'checkout page was not changed for bundle discount totals');
+  assert(!orderService.includes('bundle') && !orderService.includes('Bundle'), 'order service was not changed for bundle discount totals');
 }
 
 const failed = checks.filter((check) => !check.ok);
