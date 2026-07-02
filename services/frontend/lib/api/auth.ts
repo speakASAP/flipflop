@@ -261,7 +261,7 @@ export const authApi = {
   },
 
   async setDefaultDeliveryAddress(id: string) {
-    const response = await apiClient.patch<AuthDeliveryAddress>(`${AUTH_DELIVERY_ADDRESSES_PATH}/${encodeURIComponent(id)}/default`) as AuthApiDataResponse<AuthDeliveryAddress>;
+    const response = await apiClient.post<AuthDeliveryAddress>(`${AUTH_DELIVERY_ADDRESSES_PATH}/${encodeURIComponent(id)}/default`) as AuthApiDataResponse<AuthDeliveryAddress>;
     return normalizeAuthApiData(response, 'deliveryAddress');
   },
 
@@ -286,7 +286,7 @@ export const authApi = {
   },
 
   async setDefaultInvoiceProfile(id: string) {
-    const response = await apiClient.patch<AuthInvoiceProfile>(`${AUTH_INVOICE_PROFILES_PATH}/${encodeURIComponent(id)}/default`) as AuthApiDataResponse<AuthInvoiceProfile>;
+    const response = await apiClient.post<AuthInvoiceProfile>(`${AUTH_INVOICE_PROFILES_PATH}/${encodeURIComponent(id)}/default`) as AuthApiDataResponse<AuthInvoiceProfile>;
     return normalizeAuthApiData(response, 'invoiceProfile');
   },
 
