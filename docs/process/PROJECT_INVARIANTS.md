@@ -18,6 +18,12 @@ These invariants protect the original FlipFlop intent. Goals may refine implemen
 - Product/catalog data should align with catalog-microservice and warehouse-microservice.
 - Order processing should align with orders-microservice while current in-repo order-service code remains the local implementation boundary.
 
+## Storefront UX Invariants
+
+- Product search must be dynamic: changing the query field updates matching products during typing without a dedicated submit/search button.
+- Do not add customer-facing buttons labeled or behaving as search/find actions (`Hledat`, `Search`, `Find`, `Najít`, or equivalent). If a list needs query matching, wire the input to update results directly.
+- Storefront product filters belong in the top navigation/menu area near category navigation, not in a large page-body panel, so the product grid keeps priority as the selling surface.
+
 ## Agent Invariants
 
 - Work proceeds by implementation goals.

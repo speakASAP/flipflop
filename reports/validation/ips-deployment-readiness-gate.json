@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-07-02T13:10:44Z",
+  "created_at": "2026-07-02T14:28:39Z",
   "gate": "deployment_readiness",
   "next_step": "ready_for_deployment_review",
   "pre_coding_gate": {
@@ -52,92 +52,92 @@
       "path": "docs/IMPLEMENTATION_ORCHESTRATOR.md"
     },
     {
-      "line": 84,
+      "line": 152,
       "marker": "[MISSING: flipflop-service entry in payments-microservice PAYMENT_CALLBACK_API_KEYS]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 135,
+      "line": 203,
       "marker": "[MISSING: production ruian_address_points import until migration is applied and scripts/import-ruian-addresses.js is run with DATABASE_URL]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 172,
+      "line": 240,
       "marker": "[MISSING: warehouseId]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 173,
+      "line": 241,
       "marker": "[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 174,
+      "line": 242,
       "marker": "[UNKNOWN: approved Auth/Vault runtime path for a FlipFlop-to-Warehouse service principal token with the Warehouse-required role]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 192,
+      "line": 260,
       "marker": "[MISSING: warehouseId]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 192,
+      "line": 260,
       "marker": "[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 282,
+      "line": 350,
       "marker": "[UNKNOWN: whether Warehouse getTotalAvailable includes reservations or only physical available stock]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 458,
+      "line": 526,
       "marker": "[MISSING: catalogProductId]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 660,
+      "line": 728,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 682,
+      "line": 750,
       "marker": "[MISSING: auth-microservice magic-link or passwordless account API]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 683,
+      "line": 751,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 700,
+      "line": 768,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 700,
+      "line": 768,
       "marker": "[MISSING: production IBAN]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 722,
+      "line": 790,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 722,
+      "line": 790,
       "marker": "[MISSING: production IBAN]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 803,
+      "line": 871,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 803,
+      "line": 871,
       "marker": "[MISSING: production IBAN]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
@@ -145,6 +145,31 @@
       "line": 114,
       "marker": "[MISSING: ...]",
       "path": "docs/INTENT_MEMORY.md"
+    },
+    {
+      "line": 42,
+      "marker": "[MISSING: confirmed Catalog producer exchange/routing key contract]",
+      "path": "docs/orchestrator/W4A_FLIPFLOP_PROACTIVE_CONSUMERS.md"
+    },
+    {
+      "line": 43,
+      "marker": "[MISSING: safe FlipFlop catalog-event refresh policy]",
+      "path": "docs/orchestrator/W4A_FLIPFLOP_PROACTIVE_CONSUMERS.md"
+    },
+    {
+      "line": 17,
+      "marker": "[MISSING: safe FlipFlop catalog-event refresh policy]",
+      "path": "docs/orchestrator/W5A_FLIPFLOP_RECONCILIATION_SAFETY_NET.md"
+    },
+    {
+      "line": 57,
+      "marker": "[MISSING: safe FlipFlop catalog-event refresh policy]",
+      "path": "docs/orchestrator/W5A_FLIPFLOP_RECONCILIATION_SAFETY_NET.md"
+    },
+    {
+      "line": 58,
+      "marker": "[MISSING: FlipFlop Kubernetes CronJob scheduling policy]",
+      "path": "docs/orchestrator/W5A_FLIPFLOP_RECONCILIATION_SAFETY_NET.md"
     },
     {
       "line": 46,

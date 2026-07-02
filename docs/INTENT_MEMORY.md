@@ -141,3 +141,4 @@ This is more important than storing only final statuses.
 | 2026-06-12 | FlipFlop development must be done by goals and use an orchestrator-style workflow similar to Goalkeeper. | Owner request in Codex thread |
 | 2026-06-12 | Docs-rag-microservice is the ecosystem knowledge source to consult before broad file reads when available. | docs-rag-microservice `AGENTS.md` and owner request |
 | 2026-06-12 | The initial active goal is production readiness and checkout revenue enablement. | `GOALS.md`, `PLAN.md`, `docs/PRODUCTION_READINESS_GOAL.md` |
+| 2026-07-02 | FlipFlop and related storefronts must not use dedicated search/find buttons (`Hledat`, `Search`, `Find`, `Najít`, or equivalents). Product matching must update dynamically while the customer types, and product filters must live in the top navigation/menu to preserve the product grid as the primary selling surface. | Owner request in Codex thread |

@@ -70,12 +70,6 @@ export default function AdminProductsPage() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1);
-    loadProducts();
-  };
-
   if (loading && products.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -115,23 +109,18 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
-      {/* Search */}
+      {/* Dynamic product filter */}
       <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-        <form onSubmit={handleSearch} className="flex gap-3">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Hledat produkty..."
-            className="flex-1 border-2 border-gray-300 rounded-xl px-5 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-          />
-          <button
-            type="submit"
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg transform hover:scale-105"
-          >
-            🔍 Hledat
-          </button>
-        </form>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => {
+            setPage(1);
+            setSearch(e.target.value);
+          }}
+          placeholder="Název produktu"
+          className="w-full border-2 border-gray-300 rounded-xl px-5 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+        />
       </div>
 
       {/* Products Table */}

@@ -1,4 +1,4 @@
-import { productsApi, Product, Category } from '@/lib/api/products';
+import { productsApi } from '@/lib/api/products';
 import ProductCard from '@/components/ProductCard';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -37,24 +37,6 @@ const parsePriceFilter = (value?: string) => {
   return Number.isFinite(parsed) ? parsed : undefined;
 };
 
-const categoryValue = (category: Category) => category.slug || category.name;
-
-const uniqueCategories = (categories: Category[]) => {
-  const seen = new Set<string>();
-
-  return categories
-    .filter((category) => {
-      const value = categoryValue(category);
-      if (!value || seen.has(value)) {
-        return false;
-      }
-
-      seen.add(value);
-      return true;
-    })
-    .sort((first, second) => first.name.localeCompare(second.name, 'cs'));
-};
-
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const resolvedSearchParams = await searchParams;
   const page = parseInt(resolvedSearchParams.page || '1');
@@ -73,18 +55,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     includeWarehouse: true, // Always include real warehouse stock data
   };
 
-  const [response, categoriesResponse] = await Promise.all([
-    productsApi.getProducts(filters),
-    productsApi.getCategories(),
-  ]);
+  const response = await productsApi.getProducts(filters);
   const products = response.success ? response.data?.items || [] : [];
   const pagination = response.success ? response.data?.pagination : null;
-  const productCategories = products.flatMap((product: Product) => product.categories || []);
-  const categoryOptions = uniqueCategories(
-    categoriesResponse.success && categoriesResponse.data?.length
-      ? categoriesResponse.data
-      : productCategories
-  );
 
   const productsHref = (targetPage: number) => {
     const params = new URLSearchParams();
@@ -101,77 +74,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <div className="container mx-auto px-4 py-6 md:py-8">
-        <div className="mb-6 border border-gray-200 bg-white p-4 shadow-sm md:p-5">
-          <form action="/products" className="grid gap-3 md:grid-cols-[minmax(180px,1.1fr)_minmax(170px,0.9fr)_120px_120px_auto] md:items-end">
-            <label className="block">
-              <span className="mb-1 block text-sm font-semibold text-gray-700">Název</span>
-              <input
-                type="text"
-                name="search"
-                placeholder="Název produktu"
-                defaultValue={resolvedSearchParams.search}
-                className="h-10 w-full border border-gray-300 px-3 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-              />
-            </label>
-
-            <label className="block">
-              <span className="mb-1 block text-sm font-semibold text-gray-700">Typ produktu</span>
-              <select
-                name="category"
-                defaultValue={selectedCategory || ''}
-                className="h-10 w-full border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-              >
-                <option value="">Všechny typy</option>
-                {categoryOptions.map((category) => (
-                  <option key={categoryValue(category)} value={categoryValue(category)}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="block">
-              <span className="mb-1 block text-sm font-semibold text-gray-700">Cena od</span>
-              <input
-                type="number"
-                name="minPrice"
-                min="0"
-                step="1"
-                defaultValue={resolvedSearchParams.minPrice}
-                className="h-10 w-full border border-gray-300 px-3 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-              />
-            </label>
-
-            <label className="block">
-              <span className="mb-1 block text-sm font-semibold text-gray-700">Cena do</span>
-              <input
-                type="number"
-                name="maxPrice"
-                min="0"
-                step="1"
-                defaultValue={resolvedSearchParams.maxPrice}
-                className="h-10 w-full border border-gray-300 px-3 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-              />
-            </label>
-
-            <div className="flex h-10 gap-2">
-              <button
-                type="submit"
-                className="h-10 bg-blue-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
-              >
-                Filtrovat
-              </button>
-              <Link
-                href="/products"
-                className="flex h-10 items-center border border-gray-300 px-4 text-sm font-semibold text-gray-700 transition-colors hover:border-gray-400 hover:bg-gray-50"
-              >
-                Vyčistit
-              </Link>
-            </div>
-          </form>
-        </div>
-
+      <div className="container mx-auto px-4 py-4 md:py-6">
         {products.length > 0 ? (
           <>
             <div className="mb-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 md:gap-8">

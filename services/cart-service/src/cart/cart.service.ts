@@ -28,41 +28,65 @@ export class CartService {
       orderBy: { createdAt: 'desc' },
     });
 
-    let total = 0;
-    const items = cartItems.map((item: any) => {
-      const itemTotal = Number(item.price) * item.quantity;
-      total += itemTotal;
+    const items = [];
 
-      return {
-        id: item.id,
-        productId: item.productId,
-        products: item.products ? {
-          id: item.products.id,
-          name: item.products.name,
-          sku: item.products.sku,
-          description: item.products.description,
-          price: Number(item.products.price),
-          stockQuantity: item.products.stockQuantity,
-          brand: item.products.brand,
-          mainImageUrl: item.products.mainImageUrl,
-          imageUrls: item.products.imageUrls as string[] | undefined,
-        } : null,
-        variantId: item.variantId || undefined,
-        variant: item.product_variants
-          ? {
-              id: item.product_variants.id,
-              productId: item.product_variants.productId,
-              name: item.product_variants.name,
-              sku: item.product_variants.sku,
-              price: Number(item.product_variants.price),
-              stockQuantity: item.product_variants.stockQuantity,
-              attributes: item.product_variants.options as Record<string, string> | undefined,
-            }
-          : undefined,
-        quantity: item.quantity,
-        price: Number(item.price),
-      };
-    });
+    for (const item of cartItems) {
+      try {
+        if (!item.products || !item.products.isActive) {
+          throw new BadRequestException('Product is not available');
+        }
+
+        const availableStock = await this.getSellableStock(item.products.id, item.products.catalogProductId);
+        if (availableStock <= 0) {
+          throw new BadRequestException('Product is not available');
+        }
+
+        let currentItem = item;
+        if (item.quantity > availableStock) {
+          currentItem = await this.prisma.cartItem.update({
+            where: { id: item.id },
+            data: { quantity: availableStock },
+            include: {
+              products: true,
+              product_variants: true,
+            },
+          });
+          await this.logger.warn('OPERATIONAL_ALERT flipflop_cart_quantity_reduced_to_stock', {
+            context: 'CartService',
+            userId,
+            cartItemId: item.id,
+            productId: item.productId,
+            requestedQuantity: item.quantity,
+            availableStock,
+          });
+        }
+
+        items.push(this.mapCartItem({
+          ...currentItem,
+          products: currentItem.products
+            ? { ...currentItem.products, stockQuantity: availableStock }
+            : currentItem.products,
+        }));
+      } catch (error: any) {
+        await this.prisma.cartItem.delete({ where: { id: item.id } }).catch((deleteError: any) => {
+          this.logger.error(
+            `Failed to remove unavailable cart item ${item.id}: ${deleteError.message}`,
+            deleteError.stack,
+            'CartService',
+          );
+        });
+        await this.logger.warn('OPERATIONAL_ALERT flipflop_cart_unavailable_item_removed', {
+          context: 'CartService',
+          userId,
+          cartItemId: item.id,
+          productId: item.productId,
+          catalogProductId: item.products?.catalogProductId || null,
+          reason: error?.message || 'Product is not available',
+        });
+      }
+    }
+
+    const total = items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
 
     return {
       items,
@@ -231,6 +255,13 @@ export class CartService {
    * Check Catalog activity and Warehouse sellable stock.
    */
   private async checkStockAvailability(productId: string, catalogProductId: string | null, quantity: number): Promise<void> {
+    const totalAvailable = await this.getSellableStock(productId, catalogProductId);
+    if (totalAvailable < quantity) {
+      throw new BadRequestException(`Insufficient stock. Available: ${totalAvailable}, Requested: ${quantity}`);
+    }
+  }
+
+  private async getSellableStock(productId: string, catalogProductId: string | null): Promise<number> {
     if (!catalogProductId) {
       await this.logger.warn('OPERATIONAL_ALERT flipflop_cart_unlinked_product_blocked', {
         context: 'CartService',
@@ -264,14 +295,8 @@ export class CartService {
     }
 
     try {
-      const totalAvailable = await this.warehouseClient.getTotalAvailable(catalogProductId);
-      if (totalAvailable < quantity) {
-        throw new BadRequestException(`Insufficient stock. Available: ${totalAvailable}, Requested: ${quantity}`);
-      }
+      return await this.warehouseClient.getTotalAvailable(catalogProductId);
     } catch (error: any) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
       this.logger.error(
         `Failed to verify Warehouse sellability for product ${productId}: ${error.message}`,
         error.stack,

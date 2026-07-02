@@ -17,6 +17,12 @@ interface ProductCardProps {
   };
 }
 
+const isDisplayableBrand = (brand?: string) => {
+  if (!brand) return false;
+  const normalized = brand.trim().toLocaleLowerCase("cs-CZ");
+  return !["zadna znacka", "žádná značka", "no brand", "none", "unknown"].includes(normalized);
+};
+
 export default function ProductCard({ product }: ProductCardProps) {
   // Generate product image placeholder based on product name
   const getProductImage = () => {
@@ -116,7 +122,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       {/* Product Info */}
       <div className="p-5">
-        {product.brand && (
+        {isDisplayableBrand(product.brand) && (
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-2 font-semibold">
             {product.brand}
           </p>

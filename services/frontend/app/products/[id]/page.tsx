@@ -1,8 +1,8 @@
 import { productsApi } from '@/lib/api/products';
 import { notFound } from 'next/navigation';
 import AddToCartButton from '@/components/AddToCartButton';
+import ProductImageGallery from '@/components/ProductImageGallery';
 import Link from 'next/link';
-import Image from 'next/image';
 import type { Metadata } from 'next';
 import type { Product } from '@/lib/api/products';
 
@@ -50,6 +50,18 @@ const getPublishableSeoData = (product: Product) => {
   return seoData;
 };
 
+const isDisplayableBrand = (brand?: string) => {
+  if (!brand) return false;
+  const normalized = brand.trim().toLocaleLowerCase("cs-CZ");
+  return !["zadna znacka", "žádná značka", "no brand", "none", "unknown"].includes(normalized);
+};
+
+const getProductGalleryImages = (product: Product) => {
+  return [product.mainImageUrl, ...(product.imageUrls ?? []), ...(product.images ?? [])].filter(
+    (image, index, allImages): image is string => Boolean(image) && allImages.indexOf(image) === index,
+  );
+};
+
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { id } = await params;
   const response = await productsApi.getProduct(id);
@@ -66,7 +78,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     : `Koupit ${product.name} za ${product.price.toLocaleString('cs-CZ')} Kč. Rychlé doručení po celé ČR.`;
   const title = seoData?.metaTitle
     ? seoData.metaTitle
-    : product.brand
+    : isDisplayableBrand(product.brand)
     ? `${product.brand} ${product.name} | flipflop.alfares.cz`
     : `${product.name} | flipflop.alfares.cz`;
   const image = product.mainImageUrl ?? product.imageUrls?.[0] ?? product.images?.[0];
@@ -96,6 +108,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   }
 
   const product = response.data;
+  const galleryImages = getProductGalleryImages(product);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -108,60 +121,17 @@ export default async function ProductPage({ params }: ProductPageProps) {
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Product Image */}
-          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div className={`aspect-square bg-gradient-to-br ${getGradient(product.name)} flex items-center justify-center relative overflow-hidden`}>
-              {(() => {
-                const mainImage = product.mainImageUrl || product.imageUrls?.[0] || product.images?.[0];
-                return mainImage ? (
-                  <Image
-                    src={mainImage}
-                    alt={product.name}
-                    fill
-                    className="object-cover"
-                  />
-                ) : null;
-              })()}
-              <div className={`absolute inset-0 flex items-center justify-center ${product.mainImageUrl || product.imageUrls?.[0] || product.images?.[0] ? 'hidden' : ''}`}>
-                <div className="w-64 h-64 bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl flex items-center justify-center">
-                  <span className="text-9xl filter drop-shadow-2xl">{getProductEmoji(product.name)}</span>
-                </div>
-              </div>
-              {/* Decorative circles */}
-              <div className="absolute top-0 right-0 w-48 h-48 bg-white/20 rounded-full -mr-24 -mt-24"></div>
-              <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/20 rounded-full -ml-20 -mb-20"></div>
-              
-              {/* Stock Badge */}
-              {product.stockQuantity > 0 ? (
-                <div className="absolute top-6 left-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-xl backdrop-blur-sm">
-                  ✓ Skladem ({product.stockQuantity} ks)
-                </div>
-              ) : (
-                <div className="absolute top-6 left-6 bg-gradient-to-r from-red-500 to-rose-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-xl">
-                  Vyprodáno
-                </div>
-              )}
-            </div>
-            {(product.imageUrls && product.imageUrls.length > 0) || (product.images && product.images.length > 0) ? (
-              <div className="grid grid-cols-4 gap-3 p-4">
-                {(product.imageUrls || product.images || []).slice(0, 4).map((image, index) => (
-                  <div key={index} className="aspect-square rounded-xl border-2 border-gray-200 overflow-hidden relative">
-                    <Image
-                    src={image}
-                    alt={`${product.name} - obrázek ${index + 1}`}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                ))}
-              </div>
-            ) : null}
-          </div>
+          <ProductImageGallery
+            productName={product.name}
+            images={galleryImages}
+            fallbackEmoji={getProductEmoji(product.name)}
+            gradientClass={getGradient(product.name)}
+          />
 
           {/* Product Info */}
           <div className="space-y-6">
             <div>
-              {product.brand && (
+              {isDisplayableBrand(product.brand) && (
                 <p className="text-sm text-gray-500 uppercase tracking-wider font-semibold mb-2">
                   {product.brand}
                 </p>
@@ -191,11 +161,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                           </p>
                         </div>
                         <div className="text-right">
-                          {variant.stockQuantity > 0 ? (
-                            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">
-                              Skladem: {variant.stockQuantity}
-                            </span>
-                          ) : (
+                          {variant.stockQuantity <= 0 && (
                             <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">
                               Vyprodáno
                             </span>
@@ -208,9 +174,29 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </div>
             )}
 
-            {/* Add to Cart */}
+            {/* Purchase Actions */}
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-              <AddToCartButton productId={product.id} product={product} />
+              <div className="flex items-stretch gap-2">
+                <AddToCartButton
+                  productId={product.id}
+                  product={product}
+                  label="Koupit hned"
+                  redirectTo="/checkout"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-4 text-center text-base font-extrabold text-white shadow-md transition-all duration-300 hover:from-blue-700 hover:to-purple-700 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+                />
+                <AddToCartButton
+                  productId={product.id}
+                  product={product}
+                  label={
+                    <span className="flex items-center justify-center gap-0.5" aria-hidden="true">
+                      <span className="text-lg leading-none">🛒</span>
+                      <span className="text-base font-black leading-none">+</span>
+                    </span>
+                  }
+                  ariaLabel="Přidat do košíku"
+                  className="flex h-14 w-16 shrink-0 items-center justify-center border-2 border-blue-200 bg-white text-blue-700 shadow-sm transition-all duration-300 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
             </div>
 
             {/* Description */}

@@ -9,6 +9,32 @@
 **Current checkpoint:** Catalog canonical `flipflop` connector previews are deployed through the protected read-only product-service endpoint and admin sync flow. Runtime deployment completed after repairing gateway CMD layout, product-service Prisma client packaging, and product-service entrypoint layout tolerance.
 
 
+
+## 2026-07-02 - Storefront Dynamic Search And Top Menu Filters
+
+Objective: move public product filtering into the top navigation and remove dedicated search buttons so the product grid remains the primary selling surface.
+
+IPS chain:
+
+- Vision: FlipFlop must serve a production storefront that sells products efficiently at `https://flipflop.alfares.cz/`.
+- Goal Impact: Preserves more viewport space for products and removes friction from product discovery.
+- System: Next.js storefront header, public `/products` page, and admin list search controls.
+- Feature: Dynamic product discovery without dedicated search buttons.
+- Task: Move name/type/price filters to the top menu near category navigation, remove the body filter panel, remove `Hledat` search buttons, and document the UX invariant.
+- Execution Plan: Keep API contracts unchanged; update only frontend presentation/query routing and documentation; preserve category/search/minPrice/maxPrice URL parameters.
+- Coding Prompt: Do not change product prices, stock, checkout, payment, auth, order behavior, or product-service filtering contracts.
+- Code: Updated `services/frontend/components/Header.tsx`, `services/frontend/app/products/page.tsx`, admin dynamic list filters, `docs/INTENT_MEMORY.md`, `docs/process/PROJECT_INVARIANTS.md`, and this state entry.
+- Validation: `python3 scripts/pre_coding_gate.py --root .` passed; `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed; `python3 scripts/deployment_readiness_gate.py --root .` passed; `git diff --check` passed; `cd services/frontend && npm run build` passed; live `GET https://flipflop.alfares.cz/products?search=bal` returned HTML with top-menu filters and zero `>Hledat<`/`>Search<`/`>Find<`/`>Najít<` button labels; live product API search returned `success=true`.
+
+Parallel execution section:
+
+- Storefront header/page lane: complete in source; owner role frontend storefront integrator; allowed files `services/frontend/components/Header.tsx`, `services/frontend/app/products/page.tsx`; validation owner original thread.
+- Search-button cleanup lane: complete in source for current repo matches; owner role frontend hygiene; allowed files `services/frontend/app/admin/products/page.tsx`, `services/frontend/app/admin/users/page.tsx`; validation owner original thread.
+- Documentation invariant lane: complete in source; owner role intent/documentation maintainer; allowed files `docs/INTENT_MEMORY.md`, `docs/process/PROJECT_INVARIANTS.md`, `docs/IMPLEMENTATION_STATE.md`; validation owner original thread.
+- Deployment lane: ready after frontend build and deployment-readiness gate; owner role original thread; merge order source, validation, deploy, production smoke.
+
+Next action: validate frontend build, run deployment readiness, deploy, and smoke `/products`.
+
 ## 2026-07-02 - Catalog/Warehouse Offer Gate Correction
 
 Objective: stop FlipFlop from showing or selling local products that are no longer active in Catalog or have no sellable Warehouse stock.
@@ -41,8 +67,41 @@ Post-deploy evidence:
 - Post-deploy `npm run verify:guest-checkout-ui` passed and remained non-mutating.
 - Post-deploy `npm run verify:flipflop-offer-gate` passed.
 
+Cart availability follow-up:
+
+- Authenticated `GET /cart` now revalidates every persisted cart row against Catalog lifecycle state and Warehouse sellable stock before returning it.
+- Persisted cart rows for missing, inactive, deleted, archived, unlinked, or zero-stock products are removed during cart read; rows with quantity above live Warehouse stock are reduced to the available stock.
+- Guest cart display now refreshes localStorage items through the public product API and removes or reduces stale items before showing the cart.
+- Updated `npm run verify:flipflop-offer-gate` to cover cart read cleanup in addition to add/update rejection.
+- Validation: `npm run verify:flipflop-offer-gate` passed; `cd services/cart-service && npm exec -- tsc --noEmit` passed; `cd services/frontend && npm run build` passed; `git diff --check` passed.
+
 Next action: monitor Catalog bulk publication volume; if the public storefront should show more products, publish additional Catalog products through the native FlipFlop lifecycle after Warehouse stock is positive.
 
+
+
+## 2026-07-02 - Product Detail Photo Gallery
+
+Objective: make product photos easier to inspect from the public product detail page without changing catalog, stock, price, cart, checkout, payment, auth, or order contracts.
+
+IPS chain:
+
+- Vision: FlipFlop must serve a production storefront that helps customers evaluate sellable products at `https://flipflop.alfares.cz/`.
+- Goal Impact: Improves buyer confidence by making product imagery browsable, previewable, and zoomable on desktop and mobile.
+- System: Next.js storefront product detail page.
+- Feature: Product photo carousel and enlarged image preview.
+- Task: Replace static image thumbnails with an interactive gallery supporting thumbnails, explicit previous/next controls, fullscreen preview, zoom, keyboard arrows, Escape close, and mobile swipe navigation.
+- Execution Plan: Keep API and data contracts unchanged; normalize existing `mainImageUrl`, `imageUrls`, and `images` fields in the frontend only; add a local client component without new dependencies; do not deploy.
+- Coding Prompt: Do not mutate prices, stock, checkout, payment state, auth, order behavior, backend product filtering, or warehouse/catalog integration.
+- Code: Added `services/frontend/components/ProductImageGallery.tsx` and connected it from `services/frontend/app/products/[id]/page.tsx`.
+- Validation: `python3 scripts/pre_coding_gate.py --root .` passed; `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed; `cd services/frontend && npm exec eslint app/products/[id]/page.tsx components/ProductImageGallery.tsx` passed; `npm --prefix services/frontend run build` passed. Full `npm --prefix services/frontend run lint` remains blocked by pre-existing lint errors in unrelated files (`app/cart/page.tsx`, `app/checkout/page.tsx`, login/register/payment-result pages, Header, ShoppingAssistant, instrumentation, and API client).
+
+Parallel execution section:
+
+- Gallery component lane: complete in source; owner role frontend product-detail integrator; allowed files `services/frontend/components/ProductImageGallery.tsx`, `services/frontend/app/products/[id]/page.tsx`; validation owner original thread.
+- Sidecar audit lane: complete read-only through sub-agent; owner role codebase explorer; allowed scope remote inspection only; output identified product detail files and validation scripts.
+- Commit/push lane: ready now; owner role original thread; scope all current FlipFlop repository changes per owner request; forbidden scope deployment; merge order source, docs/state, validation, commit, push.
+
+Next action: commit and push all current FlipFlop changes without deployment.
 
 
 ## 2026-07-01 - Hosted Auth Local Profile Sync Hotfix

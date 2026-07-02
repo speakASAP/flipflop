@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { cartApi, CartItem } from '@/lib/api/cart';
+import { productsApi } from '@/lib/api/products';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   clearGuestCart,
@@ -9,6 +10,7 @@ import {
   GuestCart,
   GuestCartItem,
   removeGuestCartItem,
+  replaceGuestCartItems,
   updateGuestCartQuantity,
 } from '@/lib/guest-cart';
 import Link from 'next/link';
@@ -91,8 +93,7 @@ export default function CartPage() {
     if (isAuthenticated) {
       loadAuthenticatedCart();
     } else {
-      setCart(getGuestCart());
-      setLoading(false);
+      loadGuestCart();
     }
   }, [authLoading, isAuthenticated]);
 
@@ -111,6 +112,70 @@ export default function CartPage() {
 
     if (results.every((result) => result.success || isAlreadyInCartResponse(result))) {
       clearGuestCart();
+    }
+  };
+
+  const loadGuestCart = async () => {
+    setLoading(true);
+    try {
+      const guestCart = getGuestCart();
+      const refreshedItems: GuestCartItem[] = [];
+      let changed = false;
+
+      for (const item of guestCart.items) {
+        const response = await productsApi.getProduct(item.productId, true);
+        if (!response.success || !response.data) {
+          changed = true;
+          continue;
+        }
+
+        const liveProduct = response.data;
+        const liveVariant = item.variantId
+          ? liveProduct.variants?.find((variant) => variant.id === item.variantId)
+          : undefined;
+        const stockValue = liveVariant?.stockQuantity ?? liveProduct.stockQuantity;
+        const availableStock = typeof stockValue === 'number' && Number.isFinite(stockValue)
+          ? Math.floor(stockValue)
+          : 0;
+
+        if (availableStock <= 0) {
+          changed = true;
+          continue;
+        }
+
+        const quantity = Math.min(item.quantity, availableStock);
+        changed = changed || quantity !== item.quantity || item.product.stockQuantity !== liveProduct.stockQuantity;
+        refreshedItems.push({
+          ...item,
+          quantity,
+          product: {
+            ...item.product,
+            name: liveProduct.name,
+            price: liveProduct.price,
+            stockQuantity: liveProduct.stockQuantity,
+            brand: liveProduct.brand,
+            mainImageUrl: liveProduct.mainImageUrl,
+            imageUrls: liveProduct.imageUrls,
+            images: liveProduct.images,
+          },
+          variant: item.variant
+            ? {
+                ...item.variant,
+                stockQuantity: liveVariant?.stockQuantity ?? item.variant.stockQuantity,
+              }
+            : undefined,
+        });
+      }
+
+      setCart(changed ? replaceGuestCartItems(refreshedItems) : guestCart);
+      if (changed) {
+        showCartMessage('Nedostupné položky byly z košíku odebrány a množství bylo upraveno podle skladu.', 'warning');
+      }
+    } catch (error) {
+      console.error('Failed to refresh guest cart:', error);
+      setCart(getGuestCart());
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -197,6 +197,11 @@ export const updateGuestCartQuantity = (itemId: string, quantity: number): Guest
   return getGuestCart();
 };
 
+export const replaceGuestCartItems = (items: GuestCartItem[]): GuestCart => {
+  writeStoredItems(items);
+  return getGuestCart();
+};
+
 export const removeGuestCartItem = (itemId: string): GuestCart => {
   writeStoredItems(readStoredItems().filter((item) => item.id !== itemId));
   return getGuestCart();

@@ -254,11 +254,20 @@ async function verifyProductOfferGate() {
 }
 
 async function verifyCartGate() {
+  const deletedCartItemIds = [];
+  const updatedCartItems = [];
+  const cartRows = [
+    { id: 'cart-stale', userId: 'user-1', productId: 'local-stale', products: findLocalProduct('local-stale'), quantity: 1, price: 99 },
+    { id: 'cart-zero', userId: 'user-1', productId: 'local-zero', products: findLocalProduct('local-zero'), quantity: 1, price: 120 },
+    { id: 'cart-overstock', userId: 'user-1', productId: 'local-good', products: findLocalProduct('local-good'), quantity: 9, price: 150 },
+    { id: 'cart-good', userId: 'user-1', productId: 'local-good', products: findLocalProduct('local-good'), quantity: 2, price: 150 },
+  ];
   const prisma = {
     product: {
       findUnique: async ({ where }) => findLocalProduct(where.id) || null,
     },
     cartItem: {
+      findMany: async () => cartRows,
       findFirst: async ({ where }) => {
         if (where.id === 'cart-zero') {
           return { id: 'cart-zero', userId: where.userId, products: findLocalProduct('local-zero') };
@@ -268,8 +277,16 @@ async function verifyCartGate() {
       create: async () => {
         throw new Error('Cart create should not run in rejection cases');
       },
-      update: async () => {
-        throw new Error('Cart update should not run in rejection cases');
+      update: async ({ where, data }) => {
+        const row = cartRows.find((item) => item.id === where.id);
+        if (!row) throw new Error(`Unexpected cart update: ${where.id}`);
+        const updated = { ...row, quantity: data.quantity };
+        updatedCartItems.push(updated);
+        return updated;
+      },
+      delete: async ({ where }) => {
+        deletedCartItemIds.push(where.id);
+        return { id: where.id };
       },
     },
   };
@@ -280,6 +297,16 @@ async function verifyCartGate() {
   await rejectsWithMessage(service.addToCart('user-1', 'local-zero', undefined, 1), 'Insufficient stock');
   await rejectsWithMessage(service.addToCart('user-1', 'local-inactive-catalog', undefined, 1), 'Product is not available');
   await rejectsWithMessage(service.updateCartItem('user-1', 'cart-zero', 1), 'Insufficient stock');
+
+  const cart = await service.getCart('user-1');
+  assert.deepStrictEqual(deletedCartItemIds.sort(), ['cart-stale', 'cart-zero']);
+  assert.strictEqual(updatedCartItems.length, 1);
+  assert.strictEqual(updatedCartItems[0].id, 'cart-overstock');
+  assert.strictEqual(updatedCartItems[0].quantity, 4);
+  assert.deepStrictEqual(cart.items.map((item) => [item.id, item.quantity, item.products.stockQuantity]), [
+    ['cart-overstock', 4, 4],
+    ['cart-good', 2, 4],
+  ]);
 }
 
 (async () => {
