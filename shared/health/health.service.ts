@@ -92,7 +92,9 @@ export class HealthService {
       const loggingServiceUrl =
         this.configService.get<string>('LOGGING_SERVICE_URL') ||
         'https://logging.alfares.cz';
-      const url = loggingServiceUrl.replace('/api/logs', '/health');
+      const url = loggingServiceUrl.includes('/api/logs')
+        ? loggingServiceUrl.replace('/api/logs', '/health')
+        : (loggingServiceUrl.endsWith('/') ? loggingServiceUrl.slice(0, -1) : loggingServiceUrl) + '/health';
 
       const response = await firstValueFrom(
         this.httpService.get(url).pipe(
