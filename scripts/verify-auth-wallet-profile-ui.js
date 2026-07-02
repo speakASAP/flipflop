@@ -17,6 +17,8 @@ function assert(condition, message) {
 const frontendAuth = read('services/frontend/lib/api/auth.ts');
 const sharedAuthService = read('shared/auth/auth.service.ts');
 const profilePage = read('services/frontend/app/profile/page.tsx');
+const header = read('services/frontend/components/Header.tsx');
+const dashboard = read('services/frontend/app/dashboard/page.tsx');
 const invoicePage = read('services/frontend/app/profile/invoice-profiles/page.tsx');
 
 assert(frontendAuth.includes('async setDefaultDeliveryAddress(id: string)') && frontendAuth.includes('apiClient.post<AuthDeliveryAddress>(`${AUTH_DELIVERY_ADDRESSES_PATH}/${encodeURIComponent(id)}/default`)'), 'frontend auth client must use POST for default delivery address');
@@ -27,6 +29,8 @@ assert(sharedAuthService.includes("'POST',\n      `/auth/profile/delivery-addres
 assert(sharedAuthService.includes("'POST',\n      `/auth/profile/invoice-profiles/${encodeURIComponent(id)}/default`"), 'shared auth service must use POST for default invoice profile');
 
 assert(profilePage.includes('href="/profile/invoice-profiles"'), 'profile page must link to invoice profile management');
+assert(header.includes('href="/profile/invoice-profiles"'), 'header must link authenticated users to invoice profile management');
+assert(dashboard.includes('href="/profile/invoice-profiles"'), 'dashboard quick actions must link to invoice profile management');
 assert(invoicePage.includes("import { authApi, AuthInvoiceProfile, AuthInvoiceProfileType, CreateAuthInvoiceProfileData } from '@/lib/api/auth'"), 'invoice page must use Auth invoice profile types/client');
 assert(invoicePage.includes('authApi.getInvoiceProfiles()'), 'invoice page must list Auth invoice profiles');
 assert(invoicePage.includes('authApi.createInvoiceProfile(payload)'), 'invoice page must create Auth invoice profiles');
@@ -47,6 +51,7 @@ console.log(JSON.stringify({
   assertions: {
     defaultEndpointMethods: true,
     profileInvoiceLink: true,
+    globalInvoiceProfileNavigation: true,
     profileInvoiceCrudUi: true,
     authOwnedStorageOnly: true,
   },
