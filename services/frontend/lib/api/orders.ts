@@ -108,6 +108,11 @@ export interface CheckoutAddressData {
   postalCode: string;
   country?: string;
   phone?: string;
+  companyName?: string;
+  companyId?: string;
+  taxId?: string;
+  vatId?: string;
+  email?: string;
 }
 
 export interface GuestOrderItemData {

@@ -36,6 +36,26 @@ export class GuestCheckoutAddressDto {
   @IsOptional()
   @IsString()
   phone?: string;
+
+  @IsOptional()
+  @IsString()
+  companyName?: string;
+
+  @IsOptional()
+  @IsString()
+  companyId?: string;
+
+  @IsOptional()
+  @IsString()
+  taxId?: string;
+
+  @IsOptional()
+  @IsString()
+  vatId?: string;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string;
 }
 
 export class CreateGuestOrderDto {

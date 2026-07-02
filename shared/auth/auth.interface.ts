@@ -31,6 +31,102 @@ export interface AuthProfileAddress {
   phone?: string;
 }
 
+
+export interface AuthDeliveryAddress {
+  id: string;
+  userId?: string;
+  label?: string;
+  firstName?: string;
+  lastName?: string;
+  recipientName?: string;
+  companyName?: string;
+  street: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  phone?: string;
+  isDefault: boolean;
+  metadata?: Record<string, unknown>;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateAuthDeliveryAddressDto {
+  label?: string;
+  firstName?: string;
+  lastName?: string;
+  recipientName?: string;
+  companyName?: string;
+  street: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  phone?: string;
+  isDefault?: boolean;
+  metadata?: Record<string, unknown>;
+}
+
+export type UpdateAuthDeliveryAddressDto = Partial<CreateAuthDeliveryAddressDto>;
+
+export type AuthInvoiceProfileType = 'person' | 'company';
+
+export interface AuthInvoiceProfile {
+  id: string;
+  userId?: string;
+  label?: string;
+  type?: AuthInvoiceProfileType;
+  firstName?: string;
+  lastName?: string;
+  companyName?: string;
+  companyId?: string;
+  taxId?: string;
+  vatId?: string;
+  street: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  email?: string;
+  phone?: string;
+  isDefault: boolean;
+  metadata?: Record<string, unknown>;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateAuthInvoiceProfileDto {
+  label?: string;
+  type?: AuthInvoiceProfileType;
+  firstName?: string;
+  lastName?: string;
+  companyName?: string;
+  companyId?: string;
+  taxId?: string;
+  vatId?: string;
+  street: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  email?: string;
+  phone?: string;
+  isDefault?: boolean;
+  metadata?: Record<string, unknown>;
+}
+
+export type UpdateAuthInvoiceProfileDto = Partial<CreateAuthInvoiceProfileDto>;
+
+export interface AuthCheckoutData {
+  user?: AuthUser;
+  deliveryAddresses: AuthDeliveryAddress[];
+  invoiceProfiles: AuthInvoiceProfile[];
+  defaultDeliveryAddress?: AuthDeliveryAddress | null;
+  defaultInvoiceProfile?: AuthInvoiceProfile | null;
+}
+
+export interface AuthWalletDeleteResponse {
+  success: boolean;
+  id?: string;
+}
+
 export interface UpdateAuthProfileDto {
   firstName?: string;
   lastName?: string;

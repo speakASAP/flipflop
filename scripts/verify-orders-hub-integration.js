@@ -15,9 +15,11 @@ function assert(condition, message) {
 
 const orderClient = read('shared/clients/order-client.service.ts');
 const ordersService = read('services/order-service/src/orders/orders.service.ts');
+const packageJson = read('package.json');
 const configmap = read('k8s/configmap.yaml');
 const warehouseClient = read('shared/clients/warehouse-client.service.ts');
 const adminDashboard = read('services/frontend/app/admin/page.tsx');
+const authSubjectSmoke = read('scripts/smoke-orders-auth-subject.js');
 const payloadBuilder = ordersService.slice(
   ordersService.indexOf('private buildCentralOrdersPayload'),
   ordersService.indexOf('private getCentralOrdersChannelAccountId'),
@@ -69,6 +71,21 @@ assert(
     payloadBuilder.includes('shipping:'),
   'central Orders payload must use nested totals/payment/shipping contract fields',
 );
+assert(
+  orderClient.includes('authSubject?: string') &&
+    payloadBuilder.includes('authSubject: this.isUuid(user?.id) ? user.id : undefined'),
+  'authenticated FlipFlop checkout must forward the Auth-compatible user UUID as customer.authSubject for central Orders snapshots',
+);
+assert(
+  packageJson.includes('smoke:orders-auth-subject') &&
+    authSubjectSmoke.includes('RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE') &&
+    authSubjectSmoke.includes('AUTH_SUBJECT_SMOKE_CONFIRM=CREATE_READ_OPTIONAL_CANCEL') &&
+    authSubjectSmoke.includes('AUTH_SUBJECT_SMOKE_CATALOG_PRODUCT_ID') &&
+    authSubjectSmoke.includes('AUTH_SUBJECT_SMOKE_WAREHOUSE_ID') &&
+    authSubjectSmoke.includes('authSubjectPersisted') &&
+    authSubjectSmoke.includes('WRITE_AUTH_SUBJECT_SMOKE_REPORT'),
+  'guarded auth-subject runtime smoke script must exist and require explicit approval before mutation',
+);
 
 assert(
   payloadBuilder.includes('const catalogProductId = this.requireCatalogProductId(') &&
@@ -79,7 +96,7 @@ assert(
 );
 assert(
   payloadBuilder.includes('warehouseId: string') &&
-    payloadBuilder.includes('const { order, orderItems, deliveryAddress, user, warehouseId } = params') &&
+    payloadBuilder.includes('const { order, orderItems, deliveryAddress, billingAddress, user, warehouseId } = params') &&
     payloadBuilder.includes('warehouseId,'),
   'central Orders payload items must include the Warehouse reservation authority id',
 );
@@ -98,11 +115,15 @@ assert(
   'central Orders forwarding must forward persisted order lines with Product relations',
 );
 assert(
-  payloadBuilder.includes('shippingAddress: boundedAddress') &&
-    payloadBuilder.includes('billingAddress: boundedAddress') &&
+  payloadBuilder.includes('shippingAddress: boundedDeliveryAddress') &&
+    payloadBuilder.includes('billingAddress: boundedBillingAddress') &&
+    payloadBuilder.includes('const rawBillingAddress = billingAddress || deliveryAddress') &&
+    payloadBuilder.includes('companyId: this.normalizeGuestText(rawBillingAddress.companyId') &&
+    payloadBuilder.includes('vatId: this.normalizeGuestText(rawBillingAddress.vatId') &&
+    payloadBuilder.includes('email: this.normalizeGuestText(rawBillingAddress.email') &&
     !payloadBuilder.includes('shippingAddress: deliveryAddress') &&
     !payloadBuilder.includes('billingAddress: deliveryAddress'),
-  'central Orders payload must forward bounded address fields, not the raw local address record',
+  'central Orders payload must forward separate bounded shipping and billing snapshots with Auth invoice fields',
 );
 assert(
   !payloadBuilder.includes('customerNote') &&

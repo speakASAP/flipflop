@@ -44,6 +44,110 @@ Known blockers/gaps:
 
 Next action: land or confirm the central Orders lifecycle read endpoint, then rerun live checkout/cabinet smoke after `/cart` returns HTTP 200.
 
+## 2026-07-02 - F1 Invoice Auth Subject Snapshot Follow-Up
+
+Objective: ensure authenticated FlipFlop orders give Invoices a stable account
+matching key when central Orders stores the order snapshot.
+
+IPS chain:
+
+- Vision: authenticated customers can retrieve tax invoices from account
+  surfaces without relying only on mutable email matching.
+- Goal Impact: central Orders snapshots for authenticated FlipFlop checkout now
+  include `customer.authSubject` before payment creation.
+- System: FlipFlop order-service, shared Orders client, central
+  orders-microservice, invoices-microservice account access.
+- Feature: Auth subject handoff in `orders.create.v1` customer snapshot.
+- Task: extend the bounded central Orders client type and payload builder to
+  forward the UUID-shaped authenticated user id as `customer.authSubject`.
+- Execution Plan: source-only remote edit; do not alter guest checkout, payment
+  provider calls, local user tables, or live runtime flags.
+- Coding Prompt: pass only UUID-shaped authenticated user ids; do not infer a
+  subject from email; keep guest checkout without an Auth subject.
+- Code: `shared/clients/order-client.service.ts`,
+  `services/order-service/src/orders/orders.service.ts`, and
+  `scripts/verify-orders-hub-integration.js`.
+- Validation passed: `npm run verify:orders-hub-integration`,
+  `cd services/order-service && npm run build`, and `git diff --check`.
+
+Remaining gates:
+
+- `[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with AUTH_SUBJECT_SMOKE_APPROVAL_ID, fixture product/warehouse ids, and persisted customer.authSubject evidence]`
+- `[MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]`
+
+## 2026-07-02 - F1 Auth Subject Runtime Smoke Gate
+
+Objective: provide a guarded runtime proof path for the invoice account-access
+contract without creating a production order unless explicitly approved.
+
+IPS chain:
+
+- Vision: authenticated customers can retrieve invoices from account surfaces
+  by stable Auth subject.
+- Goal Impact: operators can prove the live central Orders snapshot stores
+  `customer.authSubject` for the FlipFlop service actor before closing the
+  Invoices runtime gate.
+- System: FlipFlop smoke runner, deployed `flipflop-order-service`, central
+  orders-microservice, Warehouse reservation authority, and optional Orders
+  status cleanup token.
+- Feature: approval-gated synthetic central Orders create/read smoke.
+- Task: add a script that is non-mutating by default, requires explicit
+  approval inputs plus Catalog/Warehouse fixture ids before mutation, and reads
+  the created Orders snapshot to assert the Auth subject is persisted.
+- Execution Plan: source-only remote edit; no smoke execution in this turn.
+- Coding Prompt: no token values, no customer/order row dumps, no provider
+  payment calls, no default mutation without approval.
+- Code: `scripts/smoke-orders-auth-subject.js`, package script
+  `smoke:orders-auth-subject`, and `scripts/verify-orders-hub-integration.js`
+  assertions.
+- Validation: `node --check scripts/smoke-orders-auth-subject.js`,
+  `npm run verify:orders-hub-integration`, `git diff --check`, and
+  `WRITE_AUTH_SUBJECT_SMOKE_REPORT=0 node scripts/smoke-orders-auth-subject.js`
+  passed as a fail-closed default preflight with `mutation=false`.
+
+Remaining gate:
+
+- `[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with AUTH_SUBJECT_SMOKE_APPROVAL_ID, fixture product/warehouse ids, and persisted customer.authSubject evidence]`
+
+## 2026-07-02 - F1 Auth Subject Runtime Marker Deploy
+
+Objective: put the already validated FlipFlop Auth-subject forwarding code into
+the live `flipflop-order-service` pod without creating a production order.
+
+IPS chain:
+
+- Vision: authenticated customers can retrieve invoices from account surfaces by
+  stable Auth subject after the invoice service reads central Orders snapshots.
+- Goal Impact: the live FlipFlop order-service runtime now contains the
+  `customer.authSubject` payload builder and guarded smoke runner, narrowing the
+  remaining invoice-account gate to an owner-approved synthetic create/read
+  smoke.
+- System: FlipFlop order-service runtime, central Orders API, Kubernetes
+  deployment `flipflop-order-service`, and the guarded Orders auth-subject smoke.
+- Feature: deployed Auth subject handoff runtime marker.
+- Task: build a patch image from the current live image and overlay the already
+  built `services/order-service/dist`, `services/order-service/src`, and
+  `shared/dist` artifacts after the normal Dockerfile path hit npm registry
+  `ETIMEDOUT`.
+- Execution Plan: do not run `npm install`, do not create an order, do not
+  enable provider calls; restart only `flipflop-order-service`.
+- Coding Prompt: preserve unrelated dirty product/catalog worktree files and do
+  not stage or revert them.
+- Code/runtime: patch image pushed as `localhost:5000/flipflop-order-service:latest`
+  from source commit `23b22e0`; rollout completed for
+  `deployment/flipflop-order-service` in `statex-apps`.
+- Validation: live pod grep found
+  `/app/services/order-service/dist/services/order-service/src/orders/orders.service.js`
+  with `authSubject: this.isUuid(user?.id) ? user.id : undefined`; public
+  `https://flipflop.alfares.cz/` and `/api/products?limit=1` returned HTTP 200;
+  `WRITE_AUTH_SUBJECT_SMOKE_REPORT=0 node scripts/smoke-orders-auth-subject.js`
+  failed closed with `mutation=false`, `providerCall=false`, ready deployment
+  preflight, and only approval/confirmation env blockers.
+
+Remaining gate:
+
+- `[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with AUTH_SUBJECT_SMOKE_APPROVAL_ID, fixture product/warehouse ids, and persisted customer.authSubject evidence]`
+
 
 ## 2026-07-02 - F1 Admin Dashboard Order Visibility Addendum
 

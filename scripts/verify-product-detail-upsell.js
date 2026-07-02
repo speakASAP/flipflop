@@ -10,6 +10,7 @@ const assert = (condition, message) => {
 const productController = read('services/product-service/src/products/products.controller.ts');
 const productService = read('services/product-service/src/products/products.service.ts');
 const productsApi = read('services/frontend/lib/api/products.ts');
+const catalogClient = read('shared/clients/catalog-client.service.ts');
 const productPage = read('services/frontend/app/products/[id]/page.tsx');
 const bundleButton = read('services/frontend/components/AddBundleToCartButton.tsx');
 const checkoutPage = read('services/frontend/app/checkout/page.tsx');
@@ -17,6 +18,10 @@ const orderService = read('services/order-service/src/orders/orders.service.ts')
 
 assert(productController.includes("@Get(':id/recommendations')"), 'product-service exposes public recommendations route');
 assert(productService.includes('getProductRecommendations'), 'product-service implements recommendation method');
+assert(catalogClient.includes('getRelatedProducts'), 'Catalog client reads Catalog related-products endpoint');
+assert(catalogClient.includes('/api/products/${encodeURIComponent(productId)}/related'), 'Catalog client targets Catalog related-products route');
+assert(productService.includes('getCatalogRelatedProducts'), 'product-service prefers Catalog related-products when available');
+assert(productService.includes('catalog_order_affinity_then_purchase_history_then_category_fallback'), 'recommendation policy records Catalog relation precedence');
 assert(productService.includes('getFrequentlyBoughtTogetherProducts'), 'product-service reads aggregate purchase-history co-occurrence');
 assert(productService.includes("status: 'confirmed'"), 'purchase-history source is limited to confirmed orders');
 assert(productService.includes('getFallbackRelatedProducts'), 'product-service has deterministic fallback recommendations');

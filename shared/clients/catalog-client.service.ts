@@ -8,6 +8,17 @@ export interface CatalogProductRequestOptions {
   catalogScope?: string;
 }
 
+export interface CatalogProductRelation {
+  id: string;
+  sourceProductId: string;
+  targetProductId: string;
+  relationType: string;
+  score: number;
+  confidence: number;
+  source: string;
+  evidence?: Record<string, unknown>;
+}
+
 export interface CatalogContentPreview {
   marketplace: string;
   label: string;
@@ -62,6 +73,40 @@ export class CatalogClientService {
     }
 
     return Object.keys(headers).length ? headers : undefined;
+  }
+
+  async getRelatedProducts(
+    productId: string,
+    options: { relationType?: string; authorizationHeader?: string } = {},
+  ): Promise<CatalogProductRelation[]> {
+    try {
+      const params = new URLSearchParams();
+      if (options.relationType) params.append('relationType', options.relationType);
+      const query = params.toString();
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `${this.baseUrl}/api/products/${encodeURIComponent(productId)}/related${query ? `?${query}` : ''}`,
+          {
+            headers: this.catalogHeaders(
+              options.authorizationHeader ? { Authorization: options.authorizationHeader } : undefined,
+            ),
+          },
+        ),
+      );
+
+      if (!response.data?.success || !Array.isArray(response.data?.data)) {
+        return [];
+      }
+
+      return response.data.data;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.warn(
+        `Catalog related products unavailable for product ${productId}: ${errorMessage}`,
+        'CatalogClient',
+      );
+      return [];
+    }
   }
 
   async getProductContentPreview(
