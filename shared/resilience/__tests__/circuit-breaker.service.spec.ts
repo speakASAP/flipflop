@@ -33,6 +33,21 @@ describe('CircuitBreakerService', () => {
 
       expect(breaker1).toBe(breaker2);
     });
+
+    it('should execute the per-call operation when reusing a breaker', async () => {
+      const firstOperation = jest.fn(async () => ({ value: 'first' }));
+      const secondOperation = jest.fn(async () => ({ value: 'second' }));
+
+      const breaker1 = service.create('test-service', firstOperation);
+      await expect(breaker1.fire(firstOperation)).resolves.toEqual({ value: 'first' });
+
+      const breaker2 = service.create('test-service', secondOperation);
+      await expect(breaker2.fire(secondOperation)).resolves.toEqual({ value: 'second' });
+
+      expect(breaker1).toBe(breaker2);
+      expect(firstOperation).toHaveBeenCalledTimes(1);
+      expect(secondOperation).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('getState', () => {
@@ -74,4 +89,3 @@ describe('CircuitBreakerService', () => {
     });
   });
 });
-

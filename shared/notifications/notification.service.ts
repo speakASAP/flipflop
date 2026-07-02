@@ -107,7 +107,7 @@ export class NotificationService {
       // Use retry service with circuit breaker
       const response = await this.retryService.execute(
         async () => {
-          return await breaker.fire();
+          return await breaker.fire(callFn);
         },
         {
           retryable: (error: any) => {
