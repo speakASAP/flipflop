@@ -212,53 +212,83 @@ export class ProductsService {
         )
       : rows;
 
-      if (catalogScope === 'effective') {
-        const items = catalogResult.items.map((product: any) => this.mapCatalogSelectionProduct(product));
-        const total = Number(catalogResult.total || items.length);
-        const totalPages = Math.ceil(total / catalogResult.limit);
+    const offerItems = await Promise.all(
+      searched.map((product: any) => this.catalogLinkedProductToOffer(product)),
+    );
+    const items = offerItems
+      .filter(Boolean)
+      .sort((a: any, b: any) => Number(b.stockQuantity || 0) - Number(a.stockQuantity || 0));
+    const start = (page - 1) * limit;
+    const pagedItems = items.slice(start, start + limit);
+    const totalPages = Math.ceil(items.length / limit);
 
-        return {
-          items,
-          pagination: {
-            page: catalogResult.page,
-            limit: catalogResult.limit,
-            total,
-            totalPages,
-            hasNext: catalogResult.page < totalPages,
-            hasPrev: catalogResult.page > 1,
-          },
-        };
-      }
+    return {
+      items: pagedItems,
+      pagination: {
+        page,
+        limit,
+        total: items.length,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
+  }
 
-      const offerItems = await Promise.all(
-        catalogResult.items.map(async (product: any) => {
-          const policy = await this.catalogProductOfferPolicy(product);
-          if (!policy.sellable) {
-            await this.logger.warn('OPERATIONAL_ALERT flipflop_catalog_offer_blocked', {
-              context: 'ProductsService',
-              catalogProductId: product?.id || null,
-              sku: product?.sku || null,
-              blockedReasons: policy.blockedReasons,
-            });
-            return null;
-          }
+  async reconcileCatalogLinkedOffers(input: FlipFlopOfferReconciliationRequest = {}) {
+    await this.ensureOfferReconciliationAttemptTable();
 
-          return this.mapCatalogOfferProduct(product, policy.availableStock);
-        }),
-      );
-      const items = offerItems.filter(Boolean);
-      const totalPages = Math.ceil(items.length / catalogResult.limit);
+    const requestedProductIds = this.normalizePublishProductIds(input.productIds || []);
+    const limit = Math.max(
+      1,
+      Math.min(
+        1000,
+        Number(input.limit) || Number(process.env.FLIPFLOP_OFFER_RECONCILIATION_LIMIT) || 500,
+      ),
+    );
+    const where: any = { catalogProductId: { not: null } };
+    if (requestedProductIds.length > 0) {
+      where.OR = requestedProductIds.flatMap((id) => ([
+        { id },
+        { catalogProductId: id },
+      ]));
+    }
 
-      return {
-        items,
-        pagination: {
-          page: catalogResult.page,
-          limit: catalogResult.limit,
-          total: items.length,
-          totalPages,
-          hasNext: catalogResult.page < totalPages,
-          hasPrev: catalogResult.page > 1,
-        },
+    const products = await this.prisma.product.findMany({
+      where,
+      select: {
+        id: true,
+        catalogProductId: true,
+        sku: true,
+        name: true,
+        isActive: true,
+        stockQuantity: true,
+        trackInventory: true,
+        updatedAt: true,
+      },
+      orderBy: { id: 'asc' },
+      take: limit,
+    }) as FlipFlopOfferReconciliationProduct[];
+
+    const attempt = await this.createOfferReconciliationAttempt(input, products);
+    await this.updateOfferReconciliationAttempt(attempt.id, { status: 'RUNNING', startedAt: new Date() });
+
+    const dryRun = Boolean(input.dryRun);
+    const results: any[] = [];
+    const blockers = ['[MISSING: safe FlipFlop catalog-event refresh policy]'];
+
+    for (const product of products) {
+      const localBefore = this.localOfferStateSnapshot(product);
+      const item: any = {
+        productId: product.id,
+        catalogProductId: product.catalogProductId,
+        sku: product.sku || null,
+        localBefore,
+        catalogState: { found: false },
+        warehouseAvailable: null,
+        blockedReasons: [],
+        action: 'kept_sellable',
+        updated: false,
       };
 
       try {
@@ -469,6 +499,24 @@ export class ProductsService {
           page: Number(filters.page) || 1,
           limit: Number(filters.limit) || 20,
         });
+      }
+
+      if (catalogScope === 'effective') {
+        const items = catalogResult.items.map((product: any) => this.mapCatalogSelectionProduct(product));
+        const total = Number(catalogResult.total || items.length);
+        const totalPages = Math.ceil(total / catalogResult.limit);
+
+        return {
+          items,
+          pagination: {
+            page: catalogResult.page,
+            limit: catalogResult.limit,
+            total,
+            totalPages,
+            hasNext: catalogResult.page < totalPages,
+            hasPrev: catalogResult.page > 1,
+          },
+        };
       }
 
       const offerItems = await Promise.all(
