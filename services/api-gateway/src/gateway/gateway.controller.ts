@@ -117,6 +117,17 @@ export class GatewayController {
   }
 
   /**
+   * Route authenticated seller Catalog product pickers and publish actions.
+   */
+  @All('seller/catalog*')
+  @UseGuards(JwtAuthGuard)
+  async sellerCatalogRoute(@Req() req: ExpressRequest, @Res() res: ExpressResponse) {
+    const path = req.url.replace('/api/seller/catalog', '');
+    const finalPath = path === '' ? '/seller/catalog' : `/seller/catalog${path}`;
+    return this.routeRequest('products', finalPath, req, res);
+  }
+
+  /**
    * Route product requests
    */
   @All('products*')
