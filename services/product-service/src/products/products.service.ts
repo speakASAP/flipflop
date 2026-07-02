@@ -145,6 +145,68 @@ export class ProductsService {
     };
   }
 
+  private async getCatalogLinkedStorefrontProducts(filters: any) {
+    const page = Math.max(1, Number(filters.page) || 1);
+    const limit = Math.max(1, Math.min(200, Number(filters.limit) || 20));
+    const search = typeof filters.search === 'string' ? filters.search.trim().toLowerCase() : '';
+    const rows = await this.prisma.product.findMany({
+      where: {
+        isActive: true,
+        catalogProductId: { not: null },
+      },
+      include: {
+        product_categories: {
+          include: {
+            categories: true,
+          },
+        },
+        product_variants: true,
+      },
+      orderBy: [
+        { stockQuantity: 'desc' },
+        { updatedAt: 'desc' },
+      ],
+    });
+
+    const searched = search
+      ? rows.filter((product: any) =>
+          [
+            product.name,
+            product.sku,
+            product.description,
+            product.shortDescription,
+            product.brand,
+          ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase()
+            .includes(search),
+        )
+      : rows;
+
+    const offerItems = await Promise.all(
+      searched.map((product: any) => this.catalogLinkedProductToOffer(product)),
+    );
+    const items = offerItems
+      .filter(Boolean)
+      .sort((a: any, b: any) => Number(b.stockQuantity || 0) - Number(a.stockQuantity || 0));
+    const start = (page - 1) * limit;
+    const pagedItems = items.slice(start, start + limit);
+    const totalPages = Math.ceil(items.length / limit);
+
+    return {
+      items: pagedItems,
+      pagination: {
+        page,
+        limit,
+        total: items.length,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
+  }
+
   async getCatalogContentPreview(productId: string, authorizationHeader?: string) {
     const catalogClient = this.catalogClient as unknown as {
       getProductContentPreview: (
@@ -158,11 +220,13 @@ export class ProductsService {
   }
 
   async getProducts(filters: any) {
-    if (String(filters.source || '').toLowerCase() === 'catalog') {
+    const source = String(filters.source || '').toLowerCase();
+
+    if (source === 'catalog') {
       return this.getCatalogProducts(filters);
     }
 
-    return this.getLocalStorefrontProducts(filters);
+    return this.getCatalogLinkedStorefrontProducts(filters);
   }
 
   /**
@@ -193,85 +257,33 @@ export class ProductsService {
         });
       }
 
-      // Always fetch stock from warehouse-microservice (unless explicitly disabled)
-      // This ensures real stock quantities are displayed instead of 0
-      let warehouseData: Map<string, any> = new Map();
-      const shouldIncludeWarehouse = filters.includeWarehouse !== 'false' && filters.includeWarehouse !== false;
-      if (shouldIncludeWarehouse) {
-        const productIds = catalogResult.items.map((p: any) => p.id);
-        if (productIds.length > 0) {
-          this.logger.log(`Fetching warehouse stock for ${productIds.length} products`, 'ProductsService');
-          // Get stock for all products
-          const stockPromises = productIds.map(async (productId: string) => {
-            try {
-              // Use getTotalAvailable to get stock quantity
-              const totalAvailable = await this.warehouseClient.getTotalAvailable(productId);
-              return { productId, stock: { available: totalAvailable } };
-            } catch (error: any) {
-              // Log warning but don't fail the request - products will show 0 stock
-              this.logger.warn(`Failed to fetch stock for product ${productId}: ${error.message}`, 'ProductsService');
-              return { productId, stock: null };
-            }
-          });
-          const stockResults = await Promise.all(stockPromises);
-          const failedStockCount = stockResults.filter(({ stock }) => !stock).length;
-          stockResults.forEach(({ productId, stock }) => {
-            if (stock) {
-              warehouseData.set(productId, stock);
-            }
-          });
-          if (failedStockCount > 0) {
-            await this.logger.warn('OPERATIONAL_ALERT warehouse_stock_enrichment_partial_failure', {
+      const offerItems = await Promise.all(
+        catalogResult.items.map(async (product: any) => {
+          const policy = await this.catalogProductOfferPolicy(product);
+          if (!policy.sellable) {
+            await this.logger.warn('OPERATIONAL_ALERT flipflop_catalog_offer_blocked', {
               context: 'ProductsService',
-              requestedProductCount: productIds.length,
-              failedStockCount,
+              catalogProductId: product?.id || null,
+              sku: product?.sku || null,
+              blockedReasons: policy.blockedReasons,
             });
+            return null;
           }
-          this.logger.log(`Successfully fetched warehouse stock for ${warehouseData.size} products`, 'ProductsService');
-        }
-      }
 
-      // Map catalog products to response format
-      const items = catalogResult.items.map((product: any) => {
-        const stock = warehouseData.get(product.id);
-        const price = this.getCatalogPrice(product);
-        return {
-          id: product.id,
-          name: product.title,
-          sku: product.sku,
-          description: product.description,
-          price,
-          stockQuantity: stock?.available || 0,
-          trackInventory: true,
-          brand: product.brand,
-          mainImageUrl: product.media?.find((m: any) => m.type === 'image' && m.isPrimary)?.url,
-          imageUrls: product.media?.filter((m: any) => m.type === 'image').map((m: any) => m.url) || [],
-          images: product.media?.filter((m: any) => m.type === 'image').map((m: any) => m.url) || [],
-          categories: product.categories || [],
-          seoData: product.seoData || null,
-          tags: product.tags || [],
-          createdAt: product.createdAt,
-          updatedAt: product.updatedAt,
-          ...(stock && {
-            warehouse: {
-              stockQuantity: stock.available,
-              trackInventory: true,
-              availability: stock.available > 0 ? 'in_stock' : 'out_of_stock',
-              updatedAt: stock.updatedAt,
-              source: 'warehouse-microservice',
-            },
-          }),
-        };
-      });
+          return this.mapCatalogOfferProduct(product, policy.availableStock);
+        }),
+      );
+      const items = offerItems.filter(Boolean);
+      const totalPages = Math.ceil(items.length / catalogResult.limit);
 
       return {
         items,
         pagination: {
           page: catalogResult.page,
           limit: catalogResult.limit,
-          total: catalogResult.total,
-          totalPages: Math.ceil(catalogResult.total / catalogResult.limit),
-          hasNext: catalogResult.page < Math.ceil(catalogResult.total / catalogResult.limit),
+          total: items.length,
+          totalPages,
+          hasNext: catalogResult.page < totalPages,
           hasPrev: catalogResult.page > 1,
         },
       };
@@ -287,9 +299,10 @@ export class ProductsService {
    */
   async getProduct(id: string, includeWarehouse: boolean = true) {
     try {
+      void includeWarehouse;
+
       const localProduct = await this.prisma.product.findFirst({
         where: {
-          isActive: true,
           OR: [
             { id },
             { catalogProductId: id },
@@ -302,65 +315,37 @@ export class ProductsService {
           product_variants: true,
         },
       });
-      if (localProduct) {
-        return this.mapProduct(localProduct);
-      }
 
-      // Fetch product from catalog-microservice
-      const product = await this.catalogClient.getProductById(id);
-      if (!product) {
+      if (!localProduct || !localProduct.isActive || !localProduct.catalogProductId) {
         throw new NotFoundException('Product not found');
       }
 
-      // Always fetch stock from warehouse-microservice by default (unless explicitly disabled)
-      // This ensures real stock quantities are displayed
-      let stock = null;
-      if (includeWarehouse) {
-        try {
-          this.logger.log(`Fetching warehouse stock for product ${id}`, 'ProductsService');
-          const totalAvailable = await this.warehouseClient.getTotalAvailable(id);
-          stock = { available: totalAvailable };
-          this.logger.log(`Successfully fetched warehouse stock for product ${id}: ${totalAvailable}`, 'ProductsService');
-        } catch (error: any) {
-          // Log warning but don't fail the request - product will show 0 stock
-          this.logger.warn(`Failed to fetch stock for product ${id}: ${error.message}`, 'ProductsService');
-          await this.logger.warn('OPERATIONAL_ALERT warehouse_stock_enrichment_failure', {
-            context: 'ProductsService',
-            productId: id,
-          });
-        }
+      let catalogProduct: any;
+      try {
+        catalogProduct = await this.catalogClient.getProductById(localProduct.catalogProductId);
+      } catch (error: any) {
+        await this.logger.warn('OPERATIONAL_ALERT flipflop_product_catalog_missing', {
+          context: 'ProductsService',
+          productId: localProduct.id,
+          catalogProductId: localProduct.catalogProductId,
+          error: error?.message || 'unknown error',
+        });
+        throw new NotFoundException('Product not found');
       }
 
-      // Map to response format
-      const price = this.getCatalogPrice(product);
-      return {
-        id: product.id,
-        name: product.title,
-        sku: product.sku,
-        description: product.description,
-        price,
-        stockQuantity: stock?.available || 0,
-        trackInventory: true,
-        brand: product.brand,
-        mainImageUrl: product.media?.find((m: any) => m.type === 'image' && m.isPrimary)?.url,
-        imageUrls: product.media?.filter((m: any) => m.type === 'image').map((m: any) => m.url) || [],
-        images: product.media?.filter((m: any) => m.type === 'image').map((m: any) => m.url) || [],
-        categories: product.categories || [],
-        attributes: product.attributes || [],
-        seoData: product.seoData || null,
-        tags: product.tags || [],
-        createdAt: product.createdAt,
-        updatedAt: product.updatedAt,
-        ...(stock && {
-          warehouse: {
-            stockQuantity: stock.available,
-            trackInventory: true,
-            availability: stock.available > 0 ? 'in_stock' : 'out_of_stock',
-            updatedAt: stock.updatedAt,
-            source: 'warehouse-microservice',
-          },
-        }),
-      };
+      const policy = await this.catalogProductOfferPolicy(catalogProduct);
+      if (!policy.sellable) {
+        await this.logger.warn('OPERATIONAL_ALERT flipflop_product_offer_blocked', {
+          context: 'ProductsService',
+          productId: localProduct.id,
+          catalogProductId: localProduct.catalogProductId,
+          sku: localProduct.sku,
+          blockedReasons: policy.blockedReasons,
+        });
+        throw new NotFoundException('Product not found');
+      }
+
+      return this.mapCatalogOfferProduct(catalogProduct, policy.availableStock, localProduct);
     } catch (error: any) {
       if (error instanceof NotFoundException) {
         throw error;
@@ -673,31 +658,63 @@ export class ProductsService {
     }
   }
 
-  private async catalogProductPublishPolicy(catalogProduct: any) {
+  private async catalogLinkedProductToOffer(localProduct: any) {
+    if (!localProduct?.catalogProductId) {
+      return null;
+    }
+
+    try {
+      const catalogProduct = await this.catalogClient.getProductById(localProduct.catalogProductId);
+      const policy = await this.catalogProductOfferPolicy(catalogProduct);
+
+      if (!policy.sellable) {
+        await this.logger.warn('OPERATIONAL_ALERT flipflop_local_offer_blocked', {
+          context: 'ProductsService',
+          productId: localProduct.id,
+          catalogProductId: localProduct.catalogProductId,
+          sku: localProduct.sku,
+          blockedReasons: policy.blockedReasons,
+        });
+        return null;
+      }
+
+      return this.mapCatalogOfferProduct(catalogProduct, policy.availableStock, localProduct);
+    } catch (error: any) {
+      await this.logger.warn('OPERATIONAL_ALERT flipflop_local_offer_catalog_lookup_failed', {
+        context: 'ProductsService',
+        productId: localProduct.id,
+        catalogProductId: localProduct.catalogProductId,
+        sku: localProduct.sku,
+        error: error?.message || 'unknown error',
+      });
+      return null;
+    }
+  }
+
+  private async catalogProductOfferPolicy(catalogProduct: any) {
     const blockedReasons: Array<{ reason: string; message: string }> = [];
     const price = this.getCatalogPrice(catalogProduct);
     let availableStock = 0;
 
     if (!catalogProduct?.id) {
       blockedReasons.push({ reason: 'catalog_product_missing', message: 'Catalog product was not returned by catalog-microservice.' });
-    }
-    if (!catalogProduct?.sku) {
+    } else if (!catalogProduct?.sku) {
       blockedReasons.push({ reason: 'sku_required', message: 'Catalog product SKU is required before FlipFlop publication.' });
     }
-    if (catalogProduct?.isActive === false) {
-      blockedReasons.push({ reason: 'inactive_product', message: 'Only active Catalog products can be published to FlipFlop.' });
-    }
+    blockedReasons.push(...this.catalogLifecycleBlockedReasons(catalogProduct));
     if (price <= 0) {
       blockedReasons.push({ reason: 'price_required', message: 'A positive Catalog price is required before FlipFlop publication.' });
     }
 
-    try {
-      availableStock = this.toPositiveInteger(await this.warehouseClient.getTotalAvailable(catalogProduct.id));
-    } catch (error: any) {
-      blockedReasons.push({
-        reason: 'warehouse_stock_unavailable',
-        message: `Warehouse stock preflight failed: ${error?.message || 'unknown error'}`,
-      });
+    if (catalogProduct?.id) {
+      try {
+        availableStock = this.toPositiveInteger(await this.warehouseClient.getTotalAvailable(catalogProduct.id));
+      } catch (error: any) {
+        blockedReasons.push({
+          reason: 'warehouse_stock_unavailable',
+          message: `Warehouse stock preflight failed: ${error?.message || 'unknown error'}`,
+        });
+      }
     }
 
     if (availableStock <= 0) {
@@ -705,7 +722,7 @@ export class ProductsService {
     }
 
     return {
-      publishable: blockedReasons.length === 0,
+      sellable: blockedReasons.length === 0,
       blockedReasons,
       price,
       availableStock,
@@ -713,6 +730,41 @@ export class ProductsService {
       mutatesCatalog: false,
       mutatesPrices: false,
     };
+  }
+
+  private async catalogProductPublishPolicy(catalogProduct: any) {
+    const policy = await this.catalogProductOfferPolicy(catalogProduct);
+
+    return {
+      ...policy,
+      publishable: policy.sellable,
+    };
+  }
+
+  private catalogLifecycleBlockedReasons(catalogProduct: any): Array<{ reason: string; message: string }> {
+    if (!catalogProduct) {
+      return [];
+    }
+
+    const blockedReasons: Array<{ reason: string; message: string }> = [];
+    const status = String(
+      catalogProduct.lifecycleStatus ?? catalogProduct.lifecycle ?? catalogProduct.status ?? '',
+    ).trim().toLowerCase();
+
+    if (catalogProduct.isActive === false) {
+      blockedReasons.push({ reason: 'inactive_product', message: 'Only active Catalog products can be offered on FlipFlop.' });
+    }
+    if (catalogProduct.isArchived === true || catalogProduct.archived === true || catalogProduct.archivedAt) {
+      blockedReasons.push({ reason: 'archived_product', message: 'Archived Catalog products cannot be offered on FlipFlop.' });
+    }
+    if (catalogProduct.isDeleted === true || catalogProduct.deleted === true || catalogProduct.deletedAt) {
+      blockedReasons.push({ reason: 'deleted_product', message: 'Deleted Catalog products cannot be offered on FlipFlop.' });
+    }
+    if (['archived', 'deleted', 'inactive', 'disabled', 'retired'].includes(status)) {
+      blockedReasons.push({ reason: 'inactive_lifecycle', message: `Catalog lifecycle status ${status} is not offerable on FlipFlop.` });
+    }
+
+    return blockedReasons;
   }
 
   private async upsertFlipFlopProductFromCatalog(catalogProduct: any, availableStock: number) {
@@ -933,6 +985,71 @@ export class ProductsService {
     });
 
     return match?.id;
+  }
+
+  private mapCatalogOfferProduct(catalogProduct: any, availableStock: number, localProduct?: any) {
+    const imageUrls = this.catalogImageUrls(catalogProduct);
+    const mainImageUrl =
+      catalogProduct.mainImageUrl ||
+      catalogProduct.media?.find((media: any) => media?.type === 'image' && media?.isPrimary)?.url ||
+      imageUrls[0] ||
+      localProduct?.mainImageUrl ||
+      null;
+    const categories = Array.isArray(catalogProduct.categories) && catalogProduct.categories.length
+      ? catalogProduct.categories
+      : localProduct?.product_categories?.map((pc: any) => ({
+          id: pc.categories.id,
+          name: pc.categories.name,
+          slug: pc.categories.slug,
+          description: pc.categories.description,
+          parentId: pc.categories.parentId || undefined,
+        })) || [];
+
+    return {
+      id: localProduct?.id || catalogProduct.id,
+      catalogProductId: catalogProduct.id,
+      name: catalogProduct.title || catalogProduct.name || localProduct?.name || catalogProduct.sku,
+      sku: catalogProduct.sku || localProduct?.sku,
+      description: catalogProduct.description || localProduct?.description,
+      price: this.getCatalogPrice(catalogProduct),
+      stockQuantity: availableStock,
+      trackInventory: true,
+      brand: catalogProduct.brand || localProduct?.brand,
+      mainImageUrl,
+      imageUrls,
+      images: imageUrls,
+      categories,
+      attributes: catalogProduct.attributes || localProduct?.attributes || [],
+      seoData: catalogProduct.seoData || null,
+      tags: catalogProduct.tags || [],
+      variants: localProduct?.product_variants?.map((variant: any) => ({
+        id: variant.id,
+        productId: variant.productId,
+        name: variant.name,
+        sku: variant.sku,
+        price: Number(variant.price),
+        stockQuantity: variant.stockQuantity,
+        attributes: variant.options as Record<string, string> | undefined,
+      })) || [],
+      createdAt: this.dateToResponseValue(localProduct?.createdAt || catalogProduct.createdAt),
+      updatedAt: this.dateToResponseValue(catalogProduct.updatedAt || localProduct?.updatedAt),
+      warehouse: {
+        stockQuantity: availableStock,
+        trackInventory: true,
+        availability: 'in_stock',
+        source: 'warehouse-microservice',
+      },
+    };
+  }
+
+  private dateToResponseValue(value: any) {
+    if (!value) {
+      return undefined;
+    }
+    if (typeof value.toISOString === 'function') {
+      return value.toISOString();
+    }
+    return value;
   }
 
   /**

@@ -173,6 +173,9 @@ export class CartService {
     // Check stock availability from warehouse-microservice
     const product = cartItem.products;
     if (product) {
+      if (!product.isActive) {
+        throw new BadRequestException('Product is not available');
+      }
       await this.checkStockAvailability(product.id, product.catalogProductId, quantity);
     }
 
@@ -225,47 +228,81 @@ export class CartService {
   }
 
   /**
-   * Check stock availability from warehouse-microservice or local database
+   * Check Catalog activity and Warehouse sellable stock.
    */
   private async checkStockAvailability(productId: string, catalogProductId: string | null, quantity: number): Promise<void> {
-    if (catalogProductId) {
-      // Use central warehouse-microservice
-      try {
-        const totalAvailable = await this.warehouseClient.getTotalAvailable(catalogProductId);
-        if (totalAvailable < quantity) {
-          throw new BadRequestException(`Insufficient stock. Available: ${totalAvailable}, Requested: ${quantity}`);
-        }
-      } catch (error: any) {
-        if (error instanceof BadRequestException && error.message.includes('Insufficient stock')) {
-          throw error;
-        }
-        this.logger.error(
-          `Failed to verify stock via warehouse-microservice for product ${productId}: ${error.message}`,
-          error.stack,
-          'CartService'
-        );
-        throw new BadRequestException('Stock verification failed. Please try again shortly.');
-      }
-    } else {
-      // Fallback to local stock (legacy mode)
-      const product = await this.prisma.product.findUnique({
-        where: { id: productId },
-        select: { stockQuantity: true, trackInventory: true },
+    if (!catalogProductId) {
+      await this.logger.warn('OPERATIONAL_ALERT flipflop_cart_unlinked_product_blocked', {
+        context: 'CartService',
+        productId,
       });
+      throw new BadRequestException('Product is not available');
+    }
 
-      if (!product) {
-        throw new BadRequestException('Product not found');
+    let catalogProduct: any;
+    try {
+      catalogProduct = await this.catalogClient.getProductById(catalogProductId);
+    } catch (error: any) {
+      await this.logger.warn('OPERATIONAL_ALERT flipflop_cart_catalog_lookup_failed', {
+        context: 'CartService',
+        productId,
+        catalogProductId,
+        error: error?.message || 'unknown error',
+      });
+      throw new BadRequestException('Product is not available');
+    }
+
+    const blockedReason = this.catalogProductUnavailableReason(catalogProduct);
+    if (blockedReason) {
+      await this.logger.warn('OPERATIONAL_ALERT flipflop_cart_catalog_product_blocked', {
+        context: 'CartService',
+        productId,
+        catalogProductId,
+        blockedReason,
+      });
+      throw new BadRequestException('Product is not available');
+    }
+
+    try {
+      const totalAvailable = await this.warehouseClient.getTotalAvailable(catalogProductId);
+      if (totalAvailable < quantity) {
+        throw new BadRequestException(`Insufficient stock. Available: ${totalAvailable}, Requested: ${quantity}`);
       }
-
-      if (product.trackInventory && (product.stockQuantity || 0) < quantity) {
-        throw new BadRequestException(`Insufficient stock. Available: ${product.stockQuantity}, Requested: ${quantity}`);
+    } catch (error: any) {
+      if (error instanceof BadRequestException) {
+        throw error;
       }
-
-      this.logger.log(
-        `Stock check for product ${productId} using local database (legacy mode)`,
+      this.logger.error(
+        `Failed to verify Warehouse sellability for product ${productId}: ${error.message}`,
+        error.stack,
         'CartService'
       );
+      throw new BadRequestException('Stock verification failed. Please try again shortly.');
     }
+  }
+
+  private catalogProductUnavailableReason(catalogProduct: any): string | null {
+    if (!catalogProduct?.id) {
+      return 'catalog_product_missing';
+    }
+    if (catalogProduct.isActive === false) {
+      return 'inactive_product';
+    }
+    if (catalogProduct.isArchived === true || catalogProduct.archived === true || catalogProduct.archivedAt) {
+      return 'archived_product';
+    }
+    if (catalogProduct.isDeleted === true || catalogProduct.deleted === true || catalogProduct.deletedAt) {
+      return 'deleted_product';
+    }
+
+    const status = String(
+      catalogProduct.lifecycleStatus ?? catalogProduct.lifecycle ?? catalogProduct.status ?? '',
+    ).trim().toLowerCase();
+    if (['archived', 'deleted', 'inactive', 'disabled', 'retired'].includes(status)) {
+      return `inactive_lifecycle:${status}`;
+    }
+
+    return null;
   }
 
   private isUniqueCartItemConflict(error: unknown): boolean {
