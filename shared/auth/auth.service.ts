@@ -15,6 +15,14 @@ import {
   RefreshTokenDto,
   AuthUser,
   UpdateAuthProfileDto,
+  AuthCheckoutData,
+  AuthDeliveryAddress,
+  CreateAuthDeliveryAddressDto,
+  UpdateAuthDeliveryAddressDto,
+  AuthInvoiceProfile,
+  CreateAuthInvoiceProfileDto,
+  UpdateAuthInvoiceProfileDto,
+  AuthWalletDeleteResponse,
   MagicLinkRequestDto,
   MagicLinkResponse,
 } from './auth.interface';
@@ -68,6 +76,42 @@ export class AuthService {
       ),
     );
     return response.data;
+  }
+
+
+  private async callAuthProfileResource<T>(
+    method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
+    endpoint: string,
+    accessToken: string,
+    data?: unknown,
+  ): Promise<T> {
+    const response = await firstValueFrom(
+      this.httpService.request<T>({
+        method,
+        url: `${this.authServiceUrl}${endpoint}`,
+        data,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 10000,
+      }),
+    );
+    return response.data;
+  }
+
+  private unwrapAuthProfileResponse<T>(response: unknown, key: string): T {
+    if (response && typeof response === 'object') {
+      const payload = response as Record<string, unknown>;
+      if (payload.data !== undefined) {
+        return payload.data as T;
+      }
+      if (payload[key] !== undefined) {
+        return payload[key] as T;
+      }
+    }
+
+    return response as T;
   }
 
   /**
@@ -336,6 +380,144 @@ export class AuthService {
       });
       throw error;
     }
+  }
+
+  /**
+   * Read Auth-owned checkout data for the validated browser token.
+   */
+  async getCheckoutData(accessToken: string): Promise<AuthCheckoutData> {
+    const response = await this.callAuthProfileResource<unknown>(
+      'GET',
+      '/auth/profile/checkout-data',
+      accessToken,
+    );
+    return this.unwrapAuthProfileResponse<AuthCheckoutData>(response, 'checkoutData');
+  }
+
+  /**
+   * Read Auth-owned delivery addresses for the validated browser token.
+   */
+  async getDeliveryAddresses(accessToken: string): Promise<AuthDeliveryAddress[]> {
+    const response = await this.callAuthProfileResource<unknown>(
+      'GET',
+      '/auth/profile/delivery-addresses',
+      accessToken,
+    );
+    return this.unwrapAuthProfileResponse<AuthDeliveryAddress[]>(response, 'deliveryAddresses');
+  }
+
+  async createDeliveryAddress(
+    accessToken: string,
+    dto: CreateAuthDeliveryAddressDto,
+  ): Promise<AuthDeliveryAddress> {
+    const response = await this.callAuthProfileResource<unknown>(
+      'POST',
+      '/auth/profile/delivery-addresses',
+      accessToken,
+      dto,
+    );
+    return this.unwrapAuthProfileResponse<AuthDeliveryAddress>(response, 'deliveryAddress');
+  }
+
+  async updateDeliveryAddress(
+    accessToken: string,
+    id: string,
+    dto: UpdateAuthDeliveryAddressDto,
+  ): Promise<AuthDeliveryAddress> {
+    const response = await this.callAuthProfileResource<unknown>(
+      'PATCH',
+      `/auth/profile/delivery-addresses/${encodeURIComponent(id)}`,
+      accessToken,
+      dto,
+    );
+    return this.unwrapAuthProfileResponse<AuthDeliveryAddress>(response, 'deliveryAddress');
+  }
+
+  async deleteDeliveryAddress(
+    accessToken: string,
+    id: string,
+  ): Promise<AuthWalletDeleteResponse> {
+    const response = await this.callAuthProfileResource<unknown>(
+      'DELETE',
+      `/auth/profile/delivery-addresses/${encodeURIComponent(id)}`,
+      accessToken,
+    );
+    return this.unwrapAuthProfileResponse<AuthWalletDeleteResponse>(response, 'deliveryAddress');
+  }
+
+  async setDefaultDeliveryAddress(
+    accessToken: string,
+    id: string,
+  ): Promise<AuthDeliveryAddress> {
+    const response = await this.callAuthProfileResource<unknown>(
+      'PATCH',
+      `/auth/profile/delivery-addresses/${encodeURIComponent(id)}/default`,
+      accessToken,
+    );
+    return this.unwrapAuthProfileResponse<AuthDeliveryAddress>(response, 'deliveryAddress');
+  }
+
+  /**
+   * Read Auth-owned invoice profiles for the validated browser token.
+   */
+  async getInvoiceProfiles(accessToken: string): Promise<AuthInvoiceProfile[]> {
+    const response = await this.callAuthProfileResource<unknown>(
+      'GET',
+      '/auth/profile/invoice-profiles',
+      accessToken,
+    );
+    return this.unwrapAuthProfileResponse<AuthInvoiceProfile[]>(response, 'invoiceProfiles');
+  }
+
+  async createInvoiceProfile(
+    accessToken: string,
+    dto: CreateAuthInvoiceProfileDto,
+  ): Promise<AuthInvoiceProfile> {
+    const response = await this.callAuthProfileResource<unknown>(
+      'POST',
+      '/auth/profile/invoice-profiles',
+      accessToken,
+      dto,
+    );
+    return this.unwrapAuthProfileResponse<AuthInvoiceProfile>(response, 'invoiceProfile');
+  }
+
+  async updateInvoiceProfile(
+    accessToken: string,
+    id: string,
+    dto: UpdateAuthInvoiceProfileDto,
+  ): Promise<AuthInvoiceProfile> {
+    const response = await this.callAuthProfileResource<unknown>(
+      'PATCH',
+      `/auth/profile/invoice-profiles/${encodeURIComponent(id)}`,
+      accessToken,
+      dto,
+    );
+    return this.unwrapAuthProfileResponse<AuthInvoiceProfile>(response, 'invoiceProfile');
+  }
+
+  async deleteInvoiceProfile(
+    accessToken: string,
+    id: string,
+  ): Promise<AuthWalletDeleteResponse> {
+    const response = await this.callAuthProfileResource<unknown>(
+      'DELETE',
+      `/auth/profile/invoice-profiles/${encodeURIComponent(id)}`,
+      accessToken,
+    );
+    return this.unwrapAuthProfileResponse<AuthWalletDeleteResponse>(response, 'invoiceProfile');
+  }
+
+  async setDefaultInvoiceProfile(
+    accessToken: string,
+    id: string,
+  ): Promise<AuthInvoiceProfile> {
+    const response = await this.callAuthProfileResource<unknown>(
+      'PATCH',
+      `/auth/profile/invoice-profiles/${encodeURIComponent(id)}/default`,
+      accessToken,
+    );
+    return this.unwrapAuthProfileResponse<AuthInvoiceProfile>(response, 'invoiceProfile');
   }
 
   /**
