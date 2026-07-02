@@ -73,6 +73,18 @@ export interface CatalogProductQualityReviewResponse {
   limit: number;
 }
 
+
+export interface CatalogDiscountEligibilityFacts {
+  schemaVersion?: string;
+  processId?: string;
+  processVersion?: number;
+  eligible?: boolean;
+  blockers?: string[];
+  policyRefs?: string[];
+  reasonCodes?: string[];
+  [key: string]: unknown;
+}
+
 export interface CatalogProductQualityReviewQuery {
   page?: number;
   limit?: number;
@@ -245,6 +257,39 @@ export class CatalogClientService {
     this.logger.error(`Failed to get Catalog product quality review: ${errorMessage}`, err.stack, 'CatalogClient');
     throw new HttpException(errorMessage, status);
   }
+  }
+
+
+  async getProductDiscountEligibility(
+    productId: string,
+    options: CatalogProductRequestOptions = {},
+  ): Promise<CatalogDiscountEligibilityFacts | null> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `${this.baseUrl}/api/business-process/catalog/products/${encodeURIComponent(productId)}/discount-eligibility`,
+          {
+            headers: this.catalogHeaders(
+              options.authorizationHeader ? { Authorization: options.authorizationHeader } : undefined,
+            ),
+          },
+        ),
+      );
+
+      const facts = response.data?.data ?? response.data;
+      if (!facts || typeof facts !== 'object' || Array.isArray(facts)) {
+        return null;
+      }
+
+      return facts as CatalogDiscountEligibilityFacts;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : Unknown error;
+      this.logger.warn(
+        `Catalog discount eligibility unavailable for product ${productId}: ${errorMessage}`,
+        'CatalogClient',
+      );
+      return null;
+    }
   }
 
   async getProductById(productId: string, options: CatalogProductRequestOptions = {}): Promise<any> {
