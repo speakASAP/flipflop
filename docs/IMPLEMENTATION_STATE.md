@@ -44,6 +44,37 @@ Known blockers/gaps:
 
 Next action: land or confirm the central Orders lifecycle read endpoint, then rerun live checkout/cabinet smoke after `/cart` returns HTTP 200.
 
+
+## 2026-07-02 - F1 Admin Dashboard Order Visibility Addendum
+
+Objective: preserve customer cabinet privacy while ensuring the admin dashboard recent-orders surface uses the admin Orders route.
+
+IPS chain:
+
+- Vision: FlipFlop checkout and post-purchase visibility must preserve first-revenue safety and shared ecosystem ownership.
+- Goal Impact: Admin users see the order lifecycle list from the admin route instead of the customer-scoped cabinet route.
+- System: FlipFlop frontend admin dashboard, frontend Orders API helper, api-gateway admin route, order-service admin Orders route.
+- Feature: Admin order visibility against central Orders lifecycle read model.
+- Task: Replace the admin dashboard recent-orders fetch with the existing admin-scoped Orders API and add verifier coverage.
+- Execution Plan: `docs/orchestrator/2026-07-02-central-orders-checkout-and-cabinets-plan.md`.
+- Coding Prompt: F1 FlipFlop central Orders checkout and cabinets worker follow-up.
+- Code: Updated `services/frontend/app/admin/page.tsx` and `scripts/verify-orders-hub-integration.js`.
+- Validation: `npm run verify:orders-hub-integration` passed; `cd services/frontend && npm run build` passed; `git diff --check` passed; IPS pre-coding gate and strict doc audit passed before code edits.
+
+Parallel execution section:
+
+- Admin dashboard visibility lane: complete in current branch; owner role this worker; recent orders now call `ordersApi.getAdminOrders({ page: 1, limit: 5 })`.
+- Customer cabinet privacy lane: unchanged; customer `/orders` and `/orders/:id` remain user-scoped in order-service.
+- Runtime smoke lane: dependency-gated; no deployment, migration, secret read, or production customer/order-row query was run by this worker.
+
+Known blockers/gaps:
+
+- `[MISSING: Orders lifecycle read endpoint]` remains until central Orders ships or confirms a stable lifecycle read endpoint.
+- Live `/cart` HTTP 503 from prior F1 status remains the blocker for live checkout/cabinet smoke; this worker did not recheck or deploy.
+
+Next action: integrate or confirm the central Orders lifecycle read endpoint, then rerun live checkout/cabinet smoke once `/cart` is healthy.
+
+
 ## 2026-07-02 - Product Detail Bundle Discount Contract
 
 Objective: apply the product-detail buy-together set savings through a real server-side checkout/order/payment total contract instead of leaving the savings as display-only copy.

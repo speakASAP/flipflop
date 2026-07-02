@@ -117,7 +117,7 @@ export default function AdminDashboardPage() {
       ] = await Promise.all([
         adminApi.getSales(),
         adminApi.getRevenue(),
-        ordersApi.getOrders(),
+        ordersApi.getAdminOrders({ page: 1, limit: 5 }),
         adminApi.getRevenueMoM(6),
         adminApi.getConversionRate(30),
         adminApi.getSlaStats(30),
@@ -134,8 +134,10 @@ export default function AdminDashboardPage() {
         setRevenueData(revenueResponse.data);
       }
       if (ordersResponse.success && ordersResponse.data) {
-        // Get last 5 orders
-        setRecentOrders(ordersResponse.data.slice(0, 5));
+        const recentAdminOrders = Array.isArray(ordersResponse.data)
+          ? ordersResponse.data
+          : ordersResponse.data.items || [];
+        setRecentOrders(recentAdminOrders.slice(0, 5));
       }
       if (revenueMomResponse.success && revenueMomResponse.data) {
         setRevenueMom(revenueMomResponse.data);

@@ -17,6 +17,7 @@ const orderClient = read('shared/clients/order-client.service.ts');
 const ordersService = read('services/order-service/src/orders/orders.service.ts');
 const configmap = read('k8s/configmap.yaml');
 const warehouseClient = read('shared/clients/warehouse-client.service.ts');
+const adminDashboard = read('services/frontend/app/admin/page.tsx');
 const payloadBuilder = ordersService.slice(
   ordersService.indexOf('private buildCentralOrdersPayload'),
   ordersService.indexOf('private getCentralOrdersChannelAccountId'),
@@ -140,6 +141,12 @@ assert(
     orderClient.includes("'[MISSING: Orders lifecycle read endpoint]'") &&
     orderClient.includes('headers: this.getAuthHeaders()'),
   'Orders client must expose an authenticated lifecycle adapter with a missing-endpoint placeholder',
+);
+assert(
+  adminDashboard.includes('ordersApi.getAdminOrders({ page: 1, limit: 5 })') &&
+    adminDashboard.includes('setRecentOrders(recentAdminOrders.slice(0, 5))') &&
+    !adminDashboard.includes('ordersApi.getOrders()'),
+  'admin dashboard recent orders must use the admin-scoped orders API, not the customer order list',
 );
 assert(
   ordersService.includes("message.includes('[MISSING: catalogProductId]')") &&

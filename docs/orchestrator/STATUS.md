@@ -31,3 +31,29 @@ Blockers:
 - Concurrent unrelated staged checkout/bundle and validation-report changes must be preserved and coordinated before commit/push.
 
 Next action: integrate the central Orders lifecycle read endpoint and rerun live checkout/cabinet smoke once `/cart` is healthy.
+
+## 2026-07-02 - F1 Admin Dashboard Order Visibility Addendum
+
+Status: implemented on branch `codex/orders-lifecycle-cabinet-flipflop`, validated, not deployed.
+
+Evidence:
+
+- Admin dashboard recent orders now call `ordersApi.getAdminOrders({ page: 1, limit: 5 })` instead of customer-scoped `ordersApi.getOrders()`.
+- Customer cabinet list/detail routes remain user-scoped through `OrdersService.getUserOrders(userId)` and `OrdersService.getOrder(userId, id)`.
+- Existing admin order list/detail pages continue to render central lifecycle, payment, delivery, exception status, totals, currency, address, and stale/error notices.
+- `scripts/verify-orders-hub-integration.js` now fails if the admin dashboard regresses to the customer order list helper.
+
+Validation:
+
+- `python3 scripts/pre_coding_gate.py --root .` passed.
+- `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed 100/100.
+- `npm run verify:orders-hub-integration` passed.
+- `cd services/frontend && npm run build` passed.
+- `git diff --check` passed.
+
+Blockers:
+
+- `[MISSING: Orders lifecycle read endpoint]` until central Orders ships or confirms a stable lifecycle read endpoint.
+- Live `/cart` HTTP 503 remains a blocker for live checkout/cabinet smoke from prior F1 evidence; no deploy or live mutation was run here.
+
+Next action: integrate the central Orders lifecycle read endpoint and rerun live checkout/cabinet smoke once `/cart` is healthy.
