@@ -123,7 +123,7 @@ export class EventsConsumerService implements OnModuleInit, OnModuleDestroy {
       return;
     }
     try {
-      const url = this.configService.get<string>('RABBITMQ_URL') || 'amqp://guest:guest@statex_rabbitmq:5672';
+      const url = this.configService.get<string>('RABBITMQ_URL') || 'amqp://guest:guest@rabbitmq:5672';
       const connection = await amqp.connect(url);
       this.connection = connection;
       this.connection.on('error', (error: unknown) => {

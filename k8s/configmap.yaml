@@ -45,7 +45,7 @@ data:
   PAYMENT_SERVICE_URL: "http://payments-microservice:3468"
   LOGGING_SERVICE_URL: "http://logging-microservice:3367"
   AI_SERVICE_URL: "http://ai-microservice:3380"
-  RABBITMQ_URL: "amqp://guest:guest@statex_rabbitmq:5672"
+  RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
   FLIPFLOP_CATALOG_EVENTS_EXCHANGE: "catalog.events"
   FLIPFLOP_CATALOG_EVENTS_QUEUE: "catalog.flipflop-service"
 

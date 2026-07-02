@@ -53,7 +53,7 @@ export class CustomerEventsPublisher implements OnModuleDestroy {
     }
     this.connectPromise = (async () => {
       try {
-        const url = process.env.RABBITMQ_URL || 'amqp://guest:guest@statex_rabbitmq:5672';
+        const url = process.env.RABBITMQ_URL || 'amqp://guest:guest@rabbitmq:5672';
         const conn = await amqp.connect(url);
         this.connection = conn;
         this.connection.on('error', (error: unknown) => {

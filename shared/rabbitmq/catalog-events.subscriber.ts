@@ -86,7 +86,7 @@ export class CatalogEventsSubscriber implements OnModuleInit, OnModuleDestroy {
 
   private async connect() {
     try {
-      const url = process.env.RABBITMQ_URL || 'amqp://guest:guest@statex_rabbitmq:5672';
+      const url = process.env.RABBITMQ_URL || 'amqp://guest:guest@rabbitmq:5672';
       this.logger.log(`Connecting to RabbitMQ: ${url}`, 'CatalogEventsSubscriber');
 
       const conn = await amqp.connect(url);
