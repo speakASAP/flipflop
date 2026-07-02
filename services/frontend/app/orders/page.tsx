@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from "react";
 import {
   formatOrderMoney,
   getOrderDisplayData,
@@ -10,6 +10,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useVisiblePolling } from "@/lib/hooks/useVisiblePolling";
 
 function normalizeStatus(status?: string) {
   return (status || '').toLowerCase();
@@ -74,27 +75,36 @@ export default function OrdersPage() {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
+  const loadOrders = useCallback(async (options: { background?: boolean } = {}) => {
+    if (!options.background) {
+      setLoading(true);
     }
-
-    void loadOrders();
-  }, [isAuthenticated, router]);
-
-  const loadOrders = async () => {
     try {
       const response = await ordersApi.getOrders();
       if (response.success && response.data) {
         setOrders(response.data);
       }
     } catch (error) {
-      console.error('Failed to load orders:', error);
+      console.error("Failed to load orders:", error);
     } finally {
-      setLoading(false);
+      if (!options.background) {
+        setLoading(false);
+      }
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/login");
+      return;
+    }
+
+    void loadOrders();
+  }, [isAuthenticated, loadOrders, router]);
+
+  useVisiblePolling(() => {
+    void loadOrders({ background: true });
+  }, 30000, isAuthenticated);
 
   if (loading) {
     return (

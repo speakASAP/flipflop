@@ -6,6 +6,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useVisiblePolling } from "@/lib/hooks/useVisiblePolling";
 import {
   formatOrderMoney,
   getOrderDisplayData,
@@ -86,8 +87,10 @@ export default function AdminOrdersPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
 
-  const loadOrders = useCallback(async () => {
-    setLoading(true);
+  const loadOrders = useCallback(async (options: { background?: boolean } = {}) => {
+    if (!options.background) {
+      setLoading(true);
+    }
     try {
       const response = await ordersApi.getAdminOrders({
         ...filters,
@@ -109,13 +112,19 @@ export default function AdminOrdersPage() {
     } catch (error) {
       console.error('Failed to load orders:', error);
     } finally {
-      setLoading(false);
+      if (!options.background) {
+        setLoading(false);
+      }
     }
   }, [page, filters]);
 
   useEffect(() => {
     void loadOrders();
   }, [loadOrders]);
+
+  useVisiblePolling(() => {
+    void loadOrders({ background: true });
+  }, 30000, true);
 
   if (loading && orders.length === 0) {
     return (

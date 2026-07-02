@@ -17,6 +17,7 @@ import {
 } from '@/lib/api/orders';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from 'next/link';
+import { useVisiblePolling } from "@/lib/hooks/useVisiblePolling";
 
 function normalizeStatus(status?: string) {
   return (status || '').toLowerCase();
@@ -93,21 +94,28 @@ export default function AdminOrderDetailPage() {
     notes: '',
   });
 
-  const loadOrder = useCallback(async () => {
+  const loadOrder = useCallback(async (options: { background?: boolean; syncForm?: boolean } = {}) => {
+    if (!options.background) {
+      setLoading(true);
+    }
     try {
       const response = await ordersApi.getAdminOrder(orderId);
       if (response.success && response.data) {
         setOrder(response.data);
-        setStatusForm({
-          status: String(response.data.status || ''),
-          paymentStatus: String(response.data.paymentStatus || ''),
-          notes: '',
-        });
+        if (options.syncForm !== false) {
+          setStatusForm({
+            status: String(response.data.status || ""),
+            paymentStatus: String(response.data.paymentStatus || ""),
+            notes: "",
+          });
+        }
       }
     } catch (error) {
-      console.error('Failed to load order:', error);
+      console.error("Failed to load order:", error);
     } finally {
-      setLoading(false);
+      if (!options.background) {
+        setLoading(false);
+      }
     }
   }, [orderId]);
 
@@ -116,6 +124,10 @@ export default function AdminOrderDetailPage() {
       void loadOrder();
     }
   }, [orderId, loadOrder]);
+
+  useVisiblePolling(() => {
+    void loadOrder({ background: true, syncForm: false });
+  }, 30000, Boolean(orderId) && !updating);
 
   const handleStatusUpdate = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   DeliveryAddress,
   formatOrderMoney,
@@ -11,6 +11,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useVisiblePolling } from "@/lib/hooks/useVisiblePolling";
 
 function normalizeStatus(status?: string) {
   return (status || '').toLowerCase();
@@ -81,29 +82,40 @@ export default function OrderDetailPage() {
   const router = useRouter();
   const params = useParams();
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
+  const loadOrder = useCallback(async (id: string, options: { background?: boolean } = {}) => {
+    if (!options.background) {
+      setLoading(true);
     }
-
-    if (params.id) {
-      void loadOrder(params.id as string);
-    }
-  }, [isAuthenticated, params.id, router]);
-
-  const loadOrder = async (id: string) => {
     try {
       const response = await ordersApi.getOrder(id);
       if (response.success && response.data) {
         setOrder(response.data);
       }
     } catch (error) {
-      console.error('Failed to load order:', error);
+      console.error("Failed to load order:", error);
     } finally {
-      setLoading(false);
+      if (!options.background) {
+        setLoading(false);
+      }
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/login");
+      return;
+    }
+
+    if (params.id) {
+      void loadOrder(params.id as string);
+    }
+  }, [isAuthenticated, loadOrder, params.id, router]);
+
+  useVisiblePolling(() => {
+    if (params.id) {
+      void loadOrder(params.id as string, { background: true });
+    }
+  }, 30000, isAuthenticated && Boolean(params.id));
 
   if (loading) {
     return (
