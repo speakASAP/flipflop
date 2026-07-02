@@ -48,6 +48,8 @@ type CheckoutOrderItem = {
   catalogProductId?: string | null;
 };
 
+type OrderItemCreateInput = Omit<CheckoutOrderItem, "catalogProductId">;
+
 type BundleDiscountIntent = {
   source: 'product_detail_buy_together';
   sourceProductId: string;
@@ -835,6 +837,11 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       },
     });
     return cartItems;
+  }
+
+  private toOrderItemCreateInput(item: CheckoutOrderItem): OrderItemCreateInput {
+    const { catalogProductId: _catalogProductId, ...createInput } = item;
+    return createInput;
   }
 
   /**
@@ -1953,7 +1960,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         notes: dto.notes,
         ...(metadata !== undefined ? { metadata } : {}),
         order_items: {
-          create: orderItems,
+          create: orderItems.map((item) => this.toOrderItemCreateInput(item)),
         },
         order_status_history: {
           create: {
@@ -2187,7 +2194,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         notes: this.normalizeGuestText(dto.notes, ''),
         metadata,
         order_items: {
-          create: orderItems,
+          create: orderItems.map((item) => this.toOrderItemCreateInput(item)),
         },
         order_status_history: {
           create: {
