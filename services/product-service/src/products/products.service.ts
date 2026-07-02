@@ -807,7 +807,9 @@ export class ProductsService {
         return [];
       }
 
-      const targetCatalogIds = catalogProductIds.filter((catalogProductId) => catalogProductId !== product.catalogProductId);
+      const targetCatalogIds: string[] = catalogProductIds.filter((catalogProductId): catalogProductId is string => (
+        typeof catalogProductId === 'string' && catalogProductId !== product.catalogProductId
+      ));
       const rows = targetCatalogIds.length > 0
         ? await this.prisma.product.findMany({
           where: {
