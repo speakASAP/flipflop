@@ -33,11 +33,24 @@ Implemented as a source-only frontend change. Deployment and live checkout smoke
 - Explicit user selection from the wallet selectors still applies the selected invoice profile or delivery address.
 - Follow-up validation rerun after this guard passed: `git diff --check`, `python3 scripts/pre_coding_gate.py --root .`, `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues`, `cd services/frontend && npm exec -- tsc --noEmit`, and `cd services/frontend && npm run build`.
 
+## Non-Mutating Selector Verifier Follow-Up
+
+- Added `npm run verify:auth-wallet-checkout-selectors`.
+- The verifier is source-only and non-mutating. It does not call live checkout,
+  submit an order, read customer data, or require Auth wallet endpoints to be
+  deployed.
+- It proves the Auth wallet client paths, checkout selectors, manual-edit-before
+  wallet-response guard, explicit selector override path, profile-address Auth
+  fallback, and order payload snapshot boundary remain present.
+- It fails if checkout starts sending Auth delivery/invoice wallet IDs to Orders
+  before the provenance contract is approved.
+
 ## Validation
 
 ```bash
 python3 scripts/pre_coding_gate.py --root .
 python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues
+npm run verify:auth-wallet-checkout-selectors
 cd services/frontend && npm exec -- tsc --noEmit
 cd services/frontend && npm run build
 git diff --check
@@ -47,6 +60,7 @@ git diff --check
 
 - `python3 scripts/pre_coding_gate.py --root .`: passed; report written to `reports/validation/ips-pre-coding-gate.json`.
 - `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues`: passed, score 100/100.
+- `npm run verify:auth-wallet-checkout-selectors`: passed.
 - `cd services/frontend && npm exec -- tsc --noEmit`: passed.
 - `cd services/frontend && npm run build`: passed. Non-blocking warnings: `baseline-browser-mapping` data age and Next.js workspace-root inference with multiple lockfiles.
 - `git diff --check`: passed.
