@@ -283,7 +283,7 @@ export class CatalogClientService {
 
       return facts as CatalogDiscountEligibilityFacts;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : Unknown error;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       this.logger.warn(
         `Catalog discount eligibility unavailable for product ${productId}: ${errorMessage}`,
         'CatalogClient',

@@ -26,6 +26,7 @@ import {
   CustomerEventsPublisher,
   AuthService,
   LeadsClientService,
+  CatalogClientService,
 } from '@flipflop/shared';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
@@ -44,6 +45,7 @@ type CheckoutOrderItem = {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
+  catalogProductId?: string | null;
 };
 
 type BundleDiscountIntent = {
@@ -66,15 +68,47 @@ type BundleDiscountApplication = {
   shippingPolicy: 'selected_delivery_cost_discounted_when_bundle_subtotal_reaches_threshold';
 };
 
+type HolidayDiscountLineApplication = {
+  productId: string;
+  catalogProductId: string;
+  quantity: number;
+  lineSubtotal: number;
+  discountAmount: number;
+  eligible: boolean;
+  policyRefs: string[];
+  reasonCodes: string[];
+  blockers: string[];
+  failClosedReason?: string;
+};
+
+type HolidayDiscountApplication = {
+  source: 'catalog.discount-eligibility-facts.v1';
+  processId: 'holiday-discount-2026';
+  processVersion: 1;
+  policyRefs: string[];
+  reasonCodes: string[];
+  discountAmount: number;
+  currency: 'CZK';
+  applied: boolean;
+  failClosedReason?: string;
+  lines: HolidayDiscountLineApplication[];
+};
+
 type CheckoutDiscountApplication = {
   discount: number;
   pendingDiscountCode?: string;
   bundleDiscount?: BundleDiscountApplication;
+  holidayDiscount?: HolidayDiscountApplication;
 };
 
 const BUNDLE_DISCOUNT_RATE = 0.05;
 const BUNDLE_FREE_SHIPPING_THRESHOLD_CZK = 1000;
 const BUNDLE_ELIGIBILITY_LIMIT = 8;
+const HOLIDAY_DISCOUNT_SCHEMA_VERSION = 'catalog.discount-eligibility-facts.v1';
+const HOLIDAY_DISCOUNT_PROCESS_ID = 'holiday-discount-2026';
+const HOLIDAY_DISCOUNT_PROCESS_VERSION = 1;
+const HOLIDAY_DISCOUNT_POLICY_REF = 'holiday-10-percent-selected-categories';
+const HOLIDAY_DISCOUNT_RATE = 0.10;
 
 
 @Injectable()
@@ -91,6 +125,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     private readonly authService: AuthService,
     private readonly leadsClient: LeadsClientService,
     private readonly orderClient: OrderClientService,
+    private readonly catalogClient: CatalogClientService,
     private readonly warehouseClient: WarehouseClientService,
     private readonly discountService: DiscountService,
     private readonly inventoryEventsPublisher: InventoryEventsPublisher,
@@ -1051,6 +1086,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     quantity: number;
     unitPrice: number;
     totalPrice: number;
+    catalogProductId?: string | null;
   }>> {
     if (!Array.isArray(items) || items.length === 0) {
       throw new BadRequestException('Cart is empty');
@@ -1091,6 +1127,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         variantId,
         productName: product.name,
         productSku: variant?.sku || product.sku,
+        catalogProductId: product.catalogProductId,
         quantity,
         unitPrice,
         totalPrice: Math.round(unitPrice * quantity * 100) / 100,
@@ -1681,6 +1718,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         variantId: cartItem.variantId || null,
         productName: product.name,
         productSku: product.sku,
+        catalogProductId: product.catalogProductId,
         quantity: cartItem.quantity,
         unitPrice: price,
         totalPrice: itemTotal,
