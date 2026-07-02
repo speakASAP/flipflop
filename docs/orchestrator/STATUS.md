@@ -93,3 +93,37 @@ Remaining blockers:
 - `[MISSING: active FlipFlop products mapped to Catalog products that currently have order_affinity bundle candidates]`.
 - `[MISSING: sufficient order_affinity backfill volume for live storefront products]`.
 - `[MISSING: approved bundle checkout contract owned by FlipFlop/Orders/Payments]` for future server-authoritative bundle pricing beyond current display/intent flow.
+
+
+## 2026-07-03 - Live Catalog Order-Affinity Recommendation Smoke
+
+Status: live recommendations now use Catalog-owned `order_affinity` for an active FlipFlop mapped product pair.
+
+Intent Preservation Chain:
+
+- Vision: Buy-together presentation should prefer ecosystem purchase-affinity data when Catalog has it for active sellable products.
+- Goal Impact: Product detail recommendations now have a live positive smoke for Catalog relation consumption instead of only fallback behavior.
+- System: Catalog owns relation and price facts; FlipFlop product-service maps Catalog IDs to active local products and returns the existing public recommendations contract; Orders/Payments/Warehouse remain unchanged.
+- Feature: Live Catalog order-affinity smoke for buy-together recommendations.
+- Task: Validate the controlled Catalog relation backfill through public FlipFlop recommendations for both products in the pair.
+- Execution Plan: No FlipFlop code or database mutation; call public recommendations routes and run existing static verifiers.
+- Coding Prompt: Assert current public source values exactly: `bundle.source=catalog_order_affinity` and `policy.source=catalog_order_affinity_then_purchase_history_then_category_fallback`.
+- Code: no source changes in this lane; documentation evidence in this status entry.
+- Validation: public recommendations smoke passed for both products; `npm run verify:product-detail-upsell` and `npm run verify:product-detail-bundle-discount` passed.
+
+Runtime smoke evidence:
+
+- `GET https://flipflop.alfares.cz/api/products/ffb4883f-ec48-4745-8147-b836f3fb2b88/recommendations` returned `success=true`, `catalogProductId=ce4a51aa-2d12-4ab7-a965-7a36609d01fc`, `bundle.source=catalog_order_affinity`, `policy.source=catalog_order_affinity_then_purchase_history_then_category_fallback`, `bundleProductCount=2`, `bundlePrice=1898`, `totalSavings=189`.
+- The bundle products were the active local mapped pair `ffb4883f-ec48-4745-8147-b836f3fb2b88` / `ce4a51aa-2d12-4ab7-a965-7a36609d01fc` and `038aff5a-6591-409f-8bcb-fade3e8c5c7c` / `dbc51dde-fc66-4511-b178-f929183f4647`.
+- Reciprocal smoke for `038aff5a-6591-409f-8bcb-fade3e8c5c7c` returned `success=true`, `bundle.source=catalog_order_affinity`, `policy.source=catalog_order_affinity_then_purchase_history_then_category_fallback`, and the same two mapped local products.
+
+Validation commands:
+
+- `npm run verify:product-detail-upsell` passed 26 checks.
+- `npm run verify:product-detail-bundle-discount` passed.
+
+Remaining blockers:
+
+- `[MISSING: automated order-affinity backfill/replay over historical Orders events]`.
+- `[MISSING: broad order_affinity coverage for more live storefront products]`.
+- `[MISSING: approved bundle checkout contract owned by FlipFlop/Orders/Payments]` for future server-authoritative bundle pricing beyond current display/intent flow.
