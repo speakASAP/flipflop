@@ -10,6 +10,53 @@
 
 
 
+## 2026-07-02 - Product Detail Upsell Recommendations
+
+Objective: add Amazon-style related products and a buy-together set under product detail pages, using purchase history when available and deterministic category fallback otherwise.
+
+IPS chain:
+
+- Vision: FlipFlop storefront should sell real products efficiently at `https://flipflop.alfares.cz/`.
+- Goal Impact: Increases product discovery and basket size while preserving checkout-to-first-revenue safety.
+- System: Product-service public product recommendations and Next.js product detail page.
+- Feature: Product detail related products and buy-together set.
+- Task: Add deterministic related products, co-purchase ranking from confirmed local orders where available, fallback bundle creation, and CZK savings presentation.
+- Execution Plan: `implementation-goals/GOAL-12-product-detail-upsell-recommendations.execution-plan.md`.
+- Coding Prompt: `implementation-goals/GOAL-12-product-detail-upsell-recommendations.coding-prompt.md`.
+- Code: Implemented in `services/product-service/src/products/products.controller.ts`, `services/product-service/src/products/products.service.ts`, `services/frontend/lib/api/products.ts`, `services/frontend/app/products/[id]/page.tsx`, and `services/frontend/components/AddBundleToCartButton.tsx`.
+- Validation: `implementation-goals/GOAL-12-product-detail-upsell-recommendations.validation-report.md`.
+
+Parallel execution section:
+
+- Backend recommendation contract lane: complete; owner role product-service integrator; added public read-only `GET /products/:id/recommendations`; validation owner original thread.
+- Frontend product detail UI lane: complete; owner role storefront integrator; renders `Výhodný set`, CZK savings copy, bundle add-to-cart action, and related products below product detail; validation owner original thread.
+- Verification/docs lane: complete; owner role original thread; added `scripts/verify-product-detail-upsell.js`, `npm run verify:product-detail-upsell`, GOAL-12 docs, and state evidence; validation owner original thread.
+- Deployment lane: complete; owner role original thread; production rollout required manual image push/rollout recovery after SSH stream/context cancellation and paused deployments.
+
+Validation evidence:
+
+- `npm run verify:product-detail-upsell` passed 20 source/contract checks.
+- `cd services/product-service && npm run build` passed.
+- `cd services/frontend && npm run build` passed with only existing Next.js workspace-root/browserslist warnings.
+- `python3 scripts/pre_coding_gate.py --root .` passed.
+- `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed 100/100 before implementation.
+- `python3 scripts/deployment_readiness_gate.py --root .` passed.
+- `git diff --check` passed.
+
+Post-deploy evidence:
+
+- `flipflop-product-service` rolled out with image `localhost:5000/flipflop-product-service:goal12-upsell-20260702163830`; the new pod logs map `GET /products/:id/recommendations`.
+- `flipflop-frontend` rolled out from `localhost:5000/flipflop-frontend:latest` after resume/restart.
+- Deployments are `1/1` ready for `flipflop-frontend` and `flipflop-product-service`.
+- Public `GET https://flipflop.alfares.cz/api/products/0fe70677-2b0c-4227-bdf5-0e819cefd28d/recommendations` returned HTTP 200 with `success=true`, `relatedProducts`, and bundle data.
+- Public `GET https://flipflop.alfares.cz/products/0fe70677-2b0c-4227-bdf5-0e819cefd28d` returned HTTP 200 and rendered `Výhodný set`, `Ušetříte 159 Kč`, `Často kupované společně`, and `Související produkty`.
+
+Known contract boundary:
+
+- The bundle discount is presented as deterministic upsell savings in CZK and the bundle CTA adds items to the cart. It does not mutate checkout/order totals yet; a real applied checkout discount needs a separate server-side bundle-discount contract.
+
+Next action: define and implement the real checkout/order bundle-discount contract if the displayed bundle savings must be applied to payment totals.
+
 ## 2026-07-02 - Storefront Dynamic Search And Top Menu Filters
 
 Objective: move public product filtering into the top navigation and remove dedicated search buttons so the product grid remains the primary selling surface.

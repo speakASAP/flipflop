@@ -63,6 +63,32 @@ export interface Category {
   parentId?: string;
 }
 
+export interface ProductRecommendationBundle {
+  source: 'purchase_history' | 'related_fallback' | string;
+  products: Product[];
+  subtotal: number;
+  bundlePrice: number;
+  merchandiseSavings: number;
+  shippingSavings: number;
+  totalSavings: number;
+  freeShippingThreshold: number;
+  assumedShippingCost: number;
+}
+
+export interface ProductRecommendations {
+  productId: string;
+  catalogProductId?: string | null;
+  relatedProducts: Product[];
+  bundle: ProductRecommendationBundle | null;
+  policy?: {
+    source: string;
+    usesAi: boolean;
+    mutatesPrices: boolean;
+    mutatesOrders: boolean;
+    exposesCustomerData: boolean;
+  };
+}
+
 export interface ProductFilters {
   page?: number;
   limit?: number;
@@ -147,6 +173,10 @@ export const productsApi = {
     }
     const query = params.toString();
     return apiClient.get<Product>(`/products/${id}${query ? `?${query}` : ''}`);
+  },
+
+  async getProductRecommendations(id: string) {
+    return apiClient.get<ProductRecommendations>(`/products/${id}/recommendations`);
   },
 
   async getCategories() {

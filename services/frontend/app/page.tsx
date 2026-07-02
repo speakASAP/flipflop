@@ -58,6 +58,42 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Seller Network Value Proposition */}
+      <section className="bg-white py-8">
+        <div className="container mx-auto px-4">
+          <div className="grid gap-6 border border-slate-200 bg-slate-950 p-6 text-white shadow-sm lg:grid-cols-[1fr_1.2fr] lg:items-center md:p-8">
+            <div>
+              <p className="mb-3 text-sm font-bold uppercase tracking-wide text-blue-200">Prodejni kanal Alfares</p>
+              <h2 className="text-3xl font-extrabold leading-tight md:text-4xl">
+                Prodavejte vlastni produkty, Alfares zbozi i sdileny katalog dalsich prodejcu
+              </h2>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-slate-200">
+                Registrovany zakaznik muze vyuzit zvyhodnene produkty od Alfares a firemnich dodavatelu, pridat vlastni sortiment na nase marketplace kanaly a vybrat si dostupne produkty od ostatnich uzivatelu ke spolecnemu resale prodeji.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="border border-white/15 bg-white/10 p-4">
+                <h3 className="text-lg font-bold">Alfares produkty</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-200">Prodavejte zbozi se slevami od Alfares a napojenych firemnich dodavatelu.</p>
+              </div>
+              <div className="border border-white/15 bg-white/10 p-4">
+                <h3 className="text-lg font-bold">Vlastni sortiment</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-200">Publikujte svoje produkty do nasich marketplace vystupu pod svym uctem.</p>
+              </div>
+              <div className="border border-white/15 bg-white/10 p-4">
+                <h3 className="text-lg font-bold">Sdileny katalog</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-200">Vyberte dostupne produkty dalsich uzivatelu a resellujte je podle pravidel katalogu.</p>
+              </div>
+            </div>
+            <div className="lg:col-span-2 border-t border-white/15 pt-5">
+              <p className="text-sm font-semibold leading-6 text-slate-100">
+                Alfares automatizuje zakladani a aktualizaci listingu, naplneni marketplace uctu, katalogova data, objednavky a platby tam, kde to dany kanal podporuje. Zakaznik spravuje produkty, pripoji marketplace pristup, prodava a zajistuje odeslani zbozi.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Featured Products - Professional Product Cards */}
       <section className="bg-gradient-to-b from-gray-50 to-white py-8 md:py-10">
         <div className="container mx-auto px-4">

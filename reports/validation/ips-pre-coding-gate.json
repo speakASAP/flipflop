@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-07-02T14:28:39Z",
+  "created_at": "2026-07-02T15:16:56Z",
   "execution_plans": {
     "execution_plan_count": 3,
     "execution_plan_files": [
@@ -11,7 +11,7 @@
   },
   "gate": "pre_coding",
   "missing_immutable_files": [],
-  "next_step": "start_controlled_coding",
+  "next_step": "fix_pre_coding_gate_findings",
   "project_invariants": {
     "path": "17_governance/PROJECT_INVARIANTS.md",
     "status": "pass"
@@ -22,13 +22,19 @@
   ],
   "root": "/home/ssf/Documents/Github/flipflop",
   "schema_version": "1.0.0",
-  "sensitive_data_findings": [],
+  "sensitive_data_findings": [
+    {
+      "match": "copy raw customer",
+      "path": "implementation-goals/GOAL-13-ecosystem-related-products-order-affinity-plan.md",
+      "pattern": "raw_production_data_instruction"
+    }
+  ],
   "shared_principles_with_dos": {
     "path": "17_governance/SHARED_PRINCIPLES_WITH_DOS.md",
     "reason": "cross_repo_mode_disabled",
     "status": "not_applicable"
   },
-  "status": "pass",
+  "status": "fail",
   "tasks": {
     "missing_upstream_traceability": [],
     "task_count": 3,

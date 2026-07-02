@@ -32,6 +32,12 @@ export class ProductsController {
     return ApiResponse.success(result);
   }
 
+  @Get(':id/recommendations')
+  async getProductRecommendations(@Param('id') id: string) {
+    const recommendations = await this.productsService.getProductRecommendations(id);
+    return ApiResponse.success(recommendations);
+  }
+
   @Get(':id')
   async getProduct(
     @Param('id') id: string,

@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-07-02T14:28:39Z",
+  "created_at": "2026-07-02T14:36:03Z",
   "gate": "deployment_readiness",
   "next_step": "ready_for_deployment_review",
   "pre_coding_gate": {
@@ -52,92 +52,92 @@
       "path": "docs/IMPLEMENTATION_ORCHESTRATOR.md"
     },
     {
-      "line": 152,
+      "line": 176,
       "marker": "[MISSING: flipflop-service entry in payments-microservice PAYMENT_CALLBACK_API_KEYS]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 203,
+      "line": 227,
       "marker": "[MISSING: production ruian_address_points import until migration is applied and scripts/import-ruian-addresses.js is run with DATABASE_URL]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 240,
+      "line": 264,
       "marker": "[MISSING: warehouseId]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 241,
+      "line": 265,
       "marker": "[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 242,
+      "line": 266,
       "marker": "[UNKNOWN: approved Auth/Vault runtime path for a FlipFlop-to-Warehouse service principal token with the Warehouse-required role]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 260,
+      "line": 284,
       "marker": "[MISSING: warehouseId]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 260,
+      "line": 284,
       "marker": "[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 350,
+      "line": 374,
       "marker": "[UNKNOWN: whether Warehouse getTotalAvailable includes reservations or only physical available stock]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 526,
+      "line": 550,
       "marker": "[MISSING: catalogProductId]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 728,
+      "line": 752,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 750,
+      "line": 774,
       "marker": "[MISSING: auth-microservice magic-link or passwordless account API]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 751,
+      "line": 775,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 768,
+      "line": 792,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 768,
+      "line": 792,
       "marker": "[MISSING: production IBAN]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 790,
+      "line": 814,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 790,
+      "line": 814,
       "marker": "[MISSING: production IBAN]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 871,
+      "line": 895,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 871,
+      "line": 895,
       "marker": "[MISSING: production IBAN]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },

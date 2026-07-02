@@ -2,6 +2,8 @@ import { productsApi } from '@/lib/api/products';
 import { notFound } from 'next/navigation';
 import AddToCartButton from '@/components/AddToCartButton';
 import ProductImageGallery from '@/components/ProductImageGallery';
+import ProductCard from '@/components/ProductCard';
+import AddBundleToCartButton from '@/components/AddBundleToCartButton';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import type { Product } from '@/lib/api/products';
@@ -62,6 +64,8 @@ const getProductGalleryImages = (product: Product) => {
   );
 };
 
+const formatMoney = (value: number) => `${Math.round(value).toLocaleString('cs-CZ')} Kč`;
+
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { id } = await params;
   const response = await productsApi.getProduct(id);
@@ -108,6 +112,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
   }
 
   const product = response.data;
+  const recommendationsResponse = await productsApi.getProductRecommendations(id);
+  const recommendations = recommendationsResponse.success ? recommendationsResponse.data : null;
+  const relatedProducts = recommendations?.relatedProducts ?? [];
+  const bundle = recommendations?.bundle ?? null;
   const galleryImages = getProductGalleryImages(product);
 
   return (
@@ -208,6 +216,71 @@ export default async function ProductPage({ params }: ProductPageProps) {
             )}
           </div>
         </div>
+
+        {/* Buy Together Set */}
+        {bundle && bundle.products.length > 1 && (
+          <section className="mt-12 border border-emerald-200 bg-white p-6 shadow-lg" aria-labelledby="buy-together-heading">
+            <div className="grid gap-6 lg:grid-cols-[280px_1fr_240px] lg:items-center">
+              <div className="border-l-8 border-emerald-500 bg-emerald-50 p-5">
+                <p className="text-sm font-black uppercase tracking-wide text-emerald-700">Výhodný set</p>
+                <p className="mt-2 text-4xl font-black text-emerald-800">Ušetříte {formatMoney(bundle.totalSavings)}</p>
+                {bundle.shippingSavings > 0 && (
+                  <p className="mt-3 text-sm font-bold text-emerald-900">Set překročí hranici dopravy zdarma.</p>
+                )}
+              </div>
+
+              <div>
+                <h2 id="buy-together-heading" className="text-2xl font-black text-slate-900">Často kupované společně</h2>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {bundle.products.map((bundleProduct) => (
+                    <Link key={bundleProduct.id} href={`/products/${bundleProduct.id}`} className="group flex gap-3 border border-gray-200 bg-gray-50 p-3 transition hover:border-blue-300 hover:bg-blue-50">
+                      <div className="relative h-20 w-20 shrink-0 overflow-hidden bg-white">
+                        {(bundleProduct.mainImageUrl || bundleProduct.imageUrls?.[0] || bundleProduct.images?.[0]) ? (
+                          <img src={bundleProduct.mainImageUrl || bundleProduct.imageUrls?.[0] || bundleProduct.images?.[0]} alt={bundleProduct.name} className="h-full w-full object-cover transition group-hover:scale-105" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-3xl">{getProductEmoji(bundleProduct.name)}</div>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="line-clamp-2 text-sm font-black text-slate-900 group-hover:text-blue-700">{bundleProduct.name}</p>
+                        <p className="mt-2 text-sm font-extrabold text-blue-700">{formatMoney(bundleProduct.price)}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border border-gray-200 bg-gray-50 p-5">
+                <div className="space-y-2 text-sm font-bold text-slate-700">
+                  <div className="flex justify-between gap-3"><span>Produkty</span><span>{formatMoney(bundle.subtotal)}</span></div>
+                  <div className="flex justify-between gap-3 text-emerald-700"><span>Sleva setu</span><span>-{formatMoney(bundle.merchandiseSavings)}</span></div>
+                  {bundle.shippingSavings > 0 && <div className="flex justify-between gap-3 text-emerald-700"><span>Doprava</span><span>-{formatMoney(bundle.shippingSavings)}</span></div>}
+                </div>
+                <div className="mt-4 border-t border-gray-200 pt-4">
+                  <AddBundleToCartButton products={bundle.products} />
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Related Products */}
+        {relatedProducts.length > 0 && (
+          <section className="mt-12" aria-labelledby="related-products-heading">
+            <div className="mb-5 flex items-end justify-between gap-4">
+              <div>
+                <h2 id="related-products-heading" className="text-2xl font-black text-slate-900">Související produkty</h2>
+                <p className="mt-1 text-sm font-semibold text-gray-600">Podobné produkty a další možnosti z aktuální nabídky.</p>
+              </div>
+              <Link href="/products" className="hidden text-sm font-black text-blue-700 hover:text-blue-800 sm:inline">Zobrazit vše</Link>
+            </div>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {relatedProducts.slice(0, 4).map((relatedProduct) => (
+                <ProductCard key={relatedProduct.id} product={relatedProduct} />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Categories */}
         {product.categories && product.categories.length > 0 && (

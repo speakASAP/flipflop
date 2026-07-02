@@ -67,6 +67,23 @@ type FlipFlopOfferReconciliationProduct = {
   updatedAt?: Date | string | null;
 };
 
+type ProductRecommendationSource = 'purchase_history' | 'related_fallback';
+
+type ProductRecommendationBundle = {
+  source: ProductRecommendationSource;
+  products: any[];
+  subtotal: number;
+  bundlePrice: number;
+  merchandiseSavings: number;
+  shippingSavings: number;
+  totalSavings: number;
+  freeShippingThreshold: number;
+  assumedShippingCost: number;
+};
+
+const FREE_SHIPPING_THRESHOLD_CZK = 1000;
+const DEFAULT_SHIPPING_COST_CZK = 89;
+
 @Injectable()
 export class ProductsService {
   private normalizeCategoryToken(value: string): string {
@@ -607,6 +624,208 @@ export class ProductsService {
    * Get product by ID
    * Fetches from catalog-microservice and enriches with stock from warehouse-microservice
    */
+  async getProductRecommendations(id: string) {
+    const currentProduct = await this.getLocalRecommendationProduct(id);
+    const historyProducts = await this.getFrequentlyBoughtTogetherProducts(currentProduct.id, 8);
+    const fallbackProducts = await this.getFallbackRelatedProducts(currentProduct, 8);
+    const relatedProducts = this.uniqueProducts([...historyProducts, ...fallbackProducts], currentProduct.id).slice(0, 8);
+    const bundleCandidates = historyProducts.length > 0 ? historyProducts : fallbackProducts;
+    const bundleProducts = this.uniqueProducts([currentProduct, ...bundleCandidates], currentProduct.id, true).slice(0, 3);
+    const bundle = this.buildRecommendationBundle(
+      bundleProducts.length > 1 ? bundleProducts : [currentProduct, ...relatedProducts.slice(0, 1)],
+      historyProducts.length > 0 ? 'purchase_history' : 'related_fallback',
+    );
+
+    return {
+      productId: currentProduct.id,
+      catalogProductId: currentProduct.catalogProductId || null,
+      relatedProducts,
+      bundle,
+      policy: {
+        source: historyProducts.length > 0 ? 'purchase_history_then_category_fallback' : 'category_fallback',
+        usesAi: false,
+        mutatesPrices: false,
+        mutatesOrders: false,
+        exposesCustomerData: false,
+      },
+    };
+  }
+
+  private async getLocalRecommendationProduct(id: string) {
+    const product = await this.prisma.product.findFirst({
+      where: {
+        OR: [
+          { id },
+          { catalogProductId: id },
+        ],
+        isActive: true,
+        catalogProductId: { not: null },
+      },
+      include: {
+        product_categories: {
+          include: { categories: true },
+        },
+        product_variants: true,
+      },
+    });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    const offer = await this.catalogLinkedProductToOffer(product);
+    if (!offer) {
+      throw new NotFoundException('Product not found');
+    }
+
+    return offer;
+  }
+
+  private async getFrequentlyBoughtTogetherProducts(productId: string, limit: number) {
+    try {
+      const rows = await this.prisma.orderItem.groupBy({
+        by: ['productId'],
+        where: {
+          productId: { not: productId },
+          orders: {
+            status: 'confirmed',
+            order_items: {
+              some: { productId },
+            },
+          },
+        },
+        _count: { productId: true },
+        orderBy: { _count: { productId: 'desc' } },
+        take: limit,
+      });
+      const ids = rows.map((row: any) => row.productId).filter(Boolean);
+      return this.getSellableProductsByIds(ids);
+    } catch (error: any) {
+      await this.logger.warn('OPERATIONAL_ALERT flipflop_recommendation_history_lookup_failed', {
+        context: 'ProductsService',
+        productId,
+        error: error?.message || 'unknown error',
+      });
+      return [];
+    }
+  }
+
+  private async getFallbackRelatedProducts(product: any, limit: number) {
+    const categoryIds = Array.isArray(product.categories)
+      ? product.categories.map((category: any) => category.id).filter(Boolean)
+      : [];
+    const sameCategoryRows = categoryIds.length
+      ? await this.prisma.product.findMany({
+          where: {
+            id: { not: product.id },
+            isActive: true,
+            catalogProductId: { not: null },
+            product_categories: { some: { categoryId: { in: categoryIds } } },
+          },
+          include: {
+            product_categories: { include: { categories: true } },
+            product_variants: true,
+          },
+          orderBy: [
+            { stockQuantity: 'desc' },
+            { updatedAt: 'desc' },
+            { id: 'asc' },
+          ],
+          take: limit,
+        })
+      : [];
+
+    const sameCategoryOffers = await this.mapSellableLocalProducts(sameCategoryRows);
+    if (sameCategoryOffers.length >= limit) {
+      return sameCategoryOffers.slice(0, limit);
+    }
+
+    const excludeIds = new Set([product.id, ...sameCategoryOffers.map((item: any) => item.id)]);
+    const otherRows = await this.prisma.product.findMany({
+      where: {
+        id: { notIn: Array.from(excludeIds) },
+        isActive: true,
+        catalogProductId: { not: null },
+      },
+      include: {
+        product_categories: { include: { categories: true } },
+        product_variants: true,
+      },
+      orderBy: [
+        { stockQuantity: 'desc' },
+        { updatedAt: 'desc' },
+        { id: 'asc' },
+      ],
+      take: limit,
+    });
+
+    return this.uniqueProducts([...sameCategoryOffers, ...(await this.mapSellableLocalProducts(otherRows))], product.id).slice(0, limit);
+  }
+
+  private async getSellableProductsByIds(productIds: string[]) {
+    if (!productIds.length) return [];
+    const rows = await this.prisma.product.findMany({
+      where: {
+        id: { in: productIds },
+        isActive: true,
+        catalogProductId: { not: null },
+      },
+      include: {
+        product_categories: { include: { categories: true } },
+        product_variants: true,
+      },
+    });
+    const byId = new Map(rows.map((row: any) => [row.id, row]));
+    const orderedRows = productIds.map((id) => byId.get(id)).filter(Boolean);
+    return this.mapSellableLocalProducts(orderedRows);
+  }
+
+  private async mapSellableLocalProducts(products: any[]) {
+    const offers = await Promise.all(products.map((row) => this.catalogLinkedProductToOffer(row)));
+    return offers.filter(Boolean);
+  }
+
+  private uniqueProducts(products: any[], currentProductId: string, includeCurrent = false) {
+    const seen = new Set<string>();
+    const unique: any[] = [];
+    for (const product of products) {
+      if (!product?.id) continue;
+      if (!includeCurrent && product.id === currentProductId) continue;
+      if (seen.has(product.id)) continue;
+      seen.add(product.id);
+      unique.push(product);
+    }
+    return unique;
+  }
+
+  private buildRecommendationBundle(products: any[], source: ProductRecommendationSource): ProductRecommendationBundle | null {
+    const bundleProducts = products.filter((product) => product?.id && Number(product.price) > 0);
+    if (bundleProducts.length < 2) {
+      return null;
+    }
+
+    const subtotal = this.roundCzk(bundleProducts.reduce((sum, product) => sum + Number(product.price || 0), 0));
+    const merchandiseSavings = Math.max(1, this.roundCzk(subtotal * 0.05));
+    const shippingSavings = subtotal >= FREE_SHIPPING_THRESHOLD_CZK ? DEFAULT_SHIPPING_COST_CZK : 0;
+    const bundlePrice = Math.max(0, this.roundCzk(subtotal - merchandiseSavings));
+
+    return {
+      source,
+      products: bundleProducts,
+      subtotal,
+      bundlePrice,
+      merchandiseSavings,
+      shippingSavings,
+      totalSavings: merchandiseSavings + shippingSavings,
+      freeShippingThreshold: FREE_SHIPPING_THRESHOLD_CZK,
+      assumedShippingCost: DEFAULT_SHIPPING_COST_CZK,
+    };
+  }
+
+  private roundCzk(value: number) {
+    return Math.max(0, Math.round(Number.isFinite(value) ? value : 0));
+  }
+
   async getProduct(id: string, includeWarehouse: boolean = true) {
     try {
       void includeWarehouse;
