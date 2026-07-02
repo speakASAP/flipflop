@@ -116,6 +116,12 @@ export interface GuestOrderItemData {
   quantity: number;
 }
 
+export interface BundleIntentData {
+  source: 'product_detail_buy_together';
+  sourceProductId: string;
+  productIds: string[];
+}
+
 export interface CreateGuestOrderData {
   email: string;
   phone?: string;
@@ -134,6 +140,7 @@ export interface CreateGuestOrderData {
   shippingCost?: number;
   discount?: number;
   discountCode?: string;
+  bundleIntent?: BundleIntentData;
 }
 
 export interface CreateOrderResponse {
@@ -147,6 +154,7 @@ export interface CreateOrderData {
   notes?: string;
   shippingCost?: number;
   discount?: number;
+  bundleIntent?: BundleIntentData;
 }
 
 export interface UpdateOrderStatusData {

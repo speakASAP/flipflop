@@ -116,6 +116,31 @@ assert(
     ordersService.includes("'failed'"),
   'order-service must record accepted/conflict/failed central forwarding status',
 );
+
+assert(
+  ordersService.includes('createCentralOrderBeforePayment') &&
+    ordersService.includes('orderId: centralAcceptance.centralOrderId') &&
+    ordersService.includes('centralOrderId: centralAcceptance.centralOrderId') &&
+    ordersService.includes('metadata: this.buildPaymentMetadata(order, centralAcceptance.centralOrderId)') &&
+    !ordersService.includes('orderId: order.orderNumber,'),
+  'payment creation must use the central Orders UUID and local callback metadata, never the local order number',
+);
+assert(
+  ordersService.indexOf('createCentralOrderBeforePayment') < ordersService.indexOf('this.paymentService.createPayment({'),
+  'central Orders acceptance helper must be defined and used before payment creation paths',
+);
+assert(
+  ordersService.includes('Skipped local warehouse mutation after payment for central-owned order') &&
+    ordersService.includes('findOrderForPaymentResult(body)') &&
+    ordersService.includes('paymentTransactionId: body.paymentId'),
+  'central-owned payment callbacks must update local read state without local Warehouse decrement/unreserve side effects',
+);
+assert(
+  orderClient.includes('getOrderLifecycle') &&
+    orderClient.includes("'[MISSING: Orders lifecycle read endpoint]'") &&
+    orderClient.includes('headers: this.getAuthHeaders()'),
+  'Orders client must expose an authenticated lifecycle adapter with a missing-endpoint placeholder',
+);
 assert(
   ordersService.includes("message.includes('[MISSING: catalogProductId]')") &&
     ordersService.includes('reason: forwardingReason'),
@@ -123,8 +148,8 @@ assert(
 );
 assert(
   ordersService.includes('message.includes(ORDER_IDEMPOTENCY_CONFLICT)') &&
-    ordersService.includes('Central Orders idempotency conflict for FlipFlop order'),
-  'order-service must surface central Orders idempotency conflicts explicitly',
+    ordersService.includes('Central Orders idempotency conflict resolved to existing order'),
+  'order-service must surface and resolve central Orders idempotency conflicts explicitly before payment',
 );
 
 const forbiddenForwardingTerms = [

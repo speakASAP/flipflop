@@ -1,6 +1,7 @@
 import type { Product, ProductVariant } from './api/products';
 
 const STORAGE_KEY = 'flipflop_guest_cart_v1';
+const BUNDLE_INTENT_KEY = 'flipflop_bundle_intent_v1';
 export const GUEST_CART_UPDATED_EVENT = 'flipflop:guest-cart-updated';
 
 export interface GuestCartProduct {
@@ -33,6 +34,15 @@ export interface GuestCart {
   items: GuestCartItem[];
   total: number;
   itemCount: number;
+}
+
+export interface GuestBundleIntent {
+  source: 'product_detail_buy_together';
+  sourceProductId: string;
+  productIds: string[];
+  estimatedSavings?: number;
+  currency: 'CZK';
+  createdAt: string;
 }
 
 export type GuestCartAddStatus = 'added' | 'already-in-cart' | 'insufficient-stock';
@@ -211,4 +221,59 @@ export const clearGuestCart = () => {
   if (!isBrowser()) return;
   window.localStorage.removeItem(STORAGE_KEY);
   emitGuestCartUpdated();
+};
+
+
+export const setGuestBundleIntent = (intent: Omit<GuestBundleIntent, 'source' | 'currency' | 'createdAt'>) => {
+  if (!isBrowser()) return;
+  const productIds = Array.from(new Set(intent.productIds.filter(Boolean)));
+  if (!intent.sourceProductId || productIds.length < 2) return;
+  window.localStorage.setItem(BUNDLE_INTENT_KEY, JSON.stringify({
+    source: 'product_detail_buy_together',
+    sourceProductId: intent.sourceProductId,
+    productIds,
+    estimatedSavings: normalizePrice(intent.estimatedSavings),
+    currency: 'CZK',
+    createdAt: new Date().toISOString(),
+  } satisfies GuestBundleIntent));
+};
+
+export const getGuestBundleIntent = (): GuestBundleIntent | null => {
+  if (!isBrowser()) return null;
+  try {
+    const raw = window.localStorage.getItem(BUNDLE_INTENT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<GuestBundleIntent>;
+    if (
+      parsed?.source !== 'product_detail_buy_together' ||
+      typeof parsed.sourceProductId !== 'string' ||
+      !Array.isArray(parsed.productIds)
+    ) {
+      return null;
+    }
+    const productIds = Array.from(new Set(parsed.productIds.filter((id): id is string => typeof id === 'string' && Boolean(id))));
+    if (productIds.length < 2 || !productIds.includes(parsed.sourceProductId)) return null;
+    return {
+      source: 'product_detail_buy_together',
+      sourceProductId: parsed.sourceProductId,
+      productIds,
+      estimatedSavings: normalizePrice(parsed.estimatedSavings),
+      currency: 'CZK',
+      createdAt: typeof parsed.createdAt === 'string' ? parsed.createdAt : '',
+    };
+  } catch {
+    return null;
+  }
+};
+
+export const getGuestBundleIntentForProductIds = (cartProductIds: string[]): GuestBundleIntent | null => {
+  const intent = getGuestBundleIntent();
+  if (!intent) return null;
+  const cartIds = new Set(cartProductIds);
+  return intent.productIds.every((productId) => cartIds.has(productId)) ? intent : null;
+};
+
+export const clearGuestBundleIntent = () => {
+  if (!isBrowser()) return;
+  window.localStorage.removeItem(BUNDLE_INTENT_KEY);
 };

@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import type { Product } from '@/lib/api/products';
 import { cartApi } from '@/lib/api/cart';
 import { useAuth } from '@/contexts/AuthContext';
-import { addGuestCartItem } from '@/lib/guest-cart';
+import { addGuestCartItem, setGuestBundleIntent } from '@/lib/guest-cart';
 
 interface AddBundleToCartButtonProps {
   products: Product[];
+  sourceProductId?: string;
+  estimatedSavings?: number;
   redirectTo?: string;
   className?: string;
 }
@@ -17,6 +19,8 @@ type MessageTone = 'success' | 'warning' | 'error';
 
 export default function AddBundleToCartButton({
   products,
+  sourceProductId,
+  estimatedSavings,
   redirectTo = '/checkout',
   className,
 }: AddBundleToCartButtonProps) {
@@ -66,8 +70,14 @@ export default function AddBundleToCartButton({
       }
 
       if (added > 0) {
+        const bundleProductIds = products.map((product) => product.id).filter(Boolean);
+        setGuestBundleIntent({
+          sourceProductId: sourceProductId || bundleProductIds[0],
+          productIds: bundleProductIds,
+          estimatedSavings,
+        });
         showMessage(skipped > 0 ? 'Set je v košíku, některé položky už tam byly.' : 'Set je v košíku.');
-        router.push(redirectTo);
+        router.push(isAuthenticated ? '/cart' : redirectTo);
       } else {
         showMessage('Tyto produkty už v košíku máte nebo nejsou skladem.', 'warning');
       }

@@ -257,7 +257,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   {bundle.shippingSavings > 0 && <div className="flex justify-between gap-3 text-emerald-700"><span>Doprava</span><span>-{formatMoney(bundle.shippingSavings)}</span></div>}
                 </div>
                 <div className="mt-4 border-t border-gray-200 pt-4">
-                  <AddBundleToCartButton products={bundle.products} />
+                  <AddBundleToCartButton products={bundle.products} sourceProductId={product.id} estimatedSavings={bundle.totalSavings} />
                 </div>
               </div>
             </div>
