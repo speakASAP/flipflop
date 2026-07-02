@@ -12,6 +12,38 @@
 
 
 
+## 2026-07-02 - F1 Central Orders Checkout And Cabinets
+
+Objective: make sellable FlipFlop checkout central-Orders-first and render central Orders lifecycle state in customer and admin cabinets.
+
+IPS chain:
+
+- Vision: FlipFlop checkout must preserve first-revenue safety while central Orders owns authoritative order lifecycle.
+- Goal Impact: Prevents Payments from receiving local-only order numbers and avoids duplicate local Warehouse stock mutation after central handoff.
+- System: FlipFlop order-service, shared Orders client, shared Payments client, customer order pages, admin order pages, central Orders API, Payments bridge, Warehouse.
+- Feature: Central Orders-first checkout and central lifecycle cabinets.
+- Task: Accept central Orders before payment, pass central UUID to Payments, guard local Warehouse success mutations for central-owned orders, and render central lifecycle/totals/address/stale states.
+- Execution Plan: `docs/orchestrator/2026-07-02-central-orders-checkout-and-cabinets-plan.md`.
+- Coding Prompt: F1 FlipFlop central Orders checkout and cabinets worker prompt from orchestrator.
+- Code: Implemented in `services/order-service/src/orders/orders.service.ts`, `services/order-service/src/orders/admin-orders.controller.ts`, `shared/clients/order-client.service.ts`, `shared/payments/payment.interface.ts`, `shared/payments/payment.service.ts`, `services/frontend/lib/api/orders.ts`, `services/frontend/app/orders/**`, `services/frontend/app/admin/orders/**`, and `scripts/verify-orders-hub-integration.js`.
+- Validation: `cd shared && npm run build` passed; `cd services/order-service && npm run build` passed; `cd services/frontend && npm run build` passed; `npm run verify:orders-hub-integration` passed; `python3 scripts/pre_coding_gate.py --root .` passed; `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed 100/100.
+
+Parallel execution section:
+
+- F1 central checkout/order-service lane: complete in current source; owner role FlipFlop checkout worker; central Orders is required before payment and central-owned payment callbacks skip duplicate local Warehouse mutation.
+- F1 shared client/payment contract lane: complete in current source; owner role integration contract worker; Payments receives central Orders UUID and local identifiers in metadata.
+- F1 customer/admin cabinet lane: complete in current source; owner role frontend cabinets worker; customer and admin order pages render central lifecycle, totals, currency, delivery address, and stale/error state when available.
+- Runtime validation lane: dependency-gated; owner role deployment/runtime validator; no deploy from this lane.
+- Integration lane: final integration owner must coordinate with concurrent checkout/bundle staged work before commit/push.
+
+Known blockers/gaps:
+
+- `[MISSING: Orders lifecycle read endpoint]` remains as an explicit adapter placeholder until central Orders exposes a stable lifecycle read endpoint.
+- Live `npm run verify:guest-checkout-ui` is blocked by `https://flipflop.alfares.cz/cart` returning HTTP 503; no deploy was run by this lane.
+- Remote repo currently has concurrent unrelated staged changes in validation reports and `services/frontend/app/checkout/page.tsx`, plus an unrelated ahead commit; preserve and coordinate before any commit/push.
+
+Next action: land or confirm the central Orders lifecycle read endpoint, then rerun live checkout/cabinet smoke after `/cart` returns HTTP 200.
+
 ## 2026-07-02 - Product Detail Bundle Discount Contract
 
 Objective: implement a real server-side bundle-discount contract so product-detail buy-together savings can be applied to checkout/order/payment totals without trusting browser price copy.

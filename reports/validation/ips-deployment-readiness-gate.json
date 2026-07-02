@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-07-02T14:36:03Z",
+  "created_at": "2026-07-02T15:45:59Z",
   "gate": "deployment_readiness",
   "next_step": "ready_for_deployment_review",
   "pre_coding_gate": {
@@ -52,92 +52,107 @@
       "path": "docs/IMPLEMENTATION_ORCHESTRATOR.md"
     },
     {
-      "line": 176,
+      "line": 43,
+      "marker": "[UNKNOWN: whether local product prices are gross CZK prices or net prices requiring VAT]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 44,
+      "marker": "[MISSING: Catalog bundle ownership decision]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 45,
+      "marker": "[MISSING: Warehouse bundle reservation contract]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 235,
       "marker": "[MISSING: flipflop-service entry in payments-microservice PAYMENT_CALLBACK_API_KEYS]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 227,
+      "line": 286,
       "marker": "[MISSING: production ruian_address_points import until migration is applied and scripts/import-ruian-addresses.js is run with DATABASE_URL]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 264,
+      "line": 323,
       "marker": "[MISSING: warehouseId]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 265,
+      "line": 324,
       "marker": "[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 266,
+      "line": 325,
       "marker": "[UNKNOWN: approved Auth/Vault runtime path for a FlipFlop-to-Warehouse service principal token with the Warehouse-required role]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 284,
+      "line": 343,
       "marker": "[MISSING: warehouseId]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 284,
+      "line": 343,
       "marker": "[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 374,
+      "line": 433,
       "marker": "[UNKNOWN: whether Warehouse getTotalAvailable includes reservations or only physical available stock]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 550,
+      "line": 609,
       "marker": "[MISSING: catalogProductId]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 752,
+      "line": 811,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 774,
+      "line": 833,
       "marker": "[MISSING: auth-microservice magic-link or passwordless account API]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 775,
+      "line": 834,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 792,
+      "line": 851,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 792,
+      "line": 851,
       "marker": "[MISSING: production IBAN]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 814,
+      "line": 873,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 814,
+      "line": 873,
       "marker": "[MISSING: production IBAN]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 895,
+      "line": 954,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 895,
+      "line": 954,
       "marker": "[MISSING: production IBAN]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
@@ -145,6 +160,41 @@
       "line": 114,
       "marker": "[MISSING: ...]",
       "path": "docs/INTENT_MEMORY.md"
+    },
+    {
+      "line": 110,
+      "marker": "[UNKNOWN: exact runtime Auth token for authorized end-to-end smoke in every dashboard]",
+      "path": "docs/orchestrator/2026-07-02-dashboard-catalog-source-options-plan.md"
+    },
+    {
+      "line": 111,
+      "marker": "[UNKNOWN: final localized dashboard copy for every language]",
+      "path": "docs/orchestrator/2026-07-02-dashboard-catalog-source-options-plan.md"
+    },
+    {
+      "line": 112,
+      "marker": "[UNKNOWN: whether shop-assistant, chytrakoupe, and rent-a-box have personal-account product-source obligations in this first wave]",
+      "path": "docs/orchestrator/2026-07-02-dashboard-catalog-source-options-plan.md"
+    },
+    {
+      "line": 113,
+      "marker": "[MISSING: sub-agent audit results for each channel dashboard]",
+      "path": "docs/orchestrator/2026-07-02-dashboard-catalog-source-options-plan.md"
+    },
+    {
+      "line": 62,
+      "marker": "[MISSING: ...]",
+      "path": "docs/orchestrator/2026-07-02-local-resale-toggle-and-flipflop-seller-plan.md"
+    },
+    {
+      "line": 68,
+      "marker": "[MISSING: ...]",
+      "path": "docs/orchestrator/2026-07-02-local-resale-toggle-and-flipflop-seller-plan.md"
+    },
+    {
+      "line": 68,
+      "marker": "[UNKNOWN: ...]",
+      "path": "docs/orchestrator/2026-07-02-local-resale-toggle-and-flipflop-seller-plan.md"
     },
     {
       "line": 42,
@@ -320,6 +370,66 @@
       "line": 78,
       "marker": "[MISSING: service/warranty product contract]",
       "path": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.validation-report.md"
+    },
+    {
+      "line": 143,
+      "marker": "[MISSING: approved files]",
+      "path": "implementation-goals/GOAL-13-ecosystem-related-products-order-affinity-plan.md"
+    },
+    {
+      "line": 172,
+      "marker": "[MISSING: approved durable ownership for automated affinity scorer]",
+      "path": "implementation-goals/GOAL-13-ecosystem-related-products-order-affinity-plan.md"
+    },
+    {
+      "line": 173,
+      "marker": "[MISSING: Catalog bundle ownership decision: standalone aggregate vs product-like SKU]",
+      "path": "implementation-goals/GOAL-13-ecosystem-related-products-order-affinity-plan.md"
+    },
+    {
+      "line": 174,
+      "marker": "[MISSING: Warehouse bundle reservation contract]",
+      "path": "implementation-goals/GOAL-13-ecosystem-related-products-order-affinity-plan.md"
+    },
+    {
+      "line": 175,
+      "marker": "[MISSING: Orders bundle create-order contract]",
+      "path": "implementation-goals/GOAL-13-ecosystem-related-products-order-affinity-plan.md"
+    },
+    {
+      "line": 176,
+      "marker": "[MISSING: Payments/free-shipping/discount total contract]",
+      "path": "implementation-goals/GOAL-13-ecosystem-related-products-order-affinity-plan.md"
+    },
+    {
+      "line": 177,
+      "marker": "[MISSING: channel-specific external marketplace bundle publication policies]",
+      "path": "implementation-goals/GOAL-13-ecosystem-related-products-order-affinity-plan.md"
+    },
+    {
+      "line": 178,
+      "marker": "[UNKNOWN: live DB migration state for each service unless separately verified]",
+      "path": "implementation-goals/GOAL-13-ecosystem-related-products-order-affinity-plan.md"
+    },
+    {
+      "line": 182,
+      "marker": "[MISSING: ...]",
+      "path": "implementation-goals/GOAL-13-ecosystem-related-products-order-affinity-plan.md"
+    },
+    {
+      "line": 182,
+      "marker": "[UNKNOWN: ...]",
+      "path": "implementation-goals/GOAL-13-ecosystem-related-products-order-affinity-plan.md"
+    },
+    {
+      "line": 60,
+      "marker": "[MISSING: Catalog bundle ownership decision]",
+      "path": "implementation-goals/GOAL-13-product-detail-bundle-discount-contract.md"
+    },
+    {
+      "line": 73,
+      "marker": "[UNKNOWN: whether local product prices are gross CZK prices or net prices requiring VAT]",
+      "path": "implementation-goals/GOAL-13-product-detail-bundle-discount-contract.md"
     }
   ],
   "validation_reports": {
