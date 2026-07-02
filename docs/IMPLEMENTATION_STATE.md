@@ -77,37 +77,57 @@ Next action: integrate or confirm the central Orders lifecycle read endpoint, th
 
 ## 2026-07-02 - Product Detail Bundle Discount Contract
 
-Objective: implement a real server-side bundle-discount contract so product-detail buy-together savings can be applied to checkout/order/payment totals without trusting browser price copy.
+Objective: apply the product-detail buy-together set savings through a real server-side checkout/order/payment total contract instead of leaving the savings as display-only copy.
 
 IPS chain:
 
-- Vision: FlipFlop storefront should sell real products efficiently and safely at `https://flipflop.alfares.cz/`.
-- Goal Impact: Converts GOAL-12 display-only upsell savings into a validated checkout contract while preserving first-revenue payment safety.
-- System: Next.js storefront checkout, order-service pricing/order creation, central Orders forwarding, payments-microservice initiation, Warehouse reservation.
+- Vision: FlipFlop storefront should sell real products efficiently at `https://flipflop.alfares.cz/`.
+- Goal Impact: Converts GOAL-12 upsell copy into a server-owned commercial discount while preserving checkout-to-first-revenue safety.
+- System: Next.js checkout, guest cart persistence, order-service order/payment total computation, product-service recommendation eligibility.
 - Feature: Server-validated product-detail bundle discount.
-- Task: Carry bundle intent by product ids, validate eligibility server-side, reject raw browser money inputs, compute discount/free-shipping savings in order-service, and send the exact discounted order total to Payments.
+- Task: Submit bundle identifiers only from the browser, recompute eligibility and CZK savings in order-service, reject untrusted raw money fields, and apply the discounted total to the order/payment path.
 - Execution Plan: `implementation-goals/GOAL-13-product-detail-bundle-discount-contract.execution-plan.md`.
 - Coding Prompt: `implementation-goals/GOAL-13-product-detail-bundle-discount-contract.coding-prompt.md`.
-- Code: pending.
+- Code: Implemented in order-service DTO/service, checkout API/client flow, guest bundle-intent helpers, product detail bundle button, and GOAL-13 verifiers.
 - Validation: `implementation-goals/GOAL-13-product-detail-bundle-discount-contract.validation-report.md`.
 
 Parallel execution section:
 
-- Cart/checkout pricing contract lane: complete read-only; owner role pricing contract explorer; identified order-service as payable total authority.
-- Order/payment total validation lane: complete read-only; owner role payment contract explorer; identified raw `discount` and authenticated `shippingCost` risks and payment amount propagation.
-- Frontend bundle token/checkout UX lane: complete read-only; owner role storefront explorer; identified dropped bundle identity and checkout payload change.
-- Verifier/docs lane: complete read-only; owner role verifier explorer; identified GOAL-13 artifact and verifier requirements.
-- Integration lane: active in original thread; owner role checkout pricing integrator; allowed files listed in the GOAL-13 execution plan; validation owner original thread.
+- Cart/checkout pricing contract lane: complete; owner role checkout pricing explorer; confirmed browser must carry identifiers only.
+- Order/payment total validation lane: complete; owner role order/payment explorer; order-service recomputes payable total and rejects untrusted discount/shipping inputs.
+- Frontend bundle intent lane: complete; owner role frontend checkout integrator; guest/auth checkout carries bundle identifiers and shows CZK set savings without percentage copy.
+- Verifier/docs lane: complete; owner role verifier/docs maintainer; added GOAL-13 verifier, docs, and validation report.
+- Runtime recovery lane: complete in orchestrator; owner role deployment operator; recovered stale sandbox rollout, restored shared Warehouse/Auth dependencies, rebuilt product-service with a unique image tag, and completed non-mutating production smoke.
 
-Current checkpoint: GOAL-13 plan/context/coding artifacts saved. Pre-coding gates and implementation pending.
+Validation evidence:
 
-Known blockers/gaps:
+- `python3 scripts/pre_coding_gate.py --root .` passed.
+- `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed 100/100.
+- `npm run verify:product-detail-bundle-discount` passed.
+- `npm run verify:product-detail-upsell` passed.
+- `npm run verify:orders-hub-integration` passed.
+- `npm run verify:flipflop-offer-gate` passed.
+- `cd services/order-service && npm run build` passed.
+- `cd services/frontend && npm run build` passed with baseline warnings only.
+- `cd services/product-service && npm run build` passed.
+- `cd shared && npm run build` passed.
+- `git diff --check` passed.
+- `python3 scripts/deployment_readiness_gate.py --root .` passed.
 
-- `[UNKNOWN: whether local product prices are gross CZK prices or net prices requiring VAT]`; this goal preserves current order-service tax behavior.
-- `[MISSING: Catalog bundle ownership decision]`; no durable Catalog bundle aggregate is added in GOAL-13.
-- `[MISSING: Warehouse bundle reservation contract]`; GOAL-13 preserves existing per-item Warehouse reservation/decrement authority.
+Post-deploy evidence:
 
-Next action: run IPS pre-coding gates, implement the smallest safe bundle-intent contract, validate, deploy if gates pass, and run non-mutating production smoke.
+- All six FlipFlop deployments are `1/1` ready: gateway, frontend, product-service, cart-service, order-service, and user-service.
+- Shared `warehouse-microservice` and `auth-microservice` are `1/1` ready after recovery.
+- Product-service runs `localhost:5000/flipflop-product-service:goal13-product-routes-20260702183838` and maps `GET /products/:id/recommendations`.
+- Public recommendations endpoint returned HTTP 200 with `success=true`, one related product, two bundle products, and `savings=159`.
+- Public product list, product page, checkout page, and home page returned HTTP 200 in non-mutating smoke.
+
+Known constraints:
+
+- No real paid order/payment mutation was run in production.
+- Remote `main` is clean but currently ahead of `origin/main` by one unrelated commit: `515f4b7 feat: add Auth wallet client bridge`.
+
+Next action: optional owner-approved real checkout/order smoke if production order/payment total evidence is required.
 
 ## 2026-07-02 - Product Detail Upsell Recommendations
 

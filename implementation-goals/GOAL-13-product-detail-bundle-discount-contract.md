@@ -96,4 +96,4 @@ Apply a server-validated product-detail bundle discount during checkout when the
 
 ## Validation Report
 
-Pending in `implementation-goals/GOAL-13-product-detail-bundle-discount-contract.validation-report.md`.
+Completed in `implementation-goals/GOAL-13-product-detail-bundle-discount-contract.validation-report.md`.
