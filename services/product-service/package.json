@@ -7,7 +7,9 @@
     "build": "tsc && tsc-alias",
     "start": "node dist/main.js",
     "start:dev": "ts-node src/main.ts",
-    "start:watch": "ts-node-dev --respawn src/main.ts"
+    "start:watch": "ts-node-dev --respawn src/main.ts",
+    "reconcile:offers": "node dist/reconcile-offers.js",
+    "reconcile:offers:dev": "ts-node src/reconcile-offers.ts"
   },
   "dependencies": {
     "@flipflop/shared": "file:../../shared",

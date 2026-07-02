@@ -17,7 +17,9 @@
     "verify:leads-public-intake": "node scripts/verify-leads-public-intake.js",
     "verify:guest-checkout-ui": "node scripts/verify-guest-checkout-ui.js",
     "verify:flipflop-offer-gate": "node scripts/verify-flipflop-offer-gate.js",
-    "import:ruian-addresses": "node scripts/import-ruian-addresses.js"
+    "import:ruian-addresses": "node scripts/import-ruian-addresses.js",
+    "verify:flipflop-reconciliation": "node scripts/verify-flipflop-reconciliation.js",
+    "reconcile:flipflop-offers": "npm --prefix services/product-service run reconcile:offers:dev"
   },
   "dependencies": {
     "@nestjs-modules/ioredis": "^2.2.1",

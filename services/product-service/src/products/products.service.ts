@@ -3,7 +3,9 @@
  * Handles product catalog operations
  */
 
+import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { createHash } from 'crypto';
 import { PrismaService, LoggerService, CatalogClientService, WarehouseClientService } from '@flipflop/shared';
 import { WarehouseService } from './warehouse.service';
 
@@ -38,6 +40,31 @@ type FlipFlopPublishResult = {
   attempt?: Record<string, any>;
   dependencyStatus?: number | null;
   dependencyMessage?: string | null;
+};
+
+type FlipFlopOfferReconciliationRequest = {
+  productIds?: string[];
+  requestedBy?: string;
+  requestId?: string;
+  dryRun?: boolean;
+  limit?: number;
+};
+
+type FlipFlopOfferReconciliationAttemptRow = {
+  id: string;
+  status: string;
+  idempotencyKey: string;
+};
+
+type FlipFlopOfferReconciliationProduct = {
+  id: string;
+  catalogProductId: string | null;
+  sku?: string | null;
+  name?: string | null;
+  isActive: boolean;
+  stockQuantity?: number | null;
+  trackInventory?: boolean | null;
+  updatedAt?: Date | string | null;
 };
 
 @Injectable()
@@ -78,6 +105,7 @@ export class ProductsService {
     private readonly warehouseService: WarehouseService,
     private readonly catalogClient: CatalogClientService,
     private readonly warehouseClient: WarehouseClientService,
+    private readonly httpService: HttpService,
   ) {}
 
   private async getLocalStorefrontProducts(filters: any) {
@@ -184,27 +212,219 @@ export class ProductsService {
         )
       : rows;
 
-    const offerItems = await Promise.all(
-      searched.map((product: any) => this.catalogLinkedProductToOffer(product)),
-    );
-    const items = offerItems
-      .filter(Boolean)
-      .sort((a: any, b: any) => Number(b.stockQuantity || 0) - Number(a.stockQuantity || 0));
-    const start = (page - 1) * limit;
-    const pagedItems = items.slice(start, start + limit);
-    const totalPages = Math.ceil(items.length / limit);
+      if (catalogScope === 'effective') {
+        const items = catalogResult.items.map((product: any) => this.mapCatalogSelectionProduct(product));
+        const total = Number(catalogResult.total || items.length);
+        const totalPages = Math.ceil(total / catalogResult.limit);
 
-    return {
-      items: pagedItems,
-      pagination: {
-        page,
-        limit,
-        total: items.length,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
+        return {
+          items,
+          pagination: {
+            page: catalogResult.page,
+            limit: catalogResult.limit,
+            total,
+            totalPages,
+            hasNext: catalogResult.page < totalPages,
+            hasPrev: catalogResult.page > 1,
+          },
+        };
+      }
+
+      const offerItems = await Promise.all(
+        catalogResult.items.map(async (product: any) => {
+          const policy = await this.catalogProductOfferPolicy(product);
+          if (!policy.sellable) {
+            await this.logger.warn('OPERATIONAL_ALERT flipflop_catalog_offer_blocked', {
+              context: 'ProductsService',
+              catalogProductId: product?.id || null,
+              sku: product?.sku || null,
+              blockedReasons: policy.blockedReasons,
+            });
+            return null;
+          }
+
+          return this.mapCatalogOfferProduct(product, policy.availableStock);
+        }),
+      );
+      const items = offerItems.filter(Boolean);
+      const totalPages = Math.ceil(items.length / catalogResult.limit);
+
+      return {
+        items,
+        pagination: {
+          page: catalogResult.page,
+          limit: catalogResult.limit,
+          total: items.length,
+          totalPages,
+          hasNext: catalogResult.page < totalPages,
+          hasPrev: catalogResult.page > 1,
+        },
+      };
+
+      try {
+        if (!product.catalogProductId) {
+          item.action = 'skipped_unlinked';
+          results.push(item);
+          continue;
+        }
+
+        let catalogProduct: any = null;
+        try {
+          catalogProduct = await this.catalogClient.getProductById(product.catalogProductId);
+          item.catalogState = this.catalogStateSnapshot(catalogProduct);
+          item.blockedReasons.push(...this.catalogLifecycleBlockedReasons(catalogProduct));
+          item.blockedReasons.push(...this.catalogSellabilityBlockedReasons(catalogProduct));
+        } catch (error: any) {
+          item.blockedReasons.push({
+            reason: 'catalog_product_missing',
+            message: `Catalog product lookup failed or returned missing for ${product.catalogProductId}: ${error?.message || 'unknown error'}`,
+          });
+          item.catalogState = {
+            found: false,
+            lookupError: error?.message || 'unknown error',
+          };
+        }
+
+        if (catalogProduct?.id) {
+          try {
+            const availableStock = this.toNonNegativeInteger(await this.warehouseClient.getTotalAvailable(catalogProduct.id));
+            item.warehouseAvailable = availableStock;
+            if (availableStock <= 0) {
+              item.blockedReasons.push({
+                reason: 'warehouse_stock_unavailable',
+                message: 'Warehouse total available is zero for this Catalog product.',
+              });
+            }
+          } catch (error: any) {
+            item.warehouseLookupError = error?.message || 'unknown error';
+          }
+        }
+
+        const shouldDisable = item.blockedReasons.length > 0;
+        if (!shouldDisable) {
+          if (item.warehouseLookupError) {
+            item.action = 'failed_dependency_lookup';
+            item.failed = true;
+            item.blockedReasons.push({
+              reason: 'warehouse_stock_lookup_failed',
+              message: `Warehouse total available lookup failed: ${item.warehouseLookupError}`,
+            });
+          }
+          results.push(item);
+          continue;
+        }
+
+        const disableData: Record<string, any> = {};
+        const warehouseZero = item.blockedReasons.some((reason: any) => reason.reason === 'warehouse_stock_unavailable');
+        if (product.isActive !== false) {
+          disableData.isActive = false;
+        }
+        if (warehouseZero && Number(product.stockQuantity || 0) !== 0) {
+          disableData.stockQuantity = 0;
+        }
+
+        if (Object.keys(disableData).length === 0) {
+          item.action = 'already_disabled';
+          item.localAfter = localBefore;
+          results.push(item);
+          continue;
+        }
+
+        item.localAfter = {
+          ...localBefore,
+          ...disableData,
+        };
+
+        if (dryRun) {
+          item.action = 'dry_run_disable_local_offer';
+          results.push(item);
+          continue;
+        }
+
+        const updated = await this.prisma.product.update({
+          where: { id: product.id },
+          data: {
+            ...disableData,
+            updatedAt: new Date(),
+          },
+          select: {
+            id: true,
+            catalogProductId: true,
+            sku: true,
+            isActive: true,
+            stockQuantity: true,
+            updatedAt: true,
+          },
+        });
+        item.action = 'disable_local_offer';
+        item.updated = true;
+        item.localAfter = this.localOfferStateSnapshot(updated);
+        results.push(item);
+      } catch (error: any) {
+        results.push({
+          ...item,
+          action: 'failed',
+          failed: true,
+          failureMessage: error?.message || 'unknown error',
+        });
+      }
+    }
+
+    const totals = {
+      checked: products.length,
+      sellable: results.filter((item) => item.action === 'kept_sellable').length,
+      nonSellable: results.filter((item) => item.blockedReasons?.length > 0 && !item.failed).length,
+      updated: results.filter((item) => item.updated).length,
+      alreadyDisabled: results.filter((item) => item.action === 'already_disabled').length,
+      dryRun: results.filter((item) => item.action === 'dry_run_disable_local_offer').length,
+      failed: results.filter((item) => item.failed).length,
+      skipped: results.filter((item) => String(item.action || '').startsWith('skipped')).length,
     };
+    const status = totals.failed > 0 ? (totals.updated > 0 ? 'PARTIAL' : 'FAILED') : 'SUCCEEDED';
+    const response = {
+      success: totals.failed === 0,
+      action: 'reconcile_flipflop_catalog_linked_offers',
+      authority: 'catalog-microservice+warehouse-microservice',
+      dryRun,
+      requestId: input.requestId || null,
+      requestedBy: input.requestedBy || 'manual-reconciliation',
+      limit,
+      totals,
+      blockers,
+      attempt: {
+        id: attempt.id,
+        status,
+        idempotencyKey: attempt.idempotencyKey,
+      },
+      policy: {
+        mutatesCatalog: false,
+        mutatesWarehouse: false,
+        mutatesExternalMarketplace: false,
+        mutatesFlipFlopProductCache: true,
+        reactivationPolicy: '[MISSING: safe FlipFlop catalog-event refresh policy]',
+      },
+      results,
+    };
+
+    await this.updateOfferReconciliationAttempt(attempt.id, {
+      status,
+      completedAt: new Date(),
+      matchedProductCount: products.length,
+      blockedReasons: blockers,
+      resultSnapshot: response,
+      remediationContext: totals.failed > 0
+        ? { nextAction: 'Review failed dependency lookups or product-cache writes, then rerun reconciliation.' }
+        : { nextAction: 'No action for disabled offers. Define safe refresh policy before any reactivation path.' },
+    });
+
+    await this.logger.log('FlipFlop offer reconciliation completed', {
+      context: 'ProductsService',
+      requestId: response.requestId,
+      totals,
+      dryRun,
+    });
+
+    return response;
   }
 
   async getCatalogContentPreview(productId: string, authorizationHeader?: string) {
@@ -221,8 +441,9 @@ export class ProductsService {
 
   async getProducts(filters: any) {
     const source = String(filters.source || '').toLowerCase();
+    const catalogScope = String(filters.catalogScope || '').toLowerCase();
 
-    if (source === 'catalog') {
+    if (source === 'catalog' || catalogScope === 'effective') {
       return this.getCatalogProducts(filters);
     }
 
@@ -237,15 +458,8 @@ export class ProductsService {
     try {
       const resolvedCategoryId = await this.resolveCategoryId(filters.categoryId, filters.category);
 
-      // Fetch products from catalog-microservice
-      // Note: catalog client only supports: search, isActive, categoryId, page, limit
-      const catalogResult = await this.catalogClient.searchProducts({
-        page: Number(filters.page) || 1,
-        limit: Number(filters.limit) || 20,
-        search: filters.search,
-        categoryId: resolvedCategoryId,
-        isActive: filters.isActive !== undefined ? filters.isActive : true,
-      });
+      const catalogScope = String(filters.catalogScope || '').toLowerCase();
+      const catalogResult = await this.searchCatalogProducts(filters, resolvedCategoryId);
       if (!catalogResult.items.length) {
         await this.logger.warn('OPERATIONAL_ALERT catalog_empty_or_unavailable', {
           context: 'ProductsService',
@@ -291,6 +505,54 @@ export class ProductsService {
       this.logger.error(`Failed to fetch products: ${error.message}`, error.stack, 'ProductsService');
       throw error;
     }
+  }
+
+  private async searchCatalogProducts(filters: any, resolvedCategoryId?: string) {
+    const catalogScope = String(filters.catalogScope || '').toLowerCase();
+    const authorizationHeader = typeof filters.authorizationHeader === 'string'
+      ? filters.authorizationHeader.trim()
+      : '';
+
+    if (catalogScope === 'effective' && !authorizationHeader) {
+      throw new BadRequestException('Catalog effective scope requires human authorization.');
+    }
+
+    const params = new URLSearchParams();
+    const page = Number(filters.page) || 1;
+    const limit = Number(filters.limit) || 20;
+    params.append('page', String(page));
+    params.append('limit', String(limit));
+    if (filters.search) params.append('search', String(filters.search));
+    if (resolvedCategoryId) params.append('categoryId', resolvedCategoryId);
+    if (filters.isActive !== undefined) params.append('isActive', String(filters.isActive));
+    if (catalogScope) params.append('catalogScope', catalogScope);
+
+    const baseUrl = process.env.CATALOG_SERVICE_URL || 'http://catalog-microservice:3200';
+    const internalServiceToken = (
+      process.env.CATALOG_INTERNAL_SERVICE_TOKEN ||
+      process.env.CATALOG_SERVICE_TOKEN ||
+      process.env.INTERNAL_SERVICE_TOKEN ||
+      ''
+    ).trim();
+    const headers: Record<string, string> = {};
+    if (authorizationHeader) {
+      headers.Authorization = authorizationHeader;
+    }
+    if (internalServiceToken) {
+      headers['x-internal-service-token'] = internalServiceToken;
+      headers['x-service-name'] = process.env.SERVICE_NAME || 'flipflop-service';
+    }
+
+    const response = await this.httpService.axiosRef.get(`${baseUrl}/api/products?${params.toString()}`, {
+      headers: Object.keys(headers).length ? headers : undefined,
+    });
+
+    return {
+      items: response.data?.data || [],
+      total: response.data?.pagination?.total || 0,
+      page: response.data?.pagination?.page || page,
+      limit: response.data?.pagination?.limit || limit,
+    };
   }
 
   /**
@@ -767,6 +1029,35 @@ export class ProductsService {
     return blockedReasons;
   }
 
+  private catalogSellabilityBlockedReasons(catalogProduct: any): Array<{ reason: string; message: string }> {
+    if (!catalogProduct) {
+      return [];
+    }
+
+    const blockedReasons: Array<{ reason: string; message: string }> = [];
+    const booleanCandidates = [
+      catalogProduct.isSellable,
+      catalogProduct.sellable,
+      catalogProduct.availableForSale,
+      catalogProduct.canSell,
+      catalogProduct.offerable,
+      catalogProduct.product?.isSellable,
+      catalogProduct.product?.sellable,
+    ];
+    if (booleanCandidates.some((candidate) => candidate === false)) {
+      blockedReasons.push({ reason: 'catalog_non_sellable', message: 'Catalog product is explicitly marked non-sellable.' });
+    }
+
+    const sellabilityStatus = String(
+      catalogProduct.sellabilityStatus ?? catalogProduct.salesStatus ?? catalogProduct.offerStatus ?? '',
+    ).trim().toLowerCase();
+    if (['non_sellable', 'not_sellable', 'unsellable', 'blocked', 'disabled'].includes(sellabilityStatus)) {
+      blockedReasons.push({ reason: 'catalog_non_sellable_status', message: `Catalog sellability status ${sellabilityStatus} is not offerable on FlipFlop.` });
+    }
+
+    return blockedReasons;
+  }
+
   private async upsertFlipFlopProductFromCatalog(catalogProduct: any, availableStock: number) {
     const now = new Date();
     const imageUrls = this.catalogImageUrls(catalogProduct);
@@ -896,6 +1187,116 @@ export class ProductsService {
     await this.prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "IDX_flipflop_catalog_publish_attempts_createdAt" ON "flipflop_catalog_publish_attempts"("createdAt")');
   }
 
+  private async createOfferReconciliationAttempt(
+    input: FlipFlopOfferReconciliationRequest,
+    products: FlipFlopOfferReconciliationProduct[],
+  ): Promise<FlipFlopOfferReconciliationAttemptRow> {
+    const idempotencyKey = this.offerReconciliationIdempotencyKey(input, products.map((product) => product.id));
+    const rows = await this.prisma.$queryRawUnsafe<FlipFlopOfferReconciliationAttemptRow[]>(
+      `INSERT INTO "flipflop_offer_reconciliation_attempts" (
+        "status", "idempotencyKey", "requestedBy", "requestId", "matchedProductCount",
+        "requestPayload", "policySnapshot", "queuedAt", "updatedAt"
+      ) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, now(), now())
+      ON CONFLICT ("idempotencyKey") DO UPDATE SET
+        "status" = EXCLUDED."status",
+        "matchedProductCount" = EXCLUDED."matchedProductCount",
+        "requestPayload" = EXCLUDED."requestPayload",
+        "policySnapshot" = EXCLUDED."policySnapshot",
+        "queuedAt" = now(),
+        "startedAt" = NULL,
+        "completedAt" = NULL,
+        "blockedReasons" = NULL,
+        "resultSnapshot" = NULL,
+        "failureContext" = NULL,
+        "remediationContext" = NULL,
+        "updatedAt" = now()
+      RETURNING "id", "status", "idempotencyKey"`,
+      'QUEUED',
+      idempotencyKey,
+      input.requestedBy || 'manual-reconciliation',
+      input.requestId || null,
+      products.length,
+      JSON.stringify(this.redactReconciliationInput(input)),
+      JSON.stringify({
+        contractVersion: 'flipflop.offer-reconciliation.v1',
+        sourceOfTruth: 'catalog+warehouse',
+        action: 'reconcile_catalog_linked_offers',
+        targetScope: 'catalog-linked FlipFlop product cache rows',
+        approvalRequired: false,
+        approvalMode: 'automatic_disable_only',
+        mutatesCatalog: false,
+        mutatesWarehouse: false,
+        mutatesExternalMarketplace: false,
+        mutatesFlipFlopProductCache: !input.dryRun,
+        disablePolicy: 'Catalog missing/inactive/archived/deleted/non-sellable disables local offer; Warehouse totalAvailable<=0 sets stockQuantity=0 and disables local offer.',
+        reactivationPolicy: '[MISSING: safe FlipFlop catalog-event refresh policy]',
+      }),
+    );
+    return rows[0];
+  }
+
+  private async updateOfferReconciliationAttempt(id: string, data: {
+    status: string;
+    startedAt?: Date;
+    completedAt?: Date;
+    matchedProductCount?: number;
+    blockedReasons?: unknown;
+    resultSnapshot?: unknown;
+    failureContext?: unknown;
+    remediationContext?: unknown;
+  }): Promise<void> {
+    await this.prisma.$executeRawUnsafe(
+      `UPDATE "flipflop_offer_reconciliation_attempts" SET
+        "status" = $1,
+        "startedAt" = COALESCE($2, "startedAt"),
+        "completedAt" = COALESCE($3, "completedAt"),
+        "matchedProductCount" = COALESCE($4, "matchedProductCount"),
+        "blockedReasons" = COALESCE($5::jsonb, "blockedReasons"),
+        "resultSnapshot" = COALESCE($6::jsonb, "resultSnapshot"),
+        "failureContext" = COALESCE($7::jsonb, "failureContext"),
+        "remediationContext" = COALESCE($8::jsonb, "remediationContext"),
+        "updatedAt" = now()
+      WHERE "id" = $9::uuid`,
+      data.status,
+      data.startedAt || null,
+      data.completedAt || null,
+      data.matchedProductCount ?? null,
+      data.blockedReasons === undefined ? null : JSON.stringify(data.blockedReasons),
+      data.resultSnapshot === undefined ? null : JSON.stringify(data.resultSnapshot),
+      data.failureContext === undefined ? null : JSON.stringify(data.failureContext),
+      data.remediationContext === undefined ? null : JSON.stringify(data.remediationContext),
+      id,
+    );
+  }
+
+  private async ensureOfferReconciliationAttemptTable() {
+    await this.prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "flipflop_offer_reconciliation_attempts" (
+        "id" uuid DEFAULT gen_random_uuid() NOT NULL,
+        "status" varchar(50) NOT NULL,
+        "idempotencyKey" varchar(180) NOT NULL,
+        "requestedBy" varchar(255),
+        "requestId" varchar(255),
+        "matchedProductCount" integer NOT NULL DEFAULT 0,
+        "requestPayload" jsonb,
+        "policySnapshot" jsonb NOT NULL DEFAULT '{}'::jsonb,
+        "blockedReasons" jsonb,
+        "resultSnapshot" jsonb,
+        "failureContext" jsonb,
+        "remediationContext" jsonb,
+        "queuedAt" timestamp(6),
+        "startedAt" timestamp(6),
+        "completedAt" timestamp(6),
+        "createdAt" timestamp(6) NOT NULL DEFAULT now(),
+        "updatedAt" timestamp(6) NOT NULL DEFAULT now(),
+        CONSTRAINT "flipflop_offer_reconciliation_attempts_pkey" PRIMARY KEY ("id")
+      )
+    `);
+    await this.prisma.$executeRawUnsafe('CREATE UNIQUE INDEX IF NOT EXISTS "flipflop_offer_reconciliation_attempts_idempotencyKey_key" ON "flipflop_offer_reconciliation_attempts"("idempotencyKey")');
+    await this.prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "IDX_flipflop_offer_reconciliation_attempts_status" ON "flipflop_offer_reconciliation_attempts"("status")');
+    await this.prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "IDX_flipflop_offer_reconciliation_attempts_createdAt" ON "flipflop_offer_reconciliation_attempts"("createdAt")');
+  }
+
   private normalizePublishProductIds(productIds: string[]): string[] {
     return Array.from(new Set(productIds.map((id) => String(id || '').trim()).filter(Boolean)));
   }
@@ -934,6 +1335,58 @@ export class ProductsService {
     }
     const clean = String(description).replace(/\s+/g, ' ').trim();
     return clean.length > 240 ? `${clean.slice(0, 237)}...` : clean;
+  }
+
+  private offerReconciliationIdempotencyKey(input: FlipFlopOfferReconciliationRequest, productIds: string[]): string {
+    const requestId = String(
+      input.requestId || `manual-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+    ).replace(/[^a-zA-Z0-9:_-]+/g, '-');
+    return `ff-offer-rec-${createHash('sha256').update(JSON.stringify({ requestId, productIds })).digest('hex').slice(0, 48)}`;
+  }
+
+  private redactReconciliationInput(input: FlipFlopOfferReconciliationRequest) {
+    return {
+      productIds: (input.productIds || []).slice(0, 100),
+      productIdCount: input.productIds?.length || 0,
+      requestedBy: input.requestedBy || null,
+      requestId: input.requestId || null,
+      dryRun: Boolean(input.dryRun),
+      limit: input.limit || null,
+    };
+  }
+
+  private localOfferStateSnapshot(product: any) {
+    return {
+      isActive: product?.isActive ?? null,
+      stockQuantity: Number(product?.stockQuantity || 0),
+      trackInventory: product?.trackInventory ?? null,
+      updatedAt: this.dateToResponseValue(product?.updatedAt) || null,
+    };
+  }
+
+  private catalogStateSnapshot(catalogProduct: any) {
+    return {
+      found: Boolean(catalogProduct?.id),
+      id: catalogProduct?.id || null,
+      sku: catalogProduct?.sku || null,
+      isActive: catalogProduct?.isActive ?? null,
+      isArchived: catalogProduct?.isArchived ?? catalogProduct?.archived ?? null,
+      archivedAt: catalogProduct?.archivedAt || null,
+      isDeleted: catalogProduct?.isDeleted ?? catalogProduct?.deleted ?? null,
+      deletedAt: catalogProduct?.deletedAt || null,
+      isSellable: catalogProduct?.isSellable ?? null,
+      sellable: catalogProduct?.sellable ?? null,
+      lifecycleStatus: catalogProduct?.lifecycleStatus ?? catalogProduct?.lifecycle ?? catalogProduct?.status ?? null,
+      sellabilityStatus: catalogProduct?.sellabilityStatus ?? catalogProduct?.salesStatus ?? catalogProduct?.offerStatus ?? null,
+    };
+  }
+
+  private toNonNegativeInteger(value: any): number {
+    const numberValue = Number(value);
+    if (!Number.isFinite(numberValue) || numberValue <= 0) {
+      return 0;
+    }
+    return Math.floor(numberValue);
   }
 
   private toPositiveInteger(value: any): number {
@@ -985,6 +1438,42 @@ export class ProductsService {
     });
 
     return match?.id;
+  }
+
+  private mapCatalogSelectionProduct(catalogProduct: any) {
+    const imageUrls = this.catalogImageUrls(catalogProduct);
+    const stockQuantity = this.toNonNegativeInteger(
+      catalogProduct.stockQuantity ??
+      catalogProduct.warehouse?.stockQuantity ??
+      catalogProduct.availableStock ??
+      0,
+    );
+
+    return {
+      id: catalogProduct.id,
+      catalogProductId: catalogProduct.id,
+      name: catalogProduct.title || catalogProduct.name || catalogProduct.sku,
+      sku: catalogProduct.sku,
+      description: catalogProduct.description,
+      price: this.getCatalogPrice(catalogProduct),
+      stockQuantity,
+      trackInventory: catalogProduct.trackInventory ?? true,
+      brand: catalogProduct.brand,
+      mainImageUrl: catalogProduct.mainImageUrl || imageUrls[0] || null,
+      imageUrls,
+      images: imageUrls,
+      categories: Array.isArray(catalogProduct.categories) ? catalogProduct.categories : [],
+      attributes: catalogProduct.attributes || [],
+      seoData: catalogProduct.seoData || null,
+      tags: catalogProduct.tags || [],
+      variants: [],
+      source: {
+        authority: 'catalog-microservice',
+        catalogScope: 'effective',
+      },
+      createdAt: this.dateToResponseValue(catalogProduct.createdAt),
+      updatedAt: this.dateToResponseValue(catalogProduct.updatedAt),
+    };
   }
 
   private mapCatalogOfferProduct(catalogProduct: any, availableStock: number, localProduct?: any) {
