@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { cartApi, Cart } from '@/lib/api/cart';
@@ -56,6 +56,21 @@ const initialForm: FormState = {
   email: '', phone: '', firstName: '', lastName: '', street: '', city: '', postalCode: '', country: 'Česká republika', note: '',
   createAccount: false, marketingConsent: false, differentDelivery: false, deliveryStreet: '', deliveryCity: '', deliveryPostalCode: '',
 };
+
+const walletAutofillSensitiveFields = new Set<keyof FormState>([
+  'email',
+  'phone',
+  'firstName',
+  'lastName',
+  'street',
+  'city',
+  'postalCode',
+  'country',
+  'differentDelivery',
+  'deliveryStreet',
+  'deliveryCity',
+  'deliveryPostalCode',
+]);
 
 const prefillContactFromUser = (current: FormState, user: NonNullable<ReturnType<typeof useAuth>['user']>): FormState => {
   const address = user.profileAddress;
@@ -151,6 +166,7 @@ export default function CheckoutPage() {
   const [walletInvoiceProfiles, setWalletInvoiceProfiles] = useState<AuthInvoiceProfile[]>([]);
   const [selectedWalletDeliveryAddressId, setSelectedWalletDeliveryAddressId] = useState('');
   const [selectedWalletInvoiceProfileId, setSelectedWalletInvoiceProfileId] = useState('');
+  const walletAutofillBlockedRef = useRef(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -170,10 +186,12 @@ export default function CheckoutPage() {
       setStep('details');
     }
     if (user) {
+      walletAutofillBlockedRef.current = false;
       setForm((current) => ({ ...prefillContactFromUser(current, user), createAccount: false }));
       setProfileEditing(false);
       setProfileMessage(null);
     } else {
+      walletAutofillBlockedRef.current = false;
       setWalletDeliveryAddresses([]);
       setWalletInvoiceProfiles([]);
       setSelectedWalletDeliveryAddressId('');
@@ -202,10 +220,16 @@ export default function CheckoutPage() {
       const defaultInvoiceProfile = response.data.defaultInvoiceProfile || invoiceProfiles.find((profile) => profile.isDefault) || invoiceProfiles[0];
       const defaultDeliveryAddress = response.data.defaultDeliveryAddress || deliveryAddresses.find((address) => address.isDefault) || deliveryAddresses[0];
 
+      const canApplyWalletDefaults = !walletAutofillBlockedRef.current;
+
       setWalletDeliveryAddresses(deliveryAddresses);
       setWalletInvoiceProfiles(invoiceProfiles);
-      setSelectedWalletInvoiceProfileId(defaultInvoiceProfile?.id || '');
-      setSelectedWalletDeliveryAddressId(defaultDeliveryAddress?.id || '');
+      setSelectedWalletInvoiceProfileId(canApplyWalletDefaults ? defaultInvoiceProfile?.id || '' : '');
+      setSelectedWalletDeliveryAddressId(canApplyWalletDefaults ? defaultDeliveryAddress?.id || '' : '');
+
+      if (!canApplyWalletDefaults) {
+        return;
+      }
 
       setForm((current) => {
         let next = current;
@@ -238,22 +262,37 @@ export default function CheckoutPage() {
   const bundleEstimatedSavings = bundleIntent?.estimatedSavings || 0;
   const total = Math.max(0, subtotal + selectedDelivery.price + selectedPayment.price + operatorTip - bundleEstimatedSavings);
 
-  const updateForm = (key: keyof FormState, value: string | boolean) => setForm((current) => ({ ...current, [key]: value }));
+  const markWalletAutofillSensitiveEdit = () => {
+    walletAutofillBlockedRef.current = true;
+  };
 
-  const updateBillingAddress = (address: AddressValue) => setForm((current) => ({
-    ...current,
-    street: address.street,
-    city: address.city,
-    postalCode: address.postalCode,
-    country: address.country || current.country,
-  }));
+  const updateForm = (key: keyof FormState, value: string | boolean) => {
+    if (walletAutofillSensitiveFields.has(key)) {
+      markWalletAutofillSensitiveEdit();
+    }
+    setForm((current) => ({ ...current, [key]: value }));
+  };
 
-  const updateDeliveryAddress = (address: AddressValue) => setForm((current) => ({
-    ...current,
-    deliveryStreet: address.street,
-    deliveryCity: address.city,
-    deliveryPostalCode: address.postalCode,
-  }));
+  const updateBillingAddress = (address: AddressValue) => {
+    markWalletAutofillSensitiveEdit();
+    setForm((current) => ({
+      ...current,
+      street: address.street,
+      city: address.city,
+      postalCode: address.postalCode,
+      country: address.country || current.country,
+    }));
+  };
+
+  const updateDeliveryAddress = (address: AddressValue) => {
+    markWalletAutofillSensitiveEdit();
+    setForm((current) => ({
+      ...current,
+      deliveryStreet: address.street,
+      deliveryCity: address.city,
+      deliveryPostalCode: address.postalCode,
+    }));
+  };
 
   const selectWalletInvoiceProfile = (id: string) => {
     setSelectedWalletInvoiceProfileId(id);
