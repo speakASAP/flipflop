@@ -67,6 +67,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   const mainImageUrl = getMainImageUrl();
+  const availableStock = Math.max(0, Math.floor(Number(product.stockQuantity) || 0));
 
   return (
     <article className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 hover:border-blue-200">
@@ -96,9 +97,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/20 rounded-full -ml-12 -mb-12"></div>
 
         {/* Stock Badge */}
-        {product.stockQuantity && product.stockQuantity > 0 ? (
+        {availableStock > 0 ? (
           <div className="absolute top-4 left-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm">
-            ✓ Skladem
+            ✓ Skladem {availableStock.toLocaleString('cs-CZ')} ks
           </div>
         ) : (
           <div className="absolute top-4 left-4 bg-gradient-to-r from-red-500 to-rose-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
