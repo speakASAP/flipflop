@@ -2,49 +2,50 @@
 
 ```yaml
 id: VAL-TASK-004-CATALOG-PRODUCT-QUALITY-REVIEW-CONSUMER
-status: validated
+status: passed
 created: 2026-07-02
-last_updated: 2026-07-02
+last_updated: 2026-07-03
 repository: /home/ssf/Documents/Github/flipflop
-source_task: ../11_tasks/TASK-004-catalog-product-quality-review-consumer.md
-execution_plan: ../21_execution_plans/EP-TASK-004-catalog-product-quality-review-consumer.md
-deployment: completed
+branch: main
+deployment: not_run_current_lane
 ```
 
 ## Summary
 
-The Catalog Product Quality Review consumer lane is implemented and validated. FlipFlop now consumes Catalog `catalog.product_quality.v1` quality review state, fails closed for mandatory blockers or lookup failures in publication/readiness policy, and surfaces blocker state in seller/admin Catalog selection UI.
+Current revalidation completed for the bounded FlipFlop consumer integration for Catalog `catalog.product_quality.v1` blockers. FlipFlop consumes Catalog quality review state, fails closed when mandatory blockers or quality lookup failures remain, and surfaces blocker state before seller/admin publication-adjacent actions.
+
+This pass did not deploy and did not mutate Catalog, Warehouse, Kubernetes, secrets, checkout, cart, orders, payments, refunds, or live marketplace publication actions.
 
 ## Upstream goal
 
-`TASK-004` supports FlipFlop revenue readiness by consuming Catalog product-quality blocker state before storefront-exposure-adjacent seller/admin publication.
+`GOAL-25-catalog-product-quality-review-consumer.md` consumes the Catalog Goal 25 product-quality blocker contract without moving product truth into FlipFlop.
 
 ## Criteria checked
 
-- IPS task, goal impact, context package, execution plan, coding prompt, graph edges, and validation artifacts exist.
-- Catalog client exposes a read-only quality review lookup for `GET /api/products/review/quality`.
-- Product-service publish/status/offer policy includes Catalog quality review status and fail-closed blocker reasons.
-- Seller dashboard disables blocked Catalog products for FlipFlop publication.
-- Admin sync page displays quality state for selected Catalog products.
-- EAN-only quality gaps remain non-blocking in FlipFlop consumer normalization.
-- Required validation commands pass.
+- IPS pre-coding gate passed before source edits.
+- Strict documentation audit passed before source edits.
+- Mandatory blocker normalization blocks `missing_sku`, `missing_description`, and lookup failures.
+- Optional EAN does not block FlipFlop publication policy normalization.
+- Seller/admin product selection APIs expose `quality` policy state.
+- Product-service offer filtering, publish dry-run, publish status, and reconciliation paths fail closed for Catalog mandatory blockers or quality-review lookup failure.
+- Product-service and frontend builds pass.
+- Deployment was intentionally not run in this lane.
 
 ## Issues found
 
 - No current-task validation failures.
-- `shared` must be built before product-service validation because product-service resolves the symlinked `@flipflop/shared` declaration output.
-- Frontend build warnings are informational and pre-existing style: stale `baseline-browser-mapping` data and multiple lockfiles/root inference.
-- Deployment completed after explicit approval; Kubernetes rollout was delayed by local image pulls, then recovered to `NewReplicaSetAvailable` for all FlipFlop deployments.
+- Frontend build emitted existing warnings about stale `baseline-browser-mapping` data and multiple lockfiles/workspace-root inference.
+- Existing unrelated dirty work remains in `services/order-service/src/orders/orders.service.ts`; this lane did not inspect or modify it.
 
 ## Recommendation
 
-Ready for orchestrator review. The approved deployment is live on FlipFlop; no deploy remains pending.
+Ready for Catalog orchestrator review as a FlipFlop consumer validation hardening pass. No deploy was run; commit/push may proceed after final worktree ownership check.
 
 ## Traceability confirmation
 
-Traceability path: `../01_vision/VISION.md` -> `../04_systems/SYS-001-commerce-platform.md` -> `../10_features/FEAT-001-intent-preserved-revenue-readiness.md` -> `../22_goal_impact/GOAL-IMPACT-TASK-004-catalog-product-quality-review-consumer.md` -> `../11_tasks/TASK-004-catalog-product-quality-review-consumer.md` -> `../21_execution_plans/EP-TASK-004-catalog-product-quality-review-consumer.md` -> `../13_context_packages/CP-TASK-004-catalog-product-quality-review-consumer.md` -> `../14_prompts/PROMPT-TASK-004-catalog-product-quality-review-consumer.md` -> code -> this validation report.
+Validation maps to `11_tasks/TASK-004-catalog-product-quality-review-consumer.md`, `21_execution_plans/EP-TASK-004-catalog-product-quality-review-consumer.md`, `13_context_packages/CP-TASK-004-catalog-product-quality-review-consumer.md`, `14_prompts/PROMPT-TASK-004-catalog-product-quality-review-consumer.md`, and `22_goal_impact/GOAL-IMPACT-TASK-004-catalog-product-quality-review-consumer.md`.
 
-## Evidence
+## Commands
 
 ```bash
 python3 scripts/pre_coding_gate.py --root .
@@ -54,7 +55,10 @@ python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues
 # PASS, score 100/100
 
 node scripts/verify-catalog-product-quality-blockers.js
-# PASS Catalog product quality blocker policy verification
+# PASS Catalog product quality blocker policy and product-service fail-closed verification
+
+git diff --check
+# PASS, no output
 
 cd shared && npm run build
 # PASS
@@ -63,17 +67,17 @@ cd services/product-service && npm run build
 # PASS
 
 cd services/frontend && npm run build
-# PASS, warnings only
-
-git diff --check
-# PASS, no output
-
-./scripts/deploy.sh
-# PASS after delayed local image pulls; all FlipFlop deployments reached NewReplicaSetAvailable
-
-curl -sS -o /dev/null -w "home %{http_code} %{time_total}\n" https://flipflop.alfares.cz/
-# home 200
-
-curl -sS -o /dev/null -w "products %{http_code} %{time_total}\n" "https://flipflop.alfares.cz/api/products?limit=1"
-# products 200
+# PASS, warnings only: stale baseline-browser-mapping data and multiple lockfiles/root inference
 ```
+
+## Intent Compliance Report
+
+- Vision: FlipFlop continues serving sellable products from shared Catalog and Warehouse data.
+- Goal Impact: Incomplete Catalog products are blocked before FlipFlop seller/admin publication.
+- System: Catalog owns quality policy; FlipFlop owns storefront projection and checkout UX.
+- Feature: Seller/admin Catalog selection and publication readiness display and enforce quality blockers.
+- Task: `TASK-004` current validation hardening completed.
+- Execution Plan: `EP-TASK-004` followed with no forbidden checkout, payment, order, Kubernetes, secret, destructive database, or deploy changes.
+- Coding Prompt: `PROMPT-TASK-004` constraints followed.
+- Code: focused verification script expanded to cover policy normalization and product-service fail-closed paths.
+- Validation: command evidence above.
