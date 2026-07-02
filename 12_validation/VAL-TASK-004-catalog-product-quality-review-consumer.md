@@ -8,7 +8,7 @@ last_updated: 2026-07-02
 repository: /home/ssf/Documents/Github/flipflop
 source_task: ../11_tasks/TASK-004-catalog-product-quality-review-consumer.md
 execution_plan: ../21_execution_plans/EP-TASK-004-catalog-product-quality-review-consumer.md
-deployment: not_run
+deployment: completed
 ```
 
 ## Summary
@@ -34,11 +34,11 @@ The Catalog Product Quality Review consumer lane is implemented and validated. F
 - No current-task validation failures.
 - `shared` must be built before product-service validation because product-service resolves the symlinked `@flipflop/shared` declaration output.
 - Frontend build warnings are informational and pre-existing style: stale `baseline-browser-mapping` data and multiple lockfiles/root inference.
-- Deployment was not run by instruction.
+- Deployment completed after explicit approval; Kubernetes rollout was delayed by local image pulls, then recovered to `NewReplicaSetAvailable` for all FlipFlop deployments.
 
 ## Recommendation
 
-Ready for orchestrator review. Deployment remains pending explicit approval.
+Ready for orchestrator review. The approved deployment is live on FlipFlop; no deploy remains pending.
 
 ## Traceability confirmation
 
@@ -67,4 +67,13 @@ cd services/frontend && npm run build
 
 git diff --check
 # PASS, no output
+
+./scripts/deploy.sh
+# PASS after delayed local image pulls; all FlipFlop deployments reached NewReplicaSetAvailable
+
+curl -sS -o /dev/null -w "home %{http_code} %{time_total}\n" https://flipflop.alfares.cz/
+# home 200
+
+curl -sS -o /dev/null -w "products %{http_code} %{time_total}\n" "https://flipflop.alfares.cz/api/products?limit=1"
+# products 200
 ```

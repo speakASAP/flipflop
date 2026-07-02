@@ -7,7 +7,7 @@ created: 2026-07-02
 last_updated: 2026-07-02
 repository: /home/ssf/Documents/Github/flipflop
 branch: main
-deployment: not_run
+deployment: completed
 ```
 
 ## Summary
@@ -27,7 +27,7 @@ Implemented a bounded FlipFlop consumer integration for Catalog `catalog.product
 - Seller/admin product selection APIs expose `quality` policy state.
 - Product-service publication/status/readiness policy consumes Catalog quality review.
 - Product-service and frontend builds pass.
-- Deployment was not run.
+- Deployment completed after explicit approval; all FlipFlop deployments reached `NewReplicaSetAvailable`.
 
 ## Issues found
 
@@ -37,7 +37,7 @@ Implemented a bounded FlipFlop consumer integration for Catalog `catalog.product
 
 ## Recommendation
 
-Hand off to the orchestrator for review and integration. Do not deploy until the orchestrator explicitly approves deployment.
+Hand off to the orchestrator with commit/deploy evidence. The approved deployment is live; monitor only if follow-up Catalog contract changes land.
 
 ## Traceability confirmation
 
@@ -66,6 +66,15 @@ cd services/frontend && npm run build
 
 git diff --check
 # PASS, no output
+
+./scripts/deploy.sh
+# PASS after delayed image pulls; all FlipFlop deployments reached NewReplicaSetAvailable
+
+curl -sS -o /dev/null -w "home %{http_code} %{time_total}\n" https://flipflop.alfares.cz/
+# home 200
+
+curl -sS -o /dev/null -w "products %{http_code} %{time_total}\n" "https://flipflop.alfares.cz/api/products?limit=1"
+# products 200
 ```
 
 ## Intent Compliance Report
