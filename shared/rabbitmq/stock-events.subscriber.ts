@@ -15,6 +15,8 @@ type WarehouseStockEvent = {
   available?: number;
   eventId?: string;
   occurredAt?: string;
+  updatedAt?: string;
+  timestamp?: string;
   [key: string]: unknown;
 };
 
@@ -107,7 +109,7 @@ export class StockEventsSubscriber implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private async handleStockEvent(event: WarehouseStockEvent) {
+  async handleStockEvent(event: WarehouseStockEvent) {
     const { type, productId } = event;
     if (!productId) {
       this.logger.warn(`Ignoring stock event without productId: ${JSON.stringify(this.redact(event))}`, 'StockEventsSubscriber');
@@ -118,7 +120,8 @@ export class StockEventsSubscriber implements OnModuleInit, OnModuleDestroy {
 
     switch (type) {
       case 'stock.updated':
-        await this.syncWarehouseQuantityToFlipFlop(event, this.requireAvailable(event));
+        const available = this.requireAvailable(event);
+        await this.syncWarehouseQuantityToFlipFlop(event, available);
         break;
       case 'stock.low':
         this.logger.warn(`Low stock alert for product ${productId}: ${event.available} available`, 'StockEventsSubscriber');
@@ -140,7 +143,7 @@ export class StockEventsSubscriber implements OnModuleInit, OnModuleDestroy {
     const prismaAny = this.prisma as any;
     const products = await this.prisma.product.findMany({
       where: { catalogProductId: productId, trackInventory: true },
-      select: { id: true, sku: true, name: true, catalogProductId: true, stockQuantity: true, isActive: true },
+      select: { id: true, sku: true, name: true, catalogProductId: true, stockQuantity: true, isActive: true, updatedAt: true },
       orderBy: { id: 'asc' },
     });
 
@@ -170,17 +173,29 @@ export class StockEventsSubscriber implements OnModuleInit, OnModuleDestroy {
     });
 
     const results: any[] = [];
+    const skippedProducts: any[] = [];
+    const eventTimestamp = this.parseEventTimestamp(event);
     try {
       for (let index = 0; index < products.length; index += 1) {
         const product = products[index];
         if (index > 0) await this.sleep(this.rateLimitMs);
 
+        if (this.isStaleEvent(eventTimestamp, product.updatedAt)) {
+          skippedProducts.push({
+            id: product.id,
+            sku: product.sku,
+            reason: 'stale_event',
+            eventTimestamp: eventTimestamp?.toISOString() || null,
+            productUpdatedAt: this.dateToIso(product.updatedAt),
+          });
+          continue;
+        }
+
+        const data: any = { stockQuantity: targetQuantity, updatedAt: new Date() };
+        if (targetQuantity <= 0) data.isActive = false;
         const updated = await this.prisma.product.update({
           where: { id: product.id },
-          data: {
-            stockQuantity: targetQuantity,
-            updatedAt: new Date(),
-          },
+          data,
           select: { id: true, sku: true, stockQuantity: true, isActive: true, updatedAt: true },
         });
         results.push(updated);
@@ -193,13 +208,14 @@ export class StockEventsSubscriber implements OnModuleInit, OnModuleDestroy {
           completedAt: new Date(),
           resultSnapshot: this.redact({
             updatedProducts: results,
+            skippedProducts,
             sellabilityPolicy: targetQuantity === 0
-              ? 'stockQuantity=0; existing storefront/cart contract treats the listing as not sellable'
-              : 'stockQuantity mirrors Warehouse available quantity',
+              ? 'stockQuantity=0 and isActive=false; existing storefront/cart contract removes the local offer'
+              : 'stockQuantity mirrors Warehouse available quantity without reactivating local offers',
           }),
         },
       });
-      this.logger.log(`Updated ${results.length} FlipFlop product(s) stock to ${targetQuantity} for catalog product ${productId}`, 'StockEventsSubscriber');
+      this.logger.log(`Updated ${results.length} FlipFlop product(s) stock to ${targetQuantity} for catalog product ${productId}; skipped ${skippedProducts.length}`, 'StockEventsSubscriber');
     } catch (error: any) {
       await prismaAny.flipflopStockSyncAttempt.update({
         where: { id: attempt.id },
@@ -244,7 +260,7 @@ export class StockEventsSubscriber implements OnModuleInit, OnModuleDestroy {
           mutatesCatalog: false,
           mutatesFlipFlopProductCache: true,
           rateLimit: { scope: 'flipflop-product-cache-write', minIntervalMs: this.rateLimitMs, maxRequestsPerSecond: this.rateLimitMs >= 1000 ? 1 : null },
-          zeroQuantityPolicy: 'set_flipflop_product_stockQuantity_to_0_so_existing_storefront_and_cart_contract_treats_product_as_not_sellable',
+          zeroQuantityPolicy: 'set_flipflop_product_stockQuantity_to_0_and_isActive_false_so_existing_storefront_and_cart_contract_removes_the_offer',
           unavailableFacts: ['[UNKNOWN: whether Warehouse getTotalAvailable includes reservations or only physical available stock]'],
         },
         queuedAt: now,
@@ -256,6 +272,29 @@ export class StockEventsSubscriber implements OnModuleInit, OnModuleDestroy {
     const value = Number(event.available);
     if (!Number.isInteger(value) || value < 0) throw new Error(`stock.updated requires non-negative integer available, got ${event.available}`);
     return value;
+  }
+
+  private parseEventTimestamp(event: WarehouseStockEvent): Date | null {
+    const value = event.occurredAt || event.updatedAt || event.timestamp;
+    if (!value) return null;
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  private isStaleEvent(eventTimestamp: Date | null, productUpdatedAt: unknown): boolean {
+    if (!eventTimestamp || !productUpdatedAt) return false;
+    const productTimestamp = productUpdatedAt instanceof Date
+      ? productUpdatedAt
+      : new Date(String(productUpdatedAt));
+    if (Number.isNaN(productTimestamp.getTime())) return false;
+    return productTimestamp.getTime() > eventTimestamp.getTime();
+  }
+
+  private dateToIso(value: unknown): string | null {
+    if (!value) return null;
+    if (value instanceof Date) return value.toISOString();
+    const parsed = new Date(String(value));
+    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
   }
 
   private buildIdempotencyKey(event: WarehouseStockEvent, targetQuantity: number, productIds: string[]): string {
