@@ -823,7 +823,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       products?: { catalogProductId?: string | null } | null;
     }>;
     deliveryAddress: any;
-    user?: { email?: string | null } | null;
+    user?: { id?: string | null; email?: string | null } | null;
     warehouseId: string;
   }) {
     const { order, orderItems, deliveryAddress, user, warehouseId } = params;
@@ -866,6 +866,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         name: customerName || undefined,
         email: user?.email || undefined,
         phone: deliveryAddress.phone || undefined,
+        authSubject: this.isUuid(user?.id) ? user.id : undefined,
       },
       shippingAddress: boundedAddress,
       billingAddress: boundedAddress,

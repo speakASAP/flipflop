@@ -44,6 +44,37 @@ Known blockers/gaps:
 
 Next action: land or confirm the central Orders lifecycle read endpoint, then rerun live checkout/cabinet smoke after `/cart` returns HTTP 200.
 
+## 2026-07-02 - F1 Invoice Auth Subject Snapshot Follow-Up
+
+Objective: ensure authenticated FlipFlop orders give Invoices a stable account
+matching key when central Orders stores the order snapshot.
+
+IPS chain:
+
+- Vision: authenticated customers can retrieve tax invoices from account
+  surfaces without relying only on mutable email matching.
+- Goal Impact: central Orders snapshots for authenticated FlipFlop checkout now
+  include `customer.authSubject` before payment creation.
+- System: FlipFlop order-service, shared Orders client, central
+  orders-microservice, invoices-microservice account access.
+- Feature: Auth subject handoff in `orders.create.v1` customer snapshot.
+- Task: extend the bounded central Orders client type and payload builder to
+  forward the UUID-shaped authenticated user id as `customer.authSubject`.
+- Execution Plan: source-only remote edit; do not alter guest checkout, payment
+  provider calls, local user tables, or live runtime flags.
+- Coding Prompt: pass only UUID-shaped authenticated user ids; do not infer a
+  subject from email; keep guest checkout without an Auth subject.
+- Code: `shared/clients/order-client.service.ts`,
+  `services/order-service/src/orders/orders.service.ts`, and
+  `scripts/verify-orders-hub-integration.js`.
+- Validation passed: `npm run verify:orders-hub-integration`,
+  `cd services/order-service && npm run build`, and `git diff --check`.
+
+Remaining gates:
+
+- `[MISSING: FlipFlop runtime smoke proving authenticated central order snapshots carry customer.authSubject]`
+- `[MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]`
+
 
 ## 2026-07-02 - F1 Admin Dashboard Order Visibility Addendum
 

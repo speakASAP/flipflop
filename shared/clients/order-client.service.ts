@@ -17,6 +17,7 @@ interface CreateCentralOrderRequest {
     name?: string;
     email?: string;
     phone?: string;
+    authSubject?: string;
   };
   shippingAddress?: CentralOrderAddress;
   billingAddress?: CentralOrderAddress;

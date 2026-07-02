@@ -69,6 +69,11 @@ assert(
     payloadBuilder.includes('shipping:'),
   'central Orders payload must use nested totals/payment/shipping contract fields',
 );
+assert(
+  orderClient.includes('authSubject?: string') &&
+    payloadBuilder.includes('authSubject: this.isUuid(user?.id) ? user.id : undefined'),
+  'authenticated FlipFlop checkout must forward the Auth-compatible user UUID as customer.authSubject for central Orders snapshots',
+);
 
 assert(
   payloadBuilder.includes('const catalogProductId = this.requireCatalogProductId(') &&
