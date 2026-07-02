@@ -170,7 +170,7 @@ spec:
       containers:
         - name: product-service
           image: localhost:5000/flipflop-product-service:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 3002
           envFrom:
@@ -231,7 +231,7 @@ spec:
       containers:
         - name: cart-service
           image: localhost:5000/flipflop-cart-service:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 3009
           envFrom:
