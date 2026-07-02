@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getVisitorInterestSummary, recordVisitorActivity } from '@/lib/visitor-activity';
 import type { Product } from '@/lib/api/products';
@@ -11,6 +11,16 @@ type AssistantMessage = {
   role: 'assistant' | 'visitor';
   text: string;
 };
+
+type VisitorInterestSummary = ReturnType<typeof getVisitorInterestSummary>;
+
+const createEmptyVisitorSummary = (): VisitorInterestSummary => ({
+  sessionId: 'pending',
+  events: [],
+  searches: [],
+  productViews: [],
+  clicks: [],
+});
 
 const normalize = (value: string) => value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
@@ -32,7 +42,12 @@ export default function ShoppingAssistant({ products }: { products: AssistantPro
     },
   ]);
 
-  const summary = useMemo(() => getVisitorInterestSummary(), [open, messages.length]);
+  const [summary, setSummary] = useState<VisitorInterestSummary>(createEmptyVisitorSummary);
+
+  useEffect(() => {
+    setSummary(getVisitorInterestSummary());
+  }, [open, messages.length]);
+
   const signals = [...summary.searches, ...summary.productViews, ...summary.clicks];
   const recommendations = [...products]
     .map((product) => ({ product, score: scoreProduct(product, [...signals, input]) }))
@@ -88,7 +103,7 @@ export default function ShoppingAssistant({ products }: { products: AssistantPro
         <div className="border border-slate-200 bg-slate-50 p-4 shadow-sm">
           <div className="mb-3 text-sm font-bold text-slate-800">Aktuální signály</div>
           <div className="space-y-1 text-xs text-slate-600">
-            <p>Session: {summary.sessionId.slice(0, 18)}...</p>
+            <p>Session: {summary.sessionId === 'pending' ? 'nacitam...' : `${summary.sessionId.slice(0, 18)}...`}</p>
             <p>Hledání: {summary.searches.length ? summary.searches.join(', ') : 'zatím žádné'}</p>
             <p>Produktové stránky: {summary.productViews.length ? summary.productViews.join(', ') : 'zatím žádné'}</p>
           </div>
