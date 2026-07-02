@@ -230,6 +230,19 @@ async function verifyCatalogEventsDisableOffers() {
   });
   assert.strictEqual(productByCatalogId(prisma, catalogIds.sellabilityFalse).isActive, false);
 
+  const contractEnvelopeProductId = '77777777-7777-4777-8777-777777777777';
+  prisma._state.products.push(product('77777777-7777-4777-8777-000000000001', contractEnvelopeProductId, 'CONTRACT-ENVELOPE', true, 6));
+  await subscriber.handleCatalogEvent({
+    eventType: 'catalog.product.sellability_changed.v1',
+    eventId: 'sellability-contract-envelope-1',
+    occurredAt: '2026-07-02T10:05:30.000Z',
+    data: {
+      product: { id: contractEnvelopeProductId, isActive: false, updatedAt: '2026-07-02T10:05:30.000Z' },
+      change: { afterSellable: false },
+    },
+  });
+  assert.strictEqual(productByCatalogId(prisma, contractEnvelopeProductId).isActive, false);
+
   const updateCountBeforeSellableEvent = prisma._state.updateCount();
   await subscriber.handleCatalogEvent({
     type: 'catalog.product.updated.v1',

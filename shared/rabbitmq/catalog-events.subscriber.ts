@@ -308,8 +308,11 @@ export class CatalogEventsSubscriber implements OnModuleInit, OnModuleDestroy {
       event.payload?.after?.sellable,
       event.payload?.after?.isSellable,
       event.data?.afterSellable,
+      event.data?.change?.afterSellable,
       event.data?.after?.sellable,
       event.data?.after?.isSellable,
+      event.data?.product?.sellable,
+      event.data?.product?.isSellable,
       event.product?.sellable,
       event.product?.isSellable,
       event.sellable,
@@ -320,6 +323,7 @@ export class CatalogEventsSubscriber implements OnModuleInit, OnModuleDestroy {
     }
     if (typeof event.isActive === 'boolean') return event.isActive;
     if (typeof event.product?.isActive === 'boolean') return event.product.isActive;
+    if (typeof event.data?.product?.isActive === 'boolean') return event.data.product.isActive;
     return undefined;
   }
 
