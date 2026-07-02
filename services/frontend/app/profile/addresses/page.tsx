@@ -2,15 +2,56 @@
 
 import { useEffect, useState } from 'react';
 import { addressesApi, DeliveryAddress, CreateAddressData } from '@/lib/api/addresses';
+import { authApi, AuthDeliveryAddress, CreateAuthDeliveryAddressData } from '@/lib/api/auth';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import AddressAutocomplete, { AddressValue } from '@/components/AddressAutocomplete';
+
+type AddressSource = 'auth' | 'local';
+
+const splitRecipientName = (recipientName?: string) => {
+  const parts = (recipientName || '').trim().split(/\s+/).filter(Boolean);
+  return {
+    firstName: parts[0] || '',
+    lastName: parts.slice(1).join(' '),
+  };
+};
+
+const mapAuthDeliveryAddress = (address: AuthDeliveryAddress): DeliveryAddress => {
+  const recipient = splitRecipientName(address.recipientName);
+  return {
+    id: address.id,
+    userId: address.userId || 'auth-wallet',
+    firstName: address.firstName || recipient.firstName,
+    lastName: address.lastName || recipient.lastName,
+    street: address.street,
+    city: address.city,
+    postalCode: address.postalCode,
+    country: address.country,
+    phone: address.phone,
+    isDefault: address.isDefault,
+    createdAt: address.createdAt || '',
+    updatedAt: address.updatedAt || '',
+  };
+};
+
+const toAuthDeliveryAddressData = (address: CreateAddressData): CreateAuthDeliveryAddressData => ({
+  firstName: address.firstName,
+  lastName: address.lastName,
+  street: address.street,
+  city: address.city,
+  postalCode: address.postalCode,
+  country: address.country,
+  phone: address.phone,
+  isDefault: address.isDefault,
+});
 
 export default function AddressesPage() {
   const [addresses, setAddresses] = useState<DeliveryAddress[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [addressSource, setAddressSource] = useState<AddressSource>('local');
   const [formData, setFormData] = useState<CreateAddressData>({
     firstName: '',
     lastName: '',
@@ -33,14 +74,34 @@ export default function AddressesPage() {
     loadAddresses();
   }, [isAuthenticated, router]);
 
+  const loadLocalAddresses = async () => {
+    const response = await addressesApi.getAddresses();
+    if (response.success && response.data) {
+      setAddresses(response.data);
+    } else {
+      setAddresses([]);
+    }
+    setAddressSource('local');
+  };
+
   const loadAddresses = async () => {
+    setLoading(true);
     try {
-      const response = await addressesApi.getAddresses();
-      if (response.success && response.data) {
-        setAddresses(response.data);
+      const authResponse = await authApi.getDeliveryAddresses();
+      if (authResponse.success && Array.isArray(authResponse.data)) {
+        setAddresses(authResponse.data.map(mapAuthDeliveryAddress));
+        setAddressSource('auth');
+        return;
       }
+
+      await loadLocalAddresses();
     } catch (error) {
       console.error('Failed to load addresses:', error);
+      await loadLocalAddresses().catch((localError) => {
+        console.error('Failed to load local addresses:', localError);
+        setAddresses([]);
+        setAddressSource('local');
+      });
     } finally {
       setLoading(false);
     }
@@ -49,15 +110,22 @@ export default function AddressesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (editingId) {
-        await addressesApi.updateAddress(editingId, formData);
-      } else {
-        await addressesApi.createAddress(formData);
+      const response = editingId
+        ? addressSource === 'auth'
+          ? await authApi.updateDeliveryAddress(editingId, toAuthDeliveryAddressData(formData))
+          : await addressesApi.updateAddress(editingId, formData)
+        : addressSource === 'auth'
+          ? await authApi.createDeliveryAddress(toAuthDeliveryAddressData(formData))
+          : await addressesApi.createAddress(formData);
+
+      if (!response.success) {
+        throw new Error(response.error?.message || 'Address save failed');
       }
+
       setShowForm(false);
       setEditingId(null);
       resetForm();
-      loadAddresses();
+      await loadAddresses();
     } catch (error) {
       console.error('Failed to save address:', error);
       alert('Nepodařilo se uložit adresu');
@@ -85,8 +153,15 @@ export default function AddressesPage() {
     }
 
     try {
-      await addressesApi.deleteAddress(id);
-      loadAddresses();
+      const response = addressSource === 'auth'
+        ? await authApi.deleteDeliveryAddress(id)
+        : await addressesApi.deleteAddress(id);
+
+      if (!response.success) {
+        throw new Error(response.error?.message || 'Address delete failed');
+      }
+
+      await loadAddresses();
     } catch (error) {
       console.error('Failed to delete address:', error);
       alert('Nepodařilo se smazat adresu');
