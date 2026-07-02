@@ -136,7 +136,7 @@ export class AuthService {
     try {
       const response = await this.retryService.execute(
         async () => {
-          return await breaker.fire();
+          return await breaker.fire(callFn);
         },
         {
           retryable: (error: any) => {
@@ -189,7 +189,7 @@ export class AuthService {
     try {
       const response = await this.retryService.execute(
         async () => {
-          return await breaker.fire();
+          return await breaker.fire(callFn);
         },
         {
           retryable: (error: any) => {
@@ -235,7 +235,7 @@ export class AuthService {
     try {
       const response = await this.retryService.execute(
         async () => {
-          return await breaker.fire();
+          return await breaker.fire(callFn);
         },
         {
           retryable: (error: any) => {
@@ -295,7 +295,7 @@ export class AuthService {
     try {
       const user = await this.retryService.execute(
         async () => {
-          return await breaker.fire();
+          return await breaker.fire(callFn);
         },
         {
           retryable: (error: any) => {
@@ -542,7 +542,7 @@ export class AuthService {
     try {
       const response = await this.retryService.execute(
         async () => {
-          return await breaker.fire();
+          return await breaker.fire(callFn);
         },
         {
           retryable: (error: any) => {

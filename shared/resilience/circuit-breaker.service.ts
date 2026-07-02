@@ -51,9 +51,16 @@ export class CircuitBreakerService {
       rollingCountBuckets: options?.rollingCountBuckets ?? config.rollingCountBuckets,
     };
 
-    // Create circuit breaker
+    // Create circuit breaker. The operation is passed to fire() so a reused
+    // breaker keeps its state without capturing stale per-request data.
     const CircuitBreakerCtor = ((CircuitBreakerModule as any).default || CircuitBreakerModule) as any;
-    const breaker = new CircuitBreakerCtor(fn, breakerOptions) as CircuitBreaker;
+    const breaker = new CircuitBreakerCtor(
+      async (operation?: () => Promise<T>) => {
+        const operationToRun = operation || fn;
+        return operationToRun();
+      },
+      breakerOptions,
+    ) as CircuitBreaker;
 
     // Set up event handlers
     breaker.on('open', () => {

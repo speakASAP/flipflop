@@ -202,7 +202,7 @@ export class PaymentService {
     try {
       const raw = await this.retryService.execute(
         async () => {
-          return await breaker.fire();
+          return await breaker.fire(callFn);
         },
         {
           retryable: (error: any) => {
@@ -266,7 +266,7 @@ export class PaymentService {
     try {
       const response = await this.retryService.execute(
         async () => {
-          return await breaker.fire();
+          return await breaker.fire(callFn);
         },
         {
           retryable: (error: any) => {
@@ -315,7 +315,7 @@ export class PaymentService {
     try {
       const response = await this.retryService.execute(
         async () => {
-          return await breaker.fire();
+          return await breaker.fire(callFn);
         },
         {
           retryable: (error: any) => {
