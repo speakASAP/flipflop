@@ -29,6 +29,7 @@ export class GatewayService {
 
     this.serviceUrls = {
       auth: this.configService.get('AUTH_SERVICE_URL') || 'https://auth.alfares.cz',
+      catalog: this.configService.get('CATALOG_SERVICE_URL') || 'http://catalog-microservice:3200',
       products: this.configService.get('PRODUCT_SERVICE_URL') || `http://flipflop-product-service:${productPort}`,
       cart: this.configService.get('CART_SERVICE_URL') || `http://flipflop-cart-service:${cartPort}`,
       orders: this.configService.get('ORDER_SERVICE_URL') || `http://flipflop-order-service:${orderPort}`,

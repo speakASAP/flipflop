@@ -26,6 +26,8 @@ export default function AdminProductsPage() {
         page,
         limit: 20,
         search: search || undefined,
+        source: 'catalog',
+        catalogScope: 'effective',
         includeWarehouse: true, // Always include real warehouse stock data
       });
       if (response.success && response.data) {

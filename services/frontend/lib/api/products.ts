@@ -75,6 +75,8 @@ export interface ProductFilters {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   includeWarehouse?: boolean | string; // Include warehouse stock data (default: true)
+  source?: 'catalog' | 'local' | string;
+  catalogScope?: 'effective' | string;
 }
 
 export interface PaginatedResponse<T> {

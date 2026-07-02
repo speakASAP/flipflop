@@ -24,8 +24,11 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
-  async getProducts(@Query() query: any) {
-    const result = await this.productsService.getProducts(query);
+  async getProducts(@Query() query: any, @Request() req: any) {
+    const result = await this.productsService.getProducts({
+      ...query,
+      authorizationHeader: req.headers?.authorization,
+    });
     return ApiResponse.success(result);
   }
 

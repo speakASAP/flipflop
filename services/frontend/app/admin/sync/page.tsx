@@ -59,6 +59,8 @@ export default function AdminSyncPage() {
     try {
       const response = await productsApi.getProducts({
         limit: 20,
+        source: 'catalog',
+        catalogScope: 'effective',
         includeWarehouse: false,
       });
 

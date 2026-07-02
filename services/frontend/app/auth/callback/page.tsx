@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiClient } from '@/lib/api/client';
+import { catalogApi } from '@/lib/api/catalog';
 import { consumeExpectedAuthState, consumeStoredNextPath, isTrustedServerInitiatedState } from '@/lib/auth/hosted-auth';
 
 function hashParams(hash: string): URLSearchParams {
@@ -25,29 +26,52 @@ function AuthCallbackContent() {
   const fallbackNextPath = useMemo(() => safeNextPath(searchParams.get('next')), [searchParams]);
 
   useEffect(() => {
-    const params = hashParams(window.location.hash);
-    const token = tokenFromParams(params);
-    const returnedState = params.get('state');
-    const expectedState = consumeExpectedAuthState();
-    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    let cancelled = false;
 
-    if (!token) {
-      setError('Aktivační odkaz neobsahuje přihlašovací token.');
-      return;
+    async function finishAuth() {
+      const params = hashParams(window.location.hash);
+      const token = tokenFromParams(params);
+      const returnedState = params.get('state');
+      const expectedState = consumeExpectedAuthState();
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+
+      if (!token) {
+        setError('Aktivační odkaz neobsahuje přihlašovací token.');
+        return;
+      }
+
+      if (expectedState && returnedState !== expectedState) {
+        setError('Ověření přihlášení se nezdařilo. Zkuste to prosím znovu.');
+        return;
+      }
+
+      if (!expectedState && returnedState && !isTrustedServerInitiatedState(returnedState)) {
+        setError('Ověření přihlášení se nezdařilo. Zkuste to prosím znovu.');
+        return;
+      }
+
+      const nextPath = consumeStoredNextPath(fallbackNextPath);
+      apiClient.setToken(token);
+
+      try {
+        const response = await catalogApi.provisionAccess();
+        if (!response.success) {
+          console.warn('Catalog access provisioning failed:', response.error?.message || 'unknown error');
+        }
+      } catch (provisionError) {
+        console.warn('Catalog access provisioning failed:', provisionError);
+      }
+
+      if (!cancelled) {
+        router.replace(nextPath);
+      }
     }
 
-    if (expectedState && returnedState !== expectedState) {
-      setError('Ověření přihlášení se nezdařilo. Zkuste to prosím znovu.');
-      return;
-    }
+    void finishAuth();
 
-    if (!expectedState && returnedState && !isTrustedServerInitiatedState(returnedState)) {
-      setError('Ověření přihlášení se nezdařilo. Zkuste to prosím znovu.');
-      return;
-    }
-
-    apiClient.setToken(token);
-    router.replace(consumeStoredNextPath(fallbackNextPath));
+    return () => {
+      cancelled = true;
+    };
   }, [fallbackNextPath, router]);
 
   return (
