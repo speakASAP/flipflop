@@ -75,6 +75,40 @@ Remaining gates:
 - `[MISSING: FlipFlop runtime smoke proving authenticated central order snapshots carry customer.authSubject]`
 - `[MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]`
 
+## 2026-07-02 - F1 Auth Subject Runtime Smoke Gate
+
+Objective: provide a guarded runtime proof path for the invoice account-access
+contract without creating a production order unless explicitly approved.
+
+IPS chain:
+
+- Vision: authenticated customers can retrieve invoices from account surfaces
+  by stable Auth subject.
+- Goal Impact: operators can prove the live central Orders snapshot stores
+  `customer.authSubject` for the FlipFlop service actor before closing the
+  Invoices runtime gate.
+- System: FlipFlop smoke runner, deployed `flipflop-order-service`, central
+  orders-microservice, Warehouse reservation authority, and optional Orders
+  status cleanup token.
+- Feature: approval-gated synthetic central Orders create/read smoke.
+- Task: add a script that is non-mutating by default, requires explicit
+  approval inputs plus Catalog/Warehouse fixture ids before mutation, and reads
+  the created Orders snapshot to assert the Auth subject is persisted.
+- Execution Plan: source-only remote edit; no smoke execution in this turn.
+- Coding Prompt: no token values, no customer/order row dumps, no provider
+  payment calls, no default mutation without approval.
+- Code: `scripts/smoke-orders-auth-subject.js`, package script
+  `smoke:orders-auth-subject`, and `scripts/verify-orders-hub-integration.js`
+  assertions.
+- Validation: `node --check scripts/smoke-orders-auth-subject.js`,
+  `npm run verify:orders-hub-integration`, `git diff --check`, and
+  `WRITE_AUTH_SUBJECT_SMOKE_REPORT=0 node scripts/smoke-orders-auth-subject.js`
+  passed as a fail-closed default preflight with `mutation=false`.
+
+Remaining gate:
+
+- `[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with AUTH_SUBJECT_SMOKE_APPROVAL_ID, fixture product/warehouse ids, and persisted customer.authSubject evidence]`
+
 
 ## 2026-07-02 - F1 Admin Dashboard Order Visibility Addendum
 
