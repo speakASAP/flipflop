@@ -36,6 +36,47 @@ import { UpdateAdminOrderStatusDto } from './dto/update-admin-order-status.dto';
 import { CreateSupplierDeliveryDto } from './dto/create-supplier-delivery.dto';
 import { DiscountService } from '../marketing/discount.service';
 
+type CheckoutOrderItem = {
+  productId: string;
+  variantId?: string | null;
+  productName: string;
+  productSku: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+};
+
+type BundleDiscountIntent = {
+  source: 'product_detail_buy_together';
+  sourceProductId: string;
+  productIds: string[];
+};
+
+type BundleDiscountApplication = {
+  source: 'product_detail_buy_together';
+  sourceProductId: string;
+  productIds: string[];
+  eligible: true;
+  merchandiseSubtotal: number;
+  merchandiseSavings: number;
+  shippingSavings: number;
+  totalSavings: number;
+  currency: 'CZK';
+  freeShippingThreshold: number;
+  shippingPolicy: 'selected_delivery_cost_discounted_when_bundle_subtotal_reaches_threshold';
+};
+
+type CheckoutDiscountApplication = {
+  discount: number;
+  pendingDiscountCode?: string;
+  bundleDiscount?: BundleDiscountApplication;
+};
+
+const BUNDLE_DISCOUNT_RATE = 0.05;
+const BUNDLE_FREE_SHIPPING_THRESHOLD_CZK = 1000;
+const BUNDLE_ELIGIBILITY_LIMIT = 8;
+
+
 @Injectable()
 export class OrdersService implements OnModuleInit, OnModuleDestroy {
   private staleOrderInterval?: ReturnType<typeof setInterval>;
@@ -333,7 +374,14 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       },
     });
     for (const o of stale) {
-      await this.unreserveOrderLines(o.orderNumber, o.order_items);
+      if (this.isCentralOrdersOwnedOrder(o)) {
+        this.logger.log('Skipped local warehouse release for stale central-owned order', {
+          orderNumber: o.orderNumber,
+          centralOrderId: this.getAcceptedCentralOrderId(o),
+        });
+      } else {
+        await this.unreserveOrderLines(o.orderNumber, o.order_items);
+      }
       await this.prisma.order.update({
         where: { id: o.id },
         data: {
@@ -352,12 +400,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
    * Apply payment callback from payments-microservice (via api-gateway).
    */
   async handlePaymentResult(body: PaymentResultDto): Promise<{ ok: boolean }> {
-    const order = await this.prisma.order.findFirst({
-      where: { orderNumber: body.orderId },
-      include: {
-        order_items: true,
-      },
-    });
+    const order = await this.findOrderForPaymentResult(body);
 
     if (!order) {
       this.logger.warn('Payment webhook: order not found', { orderNumber: body.orderId });
@@ -413,75 +456,83 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
 
       await this.tryAccrueLoyaltyPointsForOrder(order.id);
 
-      for (const item of order.order_items) {
-        const product = await this.prisma.product.findUnique({
-          where: { id: item.productId },
+      if (this.isCentralOrdersOwnedOrder(order)) {
+        this.logger.log('Skipped local warehouse mutation after payment for central-owned order', {
+          orderNumber: order.orderNumber,
+          centralOrderId: this.getAcceptedCentralOrderId(order),
+          paymentId: body.paymentId,
         });
-        const catalogProductId = product?.catalogProductId;
-        if (!catalogProductId) {
-          continue;
-        }
-        let warehouseId: string;
-        try {
-          warehouseId = await this.resolveReservationWarehouseId(
-            catalogProductId,
-            item.quantity,
-            order.orderNumber,
-            'release',
-          );
-          await this.warehouseClient.unreserveStock(
-            catalogProductId,
-            warehouseId,
-            item.quantity,
-            order.orderNumber,
-          );
-        } catch (err: unknown) {
-          this.logger.warn('Stock unreserve after payment (non-fatal)', {
-            orderNumber: order.orderNumber,
-            productId: item.productId,
-            error: err instanceof Error ? err.message : String(err),
+      } else {
+        for (const item of order.order_items) {
+          const product = await this.prisma.product.findUnique({
+            where: { id: item.productId },
           });
+          const catalogProductId = product?.catalogProductId;
+          if (!catalogProductId) {
+            continue;
+          }
+          let warehouseId: string;
           try {
             warehouseId = await this.resolveReservationWarehouseId(
               catalogProductId,
               item.quantity,
               order.orderNumber,
-              'decrement',
+              'release',
             );
-          } catch (inner: unknown) {
-            this.logger.error('Stock decrement skipped after payment: no warehouse stock row', {
+            await this.warehouseClient.unreserveStock(
+              catalogProductId,
+              warehouseId,
+              item.quantity,
+              order.orderNumber,
+            );
+          } catch (err: unknown) {
+            this.logger.warn('Stock unreserve after payment (non-fatal)', {
               orderNumber: order.orderNumber,
               productId: item.productId,
-              error: inner instanceof Error ? inner.message : String(inner),
+              error: err instanceof Error ? err.message : String(err),
             });
-            continue;
+            try {
+              warehouseId = await this.resolveReservationWarehouseId(
+                catalogProductId,
+                item.quantity,
+                order.orderNumber,
+                'decrement',
+              );
+            } catch (inner: unknown) {
+              this.logger.error('Stock decrement skipped after payment: no warehouse stock row', {
+                orderNumber: order.orderNumber,
+                productId: item.productId,
+                error: inner instanceof Error ? inner.message : String(inner),
+              });
+              continue;
+            }
           }
-        }
-        try {
-          await this.warehouseClient.decrementStock(
-            catalogProductId,
-            warehouseId,
-            item.quantity,
-            `flipflop_order:${order.orderNumber}`,
-          );
-          const totalAvailable = await this.warehouseClient.getTotalAvailable(catalogProductId);
-          const lowTh = OrdersService.DEFAULT_LOW_STOCK_THRESHOLD;
-          if (totalAvailable < lowTh) {
-            void this.inventoryEventsPublisher.publishLowStock({
+          try {
+            await this.warehouseClient.decrementStock(
+              catalogProductId,
+              warehouseId,
+              item.quantity,
+              `flipflop_order:${order.orderNumber}`,
+            );
+            const totalAvailable = await this.warehouseClient.getTotalAvailable(catalogProductId);
+            const lowTh = OrdersService.DEFAULT_LOW_STOCK_THRESHOLD;
+            if (totalAvailable < lowTh) {
+              void this.inventoryEventsPublisher.publishLowStock({
+                productId: item.productId,
+                productName: item.productName,
+                currentStock: totalAvailable,
+                threshold: lowTh,
+                timestamp: new Date().toISOString(),
+              });
+            }
+          } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            this.logger.error('Stock decrement failed after payment', {
+              message,
+              orderNumber: order.orderNumber,
               productId: item.productId,
-              productName: item.productName,
-              currentStock: totalAvailable,
-              threshold: lowTh,
-              timestamp: new Date().toISOString(),
             });
           }
-        } catch (err: unknown) {
-          const message = err instanceof Error ? err.message : String(err);
-          this.logger.error('Stock decrement failed after payment', {
-            message,
-            orderNumber: order.orderNumber,
-            productId: item.productId,
-          });
         }
       }
 
@@ -534,7 +585,15 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         },
       });
 
-      await this.unreserveOrderLines(order.orderNumber, order.order_items);
+      if (this.isCentralOrdersOwnedOrder(order)) {
+        this.logger.log('Skipped local warehouse release after failed payment for central-owned order', {
+          orderNumber: order.orderNumber,
+          centralOrderId: this.getAcceptedCentralOrderId(order),
+          paymentId: body.paymentId,
+        });
+      } else {
+        await this.unreserveOrderLines(order.orderNumber, order.order_items);
+      }
 
       return { ok: true };
     }
@@ -622,7 +681,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     ) {
       await this.tryAccrueLoyaltyPointsForOrder(orderId);
     }
-    return this.mapOrder(updated);
+    return this.mapOrderWithCentralLifecycle(updated);
   }
 
   private isLoyaltyPointsAwardedMetadata(metadata: unknown): boolean {
@@ -1055,6 +1114,175 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     return tip;
   }
 
+  private roundMoney(value: number): number {
+    return Math.max(0, Math.round((Number.isFinite(value) ? value : 0) * 100) / 100);
+  }
+
+  private roundCzk(value: number): number {
+    return Math.max(0, Math.round(Number.isFinite(value) ? value : 0));
+  }
+
+  private hasPositiveMoneyInput(value: unknown): boolean {
+    const amount = Number(value);
+    return Number.isFinite(amount) && amount > 0;
+  }
+
+  private rejectUnsafeClientMoneyInputs(dto: any, options: { rejectShippingCost: boolean }): void {
+    if (this.hasPositiveMoneyInput(dto?.discount)) {
+      throw new BadRequestException('Client-provided discount is not accepted without a server-validated contract');
+    }
+    if (options.rejectShippingCost && this.hasPositiveMoneyInput(dto?.shippingCost)) {
+      throw new BadRequestException('Client-provided shipping cost is not accepted without a server-side delivery contract');
+    }
+  }
+
+  private normalizeBundleIntent(raw: unknown): BundleDiscountIntent | null {
+    if (raw === undefined || raw === null || raw === '') return null;
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+      throw new BadRequestException('Invalid bundle discount request');
+    }
+    const row = raw as Record<string, unknown>;
+    const sourceProductId = this.normalizeGuestText(row.sourceProductId);
+    const rawProductIds = Array.isArray(row.productIds) ? row.productIds : [];
+    const productIds = Array.from(new Set(rawProductIds.map((value) => this.normalizeGuestText(value)).filter(Boolean)));
+    if (!sourceProductId || productIds.length < 2 || productIds.length > 3) {
+      throw new BadRequestException('Invalid bundle discount request');
+    }
+    if (!productIds.includes(sourceProductId)) {
+      throw new BadRequestException('Bundle discount source product must be included in the set');
+    }
+    return { source: 'product_detail_buy_together', sourceProductId, productIds };
+  }
+
+  private async getEligibleBundleTargetIds(sourceProductId: string): Promise<string[]> {
+    const sourceProduct = await this.prisma.product.findFirst({
+      where: { id: sourceProductId, isActive: true, catalogProductId: { not: null } },
+      include: { product_categories: true },
+    });
+    if (!sourceProduct) {
+      throw new BadRequestException('Bundle source product is not available');
+    }
+    const historyRows = await this.prisma.orderItem.groupBy({
+      by: ['productId'],
+      where: {
+        productId: { not: sourceProductId },
+        orders: { status: OrderStatus.confirmed, order_items: { some: { productId: sourceProductId } } },
+      },
+      _count: { productId: true },
+      orderBy: { _count: { productId: 'desc' } },
+      take: BUNDLE_ELIGIBILITY_LIMIT,
+    });
+    const historyIds = historyRows.map((row: any) => row.productId).filter(Boolean);
+    const categoryIds = Array.isArray((sourceProduct as any).product_categories)
+      ? (sourceProduct as any).product_categories.map((row: any) => row.categoryId).filter(Boolean)
+      : [];
+    const sameCategoryRows = categoryIds.length > 0
+      ? await this.prisma.product.findMany({
+          where: {
+            id: { not: sourceProductId },
+            isActive: true,
+            catalogProductId: { not: null },
+            product_categories: { some: { categoryId: { in: categoryIds } } },
+          },
+          orderBy: [{ stockQuantity: 'desc' }, { updatedAt: 'desc' }, { id: 'asc' }],
+          take: BUNDLE_ELIGIBILITY_LIMIT,
+          select: { id: true },
+        })
+      : [];
+    const used = new Set([sourceProductId, ...historyIds, ...sameCategoryRows.map((row: any) => row.id)]);
+    const otherRows = await this.prisma.product.findMany({
+      where: { id: { notIn: Array.from(used) }, isActive: true, catalogProductId: { not: null } },
+      orderBy: [{ stockQuantity: 'desc' }, { updatedAt: 'desc' }, { id: 'asc' }],
+      take: BUNDLE_ELIGIBILITY_LIMIT,
+      select: { id: true },
+    });
+    const eligible = new Set<string>();
+    for (const id of [...historyIds, ...sameCategoryRows.map((row: any) => row.id), ...otherRows.map((row: any) => row.id)]) {
+      if (id && eligible.size < BUNDLE_ELIGIBILITY_LIMIT) eligible.add(id);
+    }
+    return Array.from(eligible);
+  }
+
+  private async calculateBundleDiscount(params: {
+    orderItems: CheckoutOrderItem[];
+    orderTotalBeforeDiscount: number;
+    shippingCost: number;
+    bundleIntent: BundleDiscountIntent;
+  }): Promise<BundleDiscountApplication> {
+    const byProductId = new Map(params.orderItems.map((item) => [item.productId, item]));
+    if (!byProductId.has(params.bundleIntent.sourceProductId)) {
+      throw new BadRequestException('Bundle discount source product is not in the order');
+    }
+    for (const productId of params.bundleIntent.productIds) {
+      if (!byProductId.has(productId)) {
+        throw new BadRequestException('Bundle discount products must all be present in the order');
+      }
+    }
+    const eligibleTargets = new Set(await this.getEligibleBundleTargetIds(params.bundleIntent.sourceProductId));
+    const invalidTargets = params.bundleIntent.productIds
+      .filter((productId) => productId !== params.bundleIntent.sourceProductId)
+      .filter((productId) => !eligibleTargets.has(productId));
+    if (invalidTargets.length > 0) {
+      throw new BadRequestException('Bundle discount products are not eligible for this source product');
+    }
+    const bundleItems = params.bundleIntent.productIds.map((productId) => byProductId.get(productId)!);
+    const merchandiseSubtotal = this.roundCzk(bundleItems.reduce((sum, item) => sum + Number(item.unitPrice || 0), 0));
+    if (merchandiseSubtotal <= 0) {
+      throw new BadRequestException('Bundle discount cannot be applied to zero-price products');
+    }
+    const merchandiseSavings = Math.max(1, this.roundCzk(merchandiseSubtotal * BUNDLE_DISCOUNT_RATE));
+    const shippingSavings = merchandiseSubtotal >= BUNDLE_FREE_SHIPPING_THRESHOLD_CZK ? this.roundCzk(params.shippingCost) : 0;
+    const totalSavings = Math.min(this.roundCzk(params.orderTotalBeforeDiscount), merchandiseSavings + shippingSavings);
+    return {
+      source: 'product_detail_buy_together',
+      sourceProductId: params.bundleIntent.sourceProductId,
+      productIds: params.bundleIntent.productIds,
+      eligible: true,
+      merchandiseSubtotal,
+      merchandiseSavings,
+      shippingSavings,
+      totalSavings,
+      currency: 'CZK',
+      freeShippingThreshold: BUNDLE_FREE_SHIPPING_THRESHOLD_CZK,
+      shippingPolicy: 'selected_delivery_cost_discounted_when_bundle_subtotal_reaches_threshold',
+    };
+  }
+
+  private async calculateCheckoutDiscount(params: {
+    orderItems: CheckoutOrderItem[];
+    orderTotalBeforeDiscount: number;
+    shippingCost: number;
+    discountCode?: unknown;
+    bundleIntent?: unknown;
+  }): Promise<CheckoutDiscountApplication> {
+    const trimmedDiscountCode = typeof params.discountCode === 'string' && params.discountCode.trim() ? params.discountCode.trim() : '';
+    const bundleIntent = this.normalizeBundleIntent(params.bundleIntent);
+    if (trimmedDiscountCode && bundleIntent) {
+      throw new BadRequestException('Discount code cannot be combined with a bundle discount');
+    }
+    if (trimmedDiscountCode) {
+      const validation = await this.discountService.validateCode(trimmedDiscountCode);
+      if (!validation.valid) {
+        throw new BadRequestException('Invalid or expired discount code');
+      }
+      const after = await this.discountService.applyDiscount(params.orderTotalBeforeDiscount, trimmedDiscountCode);
+      return {
+        discount: this.roundMoney(params.orderTotalBeforeDiscount - after),
+        pendingDiscountCode: this.discountService.normalizeCode(trimmedDiscountCode),
+      };
+    }
+    if (bundleIntent) {
+      const bundleDiscount = await this.calculateBundleDiscount({
+        orderItems: params.orderItems,
+        orderTotalBeforeDiscount: params.orderTotalBeforeDiscount,
+        shippingCost: params.shippingCost,
+        bundleIntent,
+      });
+      return { discount: bundleDiscount.totalSavings, bundleDiscount };
+    }
+    return { discount: 0 };
+  }
+
   private buildBankTransferRedirect(order: any, total: number): string {
     const bankAccountNumber = process.env.BANK_TRANSFER_ACCOUNT_NUMBER?.trim() || '';
     const bankAccountIban = process.env.BANK_TRANSFER_ACCOUNT_IBAN?.trim() || '';
@@ -1169,16 +1397,79 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     await this.mergeOrderMetadata(order.id, metadataPatch);
   }
 
+  private getMetadataObject(metadata: unknown): Record<string, unknown> {
+    return metadata && typeof metadata === 'object' && !Array.isArray(metadata)
+      ? { ...(metadata as Record<string, unknown>) }
+      : {};
+  }
+
+  private getCentralOrdersForwardingMetadata(orderOrMetadata: any): Record<string, unknown> | null {
+    const metadata = this.getMetadataObject(orderOrMetadata?.metadata ?? orderOrMetadata);
+    const forwarding = metadata.centralOrdersForwarding;
+    return forwarding && typeof forwarding === 'object' && !Array.isArray(forwarding)
+      ? (forwarding as Record<string, unknown>)
+      : null;
+  }
+
+  private extractCentralOrderId(centralOrder: unknown): string | undefined {
+    if (!centralOrder || typeof centralOrder !== 'object' || Array.isArray(centralOrder)) {
+      return undefined;
+    }
+    const row = centralOrder as Record<string, unknown>;
+    for (const key of ['id', 'orderId', 'uuid']) {
+      const value = row[key];
+      if (typeof value === 'string' && value.trim()) {
+        return value.trim();
+      }
+    }
+    return undefined;
+  }
+
+  private requireCentralOrderId(centralOrder: unknown, localOrderNumber: string): string {
+    const centralOrderId = this.extractCentralOrderId(centralOrder);
+    if (!centralOrderId) {
+      throw new BadRequestException(
+        `[MISSING: centralOrderId] Orders accepted ${localOrderNumber} without a readable UUID`,
+      );
+    }
+    return centralOrderId;
+  }
+
+  private getAcceptedCentralOrderId(order: any): string | undefined {
+    const forwarding = this.getCentralOrdersForwardingMetadata(order);
+    const status = typeof forwarding?.status === 'string' ? forwarding.status : '';
+    const centralOrderId = typeof forwarding?.centralOrderId === 'string'
+      ? forwarding.centralOrderId.trim()
+      : '';
+    return (status === 'accepted' || status === 'conflict') && centralOrderId
+      ? centralOrderId
+      : undefined;
+  }
+
+  private isCentralOrdersOwnedOrder(order: any): boolean {
+    return Boolean(this.getAcceptedCentralOrderId(order));
+  }
+
+  private buildPaymentMetadata(order: any, centralOrderId: string): Record<string, unknown> {
+    return {
+      centralOrderId,
+      flipflopOrderId: order.id,
+      flipflopOrderNumber: order.orderNumber,
+      centralOrdersSource: 'orders-microservice',
+    };
+  }
+
   private async recordCentralOrdersForwarding(
     order: any,
     status: 'accepted' | 'conflict' | 'failed',
     details: Record<string, unknown> = {},
   ): Promise<void> {
     try {
-      const existingMetadata =
-        order.metadata && typeof order.metadata === 'object' && !Array.isArray(order.metadata)
-          ? { ...(order.metadata as Record<string, unknown>) }
-          : {};
+      const latest = await this.prisma.order.findUnique({
+        where: { id: order.id },
+        select: { metadata: true },
+      });
+      const existingMetadata = this.getMetadataObject(latest?.metadata ?? order.metadata);
 
       await this.prisma.order.update({
         where: { id: order.id },
@@ -1206,6 +1497,122 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         error: message,
       });
     }
+  }
+
+  private async createCentralOrderBeforePayment(params: {
+    order: any;
+    orderItems: any[];
+    deliveryAddress: any;
+    user?: { email?: string | null } | null;
+    warehouseId: string;
+  }): Promise<{ centralOrderId: string; status: 'accepted' | 'conflict' }> {
+    const orderData = this.buildCentralOrdersPayload(params);
+
+    try {
+      const centralOrder = await this.orderClient.createOrder(orderData);
+      const centralOrderId = this.requireCentralOrderId(centralOrder, params.order.orderNumber);
+      await this.recordCentralOrdersForwarding(params.order, 'accepted', { centralOrderId });
+      await this.releaseLocalReservationAfterCentralForward(params.order);
+      this.logger.log('Order accepted by central Orders before payment', {
+        orderId: params.order.id,
+        orderNumber: params.order.orderNumber,
+        centralOrderId,
+        channelAccountId: orderData.channelAccountId,
+      });
+      return { centralOrderId, status: 'accepted' };
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      const isIdempotencyConflict = message.includes(ORDER_IDEMPOTENCY_CONFLICT);
+      const isMissingCatalogProductId = message.includes('[MISSING: catalogProductId]');
+      let forwardingReason = isIdempotencyConflict
+        ? ORDER_IDEMPOTENCY_CONFLICT
+        : isMissingCatalogProductId
+          ? '[MISSING: catalogProductId]'
+          : 'CENTRAL_ORDERS_FORWARD_FAILED';
+
+      if (isIdempotencyConflict) {
+        const existing = await this.orderClient.findByExternalId(
+          params.order.orderNumber,
+          'flipflop',
+          orderData.channelAccountId,
+        );
+        const centralOrderId = this.extractCentralOrderId(existing);
+        if (centralOrderId) {
+          await this.recordCentralOrdersForwarding(params.order, 'conflict', {
+            centralOrderId,
+            reason: ORDER_IDEMPOTENCY_CONFLICT,
+          });
+          await this.releaseLocalReservationAfterCentralForward(params.order);
+          this.logger.warn('Central Orders idempotency conflict resolved to existing order', {
+            orderId: params.order.id,
+            orderNumber: params.order.orderNumber,
+            centralOrderId,
+            channel: 'flipflop',
+            channelAccountId: orderData.channelAccountId,
+          });
+          return { centralOrderId, status: 'conflict' };
+        }
+        forwardingReason = '[MISSING: centralOrderId]';
+      }
+
+      await this.recordCentralOrdersForwarding(params.order, isIdempotencyConflict ? 'conflict' : 'failed', {
+        reason: forwardingReason,
+        error: message,
+      });
+      this.logger.error('Central Orders rejected order before payment creation', {
+        orderId: params.order.id,
+        orderNumber: params.order.orderNumber,
+        reason: forwardingReason,
+      });
+      throw new BadRequestException(
+        `Central Orders did not accept order; payment was not created (${forwardingReason})`,
+      );
+    }
+  }
+
+  private async recordPaymentInitiation(orderId: string, patch: Record<string, unknown>): Promise<void> {
+    await this.mergeOrderMetadata(orderId, {
+      paymentInitiation: {
+        updatedAt: new Date().toISOString(),
+        ...patch,
+      },
+    });
+  }
+
+  private isUuid(value: unknown): value is string {
+    return typeof value === 'string' &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+  }
+
+  private async findOrderForPaymentResult(body: PaymentResultDto): Promise<any | null> {
+    const metadata = this.getMetadataObject(body.metadata);
+    const candidates: Prisma.OrderWhereInput[] = [];
+    const localOrderId = metadata.flipflopOrderId;
+    const localOrderNumber = metadata.flipflopOrderNumber;
+
+    if (this.isUuid(localOrderId)) {
+      candidates.push({ id: localOrderId });
+    }
+    if (typeof localOrderNumber === 'string' && localOrderNumber.trim()) {
+      candidates.push({ orderNumber: localOrderNumber.trim() });
+    }
+    if (typeof body.orderId === 'string' && body.orderId.trim()) {
+      candidates.push({ orderNumber: body.orderId.trim() });
+    }
+    if (typeof body.paymentId === 'string' && body.paymentId.trim()) {
+      candidates.push({ paymentTransactionId: body.paymentId.trim() });
+    }
+
+    if (candidates.length === 0) {
+      return null;
+    }
+
+    return this.prisma.order.findFirst({
+      where: { OR: candidates },
+      include: {
+        order_items: true,
+      },
+    });
   }
 
   /**
@@ -1260,31 +1667,30 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       });
     }
 
-    const tax = subtotal * 0.21;
-    const shippingCost = dto.shippingCost || 0;
-    const orderTotalBeforeDiscount = subtotal + tax + shippingCost;
-    const trimmedDiscountCode =
-      typeof dto.discountCode === 'string' && dto.discountCode.trim()
-        ? dto.discountCode.trim()
-        : '';
-    let discount = dto.discount || 0;
-    if (trimmedDiscountCode) {
-      const validation = await this.discountService.validateCode(trimmedDiscountCode);
-      if (!validation.valid) {
-        throw new BadRequestException('Invalid or expired discount code');
-      }
-      const after = await this.discountService.applyDiscount(
-        orderTotalBeforeDiscount,
-        trimmedDiscountCode,
-      );
-      discount = Math.round((orderTotalBeforeDiscount - after) * 100) / 100;
-    }
-    const total = Math.max(0, Math.round((orderTotalBeforeDiscount - discount) * 100) / 100);
+    this.rejectUnsafeClientMoneyInputs(dto, { rejectShippingCost: true });
+    const subtotalRounded = this.roundMoney(subtotal);
+    const tax = this.roundMoney(subtotalRounded * 0.21);
+    const shippingCost = 0;
+    const orderTotalBeforeDiscount = subtotalRounded + tax + shippingCost;
+    const discountApplication = await this.calculateCheckoutDiscount({
+      orderItems,
+      orderTotalBeforeDiscount,
+      shippingCost,
+      discountCode: dto.discountCode,
+      bundleIntent: dto.bundleIntent,
+    });
+    const discount = discountApplication.discount;
+    const total = this.roundMoney(orderTotalBeforeDiscount - discount);
 
-    const metadata: Prisma.InputJsonValue | undefined = trimmedDiscountCode
-      ? ({
-          pendingDiscountCode: this.discountService.normalizeCode(trimmedDiscountCode),
-        } as Prisma.InputJsonValue)
+    const metadataValue: Record<string, unknown> = {};
+    if (discountApplication.pendingDiscountCode) {
+      metadataValue.pendingDiscountCode = discountApplication.pendingDiscountCode;
+    }
+    if (discountApplication.bundleDiscount) {
+      metadataValue.bundleDiscount = discountApplication.bundleDiscount;
+    }
+    const metadata: Prisma.InputJsonValue | undefined = Object.keys(metadataValue).length > 0
+      ? (metadataValue as Prisma.InputJsonValue)
       : undefined;
 
     const order = await this.prisma.order.create({
@@ -1336,10 +1742,25 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       this.configService.get<string>('API_GATEWAY_URL') || 'https://flipflop.alfares.cz';
     const callbackUrl = `${callbackUrlBase.replace(/\/$/, '')}/api/webhooks/payment-result`;
 
+    let centralAcceptance: { centralOrderId: string; status: 'accepted' | 'conflict' };
+    try {
+      centralAcceptance = await this.createCentralOrderBeforePayment({
+        order,
+        orderItems: order.order_items,
+        deliveryAddress,
+        user,
+        warehouseId: reservationWarehouseId,
+      });
+    } catch (error: unknown) {
+      await this.unreserveOrderLines(order.orderNumber, order.order_items);
+      throw error;
+    }
+
     let paymentResult;
     try {
       paymentResult = await this.paymentService.createPayment({
-        orderId: order.orderNumber,
+        orderId: centralAcceptance.centralOrderId,
+        centralOrderId: centralAcceptance.centralOrderId,
         applicationId: this.getPaymentApplicationId(),
         amount: total,
         currency: 'CZK',
@@ -1352,16 +1773,23 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
           name: `${deliveryAddress.firstName} ${deliveryAddress.lastName}`.trim(),
         },
         description: 'FLIPFLOP',
+        metadata: this.buildPaymentMetadata(order, centralAcceptance.centralOrderId),
       });
     } catch (error: unknown) {
-      await this.unreserveOrderLines(order.orderNumber, order.order_items);
-      await this.prisma.order.delete({ where: { id: order.id } });
+      await this.recordPaymentInitiation(order.id, {
+        status: 'failed',
+        centralOrderId: centralAcceptance.centralOrderId,
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     }
 
     if (!paymentResult.success || !paymentResult.data?.id) {
-      await this.unreserveOrderLines(order.orderNumber, order.order_items);
-      await this.prisma.order.delete({ where: { id: order.id } });
+      await this.recordPaymentInitiation(order.id, {
+        status: 'failed',
+        centralOrderId: centralAcceptance.centralOrderId,
+        error: 'Payment initiation failed',
+      });
       throw new BadRequestException('Payment initiation failed');
     }
 
@@ -1369,12 +1797,21 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       where: { id: order.id },
       data: { paymentTransactionId: paymentResult.data.id },
     });
+    await this.recordPaymentInitiation(order.id, {
+      status: 'created',
+      centralOrderId: centralAcceptance.centralOrderId,
+      paymentId: paymentResult.data.id,
+    });
 
     await this.prisma.cartItem.deleteMany({
       where: { userId },
     });
 
-    this.logger.log('Order created', { orderId: order.id, orderNumber: order.orderNumber });
+    this.logger.log('Order created', {
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      centralOrderId: centralAcceptance.centralOrderId,
+    });
 
     const orderWithPayment = await this.prisma.order.findUnique({
       where: { id: order.id },
@@ -1389,58 +1826,8 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       },
     });
 
-    try {
-      const orderData = this.buildCentralOrdersPayload({
-        order,
-        orderItems: order.order_items,
-        deliveryAddress,
-        user,
-        warehouseId: reservationWarehouseId,
-      });
-
-      const centralOrder = await this.orderClient.createOrder(orderData);
-      await this.recordCentralOrdersForwarding(order, 'accepted', {
-        centralOrderId: centralOrder?.id,
-      });
-      await this.releaseLocalReservationAfterCentralForward(order);
-      this.logger.log('Order forwarded to orders-microservice', {
-        orderId: order.id,
-        orderNumber: order.orderNumber,
-        channelAccountId: orderData.channelAccountId,
-      });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      const isIdempotencyConflict = message.includes(ORDER_IDEMPOTENCY_CONFLICT);
-      const isMissingCatalogProductId = message.includes('[MISSING: catalogProductId]');
-      const forwardingReason = isIdempotencyConflict
-        ? ORDER_IDEMPOTENCY_CONFLICT
-        : isMissingCatalogProductId
-          ? '[MISSING: catalogProductId]'
-          : 'CENTRAL_ORDERS_FORWARD_FAILED';
-      await this.recordCentralOrdersForwarding(order, isIdempotencyConflict ? 'conflict' : 'failed', {
-        reason: forwardingReason,
-      });
-      if (isIdempotencyConflict) {
-        this.logger.warn('Central Orders idempotency conflict for FlipFlop order', {
-          orderId: order.id,
-          orderNumber: order.orderNumber,
-          channel: 'flipflop',
-          channelAccountId: this.getCentralOrdersChannelAccountId(),
-        });
-        return {
-          order: this.mapOrder(orderWithPayment),
-          redirectUrl: paymentResult.data.redirectUri || null,
-        };
-      }
-      this.logger.error('Failed to forward order to orders-microservice', {
-        orderId: order.id,
-        orderNumber: order.orderNumber,
-        error: 'CENTRAL_ORDERS_FORWARD_FAILED',
-      });
-    }
-
     return {
-      order: this.mapOrder(orderWithPayment),
+      order: await this.mapOrderWithCentralLifecycle(orderWithPayment),
       redirectUrl: paymentResult.data.redirectUri || null,
     };
   }
@@ -1466,25 +1853,18 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     const deliveryMethod = this.normalizeGuestText(dto.deliveryMethod, 'zasilkovna-address');
     const shippingCost = this.calculateGuestDeliveryCost(deliveryMethod);
     const operatorTip = this.normalizeGuestOperatorTip(dto.operatorTip);
-    const orderTotalBeforeDiscount = subtotal + tax + shippingCost + operatorTip;
-    const trimmedDiscountCode =
-      typeof dto.discountCode === 'string' && dto.discountCode.trim()
-        ? dto.discountCode.trim()
-        : '';
-    let discount = Number.isFinite(Number(dto.discount)) ? Math.max(0, Number(dto.discount)) : 0;
-    if (trimmedDiscountCode) {
-      const validation = await this.discountService.validateCode(trimmedDiscountCode);
-      if (!validation.valid) {
-        throw new BadRequestException('Invalid or expired discount code');
-      }
-      const after = await this.discountService.applyDiscount(
-        orderTotalBeforeDiscount,
-        trimmedDiscountCode,
-      );
-      discount = Math.round((orderTotalBeforeDiscount - after) * 100) / 100;
-    }
-    const total = Math.max(0, Math.round((orderTotalBeforeDiscount - discount) * 100) / 100);
-    const metadata: Prisma.InputJsonValue = {
+    this.rejectUnsafeClientMoneyInputs(dto, { rejectShippingCost: true });
+    const orderTotalBeforeDiscount = this.roundMoney(subtotal + tax + shippingCost + operatorTip);
+    const discountApplication = await this.calculateCheckoutDiscount({
+      orderItems,
+      orderTotalBeforeDiscount,
+      shippingCost,
+      discountCode: dto.discountCode,
+      bundleIntent: dto.bundleIntent,
+    });
+    const discount = discountApplication.discount;
+    const total = this.roundMoney(orderTotalBeforeDiscount - discount);
+    const metadataValue: Record<string, unknown> = {
       checkoutMode: 'guest',
       guestEmail,
       wantsAccount: dto.wantsAccount === true,
@@ -1495,10 +1875,14 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       wantsDifferentDeliveryDay: dto.wantsDifferentDeliveryDay === true,
       requestedDeliveryDate: this.normalizeGuestText(dto.requestedDeliveryDate, ''),
       operatorTip,
-      pendingDiscountCode: trimmedDiscountCode
-        ? this.discountService.normalizeCode(trimmedDiscountCode)
-        : undefined,
-    } as Prisma.InputJsonValue;
+    };
+    if (discountApplication.pendingDiscountCode) {
+      metadataValue.pendingDiscountCode = discountApplication.pendingDiscountCode;
+    }
+    if (discountApplication.bundleDiscount) {
+      metadataValue.bundleDiscount = discountApplication.bundleDiscount;
+    }
+    const metadata = metadataValue as Prisma.InputJsonValue;
 
     const order = await this.prisma.order.create({
       data: {
@@ -1544,6 +1928,20 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       throw err;
     }
 
+    let centralAcceptance: { centralOrderId: string; status: 'accepted' | 'conflict' };
+    try {
+      centralAcceptance = await this.createCentralOrderBeforePayment({
+        order,
+        orderItems: order.order_items,
+        deliveryAddress,
+        user: { email: guestEmail },
+        warehouseId: reservationWarehouseId,
+      });
+    } catch (error: unknown) {
+      await this.unreserveOrderLines(order.orderNumber, order.order_items);
+      throw error;
+    }
+
     let redirectUrl: string | null = null;
     if (paymentMethod === 'invoice') {
       redirectUrl = this.buildBankTransferRedirect(order, total);
@@ -1554,7 +1952,8 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       let paymentResult;
       try {
         paymentResult = await this.paymentService.createPayment({
-          orderId: order.orderNumber,
+          orderId: centralAcceptance.centralOrderId,
+          centralOrderId: centralAcceptance.centralOrderId,
           applicationId: this.getPaymentApplicationId(),
           amount: total,
           currency: 'CZK',
@@ -1567,16 +1966,23 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
             name: `${deliveryAddress.firstName} ${deliveryAddress.lastName}`.trim(),
           },
           description: 'FLIPFLOP',
+          metadata: this.buildPaymentMetadata(order, centralAcceptance.centralOrderId),
         });
       } catch (error: unknown) {
-        await this.unreserveOrderLines(order.orderNumber, order.order_items);
-        await this.prisma.order.delete({ where: { id: order.id } });
+        await this.recordPaymentInitiation(order.id, {
+          status: 'failed',
+          centralOrderId: centralAcceptance.centralOrderId,
+          error: error instanceof Error ? error.message : String(error),
+        });
         throw error;
       }
 
       if (!paymentResult.success || !paymentResult.data?.id) {
-        await this.unreserveOrderLines(order.orderNumber, order.order_items);
-        await this.prisma.order.delete({ where: { id: order.id } });
+        await this.recordPaymentInitiation(order.id, {
+          status: 'failed',
+          centralOrderId: centralAcceptance.centralOrderId,
+          error: 'Payment initiation failed',
+        });
         throw new BadRequestException('Payment initiation failed');
       }
 
@@ -1584,34 +1990,12 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         where: { id: order.id },
         data: { paymentTransactionId: paymentResult.data.id },
       });
+      await this.recordPaymentInitiation(order.id, {
+        status: 'created',
+        centralOrderId: centralAcceptance.centralOrderId,
+        paymentId: paymentResult.data.id,
+      });
       redirectUrl = paymentResult.data.redirectUri || null;
-    }
-
-    try {
-      const orderData = this.buildCentralOrdersPayload({
-        order,
-        orderItems: order.order_items,
-        deliveryAddress,
-        user: { email: guestEmail },
-        warehouseId: reservationWarehouseId,
-      });
-      const centralOrder = await this.orderClient.createOrder(orderData);
-      await this.recordCentralOrdersForwarding(order, 'accepted', {
-        centralOrderId: centralOrder?.id,
-      });
-      await this.releaseLocalReservationAfterCentralForward(order);
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      const isIdempotencyConflict = message.includes(ORDER_IDEMPOTENCY_CONFLICT);
-      const isMissingCatalogProductId = message.includes('[MISSING: catalogProductId]');
-      const forwardingReason = isIdempotencyConflict
-        ? ORDER_IDEMPOTENCY_CONFLICT
-        : isMissingCatalogProductId
-          ? '[MISSING: catalogProductId]'
-          : 'CENTRAL_ORDERS_FORWARD_FAILED';
-      await this.recordCentralOrdersForwarding(order, isIdempotencyConflict ? 'conflict' : 'failed', {
-        reason: forwardingReason,
-      });
     }
 
     await this.finalizeGuestCheckoutIntegrations({
@@ -1637,9 +2021,93 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
 
     this.logger.log('Guest order created', { orderId: order.id, orderNumber: order.orderNumber });
     return {
-      order: this.mapOrder(orderWithPayment),
+      order: await this.mapOrderWithCentralLifecycle(orderWithPayment),
       redirectUrl,
     };
+  }
+
+  private async mapOrderWithCentralLifecycle(order: any) {
+    const mapped: any = this.mapOrder(order);
+    mapped.centralOrder = await this.resolveCentralOrderLifecycle(order, mapped);
+    return mapped;
+  }
+
+  private async resolveCentralOrderLifecycle(order: any, mapped: any) {
+    const forwarding = this.getCentralOrdersForwardingMetadata(order);
+    const base = {
+      currency: 'CZK',
+      subtotal: mapped.subtotal,
+      shippingCost: mapped.shippingCost,
+      tax: mapped.tax,
+      total: mapped.total,
+      items: mapped.items,
+      deliveryAddress: mapped.deliveryAddress,
+    };
+
+    if (!forwarding) {
+      return {
+        source: 'local',
+        readStatus: 'not_forwarded',
+        lifecycleStage: mapped.status,
+        status: 'local_read_model',
+        paymentStatus: mapped.paymentStatus,
+        stale: true,
+        error: '[MISSING: central Orders acceptance metadata]',
+        ...base,
+      };
+    }
+
+    const forwardingStatus = typeof forwarding.status === 'string' ? forwarding.status : 'unknown';
+    const centralOrderId = this.getAcceptedCentralOrderId(order);
+    if (!centralOrderId) {
+      return {
+        source: 'local-metadata',
+        readStatus: forwardingStatus === 'failed' ? 'forward_failed' : 'error',
+        lifecycleStage: forwardingStatus === 'failed' ? 'central_orders_failed' : 'central_orders_unknown',
+        status: forwardingStatus,
+        paymentStatus: mapped.paymentStatus,
+        stale: true,
+        error: typeof forwarding.reason === 'string'
+          ? forwarding.reason
+          : '[MISSING: centralOrderId]',
+        ...base,
+      };
+    }
+
+    const lifecycle = await this.orderClient.getOrderLifecycle({
+      centralOrderId,
+      externalOrderId: order.orderNumber,
+      channel: 'flipflop',
+      channelAccountId: this.getCentralOrdersChannelAccountId(),
+    });
+
+    return {
+      ...lifecycle,
+      id: lifecycle.id || centralOrderId,
+      lifecycleStage: lifecycle.lifecycleStage || mapped.status,
+      status: lifecycle.status || forwardingStatus,
+      paymentStatus: lifecycle.paymentStatus || mapped.paymentStatus,
+      currency: lifecycle.currency || 'CZK',
+      subtotal: lifecycle.subtotal ?? mapped.subtotal,
+      shippingCost: lifecycle.shippingCost ?? mapped.shippingCost,
+      tax: lifecycle.tax ?? mapped.tax,
+      total: lifecycle.total ?? mapped.total,
+      items: lifecycle.items && lifecycle.items.length > 0 ? lifecycle.items : mapped.items,
+      deliveryAddress: lifecycle.deliveryAddress || mapped.deliveryAddress,
+      stale: lifecycle.stale,
+    };
+  }
+
+  private normalizeOrderStatusFilter(value: unknown): OrderStatus | undefined {
+    const normalized = typeof value === 'string' ? value.trim().toLowerCase() : '';
+    const allowed = new Set(['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded']);
+    return allowed.has(normalized) ? (normalized as OrderStatus) : undefined;
+  }
+
+  private normalizePaymentStatusFilter(value: unknown): PaymentStatus | undefined {
+    const normalized = typeof value === 'string' ? value.trim().toLowerCase() : '';
+    const allowed = new Set(['pending', 'paid', 'failed', 'refunded']);
+    return allowed.has(normalized) ? (normalized as PaymentStatus) : undefined;
   }
 
   /**
@@ -1660,7 +2128,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       orderBy: { createdAt: 'desc' },
     });
 
-    return orders.map((o) => this.mapOrder(o));
+    return Promise.all(orders.map((o) => this.mapOrderWithCentralLifecycle(o)));
   }
 
   /**
@@ -1690,7 +2158,103 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       throw new NotFoundException('Order not found');
     }
 
-    return this.mapOrder(order);
+    return this.mapOrderWithCentralLifecycle(order);
+  }
+
+  async getAdminOrders(filters: {
+    status?: string;
+    paymentStatus?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: string;
+    limit?: string;
+  }) {
+    const pageRaw = filters.page !== undefined ? parseInt(String(filters.page), 10) : NaN;
+    const limitRaw = filters.limit !== undefined ? parseInt(String(filters.limit), 10) : NaN;
+    const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
+    const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? Math.min(limitRaw, 100) : 20;
+    const where: Prisma.OrderWhereInput = {};
+    const status = this.normalizeOrderStatusFilter(filters.status);
+    const paymentStatus = this.normalizePaymentStatusFilter(filters.paymentStatus);
+    if (status) {
+      where.status = status;
+    }
+    if (paymentStatus) {
+      where.paymentStatus = paymentStatus;
+    }
+    const createdAt: Prisma.DateTimeFilter = {};
+    if (filters.startDate) {
+      const start = new Date(filters.startDate);
+      if (!Number.isNaN(start.getTime())) {
+        createdAt.gte = start;
+      }
+    }
+    if (filters.endDate) {
+      const end = new Date(filters.endDate);
+      if (!Number.isNaN(end.getTime())) {
+        createdAt.lte = end;
+      }
+    }
+    if (createdAt.gte || createdAt.lte) {
+      where.createdAt = createdAt;
+    }
+
+    const [rows, total] = await Promise.all([
+      this.prisma.order.findMany({
+        where,
+        include: {
+          order_items: {
+            include: {
+              products: true,
+              product_variants: true,
+            },
+          },
+          delivery_addresses: true,
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.order.count({ where }),
+    ]);
+    const items = await Promise.all(rows.map((row) => this.mapOrderWithCentralLifecycle(row)));
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+
+    return {
+      items,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
+  }
+
+  async getAdminOrder(orderId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        order_items: {
+          include: {
+            products: true,
+            product_variants: true,
+          },
+        },
+        delivery_addresses: true,
+        order_status_history: {
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    return this.mapOrderWithCentralLifecycle(order);
   }
 
   /**
@@ -1701,6 +2265,15 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       where: {
         id: orderId,
         userId,
+      },
+      include: {
+        order_items: {
+          include: {
+            products: true,
+            product_variants: true,
+          },
+        },
+        delivery_addresses: true,
       },
     });
 
@@ -1713,12 +2286,38 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     }
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    let centralOrderId = this.getAcceptedCentralOrderId(order);
+
+    if (!centralOrderId) {
+      let reservationWarehouseId: string;
+      try {
+        reservationWarehouseId = await this.reserveOrderLines(order.orderNumber, order.order_items);
+      } catch (err: unknown) {
+        throw err;
+      }
+
+      try {
+        const centralAcceptance = await this.createCentralOrderBeforePayment({
+          order,
+          orderItems: order.order_items,
+          deliveryAddress: order.delivery_addresses,
+          user,
+          warehouseId: reservationWarehouseId,
+        });
+        centralOrderId = centralAcceptance.centralOrderId;
+      } catch (error: unknown) {
+        await this.unreserveOrderLines(order.orderNumber, order.order_items);
+        throw error;
+      }
+    }
+
     const callbackUrlBase =
       this.configService.get<string>('API_GATEWAY_URL') || 'https://flipflop.alfares.cz';
     const callbackUrl = `${callbackUrlBase.replace(/\/$/, '')}/api/webhooks/payment-result`;
 
     const paymentResponse = await this.paymentService.createPayment({
-      orderId: order.orderNumber,
+      orderId: centralOrderId,
+      centralOrderId,
       applicationId: this.getPaymentApplicationId(),
       amount: Number(order.total),
       currency: 'CZK',
@@ -1731,9 +2330,15 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         name: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : '',
       },
       description: 'FLIPFLOP',
+      metadata: this.buildPaymentMetadata(order, centralOrderId),
     });
 
     if (!paymentResponse.success || !paymentResponse.data) {
+      await this.recordPaymentInitiation(order.id, {
+        status: 'failed',
+        centralOrderId,
+        error: 'Failed to create payment',
+      });
       throw new BadRequestException('Failed to create payment');
     }
 
@@ -1744,10 +2349,16 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
           paymentResponse.data.transactionId || paymentResponse.data.id,
       },
     });
+    await this.recordPaymentInitiation(order.id, {
+      status: 'created',
+      centralOrderId,
+      paymentId: paymentResponse.data.id,
+    });
 
     return {
       redirectUri: paymentResponse.data.redirectUri,
       orderId: order.id,
+      centralOrderId,
     };
   }
 

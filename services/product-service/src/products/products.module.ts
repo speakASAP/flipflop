@@ -6,7 +6,7 @@ import { Module } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
-import { ProductsController, CategoriesController, AdminProductsController } from './products.controller';
+import { ProductsController, CategoriesController, SellerCatalogController, AdminProductsController } from './products.controller';
 import { ProductsService } from './products.service';
 import { WarehouseService } from './warehouse.service';
 import {
@@ -42,7 +42,7 @@ import * as https from 'https';
       inject: [ConfigService],
     }),
   ],
-  controllers: [ProductsController, CategoriesController, AdminProductsController],
+  controllers: [ProductsController, CategoriesController, SellerCatalogController, AdminProductsController],
   providers: [ProductsService, WarehouseService, ProductJwtAuthGuard, ProductRolesGuard, Reflector],
   exports: [ProductsService, WarehouseService],
 })

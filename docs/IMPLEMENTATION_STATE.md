@@ -10,6 +10,42 @@
 
 
 
+
+
+## 2026-07-02 - Product Detail Bundle Discount Contract
+
+Objective: implement a real server-side bundle-discount contract so product-detail buy-together savings can be applied to checkout/order/payment totals without trusting browser price copy.
+
+IPS chain:
+
+- Vision: FlipFlop storefront should sell real products efficiently and safely at `https://flipflop.alfares.cz/`.
+- Goal Impact: Converts GOAL-12 display-only upsell savings into a validated checkout contract while preserving first-revenue payment safety.
+- System: Next.js storefront checkout, order-service pricing/order creation, central Orders forwarding, payments-microservice initiation, Warehouse reservation.
+- Feature: Server-validated product-detail bundle discount.
+- Task: Carry bundle intent by product ids, validate eligibility server-side, reject raw browser money inputs, compute discount/free-shipping savings in order-service, and send the exact discounted order total to Payments.
+- Execution Plan: `implementation-goals/GOAL-13-product-detail-bundle-discount-contract.execution-plan.md`.
+- Coding Prompt: `implementation-goals/GOAL-13-product-detail-bundle-discount-contract.coding-prompt.md`.
+- Code: pending.
+- Validation: `implementation-goals/GOAL-13-product-detail-bundle-discount-contract.validation-report.md`.
+
+Parallel execution section:
+
+- Cart/checkout pricing contract lane: complete read-only; owner role pricing contract explorer; identified order-service as payable total authority.
+- Order/payment total validation lane: complete read-only; owner role payment contract explorer; identified raw `discount` and authenticated `shippingCost` risks and payment amount propagation.
+- Frontend bundle token/checkout UX lane: complete read-only; owner role storefront explorer; identified dropped bundle identity and checkout payload change.
+- Verifier/docs lane: complete read-only; owner role verifier explorer; identified GOAL-13 artifact and verifier requirements.
+- Integration lane: active in original thread; owner role checkout pricing integrator; allowed files listed in the GOAL-13 execution plan; validation owner original thread.
+
+Current checkpoint: GOAL-13 plan/context/coding artifacts saved. Pre-coding gates and implementation pending.
+
+Known blockers/gaps:
+
+- `[UNKNOWN: whether local product prices are gross CZK prices or net prices requiring VAT]`; this goal preserves current order-service tax behavior.
+- `[MISSING: Catalog bundle ownership decision]`; no durable Catalog bundle aggregate is added in GOAL-13.
+- `[MISSING: Warehouse bundle reservation contract]`; GOAL-13 preserves existing per-item Warehouse reservation/decrement authority.
+
+Next action: run IPS pre-coding gates, implement the smallest safe bundle-intent contract, validate, deploy if gates pass, and run non-mutating production smoke.
+
 ## 2026-07-02 - Product Detail Upsell Recommendations
 
 Objective: add Amazon-style related products and a buy-together set under product detail pages, using purchase history when available and deterministic category fallback otherwise.

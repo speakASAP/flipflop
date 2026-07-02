@@ -5,6 +5,7 @@
 
 export interface CreatePaymentDto {
   orderId: string;
+  centralOrderId?: string;
   amount: number;
   currency?: string;
   paymentMethod?: string;

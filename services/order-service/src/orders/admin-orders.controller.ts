@@ -109,6 +109,32 @@ export class AdminOrdersController {
     return ApiResponse.success(payload);
   }
 
+  @Get('orders')
+  async getAdminOrders(
+    @Query('status') status?: string,
+    @Query('paymentStatus') paymentStatus?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const orders = await this.ordersService.getAdminOrders({
+      status,
+      paymentStatus,
+      startDate,
+      endDate,
+      page,
+      limit,
+    });
+    return ApiResponse.success(orders);
+  }
+
+  @Get('orders/:id')
+  async getAdminOrder(@Param('id') id: string) {
+    const order = await this.ordersService.getAdminOrder(id);
+    return ApiResponse.success(order);
+  }
+
   @Put('orders/:id/status')
   async putAdminOrderStatus(
     @Param('id') id: string,

@@ -971,7 +971,7 @@ export default function AdminDashboardPage() {
                       </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                      {order.deliveryAddress.firstName} {order.deliveryAddress.lastName}
+                      {order.deliveryAddress ? `${order.deliveryAddress.firstName} ${order.deliveryAddress.lastName}` : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
                       {new Intl.NumberFormat('cs-CZ', {

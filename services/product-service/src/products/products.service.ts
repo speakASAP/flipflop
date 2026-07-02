@@ -4,7 +4,7 @@
  */
 
 import { HttpService } from '@nestjs/axios';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { createHash } from 'crypto';
 import { PrismaService, LoggerService, CatalogClientService, WarehouseClientService } from '@flipflop/shared';
 import { WarehouseService } from './warehouse.service';
@@ -20,6 +20,7 @@ type FlipFlopPublishActor = {
   id?: string | null;
   email?: string | null;
   roles?: string[];
+  authorizationHeader?: string | null;
 };
 
 type FlipFlopPublishResult = {
@@ -497,6 +498,62 @@ export class ProductsService {
     return this.getCatalogLinkedStorefrontProducts(filters);
   }
 
+  async getSellerCatalogProducts(query: any, actor: FlipFlopPublishActor) {
+    this.requireSellerAuthorization(actor);
+    return this.getProducts({
+      ...query,
+      source: 'catalog',
+      catalogScope: 'effective',
+      authorizationHeader: actor.authorizationHeader,
+    });
+  }
+
+  async publishCatalogProductsForSeller(dto: FlipFlopBulkPublishRequest, actor: FlipFlopPublishActor = {}) {
+    this.requireSellerAuthorization(actor);
+    const productIds = this.normalizePublishProductIds(dto?.productIds || []);
+    if (productIds.length === 0) {
+      throw new BadRequestException('At least one Catalog product ID is required.');
+    }
+
+    for (const catalogProductId of productIds) {
+      await this.getSellerEffectiveCatalogProduct(catalogProductId, actor.authorizationHeader || '');
+    }
+
+    const result = await this.publishCatalogProductsFromCatalog({
+      ...dto,
+      productIds,
+      requestedBy: dto?.requestedBy || actor.email || actor.id || 'flipflop-seller',
+    }, actor);
+
+    return {
+      ...result,
+      sellerCatalogScope: 'effective',
+      sellerSourceOptions: ['own', 'alfares', 'community'],
+      sellerOwnershipContract: '[MISSING: per-seller payout/order ownership contract]',
+    };
+  }
+
+  async updateCatalogProductResaleForSeller(productId: string, resaleEnabled: unknown, actor: FlipFlopPublishActor = {}) {
+    this.requireSellerAuthorization(actor);
+    if (typeof resaleEnabled !== 'boolean') {
+      throw new BadRequestException('resaleEnabled must be a boolean.');
+    }
+
+    const product = await this.getSellerEffectiveCatalogProduct(productId, actor.authorizationHeader || '');
+    if (!this.isCurrentUsersCatalogProduct(product, actor)) {
+      throw new ForbiddenException('Only the Catalog product owner can change resale sharing from FlipFlop.');
+    }
+
+    const updated = await this.catalogClient.updateProduct(productId, { resaleEnabled }, {
+      authorizationHeader: actor.authorizationHeader || undefined,
+    });
+
+    return {
+      success: true,
+      product: this.mapCatalogSelectionProduct({ ...product, ...(updated || {}), resaleEnabled }),
+    };
+  }
+
   /**
    * Get products with pagination and filtering
    * Fetches from catalog-microservice and enriches with stock from warehouse-microservice
@@ -591,6 +648,8 @@ export class ProductsService {
     if (resolvedCategoryId) params.append('categoryId', resolvedCategoryId);
     if (filters.isActive !== undefined) params.append('isActive', String(filters.isActive));
     if (catalogScope) params.append('catalogScope', catalogScope);
+    const catalogSources = this.catalogSourcesParam(filters.catalogSources);
+    if (catalogSources) params.append('catalogSources', catalogSources);
 
     const baseUrl = process.env.CATALOG_SERVICE_URL || 'http://catalog-microservice:3200';
     const internalServiceToken = (
@@ -1057,7 +1116,35 @@ export class ProductsService {
       select: { id: true, catalogProductId: true, sku: true, name: true, isActive: true, stockQuantity: true, updatedAt: true },
     });
     const latest = rows[0] || null;
-    const status = latest?.status || (localProduct?.isActive ? 'published' : 'not_published');
+    const blockedReasons: Array<{ reason: string; message: string }> = [];
+    let policySnapshot: any = null;
+    let status = latest?.status || 'not_published';
+
+    if (!localProduct) {
+      status = status === 'blocked' || status === 'failed' ? status : 'not_published';
+    } else if (!localProduct.isActive) {
+      status = 'not_published';
+      blockedReasons.push({
+        reason: 'flipflop_product_inactive',
+        message: 'FlipFlop product cache row is inactive or disabled.',
+      });
+    } else {
+      try {
+        const catalogProduct = await this.catalogClient.getProductById(catalogProductId);
+        policySnapshot = await this.catalogProductPublishPolicy(catalogProduct);
+        blockedReasons.push(...(policySnapshot.blockedReasons || []));
+        status = policySnapshot.publishable ? 'published' : 'blocked';
+      } catch (error: any) {
+        status = 'blocked';
+        blockedReasons.push({
+          reason: 'catalog_product_missing',
+          message: `Catalog product lookup failed or returned missing for ${catalogProductId}: ${error?.message || 'unknown error'}`,
+        });
+      }
+    }
+
+    const published = status === 'published';
+    const blocked = status === 'blocked' || status === 'failed';
 
     return {
       success: true,
@@ -1067,12 +1154,15 @@ export class ProductsService {
       productId: catalogProductId,
       marketplace: 'flipflop',
       status,
-      published: status === 'published' || Boolean(localProduct?.isActive && !latest),
-      blocked: status === 'blocked' || status === 'failed',
+      published,
+      blocked,
       listingUrl: this.flipFlopListingUrl(catalogProductId),
       flipflopProductId: localProduct?.id || latest?.flipflopProductId || null,
       latestAttempt: latest,
-      nextAction: status === 'published' ? 'view_flipflop_listing' : 'publish_flipflop_listing',
+      policySnapshot,
+      blockedReasons,
+      availableStock: policySnapshot?.availableStock ?? null,
+      nextAction: published ? 'view_flipflop_listing' : 'publish_flipflop_listing',
     };
   }
 
@@ -1218,6 +1308,55 @@ export class ProductsService {
       });
       return null;
     }
+  }
+
+  private requireSellerAuthorization(actor: FlipFlopPublishActor) {
+    if (!actor.authorizationHeader) {
+      throw new BadRequestException('FlipFlop seller Catalog actions require authenticated user authorization.');
+    }
+  }
+
+  private async getSellerEffectiveCatalogProduct(productId: string, authorizationHeader: string) {
+    return this.catalogClient.getProductById(productId, {
+      authorizationHeader,
+      catalogScope: 'effective',
+    });
+  }
+
+  private catalogSourcesParam(value: unknown): string | null {
+    const allowed = new Set(['own', 'alfares', 'community']);
+    const rawItems = Array.isArray(value) ? value : String(value || '').split(',');
+    const sources = rawItems
+      .flatMap((item) => String(item || '').split(','))
+      .map((item) => item.trim().toLowerCase())
+      .filter((item) => allowed.has(item));
+    return Array.from(new Set(sources)).join(',') || null;
+  }
+
+  private catalogSourceType(catalogProduct: any) {
+    if (catalogProduct?.ownerUserId === null) return 'alfares';
+    if (catalogProduct?.resaleEnabled === true) return 'community';
+    if (catalogProduct?.ownerUserId) return 'own';
+    return 'unknown';
+  }
+
+  private isCurrentUsersCatalogProduct(product: any, actor: FlipFlopPublishActor) {
+    const actorValues = [actor.id, actor.email].map((value) => String(value || '').trim().toLowerCase()).filter(Boolean);
+    if (!actorValues.length) return false;
+    const ownerValues = [
+      product?.ownerUserId,
+      product?.owner_user_id,
+      product?.userId,
+      product?.createdByUserId,
+      product?.owner?.id,
+      product?.owner?.userId,
+      product?.owner?.email,
+      product?.seller?.userId,
+      product?.seller?.email,
+      product?.source?.ownerUserId,
+      product?.source?.email,
+    ].map((value) => String(value || '').trim().toLowerCase()).filter(Boolean);
+    return ownerValues.some((value) => actorValues.includes(value));
   }
 
   private async catalogProductOfferPolicy(catalogProduct: any) {
@@ -1734,9 +1873,14 @@ export class ProductsService {
       seoData: catalogProduct.seoData || null,
       tags: catalogProduct.tags || [],
       variants: [],
+      ownerUserId: catalogProduct.ownerUserId ?? null,
+      resaleEnabled: catalogProduct.resaleEnabled ?? null,
       source: {
         authority: 'catalog-microservice',
         catalogScope: 'effective',
+        type: this.catalogSourceType(catalogProduct),
+        ownerUserId: catalogProduct.ownerUserId ?? null,
+        resaleEnabled: catalogProduct.resaleEnabled ?? null,
       },
       createdAt: this.dateToResponseValue(catalogProduct.createdAt),
       updatedAt: this.dateToResponseValue(catalogProduct.updatedAt),

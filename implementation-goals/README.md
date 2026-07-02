@@ -51,6 +51,7 @@ python3 scripts/deployment_readiness_gate.py --root .
 | `GOAL-10-catalog-connector-content-preview` | done, deployed | Goal 03 and Catalog content preview contract | Admins can inspect Catalog canonical `flipflop` connector previews without touching Allegro, checkout, pricing, stock, or deployment ownership |
 | `GOAL-11-native-catalog-bulk-publish` | active | Catalog Goal 20 bulk marketplace publication | Native FlipFlop-owned per-item publish lifecycle for Catalog-origin products |
 | `GOAL-12-product-detail-upsell-recommendations` | active | Owner 2026-07-02 product-detail upsell request and Goal 03 sellable storefront | Product detail pages show deterministic related products and buy-together sets without AI or unsafe checkout mutation |
+| `GOAL-13-product-detail-bundle-discount-contract` | active | GOAL-12 product detail upsell boundary and GOAL-13 ecosystem real bundle selling blocker | Server-side bundle discount contract applies validated product-detail set savings to order/payment totals safely |
 
 ## Orchestrator Rule
 

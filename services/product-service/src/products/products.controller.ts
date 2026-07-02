@@ -16,7 +16,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { Roles, ApiResponse } from '@flipflop/shared';
+import { AuthUser, Roles, ApiResponse } from '@flipflop/shared';
 import { ProductJwtAuthGuard, ProductRolesGuard } from '../auth/product-auth.guards';
 
 @Controller('products')
@@ -64,6 +64,41 @@ export class CategoriesController {
   async getCategory(@Param('id') id: string) {
     const category = await this.productsService.getCategory(id);
     return ApiResponse.success(category);
+  }
+}
+
+
+@Controller('seller/catalog')
+@UseGuards(ProductJwtAuthGuard)
+export class SellerCatalogController {
+  constructor(private readonly productsService: ProductsService) {}
+
+  @Get('products')
+  async getSellerCatalogProducts(@Request() req: any, @Query() query: any) {
+    const result = await this.productsService.getSellerCatalogProducts(query, this.sellerActor(req));
+    return ApiResponse.success(result);
+  }
+
+  @Post('publish')
+  async publishSellerCatalogProducts(@Request() req: any, @Body() dto: any) {
+    const result = await this.productsService.publishCatalogProductsForSeller(dto, this.sellerActor(req));
+    return ApiResponse.success(result);
+  }
+
+  @Put('products/:productId/resale')
+  async updateSellerCatalogProductResale(@Request() req: any, @Param('productId') productId: string, @Body() dto: any) {
+    const result = await this.productsService.updateCatalogProductResaleForSeller(productId, dto?.resaleEnabled, this.sellerActor(req));
+    return ApiResponse.success(result);
+  }
+
+  private sellerActor(req: any) {
+    const user = req.user as AuthUser;
+    return {
+      id: user?.id,
+      email: user?.email,
+      roles: user?.roles,
+      authorizationHeader: req.headers?.authorization,
+    };
   }
 }
 

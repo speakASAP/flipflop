@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, Min } from 'class-validator';
+import { IsString, IsOptional, IsNumber, Min, IsObject } from 'class-validator';
 
 export class CreateOrderDto {
   @IsString()
@@ -25,5 +25,13 @@ export class CreateOrderDto {
   @IsOptional()
   @IsString()
   discountCode?: string;
+
+  @IsOptional()
+  @IsObject()
+  bundleIntent?: {
+    source?: string;
+    sourceProductId?: string;
+    productIds?: string[];
+  };
 }
 

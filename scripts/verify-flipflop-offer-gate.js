@@ -225,10 +225,15 @@ async function verifyProductOfferGate() {
         return matchesIsActive && matchesCatalogLink;
       }),
       findFirst: async ({ where }) => {
+        if (where.catalogProductId !== undefined) {
+          return localProducts.find((product) => product.catalogProductId === where.catalogProductId) || null;
+        }
         const requested = where.OR.map((candidate) => candidate.id || candidate.catalogProductId);
         return localProducts.find((product) => requested.includes(product.id) || requested.includes(product.catalogProductId));
       },
     },
+    $executeRawUnsafe: async () => undefined,
+    $queryRawUnsafe: async () => [],
   };
 
   const service = new ProductsService(prisma, logger, {}, catalogClient, warehouseClient);
@@ -247,6 +252,24 @@ async function verifyProductOfferGate() {
   assert.strictEqual(detail.id, 'local-good');
   assert.strictEqual(detail.catalogProductId, 'catalog-good');
   assert.strictEqual(detail.stockQuantity, 4);
+
+  const goodStatus = await service.getCatalogPublishStatus('catalog-good');
+  assert.strictEqual(goodStatus.status, 'published');
+  assert.strictEqual(goodStatus.published, true);
+  assert.strictEqual(goodStatus.blocked, false);
+  assert.strictEqual(goodStatus.availableStock, 4);
+
+  const zeroStatus = await service.getCatalogPublishStatus('catalog-zero');
+  assert.strictEqual(zeroStatus.status, 'blocked');
+  assert.strictEqual(zeroStatus.published, false);
+  assert.strictEqual(zeroStatus.blocked, true);
+  assert(zeroStatus.blockedReasons.some((reason) => reason.reason === 'warehouse_stock_unavailable'));
+
+  const inactiveStatus = await service.getCatalogPublishStatus('catalog-inactive');
+  assert.strictEqual(inactiveStatus.status, 'blocked');
+  assert.strictEqual(inactiveStatus.published, false);
+  assert.strictEqual(inactiveStatus.blocked, true);
+  assert(inactiveStatus.blockedReasons.some((reason) => reason.reason === 'inactive_product'));
 
   await rejectsWithMessage(service.getProduct('local-stale'), 'Product not found');
   await rejectsWithMessage(service.getProduct('local-zero'), 'Product not found');

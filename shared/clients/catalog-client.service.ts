@@ -3,6 +3,11 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { LoggerService } from '../logger/logger.service';
 
+export interface CatalogProductRequestOptions {
+  authorizationHeader?: string;
+  catalogScope?: string;
+}
+
 export interface CatalogContentPreview {
   marketplace: string;
   label: string;
@@ -97,19 +102,54 @@ export class CatalogClientService {
     }
   }
 
-  async getProductById(productId: string): Promise<any> {
+  async getProductById(productId: string, options: CatalogProductRequestOptions = {}): Promise<any> {
     try {
+      const params = new URLSearchParams();
+      if (options.catalogScope) params.append('catalogScope', options.catalogScope);
+      const query = params.toString();
       const response = await firstValueFrom(
-        this.httpService.get(`${this.baseUrl}/api/products/${productId}`, {
-          headers: this.catalogHeaders(),
-        }),
+        this.httpService.get(
+          `${this.baseUrl}/api/products/${encodeURIComponent(productId)}${query ? `?${query}` : ''}`,
+          {
+            headers: this.catalogHeaders(
+              options.authorizationHeader ? { Authorization: options.authorizationHeader } : undefined,
+            ),
+          },
+        ),
       );
       return response.data.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      const errorStack = error instanceof Error ? error.stack : undefined;
+      const err = error as { response?: { status?: number; data?: any }; stack?: string; message?: string };
+      const responseMessage = err.response?.data?.error?.message || err.response?.data?.message;
+      const errorMessage = responseMessage || err.message || 'Unknown error';
+      const errorStack = err.stack;
+      const status = err.response?.status || HttpStatus.NOT_FOUND;
       this.logger.error(`Failed to get product ${productId}: ${errorMessage}`, errorStack, 'CatalogClient');
-      throw new HttpException(`Product not found: ${productId}`, HttpStatus.NOT_FOUND);
+      throw new HttpException(errorMessage || `Product not found: ${productId}`, status);
+    }
+  }
+
+  async updateProduct(productId: string, productData: Record<string, unknown>, options: CatalogProductRequestOptions = {}): Promise<any> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.put(
+          `${this.baseUrl}/api/products/${encodeURIComponent(productId)}`,
+          productData,
+          {
+            headers: this.catalogHeaders(
+              options.authorizationHeader ? { Authorization: options.authorizationHeader } : undefined,
+            ),
+          },
+        ),
+      );
+      return response.data.data;
+    } catch (error: unknown) {
+      const err = error as { response?: { status?: number; data?: any }; stack?: string; message?: string };
+      const responseMessage = err.response?.data?.error?.message || err.response?.data?.message;
+      const errorMessage = responseMessage || err.message || 'Unknown error';
+      const status = err.response?.status || HttpStatus.BAD_REQUEST;
+      this.logger.error(`Failed to update product ${productId}: ${errorMessage}`, err.stack, 'CatalogClient');
+      throw new HttpException(errorMessage, status);
     }
   }
 

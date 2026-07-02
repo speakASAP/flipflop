@@ -158,6 +158,7 @@ export class PaymentService {
   async createPayment(dto: CreatePaymentDto): Promise<PaymentResponse> {
     const payload: Record<string, unknown> = {
       orderId: dto.orderId,
+      centralOrderId: dto.centralOrderId,
       applicationId: dto.applicationId,
       amount: dto.amount,
       currency: dto.currency || 'CZK',

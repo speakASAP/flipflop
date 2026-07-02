@@ -103,6 +103,26 @@ export interface ProductFilters {
   includeWarehouse?: boolean | string; // Include warehouse stock data (default: true)
   source?: 'catalog' | 'local' | string;
   catalogScope?: 'effective' | string;
+  catalogSources?: string;
+}
+
+export interface SellerCatalogProduct extends Product {
+  ownerUserId?: string | null;
+  resaleEnabled?: boolean | null;
+  source?: {
+    authority?: string;
+    catalogScope?: string;
+    type?: 'own' | 'alfares' | 'community' | 'unknown' | string;
+    ownerUserId?: string | null;
+    resaleEnabled?: boolean | null;
+  };
+}
+
+export interface SellerCatalogPublishResponse {
+  success: boolean;
+  totals?: { requested: number; succeeded: number; failed: number; blocked: number };
+  results?: Array<{ catalogProductId: string; status: string; success: boolean; blocked: boolean; message: string; listingUrl?: string }>;
+  sellerOwnershipContract?: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -198,5 +218,34 @@ export const productsApi = {
 
   async deleteProduct(id: string) {
     return apiClient.delete(`/products/${id}`);
+  },
+};
+
+
+export const sellerCatalogApi = {
+  async getProducts(filters?: { page?: number; limit?: number; search?: string; catalogSources?: string }) {
+    const params = new URLSearchParams();
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && String(value).trim() !== '') {
+          params.append(key, String(value));
+        }
+      });
+    }
+    const query = params.toString();
+    return apiClient.get<PaginatedResponse<SellerCatalogProduct>>(
+      `/seller/catalog/products${query ? `?${query}` : ''}`
+    );
+  },
+
+  async publishProducts(productIds: string[]) {
+    return apiClient.post<SellerCatalogPublishResponse>('/seller/catalog/publish', { productIds });
+  },
+
+  async updateResale(productId: string, resaleEnabled: boolean) {
+    return apiClient.put<{ success: boolean; product: SellerCatalogProduct }>(
+      `/seller/catalog/products/${productId}/resale`,
+      { resaleEnabled }
+    );
   },
 };

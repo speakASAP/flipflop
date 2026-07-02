@@ -6,11 +6,80 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { adminApi, Order } from '@/lib/api/admin';
-import { OrderStatus, PaymentStatus } from '@/lib/api/orders';
-import { PaginatedResponse } from '@/lib/api/products';
+import {
+  DeliveryAddress,
+  formatOrderMoney,
+  getOrderDisplayData,
+  Order,
+  OrderStatus,
+  ordersApi,
+  PaymentStatus,
+} from '@/lib/api/orders';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from 'next/link';
+
+function normalizeStatus(status?: string) {
+  return (status || '').toLowerCase();
+}
+
+function getStatusText(status?: string) {
+  const statusMap: Record<string, string> = {
+    pending: 'Čeká',
+    confirmed: 'Potvrzeno',
+    accepted: 'Přijato',
+    processing: 'Zpracovává se',
+    shipped: 'Odesláno',
+    delivered: 'Doručeno',
+    cancelled: 'Zrušeno',
+    refunded: 'Vráceno',
+    paid: 'Zaplaceno',
+    failed: 'Selhalo',
+    central_orders_failed: 'Orders chyba',
+    unknown: 'Nedostupné',
+  };
+  return statusMap[normalizeStatus(status)] || status || 'Nedostupné';
+}
+
+function getStatusColor(status?: string) {
+  switch (normalizeStatus(status)) {
+    case 'pending':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'confirmed':
+    case 'accepted':
+      return 'bg-blue-100 text-blue-800';
+    case 'processing':
+      return 'bg-purple-100 text-purple-800';
+    case 'shipped':
+      return 'bg-indigo-100 text-indigo-800';
+    case 'delivered':
+      return 'bg-green-100 text-green-800';
+    case 'cancelled':
+    case 'failed':
+    case 'central_orders_failed':
+      return 'bg-red-100 text-red-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+}
+
+function getCentralNotice(order: Order) {
+  const central = order.centralOrder;
+  if (!central || central.readStatus === 'available') {
+    return null;
+  }
+  if (central.readStatus === 'forward_failed') {
+    return central.error || 'Centrální Orders objednávku nepřijaly.';
+  }
+  if (central.readStatus === 'not_forwarded') {
+    return 'Objednávka nemá centrální Orders metadata.';
+  }
+  return central.error || '[MISSING: Orders lifecycle read endpoint]';
+}
+
+function addressName(address: DeliveryAddress | null | undefined) {
+  if (!address) return '';
+  return address.name || [address.firstName, address.lastName].filter(Boolean).join(' ');
+}
 
 export default function AdminOrderDetailPage() {
   const params = useParams();
@@ -19,27 +88,21 @@ export default function AdminOrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [statusForm, setStatusForm] = useState({
-    status: '' as OrderStatus | '',
-    paymentStatus: '' as PaymentStatus | '',
+    status: '' as string,
+    paymentStatus: '' as string,
     notes: '',
   });
 
   const loadOrder = useCallback(async () => {
     try {
-      // Use ordersApi to get order detail
-      const response = await adminApi.getAllOrders({ page: 1, limit: 1000 });
+      const response = await ordersApi.getAdminOrder(orderId);
       if (response.success && response.data) {
-        const data = response.data as PaginatedResponse<Order>;
-        const orders = data.items || [];
-        const foundOrder = orders.find((o: Order) => o.id === orderId);
-        if (foundOrder) {
-          setOrder(foundOrder);
-          setStatusForm({
-            status: foundOrder.status,
-            paymentStatus: foundOrder.paymentStatus,
-            notes: '',
-          });
-        }
+        setOrder(response.data);
+        setStatusForm({
+          status: String(response.data.status || ''),
+          paymentStatus: String(response.data.paymentStatus || ''),
+          notes: '',
+        });
       }
     } catch (error) {
       console.error('Failed to load order:', error);
@@ -50,7 +113,7 @@ export default function AdminOrderDetailPage() {
 
   useEffect(() => {
     if (orderId) {
-      loadOrder();
+      void loadOrder();
     }
   }, [orderId, loadOrder]);
 
@@ -59,13 +122,13 @@ export default function AdminOrderDetailPage() {
     setUpdating(true);
 
     try {
-      const response = await adminApi.updateOrderStatus(orderId, {
+      const response = await ordersApi.updateAdminOrderStatus(orderId, {
         status: statusForm.status || undefined,
         paymentStatus: statusForm.paymentStatus || undefined,
         notes: statusForm.notes || undefined,
       });
       if (response.success) {
-        loadOrder();
+        void loadOrder();
         alert('Status objednávky byl aktualizován');
       } else {
         alert('Nepodařilo se aktualizovat status');
@@ -94,11 +157,15 @@ export default function AdminOrderDetailPage() {
           href="/admin/orders"
           className="text-blue-600 hover:text-blue-700 font-medium"
         >
-          ← Zpět na seznam
+          Zpět na seznam
         </Link>
       </div>
     );
   }
+
+  const display = getOrderDisplayData(order);
+  const notice = getCentralNotice(order);
+  const address = display.deliveryAddress;
 
   return (
     <div className="space-y-6">
@@ -110,41 +177,70 @@ export default function AdminOrderDetailPage() {
           <p className="text-gray-600 mt-1">
             Vytvořeno: {new Date(order.createdAt).toLocaleString('cs-CZ')}
           </p>
+          {display.central?.id && (
+            <p className="text-sm text-gray-500 mt-1">Central Orders: {display.central.id}</p>
+          )}
         </div>
         <Link
           href="/admin/orders"
           className="text-gray-600 hover:text-gray-700 font-medium"
         >
-          ← Zpět na seznam
+          Zpět na seznam
         </Link>
       </div>
 
+      {notice && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900">
+          <p className="font-bold">Centrální Orders stav není aktuální</p>
+          <p className="text-sm mt-1">{notice}</p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="rounded-lg bg-white shadow-md p-5">
+          <p className="text-sm font-semibold text-gray-500">Lifecycle</p>
+          <p className={`mt-2 inline-flex px-3 py-1.5 text-xs font-bold rounded-full ${getStatusColor(display.lifecycleStage)}`}>
+            {getStatusText(display.lifecycleStage)}
+          </p>
+        </div>
+        <div className="rounded-lg bg-white shadow-md p-5">
+          <p className="text-sm font-semibold text-gray-500">Platba</p>
+          <p className={`mt-2 inline-flex px-3 py-1.5 text-xs font-bold rounded-full ${getStatusColor(display.paymentStatus)}`}>
+            {getStatusText(display.paymentStatus)}
+          </p>
+        </div>
+        <div className="rounded-lg bg-white shadow-md p-5">
+          <p className="text-sm font-semibold text-gray-500">Doručení</p>
+          <p className="mt-2 text-lg font-bold text-gray-900">
+            {getStatusText(display.deliveryStatus || display.fulfillmentStatus)}
+          </p>
+        </div>
+        <div className="rounded-lg bg-white shadow-md p-5">
+          <p className="text-sm font-semibold text-gray-500">Výjimky</p>
+          <p className={`mt-2 inline-flex px-3 py-1.5 text-xs font-bold rounded-full ${getStatusColor(display.exceptionStatus)}`}>
+            {getStatusText(display.exceptionStatus)}
+          </p>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Order Details */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Order Items */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Položky objednávky
             </h2>
             <div className="space-y-4">
-              {order.items.map((item) => (
+              {display.items.map((item) => (
                 <div key={item.id} className="flex items-center justify-between border-b pb-4">
                   <div>
                     <p className="font-medium text-gray-900">{item.productName}</p>
-                    <p className="text-sm text-gray-500">SKU: {item.productSku}</p>
+                    {item.productSku && <p className="text-sm text-gray-500">SKU: {item.productSku}</p>}
                     <p className="text-sm text-gray-500">
-                      Množství: {item.quantity} × {new Intl.NumberFormat('cs-CZ', {
-                        style: 'currency',
-                        currency: 'CZK',
-                      }).format(item.unitPrice)}
+                      Množství: {item.quantity} x {formatOrderMoney(item.unitPrice, display.currency)}
                     </p>
                   </div>
                   <p className="font-medium text-gray-900">
-                    {new Intl.NumberFormat('cs-CZ', {
-                      style: 'currency',
-                      currency: 'CZK',
-                    }).format(item.totalPrice)}
+                    {formatOrderMoney(item.totalPrice, display.currency)}
                   </p>
                 </div>
               ))}
@@ -152,76 +248,51 @@ export default function AdminOrderDetailPage() {
             <div className="mt-6 pt-6 border-t space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Mezisoučet</span>
-                <span className="text-gray-900">
-                  {new Intl.NumberFormat('cs-CZ', {
-                    style: 'currency',
-                    currency: 'CZK',
-                  }).format(order.subtotal)}
-                </span>
+                <span className="text-gray-900">{formatOrderMoney(display.subtotal, display.currency)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">DPH</span>
-                <span className="text-gray-900">
-                  {new Intl.NumberFormat('cs-CZ', {
-                    style: 'currency',
-                    currency: 'CZK',
-                  }).format(order.tax)}
-                </span>
+                <span className="text-gray-900">{formatOrderMoney(display.tax, display.currency)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Doprava</span>
-                <span className="text-gray-900">
-                  {new Intl.NumberFormat('cs-CZ', {
-                    style: 'currency',
-                    currency: 'CZK',
-                  }).format(order.shippingCost)}
-                </span>
+                <span className="text-gray-900">{formatOrderMoney(display.shippingCost, display.currency)}</span>
               </div>
               {order.discount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Sleva</span>
-                  <span className="text-red-600">
-                    -{new Intl.NumberFormat('cs-CZ', {
-                      style: 'currency',
-                      currency: 'CZK',
-                    }).format(order.discount)}
-                  </span>
+                  <span className="text-red-600">-{formatOrderMoney(order.discount, display.currency)}</span>
                 </div>
               )}
               <div className="flex justify-between text-lg font-bold pt-2 border-t">
                 <span className="text-gray-900">Celkem</span>
-                <span className="text-gray-900">
-                  {new Intl.NumberFormat('cs-CZ', {
-                    style: 'currency',
-                    currency: 'CZK',
-                  }).format(order.total)}
-                </span>
+                <span className="text-gray-900">{formatOrderMoney(display.total, display.currency)}</span>
               </div>
             </div>
           </div>
 
-          {/* Delivery Address */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Dodací adresa
             </h2>
-            <div className="space-y-2 text-gray-700">
-              <p>
-                <strong>{order.deliveryAddress.firstName} {order.deliveryAddress.lastName}</strong>
-              </p>
-              <p>{order.deliveryAddress.street}</p>
-              <p>
-                {order.deliveryAddress.city}, {order.deliveryAddress.postalCode}
-              </p>
-              <p>{order.deliveryAddress.country}</p>
-              {order.deliveryAddress.phone && (
-                <p>Tel: {order.deliveryAddress.phone}</p>
-              )}
-            </div>
+            {address ? (
+              <div className="space-y-2 text-gray-700">
+                <p>
+                  <strong>{addressName(address)}</strong>
+                </p>
+                <p>{address.street}</p>
+                <p>
+                  {address.city}, {address.postalCode}
+                </p>
+                <p>{address.country}</p>
+                {address.phone && <p>Tel: {address.phone}</p>}
+              </div>
+            ) : (
+              <p className="text-gray-700">Adresa není dostupná.</p>
+            )}
           </div>
         </div>
 
-        {/* Status Update */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
@@ -237,7 +308,7 @@ export default function AdminOrderDetailPage() {
                   onChange={(e) =>
                     setStatusForm({
                       ...statusForm,
-                      status: e.target.value as OrderStatus,
+                      status: e.target.value,
                     })
                   }
                   className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
@@ -248,6 +319,7 @@ export default function AdminOrderDetailPage() {
                   <option value={OrderStatus.SHIPPED}>Odesláno</option>
                   <option value={OrderStatus.DELIVERED}>Doručeno</option>
                   <option value={OrderStatus.CANCELLED}>Zrušeno</option>
+                  <option value={OrderStatus.REFUNDED}>Vráceno</option>
                 </select>
               </div>
               <div>
@@ -259,7 +331,7 @@ export default function AdminOrderDetailPage() {
                   onChange={(e) =>
                     setStatusForm({
                       ...statusForm,
-                      paymentStatus: e.target.value as PaymentStatus,
+                      paymentStatus: e.target.value,
                     })
                   }
                   className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
@@ -297,4 +369,3 @@ export default function AdminOrderDetailPage() {
     </div>
   );
 }
-

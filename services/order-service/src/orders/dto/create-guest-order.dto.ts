@@ -106,4 +106,12 @@ export class CreateGuestOrderDto {
   @IsOptional()
   @IsString()
   discountCode?: string;
+
+  @IsOptional()
+  @IsObject()
+  bundleIntent?: {
+    source?: string;
+    sourceProductId?: string;
+    productIds?: string[];
+  };
 }
