@@ -60,6 +60,10 @@ assert(checkout.includes('const walletAutofillSensitiveFields = new Set<keyof Fo
 for (const field of ['email', 'phone', 'firstName', 'lastName', 'street', 'city', 'postalCode', 'country', 'differentDelivery', 'deliveryStreet', 'deliveryCity', 'deliveryPostalCode']) {
   assert(checkout.includes(`'${field}'`), `wallet sensitive field set must include ${field}`);
 }
+for (const field of ['companyName', 'companyId', 'taxId', 'vatId', 'invoiceEmail']) {
+  assert(checkout.includes(`${field}: string`), `checkout FormState must include invoice field ${field}`);
+  assert(checkout.includes(`'${field}'`), `wallet sensitive field set must include invoice field ${field}`);
+}
 
 assert(checkout.includes('const [walletDeliveryAddresses, setWalletDeliveryAddresses] = useState<AuthDeliveryAddress[]>([])'), 'checkout must keep Auth delivery address selector state');
 assert(checkout.includes('const [walletInvoiceProfiles, setWalletInvoiceProfiles] = useState<AuthInvoiceProfile[]>([])'), 'checkout must keep Auth invoice profile selector state');
@@ -75,6 +79,14 @@ assert(checkout.includes('setSelectedWalletInvoiceProfileId(canApplyWalletDefaul
 assert(checkout.includes('setSelectedWalletDeliveryAddressId(canApplyWalletDefaults ? defaultDeliveryAddress?.id || \'\' : \'\')'), 'checkout must avoid selecting default delivery address after manual edit');
 assert(checkout.includes('if (!canApplyWalletDefaults)') && checkout.includes('return;'), 'checkout must stop automatic wallet form merge after manual edit');
 assert(checkout.includes('mergeInvoiceProfileIntoForm') && checkout.includes('mergeDeliveryAddressIntoForm'), 'checkout must merge selected wallet entries into existing form fields');
+const mergeInvoice = extractFunction(checkout, 'mergeInvoiceProfileIntoForm');
+for (const field of ['companyName', 'companyId', 'taxId', 'vatId']) {
+  assert(mergeInvoice.includes(`${field}: profile.${field} || current.${field}`), `invoice profile merge must preserve ${field}`);
+}
+assert(
+  mergeInvoice.includes('invoiceEmail: profile.email || current.invoiceEmail || current.email'),
+  'invoice profile merge must treat Auth invoice email as checkout invoiceEmail without losing contact email fallback',
+);
 
 const markSensitive = extractFunction(checkout, 'markWalletAutofillSensitiveEdit');
 assert(markSensitive.includes('walletAutofillBlockedRef.current = true'), 'manual-edit marker must block later automatic wallet defaults');
@@ -104,6 +116,15 @@ assert(checkout.includes('walletDeliveryAddresses.length > 0') && checkout.inclu
 const submitOrder = extractSubmitOrder(checkout);
 assert(submitOrder.includes('const billingAddress = { firstName: form.firstName'), 'checkout must build an immutable billing snapshot for Orders');
 assert(submitOrder.includes('deliveryAddress: form.differentDelivery ?'), 'checkout must build an immutable delivery snapshot for Orders');
+for (const field of ['companyName', 'companyId', 'taxId', 'vatId']) {
+  assert(submitOrder.includes(`${field}: form.${field}`), `checkout billing snapshot must include ${field}`);
+}
+assert(
+  submitOrder.includes('email: form.invoiceEmail || form.email'),
+  'checkout billing snapshot must include invoice recipient email without replacing checkout contact email',
+);
+assert(submitOrder.includes('const deliveryAddress = { firstName: form.firstName'), 'checkout must build a delivery-only snapshot separately from billing');
+assert(!submitOrder.includes('deliveryAddress: form.differentDelivery ? { ...billingAddress'), 'delivery snapshot must not inherit billing-only invoice fields');
 assert(!submitOrder.includes('selectedWalletDeliveryAddressId'), 'checkout order payload must not send Auth delivery wallet ids before provenance approval');
 assert(!submitOrder.includes('selectedWalletInvoiceProfileId'), 'checkout order payload must not send Auth invoice wallet ids before provenance approval');
 assert(!submitOrder.includes('authDeliveryAddressId') && !submitOrder.includes('authInvoiceProfileId'), 'checkout order payload must not invent wallet provenance fields');

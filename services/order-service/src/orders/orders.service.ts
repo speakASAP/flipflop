@@ -823,20 +823,38 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       products?: { catalogProductId?: string | null } | null;
     }>;
     deliveryAddress: any;
+    billingAddress?: any;
     user?: { id?: string | null; email?: string | null } | null;
     warehouseId: string;
   }) {
-    const { order, orderItems, deliveryAddress, user, warehouseId } = params;
+    const { order, orderItems, deliveryAddress, billingAddress, user, warehouseId } = params;
     const customerName = [deliveryAddress.firstName, deliveryAddress.lastName]
       .filter(Boolean)
       .join(' ')
       .trim();
-    const boundedAddress = {
+    const boundedDeliveryAddress = {
       name: customerName || undefined,
       street: deliveryAddress.street,
       city: deliveryAddress.city,
       postalCode: deliveryAddress.postalCode,
       country: deliveryAddress.country || 'CZ',
+    };
+    const rawBillingAddress = billingAddress || deliveryAddress;
+    const billingName = [rawBillingAddress.firstName, rawBillingAddress.lastName]
+      .filter(Boolean)
+      .join(' ')
+      .trim() || customerName;
+    const boundedBillingAddress = {
+      name: billingName || undefined,
+      street: rawBillingAddress.street,
+      city: rawBillingAddress.city,
+      postalCode: rawBillingAddress.postalCode,
+      country: rawBillingAddress.country || deliveryAddress.country || 'CZ',
+      companyName: this.normalizeGuestText(rawBillingAddress.companyName, '') || undefined,
+      companyId: this.normalizeGuestText(rawBillingAddress.companyId, '') || undefined,
+      taxId: this.normalizeGuestText(rawBillingAddress.taxId, '') || undefined,
+      vatId: this.normalizeGuestText(rawBillingAddress.vatId, '') || undefined,
+      email: this.normalizeGuestText(rawBillingAddress.email, '') || user?.email || undefined,
     };
     const items = orderItems.map((item) => {
       const catalogProductId = this.requireCatalogProductId(
@@ -868,8 +886,8 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         phone: deliveryAddress.phone || undefined,
         authSubject: this.isUuid(user?.id) ? user.id : undefined,
       },
-      shippingAddress: boundedAddress,
-      billingAddress: boundedAddress,
+      shippingAddress: boundedDeliveryAddress,
+      billingAddress: boundedBillingAddress,
       items,
       totals: {
         subtotal: Number(order.subtotal),
@@ -1504,6 +1522,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     order: any;
     orderItems: any[];
     deliveryAddress: any;
+    billingAddress?: any;
     user?: { email?: string | null } | null;
     warehouseId: string;
   }): Promise<{ centralOrderId: string; status: 'accepted' | 'conflict' }> {
@@ -1935,6 +1954,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         order,
         orderItems: order.order_items,
         deliveryAddress,
+        billingAddress: dto.billingAddress,
         user: { email: guestEmail },
         warehouseId: reservationWarehouseId,
       });

@@ -25,6 +25,11 @@ type FormState = {
   city: string;
   postalCode: string;
   country: string;
+  companyName: string;
+  companyId: string;
+  taxId: string;
+  vatId: string;
+  invoiceEmail: string;
   note: string;
   createAccount: boolean;
   marketingConsent: boolean;
@@ -54,6 +59,7 @@ const PAYMENT_OPTIONS: Array<{ id: PaymentMethod; label: string; price: number; 
 
 const initialForm: FormState = {
   email: '', phone: '', firstName: '', lastName: '', street: '', city: '', postalCode: '', country: 'Česká republika', note: '',
+  companyName: '', companyId: '', taxId: '', vatId: '', invoiceEmail: '',
   createAccount: false, marketingConsent: false, differentDelivery: false, deliveryStreet: '', deliveryCity: '', deliveryPostalCode: '',
 };
 
@@ -66,6 +72,11 @@ const walletAutofillSensitiveFields = new Set<keyof FormState>([
   'city',
   'postalCode',
   'country',
+  'companyName',
+  'companyId',
+  'taxId',
+  'vatId',
+  'invoiceEmail',
   'differentDelivery',
   'deliveryStreet',
   'deliveryCity',
@@ -108,6 +119,11 @@ const mergeInvoiceProfileIntoForm = (current: FormState, profile: AuthInvoicePro
   city: profile.city || current.city,
   postalCode: profile.postalCode || current.postalCode,
   country: profile.country || current.country,
+  companyName: profile.companyName || current.companyName,
+  companyId: profile.companyId || current.companyId,
+  taxId: profile.taxId || current.taxId,
+  vatId: profile.vatId || current.vatId,
+  invoiceEmail: profile.email || current.invoiceEmail || current.email,
 });
 
 const mergeDeliveryAddressIntoForm = (current: FormState, address: AuthDeliveryAddress): FormState => ({
@@ -378,10 +394,11 @@ export default function CheckoutPage() {
       return;
     }
     try {
-      const billingAddress = { firstName: form.firstName, lastName: form.lastName, street: form.street, city: form.city, postalCode: form.postalCode, country: form.country, phone: form.phone };
+      const billingAddress = { firstName: form.firstName, lastName: form.lastName, street: form.street, city: form.city, postalCode: form.postalCode, country: form.country, phone: form.phone, companyName: form.companyName, companyId: form.companyId, taxId: form.taxId, vatId: form.vatId, email: form.invoiceEmail || form.email };
+      const deliveryAddress = { firstName: form.firstName, lastName: form.lastName, street: form.street, city: form.city, postalCode: form.postalCode, country: form.country, phone: form.phone };
       const payload: CreateGuestOrderData = {
         email: form.email, phone: form.phone, wantsAccount: showAccountCreationPrompt && form.createAccount, marketingConsent: form.marketingConsent, billingAddress,
-        deliveryAddress: form.differentDelivery ? { ...billingAddress, street: form.deliveryStreet, city: form.deliveryCity, postalCode: form.deliveryPostalCode } : billingAddress,
+        deliveryAddress: form.differentDelivery ? { ...deliveryAddress, street: form.deliveryStreet, city: form.deliveryCity, postalCode: form.deliveryPostalCode } : deliveryAddress,
         items: orderItems, paymentMethod, deliveryMethod, expeditionMethod: 'standard-one-shipment', wantsDifferentDeliveryDay: differentDay,
         requestedDeliveryDate: differentDay ? requestedDate : undefined, operatorTip, notes: form.note,
         bundleIntent: bundleIntent ? {

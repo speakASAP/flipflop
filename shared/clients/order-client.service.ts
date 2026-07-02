@@ -58,6 +58,11 @@ export interface CentralOrderAddress {
   postalCode?: string;
   country?: string;
   phone?: string;
+  companyName?: string;
+  companyId?: string;
+  taxId?: string;
+  vatId?: string;
+  email?: string;
 }
 
 export interface CentralOrderLineItem {
@@ -307,6 +312,11 @@ export class OrderClientService {
       postalCode: this.stringValue(raw.postalCode ?? raw.zip),
       country: this.stringValue(raw.country),
       phone: this.stringValue(raw.phone),
+      companyName: this.stringValue(raw.companyName),
+      companyId: this.stringValue(raw.companyId),
+      taxId: this.stringValue(raw.taxId),
+      vatId: this.stringValue(raw.vatId),
+      email: this.stringValue(raw.email),
     };
   }
 

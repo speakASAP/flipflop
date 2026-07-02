@@ -96,7 +96,7 @@ assert(
 );
 assert(
   payloadBuilder.includes('warehouseId: string') &&
-    payloadBuilder.includes('const { order, orderItems, deliveryAddress, user, warehouseId } = params') &&
+    payloadBuilder.includes('const { order, orderItems, deliveryAddress, billingAddress, user, warehouseId } = params') &&
     payloadBuilder.includes('warehouseId,'),
   'central Orders payload items must include the Warehouse reservation authority id',
 );
@@ -115,11 +115,15 @@ assert(
   'central Orders forwarding must forward persisted order lines with Product relations',
 );
 assert(
-  payloadBuilder.includes('shippingAddress: boundedAddress') &&
-    payloadBuilder.includes('billingAddress: boundedAddress') &&
+  payloadBuilder.includes('shippingAddress: boundedDeliveryAddress') &&
+    payloadBuilder.includes('billingAddress: boundedBillingAddress') &&
+    payloadBuilder.includes('const rawBillingAddress = billingAddress || deliveryAddress') &&
+    payloadBuilder.includes('companyId: this.normalizeGuestText(rawBillingAddress.companyId') &&
+    payloadBuilder.includes('vatId: this.normalizeGuestText(rawBillingAddress.vatId') &&
+    payloadBuilder.includes('email: this.normalizeGuestText(rawBillingAddress.email') &&
     !payloadBuilder.includes('shippingAddress: deliveryAddress') &&
     !payloadBuilder.includes('billingAddress: deliveryAddress'),
-  'central Orders payload must forward bounded address fields, not the raw local address record',
+  'central Orders payload must forward separate bounded shipping and billing snapshots with Auth invoice fields',
 );
 assert(
   !payloadBuilder.includes('customerNote') &&
