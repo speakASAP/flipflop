@@ -14,6 +14,12 @@ import { GatewayUserGuard } from './gateway-user.guard';
 export class GuestOrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
+  @Post('guest/quote')
+  async quoteGuestOrder(@Body() dto: CreateGuestOrderDto) {
+    const quote = await this.ordersService.quoteGuestOrder(dto);
+    return ApiResponse.success(quote);
+  }
+
   @Post('guest')
   async createGuestOrder(@Body() dto: CreateGuestOrderDto) {
     const order = await this.ordersService.createGuestOrder(dto);

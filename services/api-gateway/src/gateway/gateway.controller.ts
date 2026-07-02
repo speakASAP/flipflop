@@ -148,6 +148,14 @@ export class GatewayController {
   }
 
   /**
+   * Public guest checkout quote. This is intentionally non-mutating and avoids JWT so guest checkout can preview server totals.
+   */
+  @Post('orders/guest/quote')
+  async guestOrderQuoteRoute(@Req() req: ExpressRequest, @Res() res: ExpressResponse) {
+    return this.routeRequest('orders', '/orders/guest/quote', req, res);
+  }
+
+  /**
    * Public guest checkout order creation. This route intentionally avoids JWT so buying does not require registration.
    */
   @Post('orders/guest')

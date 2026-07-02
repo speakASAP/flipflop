@@ -85,7 +85,7 @@ type HolidayDiscountLineApplication = {
 type HolidayDiscountApplication = {
   source: 'catalog.discount-eligibility-facts.v1';
   processId: 'holiday-discount-2026';
-  processVersion: 1;
+  processVersion: number;
   policyRefs: string[];
   reasonCodes: string[];
   discountAmount: number;
@@ -107,7 +107,7 @@ const BUNDLE_FREE_SHIPPING_THRESHOLD_CZK = 1000;
 const BUNDLE_ELIGIBILITY_LIMIT = 8;
 const HOLIDAY_DISCOUNT_SCHEMA_VERSION = 'catalog.discount-eligibility-facts.v1';
 const HOLIDAY_DISCOUNT_PROCESS_ID = 'holiday-discount-2026';
-const HOLIDAY_DISCOUNT_PROCESS_VERSION = 1;
+const DEFAULT_HOLIDAY_DISCOUNT_PROCESS_VERSION = 1;
 const HOLIDAY_DISCOUNT_POLICY_REF = 'holiday-10-percent-selected-categories';
 const HOLIDAY_DISCOUNT_RATE = 0.10;
 
@@ -1377,7 +1377,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     if (facts.schemaVersion !== HOLIDAY_DISCOUNT_SCHEMA_VERSION) {
       return 'unsupported_schema_version';
     }
-    if (facts.processId !== HOLIDAY_DISCOUNT_PROCESS_ID || Number(facts.processVersion) !== HOLIDAY_DISCOUNT_PROCESS_VERSION) {
+    if (facts.processId !== HOLIDAY_DISCOUNT_PROCESS_ID || Number(facts.processVersion) !== this.holidayDiscountProcessVersion()) {
       return 'unsupported_process_version';
     }
     const blockers = this.stringArray(facts.blockers);
@@ -1400,6 +1400,16 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
 
   private uniqueStrings(values: string[]): string[] {
     return Array.from(new Set(values.filter(Boolean)));
+  }
+
+
+  private holidayDiscountProcessVersion(): number {
+    const configured = Number(
+      this.configService.get<string>('FLIPFLOP_HOLIDAY_DISCOUNT_PROCESS_VERSION') ||
+      process.env.FLIPFLOP_HOLIDAY_DISCOUNT_PROCESS_VERSION ||
+      DEFAULT_HOLIDAY_DISCOUNT_PROCESS_VERSION,
+    );
+    return Number.isFinite(configured) && configured > 0 ? Math.floor(configured) : DEFAULT_HOLIDAY_DISCOUNT_PROCESS_VERSION;
   }
 
   private async calculateHolidayDiscount(params: {
@@ -1448,7 +1458,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     return {
       source: HOLIDAY_DISCOUNT_SCHEMA_VERSION,
       processId: HOLIDAY_DISCOUNT_PROCESS_ID,
-      processVersion: HOLIDAY_DISCOUNT_PROCESS_VERSION,
+      processVersion: this.holidayDiscountProcessVersion(),
       policyRefs: this.uniqueStrings(lines.flatMap((line) => line.policyRefs)),
       reasonCodes: this.uniqueStrings(lines.flatMap((line) => line.reasonCodes)),
       discountAmount,
@@ -1475,7 +1485,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       const holidayDiscount: HolidayDiscountApplication = {
         source: HOLIDAY_DISCOUNT_SCHEMA_VERSION,
         processId: HOLIDAY_DISCOUNT_PROCESS_ID,
-        processVersion: HOLIDAY_DISCOUNT_PROCESS_VERSION,
+        processVersion: this.holidayDiscountProcessVersion(),
         policyRefs: [],
         reasonCodes: ['existing_discount_exclusive'],
         discountAmount: 0,
@@ -2066,6 +2076,46 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     };
   }
 
+
+
+  async quoteGuestOrder(dto: any) {
+    const orderItems = await this.buildGuestOrderItems(dto.items);
+    const subtotal = this.roundMoney(orderItems.reduce((sum, item) => sum + item.totalPrice, 0));
+    const tax = this.roundMoney(subtotal * 0.21);
+    const paymentMethod = this.normalizeGuestPaymentMethod(dto.paymentMethod);
+    const deliveryMethod = this.normalizeGuestText(dto.deliveryMethod, 'zasilkovna-address');
+    const shippingCost = this.calculateGuestDeliveryCost(deliveryMethod);
+    const operatorTip = this.normalizeGuestOperatorTip(dto.operatorTip);
+    this.rejectUnsafeClientMoneyInputs(dto, { rejectShippingCost: true });
+    const orderTotalBeforeDiscount = this.roundMoney(subtotal + tax + shippingCost + operatorTip);
+    const discountApplication = await this.calculateCheckoutDiscount({
+      orderItems,
+      orderTotalBeforeDiscount,
+      shippingCost,
+      discountCode: dto.discountCode,
+      bundleIntent: dto.bundleIntent,
+    });
+    const discount = discountApplication.discount;
+    const total = this.roundMoney(orderTotalBeforeDiscount - discount);
+
+    return {
+      schemaVersion: 'flipflop.checkout-quote.v1',
+      mode: 'guest',
+      sideEffects: [],
+      paymentMethod,
+      deliveryMethod,
+      currency: 'CZK',
+      subtotal,
+      tax,
+      shippingCost,
+      operatorTip,
+      orderTotalBeforeDiscount,
+      discount,
+      total,
+      items: orderItems,
+      discountApplication,
+    };
+  }
 
   /**
    * Create order from guest checkout payload. It never marks payment as paid;
