@@ -72,7 +72,7 @@ IPS chain:
 
 Remaining gates:
 
-- `[MISSING: FlipFlop runtime smoke proving authenticated central order snapshots carry customer.authSubject]`
+- `[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with AUTH_SUBJECT_SMOKE_APPROVAL_ID, fixture product/warehouse ids, and persisted customer.authSubject evidence]`
 - `[MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]`
 
 ## 2026-07-02 - F1 Auth Subject Runtime Smoke Gate
@@ -104,6 +104,45 @@ IPS chain:
   `npm run verify:orders-hub-integration`, `git diff --check`, and
   `WRITE_AUTH_SUBJECT_SMOKE_REPORT=0 node scripts/smoke-orders-auth-subject.js`
   passed as a fail-closed default preflight with `mutation=false`.
+
+Remaining gate:
+
+- `[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with AUTH_SUBJECT_SMOKE_APPROVAL_ID, fixture product/warehouse ids, and persisted customer.authSubject evidence]`
+
+## 2026-07-02 - F1 Auth Subject Runtime Marker Deploy
+
+Objective: put the already validated FlipFlop Auth-subject forwarding code into
+the live `flipflop-order-service` pod without creating a production order.
+
+IPS chain:
+
+- Vision: authenticated customers can retrieve invoices from account surfaces by
+  stable Auth subject after the invoice service reads central Orders snapshots.
+- Goal Impact: the live FlipFlop order-service runtime now contains the
+  `customer.authSubject` payload builder and guarded smoke runner, narrowing the
+  remaining invoice-account gate to an owner-approved synthetic create/read
+  smoke.
+- System: FlipFlop order-service runtime, central Orders API, Kubernetes
+  deployment `flipflop-order-service`, and the guarded Orders auth-subject smoke.
+- Feature: deployed Auth subject handoff runtime marker.
+- Task: build a patch image from the current live image and overlay the already
+  built `services/order-service/dist`, `services/order-service/src`, and
+  `shared/dist` artifacts after the normal Dockerfile path hit npm registry
+  `ETIMEDOUT`.
+- Execution Plan: do not run `npm install`, do not create an order, do not
+  enable provider calls; restart only `flipflop-order-service`.
+- Coding Prompt: preserve unrelated dirty product/catalog worktree files and do
+  not stage or revert them.
+- Code/runtime: patch image pushed as `localhost:5000/flipflop-order-service:latest`
+  from source commit `23b22e0`; rollout completed for
+  `deployment/flipflop-order-service` in `statex-apps`.
+- Validation: live pod grep found
+  `/app/services/order-service/dist/services/order-service/src/orders/orders.service.js`
+  with `authSubject: this.isUuid(user?.id) ? user.id : undefined`; public
+  `https://flipflop.alfares.cz/` and `/api/products?limit=1` returned HTTP 200;
+  `WRITE_AUTH_SUBJECT_SMOKE_REPORT=0 node scripts/smoke-orders-auth-subject.js`
+  failed closed with `mutation=false`, `providerCall=false`, ready deployment
+  preflight, and only approval/confirmation env blockers.
 
 Remaining gate:
 
