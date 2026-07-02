@@ -1304,6 +1304,102 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     };
   }
 
+
+  private stringArray(value: unknown): string[] {
+    return Array.isArray(value)
+      ? value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+      : [];
+  }
+
+  private holidayFailClosedReason(facts: Record<string, unknown> | null): string | undefined {
+    if (!facts) {
+      return 'catalog_facts_unavailable';
+    }
+    if (facts.schemaVersion !== HOLIDAY_DISCOUNT_SCHEMA_VERSION) {
+      return 'unsupported_schema_version';
+    }
+    if (facts.processId !== HOLIDAY_DISCOUNT_PROCESS_ID || Number(facts.processVersion) !== HOLIDAY_DISCOUNT_PROCESS_VERSION) {
+      return 'unsupported_process_version';
+    }
+    const blockers = this.stringArray(facts.blockers);
+    if (blockers.length > 0) {
+      return 'catalog_blockers_present';
+    }
+    const reasonCodes = this.stringArray(facts.reasonCodes);
+    if (reasonCodes.some((code) => code.includes('inactive') || code.includes('window'))) {
+      return 'inactive_or_closed_window';
+    }
+    const policyRefs = this.stringArray(facts.policyRefs);
+    if (!policyRefs.includes(HOLIDAY_DISCOUNT_POLICY_REF)) {
+      return 'missing_policy_ref';
+    }
+    if (facts.eligible !== true) {
+      return 'catalog_ineligible';
+    }
+    return undefined;
+  }
+
+  private uniqueStrings(values: string[]): string[] {
+    return Array.from(new Set(values.filter(Boolean)));
+  }
+
+  private async calculateHolidayDiscount(params: {
+    orderItems: CheckoutOrderItem[];
+  }): Promise<HolidayDiscountApplication> {
+    const lines: HolidayDiscountLineApplication[] = [];
+    const catalogItems = params.orderItems.filter((item) => Boolean(item.catalogProductId?.trim()));
+
+    for (const item of catalogItems) {
+      const catalogProductId = item.catalogProductId!.trim();
+      const facts = await this.catalogClient.getProductDiscountEligibility(catalogProductId);
+      const row = facts && typeof facts === 'object' && !Array.isArray(facts)
+        ? (facts as Record<string, unknown>)
+        : null;
+      const policyRefs = this.stringArray(row?.policyRefs);
+      const reasonCodes = this.stringArray(row?.reasonCodes);
+      const blockers = this.stringArray(row?.blockers);
+      const failClosedReason = this.holidayFailClosedReason(row);
+      const lineSubtotal = this.roundMoney(Number(item.totalPrice || 0));
+      const discountAmount = failClosedReason
+        ? 0
+        : Math.min(lineSubtotal, this.roundMoney(lineSubtotal * HOLIDAY_DISCOUNT_RATE));
+
+      lines.push({
+        productId: item.productId,
+        catalogProductId,
+        quantity: item.quantity,
+        lineSubtotal,
+        discountAmount,
+        eligible: !failClosedReason,
+        policyRefs,
+        reasonCodes,
+        blockers,
+        ...(failClosedReason ? { failClosedReason } : {}),
+      });
+    }
+
+    const discountAmount = this.roundMoney(lines.reduce((sum, line) => sum + line.discountAmount, 0));
+    const failClosedReason =
+      discountAmount > 0
+        ? undefined
+        : catalogItems.length === 0
+          ? 'no_catalog_product_lines'
+          : 'no_eligible_catalog_lines';
+
+    return {
+      source: HOLIDAY_DISCOUNT_SCHEMA_VERSION,
+      processId: HOLIDAY_DISCOUNT_PROCESS_ID,
+      processVersion: HOLIDAY_DISCOUNT_PROCESS_VERSION,
+      policyRefs: this.uniqueStrings(lines.flatMap((line) => line.policyRefs)),
+      reasonCodes: this.uniqueStrings(lines.flatMap((line) => line.reasonCodes)),
+      discountAmount,
+      currency: 'CZK',
+      applied: discountAmount > 0,
+      ...(failClosedReason ? { failClosedReason } : {}),
+      lines,
+    };
+  }
+
   private async calculateCheckoutDiscount(params: {
     orderItems: CheckoutOrderItem[];
     orderTotalBeforeDiscount: number;
@@ -1316,27 +1412,45 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     if (trimmedDiscountCode && bundleIntent) {
       throw new BadRequestException('Discount code cannot be combined with a bundle discount');
     }
-    if (trimmedDiscountCode) {
-      const validation = await this.discountService.validateCode(trimmedDiscountCode);
-      if (!validation.valid) {
-        throw new BadRequestException('Invalid or expired discount code');
-      }
-      const after = await this.discountService.applyDiscount(params.orderTotalBeforeDiscount, trimmedDiscountCode);
-      return {
-        discount: this.roundMoney(params.orderTotalBeforeDiscount - after),
-        pendingDiscountCode: this.discountService.normalizeCode(trimmedDiscountCode),
+    if (trimmedDiscountCode || bundleIntent) {
+      const holidayDiscount: HolidayDiscountApplication = {
+        source: HOLIDAY_DISCOUNT_SCHEMA_VERSION,
+        processId: HOLIDAY_DISCOUNT_PROCESS_ID,
+        processVersion: HOLIDAY_DISCOUNT_PROCESS_VERSION,
+        policyRefs: [],
+        reasonCodes: ['existing_discount_exclusive'],
+        discountAmount: 0,
+        currency: 'CZK',
+        applied: false,
+        failClosedReason: 'existing_discount_exclusive',
+        lines: [],
       };
+      if (trimmedDiscountCode) {
+        const validation = await this.discountService.validateCode(trimmedDiscountCode);
+        if (!validation.valid) {
+          throw new BadRequestException('Invalid or expired discount code');
+        }
+        const after = await this.discountService.applyDiscount(params.orderTotalBeforeDiscount, trimmedDiscountCode);
+        return {
+          discount: this.roundMoney(params.orderTotalBeforeDiscount - after),
+          pendingDiscountCode: this.discountService.normalizeCode(trimmedDiscountCode),
+          holidayDiscount,
+        };
+      }
+      if (bundleIntent) {
+        const bundleDiscount = await this.calculateBundleDiscount({
+          orderItems: params.orderItems,
+          orderTotalBeforeDiscount: params.orderTotalBeforeDiscount,
+          shippingCost: params.shippingCost,
+          bundleIntent,
+        });
+        return { discount: bundleDiscount.totalSavings, bundleDiscount, holidayDiscount };
+      }
     }
-    if (bundleIntent) {
-      const bundleDiscount = await this.calculateBundleDiscount({
-        orderItems: params.orderItems,
-        orderTotalBeforeDiscount: params.orderTotalBeforeDiscount,
-        shippingCost: params.shippingCost,
-        bundleIntent,
-      });
-      return { discount: bundleDiscount.totalSavings, bundleDiscount };
-    }
-    return { discount: 0 };
+    const holidayDiscount = await this.calculateHolidayDiscount({
+      orderItems: params.orderItems,
+    });
+    return { discount: holidayDiscount.discountAmount, holidayDiscount };
   }
 
   private buildBankTransferRedirect(order: any, total: number): string {
@@ -1747,6 +1861,9 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     if (discountApplication.bundleDiscount) {
       metadataValue.bundleDiscount = discountApplication.bundleDiscount;
     }
+    if (discountApplication.holidayDiscount) {
+      metadataValue.holidayDiscount = discountApplication.holidayDiscount;
+    }
     const metadata: Prisma.InputJsonValue | undefined = Object.keys(metadataValue).length > 0
       ? (metadataValue as Prisma.InputJsonValue)
       : undefined;
@@ -1939,6 +2056,9 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     }
     if (discountApplication.bundleDiscount) {
       metadataValue.bundleDiscount = discountApplication.bundleDiscount;
+    }
+    if (discountApplication.holidayDiscount) {
+      metadataValue.holidayDiscount = discountApplication.holidayDiscount;
     }
     const metadata = metadataValue as Prisma.InputJsonValue;
 

@@ -703,6 +703,7 @@ export class ProductsService {
   async getProductRecommendations(id: string) {
     const currentProduct = await this.getLocalRecommendationProduct(id);
     const catalogRelatedProducts = await this.getCatalogRelatedProducts(currentProduct, 8);
+    const catalogBundleProducts = await this.getCatalogBundleCandidateProducts(currentProduct, 3);
     const historyProducts = await this.getFrequentlyBoughtTogetherProducts(currentProduct.id, 8);
     const fallbackProducts = await this.getFallbackRelatedProducts(currentProduct, 8);
     const relatedProducts = this.uniqueProducts([
@@ -710,17 +711,23 @@ export class ProductsService {
       ...historyProducts,
       ...fallbackProducts,
     ], currentProduct.id).slice(0, 8);
-    const bundleCandidates = catalogRelatedProducts.length > 0
-      ? catalogRelatedProducts
-      : historyProducts.length > 0
-        ? historyProducts
-        : fallbackProducts;
+    const bundleCandidates = catalogBundleProducts.length > 1
+      ? catalogBundleProducts
+      : catalogRelatedProducts.length > 0
+        ? catalogRelatedProducts
+        : historyProducts.length > 0
+          ? historyProducts
+          : fallbackProducts;
     const recommendationSource: ProductRecommendationSource = catalogRelatedProducts.length > 0
       ? 'catalog_order_affinity'
       : historyProducts.length > 0
         ? 'purchase_history'
         : 'related_fallback';
-    const bundleProducts = this.uniqueProducts([currentProduct, ...bundleCandidates], currentProduct.id, true).slice(0, 3);
+    const bundleProducts = this.uniqueProducts(
+      catalogBundleProducts.length > 1 ? bundleCandidates : [currentProduct, ...bundleCandidates],
+      currentProduct.id,
+      true,
+    ).slice(0, 3);
     const bundle = this.buildRecommendationBundle(
       bundleProducts.length > 1 ? bundleProducts : [currentProduct, ...relatedProducts.slice(0, 1)],
       recommendationSource,
@@ -773,6 +780,69 @@ export class ProductsService {
     }
 
     return offer;
+  }
+
+  private async getCatalogBundleCandidateProducts(product: any, limit: number) {
+    if (!product?.catalogProductId) {
+      return [];
+    }
+
+    try {
+      const response = await this.catalogClient.getProductBundleCandidates(product.catalogProductId, {
+        limit,
+        freeShippingThreshold: FREE_SHIPPING_THRESHOLD_CZK,
+        currency: 'CZK',
+      });
+      const candidate = response?.candidates?.find((item: any) => (
+        Array.isArray(item?.productIds) &&
+        item.productIds.includes(product.catalogProductId) &&
+        item.productIds.length > 1
+      ));
+      const catalogProductIds = Array.from(new Set(
+        (candidate?.productIds || [])
+          .filter((id: unknown): id is string => typeof id === 'string' && id.trim().length > 0),
+      )).slice(0, limit);
+
+      if (catalogProductIds.length < 2) {
+        return [];
+      }
+
+      const targetCatalogIds = catalogProductIds.filter((catalogProductId) => catalogProductId !== product.catalogProductId);
+      const rows = targetCatalogIds.length > 0
+        ? await this.prisma.product.findMany({
+          where: {
+            catalogProductId: { in: targetCatalogIds },
+            isActive: true,
+          },
+          include: {
+            product_categories: {
+              include: { categories: true },
+            },
+            product_variants: true,
+          },
+        })
+        : [];
+      const offers = await Promise.all(rows.map((row: any) => this.catalogLinkedProductToOffer(row)));
+      const offerByCatalogId = new Map(
+        offers
+          .filter(Boolean)
+          .map((offer: any) => [offer.catalogProductId, offer]),
+      );
+      offerByCatalogId.set(product.catalogProductId, product);
+
+      return catalogProductIds
+        .map((catalogProductId) => offerByCatalogId.get(catalogProductId))
+        .filter(Boolean)
+        .slice(0, limit);
+    } catch (error: any) {
+      await this.logger.warn('Catalog bundle-candidates lookup failed; using recommendation fallback', {
+        context: 'ProductsService',
+        productId: product.id,
+        catalogProductId: product.catalogProductId,
+        reason: error?.message || 'unknown error',
+      });
+      return [];
+    }
   }
 
   private async getCatalogRelatedProducts(product: any, limit: number) {

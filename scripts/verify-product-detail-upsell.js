@@ -19,12 +19,14 @@ const orderService = read('services/order-service/src/orders/orders.service.ts')
 assert(productController.includes("@Get(':id/recommendations')"), 'product-service exposes public recommendations route');
 assert(productService.includes('getProductRecommendations'), 'product-service implements recommendation method');
 assert(catalogClient.includes('getRelatedProducts'), 'Catalog client reads Catalog related-products endpoint');
+assert(catalogClient.includes('getProductBundleCandidates'), 'Catalog client reads Catalog bundle-candidates endpoint');
 assert(catalogClient.includes('/api/products/${encodeURIComponent(productId)}/related'), 'Catalog client targets Catalog related-products route');
 assert(productService.includes('getCatalogRelatedProducts'), 'product-service prefers Catalog related-products when available');
 assert(productService.includes('catalog_order_affinity_then_purchase_history_then_category_fallback'), 'recommendation policy records Catalog relation precedence');
 assert(productService.includes('getFrequentlyBoughtTogetherProducts'), 'product-service reads aggregate purchase-history co-occurrence');
 assert(productService.includes("status: 'confirmed'"), 'purchase-history source is limited to confirmed orders');
 assert(productService.includes('getFallbackRelatedProducts'), 'product-service has deterministic fallback recommendations');
+assert(productService.includes('getCatalogBundleCandidateProducts'), 'product-service consumes Catalog bundle candidates before fallback bundles');
 assert(productService.includes('FREE_SHIPPING_THRESHOLD_CZK = 1000'), 'bundle savings uses owner-requested free-shipping threshold');
 assert(productService.includes('DEFAULT_SHIPPING_COST_CZK = 89'), 'bundle savings includes current default delivery cost assumption');
 assert(productService.includes('usesAi: false'), 'recommendation policy states AI is not used');

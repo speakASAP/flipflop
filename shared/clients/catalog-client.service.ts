@@ -85,6 +85,54 @@ export interface CatalogDiscountEligibilityFacts {
   [key: string]: unknown;
 }
 
+export interface CatalogBundleCandidateProduct {
+  productId: string;
+  sku?: string;
+  title?: string;
+  price?: {
+    amount: number;
+    currency: string;
+    source: 'sale' | 'base' | string;
+  } | null;
+}
+
+export interface CatalogBundleCandidate {
+  candidateId: string;
+  productIds: string[];
+  items: CatalogBundleCandidateProduct[];
+  relation?: {
+    relationId?: string;
+    relationType?: string;
+    source?: string;
+    score?: number;
+    confidence?: number;
+  };
+  pricing?: {
+    currency?: string;
+    subtotal?: number | null;
+    freeShippingThreshold?: number;
+    suggestedBundlePrice?: number | null;
+    topUpAmount?: number | null;
+    freeShippingEligible?: boolean;
+    blockers?: string[];
+  };
+}
+
+export interface CatalogBundleCandidateResponse {
+  sourceProductId: string;
+  relationType: string;
+  source: string;
+  freeShippingThreshold?: number;
+  candidates: CatalogBundleCandidate[];
+  blockers: string[];
+}
+
+export interface CatalogBundleCandidateQuery {
+  limit?: number;
+  freeShippingThreshold?: number;
+  currency?: string;
+}
+
 export interface CatalogProductQualityReviewQuery {
   page?: number;
   limit?: number;
@@ -259,6 +307,54 @@ export class CatalogClientService {
   }
   }
 
+
+  async getProductBundleCandidates(
+    productId: string,
+    query: CatalogBundleCandidateQuery = {},
+    options: CatalogProductRequestOptions = {},
+  ): Promise<CatalogBundleCandidateResponse | null> {
+    try {
+      const params = new URLSearchParams();
+      if (query.limit) params.append('limit', String(query.limit));
+      if (query.freeShippingThreshold !== undefined) {
+        params.append('freeShippingThreshold', String(query.freeShippingThreshold));
+      }
+      if (query.currency) params.append('currency', query.currency);
+      const queryString = params.toString();
+
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `${this.baseUrl}/api/products/${encodeURIComponent(productId)}/bundle-candidates${queryString ? `?${queryString}` : ''}`,
+          {
+            headers: this.catalogHeaders(
+              options.authorizationHeader ? { Authorization: options.authorizationHeader } : undefined,
+            ),
+          },
+        ),
+      );
+
+      const data = response.data?.data ?? response.data;
+      if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        return null;
+      }
+
+      return {
+        sourceProductId: String((data as any).sourceProductId || productId),
+        relationType: String((data as any).relationType || 'order_affinity'),
+        source: String((data as any).source || 'marketing_order_affinity'),
+        freeShippingThreshold: (data as any).freeShippingThreshold,
+        candidates: Array.isArray((data as any).candidates) ? (data as any).candidates : [],
+        blockers: Array.isArray((data as any).blockers) ? (data as any).blockers : [],
+      };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.warn(
+        `Catalog bundle candidates unavailable for product ${productId}: ${errorMessage}`,
+        'CatalogClient',
+      );
+      return null;
+    }
+  }
 
   async getProductDiscountEligibility(
     productId: string,
