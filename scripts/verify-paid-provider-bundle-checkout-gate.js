@@ -129,7 +129,7 @@ for (const [label, source] of [['paid/provider gate', gateGoal], ['implementatio
   assert(source.includes(checkoutCleanupOwnerMarker), `${label} missing checkout cleanup owner marker`);
 }
 assert(gateGoal.includes("runtime_progression: source-rollout-enabled-paid-provider-blocked"), "paid/provider gate must keep paid/provider runtime progression blocked after source rollout");
-assert(implementationState.includes("runtime paid/provider progression remains blocked") || implementationState.includes("paid/provider progression remains blocked") || implementationState.includes("paid/provider smoke remains blocked"), "state must preserve blocked paid/provider runtime progression");
+assert(implementationState.includes("runtime paid/provider progression is source-rollout-enabled but paid/provider smoke remains blocked"), "state must preserve blocked paid/provider smoke progression after source rollout");
 
 let defaultAuthSubjectSmoke;
 try {
