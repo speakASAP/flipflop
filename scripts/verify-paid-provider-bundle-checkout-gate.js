@@ -33,6 +33,7 @@ const paymentsRollbackPacketPath = '/home/ssf/Documents/Github/payments-microser
 const channelCleanupContractMarker = 'FLIPFLOP-GOAL24-CHANNEL-CLEANUP-CONTRACT';
 const channelCleanupPreparedMarker = '[RESOLVED/NARROWED: FlipFlop channel cleanup contract prepared for cart/session/local projection cleanup, idempotency, customer-visible hard stops, and redacted evidence policy; runtime remains blocked]';
 const approvalDraftMarker = 'FLIPFLOP-GOAL24-PAID-PROVIDER-SMOKE-APPROVAL-DRAFT';
+const approvedDiscountFixtureMarker = 'Owner-Approved Discount Fixture Narrowing';
 
 const baseRequiredBlockers = [
   paidProviderRuntimeBlocker,
@@ -183,8 +184,8 @@ for (const value of [
 }
 for (const value of [
   approvalDraftMarker,
-  'status: draft-no-runtime-authority',
-  'runtime_authority: none',
+  'status: draft-discount-fixture-approved-runtime-side-effects-still-gated',
+  'runtime_authority: owner-approved-discount-fixture-preflight-only',
   'GOAL24-PAID-PROVIDER-SMOKE-20260703-CODEX-OWNER-APPROVED-001',
   '919be990-1c76-4f9c-b100-829281c6a709',
   'paymentMethod=fiobanka',
@@ -204,6 +205,27 @@ for (const value of [
 ]) {
   assert(approvalDraft.includes(value), `approval draft missing ${value}`);
 }
+
+for (const value of [
+  approvedDiscountFixtureMarker,
+  'Direct client-provided `discount` is rejected',
+  'server-validated `discountCode`',
+  'fixed one-use discount code for `1698 CZK`',
+  'final checkout/payment amount `300 CZK`',
+  'JwtAuthGuard',
+  'RolesGuard',
+  'This approval does not authorize Catalog price mutation',
+]) {
+  assert(approvalDraft.includes(value), `approval draft missing approved discount fixture marker ${value}`);
+}
+assert(channelCleanupContract.includes('owner approved the discount/price fixture path'), 'channel cleanup contract missing owner-approved fixture update');
+assert(channelCleanupContract.includes('server-validated fixed discount-code fixture'), 'channel cleanup contract missing server-validated fixture constraint');
+assert(orchestratorStatus.includes('Owner approved Goal 24 discount/price fixture path'), 'orchestrator status missing owner-approved fixture update');
+assert(implementationState.includes('Owner approved Goal 24 discount/price fixture path'), 'implementation state missing owner-approved fixture update');
+assert(orderService.includes('Client-provided discount is not accepted without a server-validated contract'), 'order service must reject direct client discount');
+assert(orderService.includes('const after = await this.discountService.applyDiscount(params.orderTotalBeforeDiscount, trimmedDiscountCode)'), 'order service must apply server-validated discount code to authoritative total');
+assert(read('services/order-service/src/marketing/marketing.controller.ts').includes('@UseGuards(JwtAuthGuard, RolesGuard)'), 'discount code generation endpoint must remain guarded');
+
 for (const value of [
   '[RESOLVED/NARROWED: owner-approved stop-before-paid Fiobanka QR smoke executed and cleaned up]',
   '[RESOLVED/NARROWED: owner-confirmed manual Fiobanka refund was executed through the external refund service; FlipFlop acknowledgement path remains available for exact order marking]',
@@ -250,9 +272,9 @@ console.log(JSON.stringify({
     centralOrdersBundleEvidenceMapped: true,
     durableBundleIdMigration: 'source_rollout_enabled_paid_provider_blocked',
     channelCleanupContract: 'source_prepared_runtime_blocked',
-    approvalDraft: 'draft_no_runtime_authority',
+    approvalDraft: 'discount_fixture_approved_side_effects_gated',
     approvalDraftSelfDiscovery: 'refreshed_runtime_blocked',
-    amountGate: 'hard_stop_current_total_exceeds_approved_ceiling',
+    amountGate: 'owner_approved_server_validated_discount_fixture_to_300_czk',
     defaultAuthSubjectSmokeNonMutating: true,
   },
   blockers: requiredBlockers,

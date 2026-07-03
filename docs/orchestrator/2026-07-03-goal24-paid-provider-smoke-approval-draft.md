@@ -2,7 +2,7 @@
 
 ```yaml
 id: FLIPFLOP-GOAL24-PAID-PROVIDER-SMOKE-APPROVAL-DRAFT
-status: draft-no-runtime-authority
+status: draft-discount-fixture-approved-runtime-side-effects-still-gated
 owner: flipflop-channel-cleanup-owner
 created: 2026-07-03
 repository: /home/ssf/Documents/Github/flipflop
@@ -10,7 +10,7 @@ approval_source:
   upstream_catalog_approval_id: GOAL24-PAID-PROVIDER-SMOKE-20260703-CODEX-OWNER-APPROVED-001
   payments_packet: /home/ssf/Documents/Github/payments-microservice/docs/orchestrator/2026-07-03-goal24-owner-approved-rollback-packet.md
   channel_cleanup_contract: /home/ssf/Documents/Github/flipflop/docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md
-runtime_authority: none
+runtime_authority: owner-approved-discount-fixture-preflight-only
 ```
 
 ## Draft Status
@@ -54,7 +54,7 @@ Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding P
 - `[MISSING: renewed owner-approved execution window for Europe/Prague after 2026-07-03T23:59:59+02:00]`
 - `[MISSING: named runtime validation owner for the exact side-effectful smoke]`
 - `[MISSING: named FlipFlop channel cleanup executor]`
-- `[MISSING: owner confirmation that Fiobanka QR <= 300 CZK is still the selected provider/method/environment]`
+- `[RESOLVED/NARROWED: owner approved Fiobanka QR with checkout-authoritative total <= 300 CZK via server-validated discount/price fixture]`
 - `[MISSING: owner confirmation that target bundle 919be990-1c76-4f9c-b100-829281c6a709 and component products remain valid for live smoke]`
 - `[MISSING: owner-approved Warehouse stock hold/release window and max quantity for the exact run]`
 - `[MISSING: deterministic Warehouse component reservation lookup and cleanup operation for every component line]`
@@ -123,6 +123,23 @@ Sanitized preflight evidence:
 Decision: do not create live checkout, order, Fiobanka QR, provider payment row, Warehouse reservation, Orders record, channel cleanup, discount override, price mutation, or manual workaround. A new exact linked paid flow requires either an owner-approved target/amount change, an approved discount/price fixture contract, or a different active target whose checkout-authoritative total is `<= 300 CZK`.
 
 
+## 2026-07-03 Owner-Approved Discount Fixture Narrowing
+
+Owner approved the `discount/price fixture` path for the Goal 24 exact linked paid/provider smoke with a checkout-authoritative total `<= 300 CZK`.
+
+Source inspection narrowed the safe fixture path:
+
+- Direct client-provided `discount` is rejected by `rejectUnsafeClientMoneyInputs` with `Client-provided discount is not accepted without a server-validated contract`.
+- The supported fixture path is a server-validated `discountCode` handled by `DiscountService.validateCode` and `DiscountService.applyDiscount`.
+- The admin generation endpoint is guarded by `JwtAuthGuard`, `RolesGuard`, and roles `global:superadmin` or `app:flipflop-service:admin`.
+- Current target component total remains `1998 CZK`.
+- Approved deterministic fixture amount is a fixed one-use discount code for `1698 CZK`, producing final checkout/payment amount `300 CZK`.
+- The fixture must be recorded with Goal 24 correlation, maxUses `1`, and a short expiration window.
+- This approval does not authorize Catalog price mutation, marketplace/feed/listing mutation, persistent product price changes, direct DB row edits, or direct client `discount` override.
+
+Runtime authority remains bounded to one exact attempt only after the executor can use the guarded server-validated discount-code path without printing secrets/tokens/raw customer/order/payment/provider data.
+
+
 ## Proposed Final Approval Statement
 
 The owner must replace this section with an explicit signed statement before any runtime execution:
@@ -137,7 +154,7 @@ I understand this authorizes only the named bounded attempt. The executor must s
 
 - The approval window is expired or missing.
 - Any required owner decision remains `[MISSING: ...]`.
-- The selected provider/method/environment differs from Fiobanka QR `<= 300 CZK` without a new owner-approved packet.
+- The selected provider/method/environment differs from Fiobanka QR `<= 300 CZK`, or the amount is reduced by any path other than the owner-approved server-validated fixed discount-code fixture, without a new owner-approved packet.
 - The target bundle, component products, quantities, or Warehouse id differ from this draft.
 - Payments receives a non-central or legacy local order id.
 - Provider success or rollback proof requires raw provider payloads, raw payment ids, bank data, token values, customer data, or raw DB rows.

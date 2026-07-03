@@ -56,6 +56,23 @@ For a future owner-approved paid/provider smoke, FlipFlop/channel owns only cust
 7. Idempotency: cleanup must be keyed by the central Orders UUID plus non-secret approval id or smoke correlation id. Re-running cleanup must not duplicate customer-visible messages, delete unrelated carts/sessions, or reissue provider/Orders/Warehouse actions.
 8. Evidence redaction: allowed evidence is booleans, counts, hashes, HTTP status classes, route names, contract ids, approval id, and timestamps. Forbidden evidence includes tokens, secrets, raw provider payloads, card/bank data, raw customer identifiers, raw order ids, raw payment ids, raw DB rows, cookies, or full request/response bodies.
 
+## 2026-07-03 Owner-Approved Discount Fixture Narrowing
+
+Owner approved the `discount/price fixture` path for the Goal 24 exact linked paid/provider smoke with a checkout-authoritative total `<= 300 CZK`.
+
+Source inspection narrowed the safe fixture path:
+
+- Direct client-provided `discount` is rejected by `rejectUnsafeClientMoneyInputs` with `Client-provided discount is not accepted without a server-validated contract`.
+- The supported fixture path is a server-validated `discountCode` handled by `DiscountService.validateCode` and `DiscountService.applyDiscount`.
+- The admin generation endpoint is guarded by `JwtAuthGuard`, `RolesGuard`, and roles `global:superadmin` or `app:flipflop-service:admin`.
+- Current target component total remains `1998 CZK`.
+- Approved deterministic fixture amount is a fixed one-use discount code for `1698 CZK`, producing final checkout/payment amount `300 CZK`.
+- The fixture must be recorded with Goal 24 correlation, maxUses `1`, and a short expiration window.
+- This approval does not authorize Catalog price mutation, marketplace/feed/listing mutation, persistent product price changes, direct DB row edits, or direct client `discount` override.
+
+Runtime authority remains bounded to one exact attempt only after the executor can use the guarded server-validated discount-code path without printing secrets/tokens/raw customer/order/payment/provider data.
+
+
 ## Hard Stops
 
 - `[MISSING: owner-approved paid/provider checkout smoke packet naming FlipFlop channel cleanup executor and runtime validation owner]`
@@ -126,4 +143,4 @@ Sanitized preflight evidence:
 - approved Fiobanka amount ceiling: `300 CZK`.
 - result: `[HARD-STOP: current target component total is 1998 CZK, exceeding approved Fiobanka paid/provider smoke maximum 300 CZK]`.
 
-Decision: do not create live checkout, order, Fiobanka QR, provider payment row, Warehouse reservation, Orders record, channel cleanup, discount override, price mutation, or manual workaround. A new exact linked paid flow requires either an owner-approved target/amount change, an approved discount/price fixture contract, or a different active target whose checkout-authoritative total is `<= 300 CZK`.
+Decision update: owner approved the discount/price fixture path. Runtime must use only a server-validated fixed discount-code fixture that brings the checkout-authoritative total to `<= 300 CZK`; direct client `discount`, Catalog price mutation, marketplace/feed/listing mutation, persistent product price changes, direct DB row edits, and manual workaround remain forbidden.
