@@ -143,6 +143,11 @@ assert(channelCleanupContract.includes('[RESOLVED/NARROWED: owner-confirmed manu
 assert(channelCleanupContract.includes('[MISSING: sanitized exact-order linkage between the manual refund confirmation and the Goal 24 completed Fiobanka smoke order]'), 'channel cleanup contract missing exact-order linkage blocker');
 assert(channelCleanupContract.includes('[MISSING: FlipFlop runtime readback showing the exact smoke order acknowledged as status=refunded and paymentStatus=refunded after manual refund]'), 'channel cleanup contract missing runtime refunded acknowledgement readback blocker');
 assert(channelCleanupContract.includes('[RESOLVED/NARROWED: sanitized runtime readback found completed Fiobanka provider-payment evidence but no FlipFlop exact-order linkage for the retained Goal 24 payment]'), 'channel cleanup contract missing sanitized no-linkage readback marker');
+assert(channelCleanupContract.includes('[RESOLVED: owner accepted owner-confirmed manual Fiobanka refund as sufficient Goal 24 closeout without exact FlipFlop order linkage]'), 'channel cleanup contract missing owner accepted no-linkage closeout marker');
+assert(channelCleanupContract.includes('[RESOLVED/NARROWED: runtime readback found no linked FlipFlop order state, so no FlipFlop refunded acknowledgement mutation is required for this evidence-only closeout]'), 'channel cleanup contract missing no FlipFlop mutation required marker');
+assert(channelCleanupContract.includes('[RESOLVED/NARROWED: runtime readback found no linked central Orders or FlipFlop state, so no Orders/Warehouse post-paid correction is required for this evidence-only closeout]'), 'channel cleanup contract missing no Orders/Warehouse correction required marker');
+assert(orchestratorStatus.includes('[RESOLVED: owner accepted owner-confirmed manual Fiobanka refund as sufficient Goal 24 closeout without exact FlipFlop order linkage]'), 'orchestratorStatus missing owner accepted no-linkage closeout marker');
+assert(implementationState.includes('[RESOLVED: owner accepted owner-confirmed manual Fiobanka refund as sufficient Goal 24 closeout without exact FlipFlop order linkage]'), 'implementationState missing owner accepted no-linkage closeout marker');
 assert(channelCleanupContract.includes('[MISSING: sanitized exact-order linkage between the manual refund confirmation and a completed Goal 24 paid-smoke FlipFlop order]'), 'channel cleanup contract missing exact paid-smoke FlipFlop order linkage blocker');
 assert(channelCleanupContract.includes('[MISSING: FlipFlop runtime readback showing an exact linked smoke order acknowledged as status=refunded and paymentStatus=refunded after manual refund]'), 'channel cleanup contract missing exact linked refunded acknowledgement blocker');
 assert(orchestratorStatus.includes('[RESOLVED/NARROWED: sanitized runtime readback found completed Fiobanka provider-payment evidence but no FlipFlop exact-order linkage for the retained Goal 24 payment]'), 'orchestratorStatus missing sanitized no-linkage readback marker');
@@ -207,6 +212,9 @@ for (const value of [
   '[RESOLVED/NARROWED: Orders source accepts sanitized approval.idempotencyKey and persists statusTransitionAudit]',
   '[RESOLVED/NARROWED: Warehouse operation-selection matrix exists for release/cancel/return by component-line state]',
   '[MISSING: sanitized exact-order linkage between the manual refund confirmation and the Goal 24 completed Fiobanka smoke order]',
+  '[RESOLVED: owner accepted owner-confirmed manual Fiobanka refund as sufficient Goal 24 closeout without exact FlipFlop order linkage]',
+  '[RESOLVED/NARROWED: runtime readback found no linked FlipFlop order state, so no FlipFlop refunded acknowledgement mutation is required for this evidence-only closeout]',
+  '[RESOLVED/NARROWED: runtime readback found no linked central Orders or FlipFlop state, so no Orders/Warehouse post-paid correction is required for this evidence-only closeout]',
   '[MISSING: owner-approved post-paid Orders/Warehouse correction packet for the exact completed payment state]',
 ]) {
   assert(approvalDraft.includes(value), `approval draft self-discovery missing ${value}`);

@@ -93,6 +93,9 @@ Strict blockers still open:
 - `[MISSING: sanitized exact-order linkage between the manual refund confirmation and the Goal 24 completed Fiobanka smoke order]`.
 - `[MISSING: FlipFlop runtime readback showing the exact smoke order acknowledged as status=refunded and paymentStatus=refunded after manual refund]`.
 - `[MISSING: owner-approved post-paid Orders/Warehouse correction packet for the exact completed payment state]`.
+- `[RESOLVED: owner accepted owner-confirmed manual Fiobanka refund as sufficient Goal 24 closeout without exact FlipFlop order linkage]` for the retained evidence closeout only.
+- `[RESOLVED/NARROWED: runtime readback found no linked FlipFlop order state, so no FlipFlop refunded acknowledgement mutation is required for this evidence-only closeout]` for the retained evidence closeout only.
+- `[RESOLVED/NARROWED: runtime readback found no linked central Orders or FlipFlop state, so no Orders/Warehouse post-paid correction is required for this evidence-only closeout]` for the retained evidence closeout only.
 - `[MISSING: named Orders cancellation actor/approvedBy for Goal 24 paid/provider cleanup]`.
 - `[MISSING: migration/deploy approval for persisted Orders cleanup idempotency key]`.
 - `[MISSING: approved Orders cleanup idempotency execution path and exact sanitized key for the run]`.
