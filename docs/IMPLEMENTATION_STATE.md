@@ -30,7 +30,8 @@ Blockers retained:
 - `[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]`
 - `[MISSING: Warehouse stock decrement/reservation-release evidence for every bundle component line]`
 - `[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]`
-- `[MISSING: explicit ecosystem checkout migration accepting durable Catalog bundleId]`
+- `[RESOLVED/NARROWED: explicit ecosystem checkout migration accepts durable Catalog bundleId only as bounded bundleEvidence metadata; FlipFlop runtime checkout submission remains blocked]`
+- `[MISSING: owner-approved FlipFlop source rollout mapping display-only catalog.bundle.v1 bundleId into Orders bundleEvidence without changing totals, stock identity, or provider state]`
 
 Parallel execution section:
 
@@ -98,7 +99,7 @@ IPS chain:
 
 Boundaries preserved: no live order, checkout submission change, payment/provider call, stock reservation/decrement, Catalog/Orders/Warehouse/Payments edit, marketplace publication, migration, deploy, Kubernetes, secret/config, or customer/provider data exposure.
 
-Remaining gates: `[MISSING: owner-approved Catalog bundle aggregate runtime read for FlipFlop]`, `[MISSING: explicit ecosystem checkout migration accepting durable Catalog bundleId]`, `[MISSING: owner-approved Rung 1 non-mutating real checkout smoke credentials and target products]`.
+Remaining gates: `[MISSING: owner-approved Catalog bundle aggregate runtime read for FlipFlop]`, `[RESOLVED/NARROWED: explicit ecosystem checkout migration accepts durable Catalog bundleId only as bounded bundleEvidence metadata; FlipFlop runtime checkout submission remains blocked]`, `[MISSING: owner-approved Rung 1 non-mutating real checkout smoke credentials and target products]`.
 
 ## 2026-07-03 - Catalog Goal 24 FlipFlop Protected Replay Endpoint
 

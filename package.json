@@ -32,7 +32,8 @@
     "verify:flipflop-affinity-replay-export": "node scripts/verify-flipflop-affinity-replay-export.js",
     "smoke:auth-wallet-browser-session": "node scripts/smoke-auth-wallet-browser-session.js",
     "verify:paid-provider-bundle-checkout-gate": "node scripts/verify-paid-provider-bundle-checkout-gate.js",
-    "verify:auth-wallet-order-snapshot-gate": "node scripts/verify-auth-wallet-order-snapshot-gate.js"
+    "verify:auth-wallet-order-snapshot-gate": "node scripts/verify-auth-wallet-order-snapshot-gate.js",
+    "verify:catalog-bundleid-checkout-migration": "node scripts/verify-catalog-bundleid-checkout-migration.js"
   },
   "dependencies": {
     "@nestjs-modules/ioredis": "^2.2.1",
