@@ -25,6 +25,11 @@ Producer shape:
 
 Boundaries preserved: no live replay run, no public endpoint, no checkout/payment/provider/order/stock mutation, no Warehouse/Catalog/Marketing source change, no Kubernetes/deploy/secrets change, and no customer/address/payment/provider/raw checkout data exposure.
 
+Runtime smoke update (2026-07-03): deployed `flipflop-order-service` now serves the protected replay endpoint. In-pod dry-run probe `GET /internal/orders/order-affinity/replay-candidates?dryRun=true&limit=20` with the runtime-projected internal key returned HTTP 200, `success=true`, `sourceOwner=flipflop-service`, `consumerOwner=marketing-microservice`, `contract=marketplace.order_affinity_replay_candidates.v1`, `channel=flipflop`, `count=1`, `eventCount=1`, diagnostics `scannedOrders=1`, `eligibleOrders=1`, `skippedOrders=0`, `mappedCatalogProductCount=2`, `distinctCatalogProductCount=2`, `unmappedLineCount=0`, and `emittedItemCount=2`. Evidence is aggregate-only; no token values, raw order identifiers, customer/contact/address/payment/provider data, raw payloads, event item payloads, or Catalog relation payloads were printed.
+
+Resolved gate: `[RESOLVED: deployed FlipFlop replay endpoint/runtime smoke]`.
+Remaining gate: `[MISSING: owner-approved FlipFlop marketplace replay activation policy]` remains separate from endpoint readiness; the Marketing contract still records FlipFlop protected replay runtime use as blocked until owner-approved source/window scheduling or activation policy exists.
+
 Parallel execution section:
 
 - W1 FlipFlop replay endpoint: complete in current branch; owner role this worker; allowed files are order-service internal route/service, verifier, package script, and TASK-006 IPS docs.
