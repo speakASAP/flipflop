@@ -14,7 +14,9 @@ const guestCart = read('services/frontend/lib/guest-cart.ts');
 const checkoutPage = read('services/frontend/app/checkout/page.tsx');
 const adoptionGoal = read('implementation-goals/GOAL-24-catalog-bundle-adoption.md');
 const gateGoal = read('implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md');
+const channelCleanupContract = read('docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md');
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
+const orchestratorStatus = read('docs/orchestrator/STATUS.md');
 const migrationGoal = read('implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md');
 
 
@@ -24,14 +26,27 @@ const centralOrdersUuidProofMarker = '[RESOLVED: active FlipFlop checkout paths 
 const channelSmokeOwnerMarker = '[RESOLVED/NARROWED: FlipFlop checkout owner owns initiation packet for any future paid catalog.bundle.v1 runtime smoke; execution remains owner-approval gated]';
 const checkoutCleanupOwnerMarker = '[RESOLVED/NARROWED: FlipFlop checkout cleanup owner owns customer-visible session/cart/local projection cleanup policy; live cleanup evidence remains approval-gated]';
 const paidProviderRuntimeBlocker = '[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]';
+const paymentsRollbackPacketPath = '/home/ssf/Documents/Github/payments-microservice/docs/orchestrator/2026-07-03-goal24-owner-approved-rollback-packet.md';
+const channelCleanupContractMarker = 'FLIPFLOP-GOAL24-CHANNEL-CLEANUP-CONTRACT';
+const channelCleanupPreparedMarker = '[RESOLVED/NARROWED: FlipFlop channel cleanup contract prepared for cart/session/local projection cleanup, idempotency, customer-visible hard stops, and redacted evidence policy; runtime remains blocked]';
 
-const requiredBlockers = [
+const baseRequiredBlockers = [
   paidProviderRuntimeBlocker,
   '[MISSING: owner-approved paid/provider test window, non-secret approval id, target active catalog.bundle.v1 bundle id, provider method, and sanitized evidence policy]',
   '[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]',
   '[MISSING: Warehouse stock decrement/reservation-release evidence for every bundle component line]',
   '[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]',
 ];
+
+const channelRequiredBlockers = [
+  '[MISSING: owner-approved paid/provider checkout smoke packet naming FlipFlop channel cleanup executor and runtime validation owner]',
+  '[MISSING: provider rollback proof from Payments before customer-visible success or completed cleanup]',
+  '[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]',
+  '[MISSING: deterministic Warehouse component reservation state and approved cleanup operation before customer-visible stock/restored messaging]',
+  '[MISSING: sanitized evidence path for required channel cleanup proof]',
+];
+
+const requiredBlockers = [...baseRequiredBlockers, ...channelRequiredBlockers];
 
 function includesAll(source, values, label) {
   for (const value of values) {
@@ -116,7 +131,7 @@ assert(guestCart.includes('bundleId?: string'), 'guest cart must carry durable C
 assert(checkoutPage.includes('catalogCandidateId: bundleIntent.catalogCandidateId'), 'checkout submits Catalog candidate id as provenance only');
 assert(checkoutPage.includes('bundleId: bundleIntent.bundleId'), 'checkout submits durable Catalog bundleId as bounded intent evidence');
 
-includesAll(adoptionGoal, requiredBlockers, 'GOAL-24 catalog bundle adoption doc');
+includesAll(adoptionGoal, baseRequiredBlockers, 'GOAL-24 catalog bundle adoption doc');
 includesAll(gateGoal, requiredBlockers, 'GOAL-24 paid/provider gate doc');
 includesAll(implementationState, requiredBlockers, 'implementation state');
 for (const [label, source] of [['migration goal', migrationGoal], ['adoption goal', adoptionGoal], ['paid/provider gate', gateGoal], ['implementation state', implementationState]]) {
@@ -127,6 +142,22 @@ for (const [label, source] of [['paid/provider gate', gateGoal], ['implementatio
   assert(source.includes(centralOrdersUuidProofMarker), `${label} missing central Orders UUID proof marker`);
   assert(source.includes(channelSmokeOwnerMarker), `${label} missing channel smoke owner marker`);
   assert(source.includes(checkoutCleanupOwnerMarker), `${label} missing checkout cleanup owner marker`);
+}
+for (const [label, source] of [['channel cleanup contract', channelCleanupContract], ['paid/provider gate', gateGoal], ['implementation state', implementationState], ['orchestrator status', orchestratorStatus]]) {
+  assert(source.includes(channelCleanupContractMarker), `${label} missing channel cleanup contract marker`);
+  assert(source.includes(paymentsRollbackPacketPath), `${label} missing Payments rollback packet path`);
+  assert(source.includes(channelCleanupPreparedMarker), `${label} missing channel cleanup prepared marker`);
+  includesAll(source, channelRequiredBlockers, label);
+}
+for (const value of [
+  'central Orders UUID',
+  'cart/session/local projection cleanup',
+  'sideEffectsHandled.channel=true',
+  'central Orders UUID plus non-secret approval id or smoke correlation id',
+  'booleans, counts, hashes, HTTP status classes, route names, contract ids, approval id, and timestamps',
+  'Forbidden evidence includes tokens, secrets, raw provider payloads, card/bank data, raw customer identifiers, raw order ids, raw payment ids, raw DB rows, cookies, or full request/response bodies',
+]) {
+  assert(channelCleanupContract.includes(value), `channel cleanup contract missing ${value}`);
 }
 assert(gateGoal.includes("runtime_progression: source-rollout-enabled-paid-provider-blocked"), "paid/provider gate must keep paid/provider runtime progression blocked after source rollout");
 assert(implementationState.includes("runtime paid/provider progression is source-rollout-enabled but paid/provider smoke remains blocked"), "state must preserve blocked paid/provider smoke progression after source rollout");
@@ -157,6 +188,7 @@ console.log(JSON.stringify({
     catalogBundleIdCheckoutAuthority: 'bounded_evidence_only',
     centralOrdersBundleEvidenceMapped: true,
     durableBundleIdMigration: 'source_rollout_enabled_paid_provider_blocked',
+    channelCleanupContract: 'source_prepared_runtime_blocked',
     defaultAuthSubjectSmokeNonMutating: true,
   },
   blockers: requiredBlockers,

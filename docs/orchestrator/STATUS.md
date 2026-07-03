@@ -1,3 +1,44 @@
+## 2026-07-03 - Goal 24 Channel Cleanup Contract Prepared
+
+Status: source-prepared, runtime paid/provider progression blocked.
+
+Intent Preservation Chain:
+
+- Vision: paid/provider `catalog.bundle.v1` validation can run only when customer-visible channel state, central Orders identity, provider rollback, Orders cleanup, Warehouse cleanup, and evidence redaction are owned before side effects.
+- Goal Impact: FlipFlop/channel now has a source-only cleanup contract for cart/session/local projection cleanup, idempotency, customer-visible hard stops, and redacted evidence policy.
+- System: FlipFlop checkout state, central Orders UUID, Payments provider rollback boundary, Orders cancellation workflow, Warehouse component-line lifecycle, and Catalog bundle identity.
+- Feature: Goal 24 channel cleanup contract for future paid/provider smoke.
+- Task: consume Payments rollback packet `/home/ssf/Documents/Github/payments-microservice/docs/orchestrator/2026-07-03-goal24-owner-approved-rollback-packet.md`, Orders cleanup readiness, and Warehouse cleanup approval packet, then record channel-owned cleanup duties without runtime effects.
+- Execution Plan: docs/verifier/state only; no live checkout, provider call, refund/cancel, Orders mutation, Warehouse mutation, marketplace mutation, deploy, migration, secret read, database write, or raw evidence capture.
+- Coding Prompt: fail closed; preserve `[MISSING: ...]` blockers and do not infer provider rollback, Orders cancellation, or Warehouse stock effects from FlipFlop local checkout state.
+- Code: `docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md` (`FLIPFLOP-GOAL24-CHANNEL-CLEANUP-CONTRACT`), `scripts/verify-paid-provider-bundle-checkout-gate.js`, `implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md`, and this status entry.
+- Validation: `npm run verify:paid-provider-bundle-checkout-gate`, `node --check scripts/verify-paid-provider-bundle-checkout-gate.js`, and `git diff --check`.
+- State Update: `[RESOLVED/NARROWED: FlipFlop channel cleanup contract prepared for cart/session/local projection cleanup, idempotency, customer-visible hard stops, and redacted evidence policy; runtime remains blocked]`
+
+Resolved/narrowed blockers:
+
+- `[RESOLVED/NARROWED: FlipFlop channel cleanup contract prepared for cart/session/local projection cleanup, idempotency, customer-visible hard stops, and redacted evidence policy; runtime remains blocked]`
+
+Remaining blockers:
+
+- `[MISSING: owner-approved paid/provider checkout smoke packet naming FlipFlop channel cleanup executor and runtime validation owner]`
+- `[MISSING: provider rollback proof from Payments before customer-visible success or completed cleanup]`
+- `[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]`
+- `[MISSING: deterministic Warehouse component reservation state and approved cleanup operation before customer-visible stock/restored messaging]`
+- `[MISSING: sanitized evidence path for required channel cleanup proof]`
+
+Parallel execution section:
+
+| Workstream | Status | Owner role | Scope | Dependencies | Blockers | Validation owner | Merge order |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Channel cleanup contract | complete-source-only | FlipFlop channel cleanup owner | cart/session/local projection cleanup, idempotency, hard stops, redacted evidence | Payments/Orders/Warehouse packets | none for source docs | FlipFlop checkout readiness worker | after Payments/Orders/Warehouse packets |
+| Runtime channel cleanup | dependency-gated | FlipFlop checkout owner | execute customer-visible cleanup only after approved smoke packet | owner-approved runtime packet and provider/Orders/Warehouse proof | `[MISSING: runtime validation owner]` | runtime validation owner | before final integration closeout |
+| Final paid/provider smoke | final integration | `[MISSING: runtime validation owner]` | one bounded smoke and rollback evidence | all owner packets complete | all remaining blockers above | integration validator | last |
+
+Shared contracts: Catalog `catalog.bundle.v1`, central Orders UUID, Payments provider/refund boundary, Orders cancellation workflow, Warehouse component-line lifecycle, and FlipFlop customer-visible checkout state.
+
+Next action: keep paid/provider runtime smoke blocked until provider rollback proof, Orders/Warehouse cleanup approvals, channel cleanup executor, sanitized evidence path, and runtime validation owner are all present.
+
 ## 2026-07-03 - Goal 24 Checkout UUID And Cleanup Ownership Gate
 
 Status: source-policy validated, runtime paid/provider progression blocked.
