@@ -30,3 +30,10 @@ live_checkout_executed: false
 ## Decision
 
 Stop before creating a discount code, order, payment, provider call, Warehouse reservation, Orders mutation, or channel cleanup. The owner-approved fixture contract remains valid as source/docs/verifier state, but runtime execution needs the missing actor/window/token-handling path above.
+
+
+## 2026-07-04 Supersession
+
+[RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]
+
+The original missing owner/channel-executor markers in this report are historical pre-autonomy evidence only. Current runtime side effects remain blocked by Auth admin actor/token source, Payments/provider bank/refund authority, exact payment/order/provider identities, Orders/Warehouse packets, and final redacted evidence path.

@@ -82,3 +82,10 @@ Shared contracts: Catalog `catalog.bundle.v1`, central Orders UUID, Payments cre
 ## Decision
 
 No bounded paid/provider smoke was run. Secret retrieval alone is not a safe runtime path because the blocker is the missing named admin actor/token-handling path and missing cross-service rollback/cleanup evidence packet, not merely access to a secret value. Runtime remains blocked before discount code creation, checkout, order, payment, provider call, Warehouse reservation, Orders mutation, channel cleanup, deploy, migration, or raw evidence capture.
+
+
+## 2026-07-04 Supersession
+
+[RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]
+
+The original missing owner/channel-executor markers in this report are historical pre-autonomy evidence only. Current runtime side effects remain blocked by Auth admin actor/token source, Payments/provider bank/refund authority, exact payment/order/provider identities, Orders/Warehouse packets, and final redacted evidence path.

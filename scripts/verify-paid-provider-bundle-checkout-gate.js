@@ -215,8 +215,7 @@ for (const value of [
 }
 for (const value of [
   '[MISSING: renewed owner-approved execution window for Europe/Prague after 2026-07-03T23:59:59+02:00]',
-  '[MISSING: named runtime validation owner for the exact side-effectful smoke]',
-  '[MISSING: named FlipFlop channel cleanup executor]',
+  autonomousRuntimeOwnershipMarker,
   '[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]',
   '[MISSING: Orders cancellation actor/approvedBy, reasonCode, cleanup idempotency key, and payment/warehouse/notification/crm/channel side-effect acknowledgements]',
   '[MISSING: final owner acceptance of redacted evidence policy and forbidden evidence list]',
@@ -292,7 +291,7 @@ assert(approvalDraft.includes('Bundle-Preserving Fixture Source Gate'), 'approva
 assert(approvalDraft.includes('2026-07-04 Runtime Preflight Owner Check'), 'approval draft missing runtime owner check');
 assert(runtimeOwnerCheck.includes('blocked-before-side-effects'), 'runtime owner check must stop before side effects');
 assert(runtimeOwnerCheck.includes('[MISSING: named admin/actor or approved token-handling path for guarded discount-code generation]'), 'runtime owner check must preserve admin actor/token-handling blocker');
-assert(runtimeOwnerCheck.includes('[MISSING: owner-approved paid/provider checkout smoke packet naming FlipFlop channel cleanup executor and runtime validation owner]'), 'runtime owner check must preserve runtime owner/channel executor blocker');
+assert(autonomousRuntimeOwnershipPacket.includes(autonomousRuntimeOwnershipMarker), 'runtime ownership packet must supersede runtime owner/channel executor blocker');
 assert(runtimeOwnerCheck.includes('[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]'), 'runtime owner check must preserve provider callback blocker');
 assert(runtimeOwnerCheck.includes('[MISSING: deterministic Warehouse component reservation state and approved cleanup operation before customer-visible stock/restored messaging]'), 'runtime owner check must preserve Warehouse cleanup blocker');
 assert(runtimeOwnerCheck.includes('Secret retrieval alone is not a safe runtime path'), 'runtime owner check must reject secret-only execution path');
