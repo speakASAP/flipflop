@@ -1,5 +1,28 @@
 # Implementation State
 
+## 2026-07-03 - Catalog Goal 24 FlipFlop Affinity Eligibility Mapping
+
+Objective: resolve `[MISSING: FlipFlop paid multi-product replay eligibility mapping]` for Catalog Goal 24 marketplace-affinity replay without adding a live replay endpoint or mutating checkout/order/payment/stock state.
+
+IPS chain:
+
+- Vision: FlipFlop remains a safe revenue-capable storefront using shared Catalog, Orders, Warehouse, and Payments services.
+- Goal Impact: Catalog Goal 24 now has a FlipFlop-owned paid multi-product eligibility mapping instead of an unknown marketplace blocker.
+- System: FlipFlop order-service owns local order state and product-to-Catalog mapping; Marketing remains replay aggregation owner; Catalog remains relation metadata owner.
+- Feature: Marketplace-affinity replay readiness for FlipFlop local order history.
+- Task: `TASK-005-FLIPFLOP-AFFINITY-REPLAY-ELIGIBILITY`.
+- Execution Plan: `21_execution_plans/EP-TASK-005-flipflop-affinity-replay-eligibility.md`.
+- Coding Prompt: `14_prompts/PROMPT-TASK-005-flipflop-affinity-replay-eligibility.md`.
+- Code: `services/order-service/src/orders/affinity-replay-eligibility.ts`, `scripts/verify-flipflop-affinity-eligibility.js`, and package verifier wiring.
+- Validation: `npm run verify:flipflop-affinity-eligibility`, `git diff --check`, and `cd services/order-service && npm run build` passed; IPS gates passed before and after edits.
+
+Mapping: eligible candidates require `paymentStatus=paid`, `status` in `confirmed`, `processing`, `shipped`, or `delivered`, and at least two distinct mapped Catalog product ids after unmapped lines are excluded. `pending`, `cancelled`, `refunded`, non-paid, empty, unmapped-only, and single-distinct-Catalog-product orders fail closed.
+
+Boundaries preserved: no replay endpoint, no live export, no checkout/payment/provider/order/stock mutation, no Kubernetes/deploy/secrets change, and no customer/address/payment/provider/raw checkout data exposure.
+
+Remaining gates: `[MISSING: FlipFlop protected replay endpoint or owner-run CLI export for marketplace.order_affinity_replay_candidates.v1]`, `[MISSING: Marketing parser support for marketplace-owned replay source envelopes]`, `[MISSING: durable Marketing backfill run ledger and idempotency key registry]`, `[MISSING: owner-approved dry-run window before live FlipFlop replay execution]`.
+
+
 ## Current Status
 
 ## 2026-07-03 - Auth Wallet Checkout/Profile Smoke Harness

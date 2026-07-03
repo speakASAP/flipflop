@@ -66,6 +66,21 @@ nodes:
   - id: VAL-TASK-004-catalog-product-quality-review-consumer
     type: ValidationReport
     path: ../12_validation/VAL-TASK-004-catalog-product-quality-review-consumer.md
+  - id: TASK-005
+    type: Task
+    path: ../11_tasks/TASK-005-flipflop-affinity-replay-eligibility.md
+  - id: EP-TASK-005
+    type: ExecutionPlan
+    path: ../21_execution_plans/EP-TASK-005-flipflop-affinity-replay-eligibility.md
+  - id: CP-TASK-005-flipflop-affinity-replay-eligibility
+    type: ContextPackage
+    path: ../13_context_packages/CP-TASK-005-flipflop-affinity-replay-eligibility.md
+  - id: PROMPT-TASK-005-flipflop-affinity-replay-eligibility
+    type: CodingPrompt
+    path: ../14_prompts/PROMPT-TASK-005-flipflop-affinity-replay-eligibility.md
+  - id: VAL-TASK-005-flipflop-affinity-replay-eligibility
+    type: ValidationReport
+    path: ../12_validation/VAL-TASK-005-flipflop-affinity-replay-eligibility.md
   - id: ADR-001
     type: ADR
     path: ../07_decisions/ADR-001-adopt-intent-preservation-system.md
@@ -180,3 +195,31 @@ edges:
   - from: VAL-TASK-004-catalog-product-quality-review-consumer
     type: validates
     to: TASK-004
+
+  - from: TASK-005
+    type: impacts_goal
+    to: FF-GOALS
+  - from: TASK-005
+    type: implements
+    to: FEAT-001
+  - from: TASK-005
+    type: decomposes_into
+    to: EP-TASK-005
+  - from: EP-TASK-005
+    type: derives_from
+    to: TASK-005
+  - from: EP-TASK-005
+    type: generates
+    to: PROMPT-TASK-005-flipflop-affinity-replay-eligibility
+  - from: EP-TASK-005
+    type: constrained_by
+    to: ADR-001
+  - from: PROMPT-TASK-005-flipflop-affinity-replay-eligibility
+    type: derives_from
+    to: EP-TASK-005
+  - from: PROMPT-TASK-005-flipflop-affinity-replay-eligibility
+    type: included_in_context
+    to: CP-TASK-005-flipflop-affinity-replay-eligibility
+  - from: VAL-TASK-005-flipflop-affinity-replay-eligibility
+    type: validates
+    to: TASK-005
