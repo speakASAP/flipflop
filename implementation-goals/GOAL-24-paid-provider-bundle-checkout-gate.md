@@ -65,7 +65,8 @@ Until then, runtime paid/provider progression remains blocked by:
 - `[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]`
 - `[MISSING: Warehouse stock decrement/reservation-release evidence for every bundle component line]`
 - `[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]`
-- `[MISSING: explicit ecosystem checkout migration accepting durable Catalog bundleId]`
+- `[RESOLVED/NARROWED: explicit ecosystem checkout migration accepts durable Catalog bundleId only as bounded bundleEvidence metadata; FlipFlop runtime checkout submission remains blocked]`
+- `[MISSING: owner-approved FlipFlop source rollout mapping display-only catalog.bundle.v1 bundleId into Orders bundleEvidence without changing totals, stock identity, or provider state]`
 
 ## Forbidden Actions
 

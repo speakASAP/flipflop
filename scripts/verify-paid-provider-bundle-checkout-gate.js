@@ -15,6 +15,11 @@ const checkoutPage = read('services/frontend/app/checkout/page.tsx');
 const adoptionGoal = read('implementation-goals/GOAL-24-catalog-bundle-adoption.md');
 const gateGoal = read('implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md');
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
+const migrationGoal = read('implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md');
+
+
+const narrowedMigrationMarker = '[RESOLVED/NARROWED: explicit ecosystem checkout migration accepts durable Catalog bundleId only as bounded bundleEvidence metadata; FlipFlop runtime checkout submission remains blocked]';
+const flipflopRuntimeMigrationBlocker = '[MISSING: owner-approved FlipFlop source rollout mapping display-only catalog.bundle.v1 bundleId into Orders bundleEvidence without changing totals, stock identity, or provider state]';
 
 const requiredBlockers = [
   '[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]',
@@ -22,7 +27,6 @@ const requiredBlockers = [
   '[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]',
   '[MISSING: Warehouse stock decrement/reservation-release evidence for every bundle component line]',
   '[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]',
-  '[MISSING: explicit ecosystem checkout migration accepting durable Catalog bundleId]',
 ];
 
 function includesAll(source, values, label) {
@@ -96,6 +100,10 @@ assert(!checkoutPage.includes('bundleId: bundleIntent.bundleId'), 'checkout must
 includesAll(adoptionGoal, requiredBlockers, 'GOAL-24 catalog bundle adoption doc');
 includesAll(gateGoal, requiredBlockers, 'GOAL-24 paid/provider gate doc');
 includesAll(implementationState, requiredBlockers, 'implementation state');
+for (const [label, source] of [['migration goal', migrationGoal], ['adoption goal', adoptionGoal], ['paid/provider gate', gateGoal], ['implementation state', implementationState]]) {
+  assert(source.includes(narrowedMigrationMarker), `${label} missing narrowed durable bundleId migration marker`);
+  assert(source.includes(flipflopRuntimeMigrationBlocker), `${label} missing FlipFlop runtime durable bundleId migration blocker`);
+}
 assert(gateGoal.includes('runtime_progression: blocked'), 'paid/provider gate must keep runtime progression blocked');
 assert(implementationState.includes('runtime paid/provider progression remains blocked'), 'state must preserve blocked paid/provider runtime progression');
 
@@ -122,6 +130,7 @@ console.log(JSON.stringify({
     checkoutSmokeCreatesOrderAndPaymentRedirect: true,
     orderServiceReservesBeforePaymentCreation: true,
     catalogBundleIdCheckoutAuthority: false,
+    durableBundleIdMigration: 'evidence_only_runtime_blocked',
     defaultAuthSubjectSmokeNonMutating: true,
   },
   blockers: requiredBlockers,
