@@ -1,5 +1,46 @@
 # Implementation State
 
+## 2026-07-03 - Goal 10 Auth Wallet Order Snapshot Runtime Gate
+
+Objective: make the remaining Auth wallet to immutable order snapshot runtime
+gate machine-checkable without opening live checkout/order mutation.
+
+IPS chain:
+
+- Vision: registered customers select Auth-owned wallet data once, while Orders
+  stores only immutable checkout/order snapshots.
+- Goal Impact: the remaining post-deploy runtime blocker is narrowed to one
+  explicit owner-approved synthetic central Orders create/read/cancel smoke.
+- System: FlipFlop checkout/order-service, Auth wallet, central Orders,
+  Warehouse fixture authority, and the guarded smoke runner.
+- Feature: Auth wallet order snapshot runtime gate packet.
+- Task: verify source forwarding of Auth subject and Auth invoice fields, then
+  run the fail-closed default runtime preflight without creating an order.
+- Execution Plan: no live checkout submit, no order create, no DB/customer row
+  reads, no secret/token output; keep the live smoke approval markers explicit.
+- Coding Prompt: report only booleans/status labels and preserve all
+  `[MISSING: ...]` owner gates for live create/read evidence.
+- Code: `scripts/verify-auth-wallet-order-snapshot-gate.js`, package script
+  `verify:auth-wallet-order-snapshot-gate`, and sanitized report
+  `reports/validation/auth-wallet-order-snapshot-gate.json`.
+- Validation: `npm run verify:auth-wallet-order-snapshot-gate`,
+  `npm run verify:orders-hub-integration`, `node --check` for the new script,
+  `git diff --check`, and targeted sensitive literal scan.
+
+Evidence:
+
+- Source verifier confirms authenticated FlipFlop checkout forwards only a
+  UUID-shaped user id as `customer.authSubject`.
+- Source verifier confirms central Orders payload forwards separate bounded
+  `shippingAddress` and `billingAddress` snapshots with Auth invoice fields
+  `companyName`, `companyId`, `taxId`, `vatId`, and `email`.
+- Default `smoke-orders-auth-subject.js` preflight remains non-mutating with
+  `mutation=false` and approval blockers for the live create/read/cancel smoke.
+
+Remaining gate:
+
+- `[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with non-secret AUTH_SUBJECT_SMOKE_APPROVAL_ID, fixture product/warehouse ids, and persisted central Orders customer.authSubject/billingAddress evidence]`
+
 ## 2026-07-03 - Catalog Goal 24 FlipFlop Bundle Adoption Display
 
 Objective: resolve `[MISSING: FlipFlop adoption contract for catalog.bundle.v1 read/display before ecosystem checkout]` as a FlipFlop-owned source/docs/verifier lane without live checkout/payment/stock side effects.

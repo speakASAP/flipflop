@@ -1,0 +1,40 @@
+{
+  "ok": true,
+  "status": "approval_required_auth_wallet_order_snapshot_runtime_gate",
+  "sourceOnly": true,
+  "liveOrderSubmit": false,
+  "orderCreated": false,
+  "warehouseMutation": false,
+  "paymentCreation": false,
+  "notificationSend": false,
+  "databaseRead": false,
+  "tokenPrinted": false,
+  "customerDataPrinted": false,
+  "evidence": {
+    "ordersHubVerifierPassed": true,
+    "defaultAuthSubjectSmokeExitStatus": 3,
+    "defaultAuthSubjectSmokeMutation": false,
+    "defaultAuthSubjectSmokeProviderCall": false,
+    "deploymentReady": "1/1",
+    "ordersServiceUrlProjected": true,
+    "ordersServiceTokenPresent": true,
+    "billingSnapshotFields": [
+      "companyName",
+      "companyId",
+      "taxId",
+      "vatId",
+      "email"
+    ],
+    "customerAuthSubjectSource": "UUID-shaped authenticated user id only",
+    "authWalletSelectorEvidence": [
+      "gateway wallet CRUD/default cleanup smoke passed previously",
+      "browser selector delayed-response smoke passed previously"
+    ]
+  },
+  "blockers": [
+    "[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with non-secret AUTH_SUBJECT_SMOKE_APPROVAL_ID]",
+    "[MISSING: owner-approved fixture AUTH_SUBJECT_SMOKE_CATALOG_PRODUCT_ID and AUTH_SUBJECT_SMOKE_WAREHOUSE_ID]",
+    "[MISSING: persisted central Orders customer.authSubject/billingAddress runtime read evidence]"
+  ],
+  "next": "Open the guarded live create/read/cancel smoke only after owner approval for one synthetic central Orders order and sanitized persisted snapshot evidence."
+}
