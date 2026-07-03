@@ -1260,3 +1260,6 @@ Parallel execution section:
 - Deployment lane: ready now after deployment-readiness gate; owner role original thread; merge order source, validation, deploy, production smoke.
 
 Next action: run deployment-readiness gate, deploy, then smoke homepage and representative legal document routes.
+## 2026-07-03 - Goal 24 Runtime Token Alias
+
+IPS chain: Vision -> Catalog receives aggregate-safe FlipFlop replay candidates without exposing customer/address/payment/provider/raw checkout data; Goal Impact -> deployed order-service can authenticate the protected replay endpoint using the existing FlipFlop Vault token material; System -> Vault/ExternalSecret owns runtime secret projection, FlipFlop order-service validates `FLIPFLOP_INTERNAL_SERVICE_SECRET`, Marketing sends `X-Flipflop-Internal-Key`; Feature -> runtime secret alias for protected replay; Task -> project existing `secret/prod/flipflop-service` `JWT_TOKEN` as `FLIPFLOP_INTERNAL_SERVICE_SECRET`; Execution Plan -> Kubernetes manifest only, no live order/payment/stock mutation and no secret value output; Coding Prompt -> fail closed when alias is absent or mismatched; Code -> `k8s/external-secret.yaml`; Validation -> pending deploy and aggregate-only dry-run smoke.
