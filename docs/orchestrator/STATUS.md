@@ -1,3 +1,54 @@
+## 2026-07-03 - Auth Wallet Checkout/Profile Smoke Harness Source Prep
+
+Status: source-prepared, not deployed, authenticated execution approval-gated.
+
+Intent Preservation Chain:
+
+- Vision: Auth remains the source of truth for registered-user delivery and
+  invoice wallet data while FlipFlop consumes selected values for checkout and
+  profile UX.
+- Goal Impact: FlipFlop now has a repeatable guarded smoke entrypoint for the
+  remaining Auth wallet checkout/profile gate.
+- System: FlipFlop frontend source verifiers, API gateway `/api/auth/*` proxy,
+  Auth wallet endpoints, and one future owner-approved synthetic Auth token.
+- Feature: source verifier aggregation plus optional gateway-proxied synthetic
+  wallet create/update/default/delete smoke.
+- Task: add a no-live default smoke runner and approval packet without running
+  authenticated endpoints.
+- Execution Plan: keep UI timing assertions in source verifiers, add gateway
+  runtime smoke only behind explicit env gates, and record remaining
+  browser-session proof as `[MISSING]`.
+- Coding Prompt: do not submit checkout orders, inspect DB rows, read secrets,
+  print tokens/cookies/payloads/response bodies, or store production customer
+  data.
+- Code: `scripts/smoke-auth-wallet-checkout-profile.js`, package script
+  `smoke:auth-wallet-checkout-profile`, and approval packet
+  `docs/orchestrator/2026-07-03-flipflop-auth-wallet-smoke-approval.md`.
+- Validation: source verifiers, default no-live smoke runner, build-free syntax
+  checks, diff-check, and added-line secret scan.
+
+Evidence:
+
+- Default `npm run smoke:auth-wallet-checkout-profile` runs
+  `verify:auth-wallet-profile-ui`, `verify:auth-wallet-checkout-selectors`, and
+  `verify:orders-hub-integration`, then exits with
+  `approval_required_no_live_mutation`.
+- Approved live mode requires `--execute`,
+  `RUN_LIVE_FLIPFLOP_AUTH_WALLET_SMOKE=1`,
+  `FLIPFLOP_AUTH_WALLET_SMOKE_APPROVAL_ID`,
+  `FLIPFLOP_AUTH_WALLET_SMOKE_CONFIRM=CHECKOUT_PROFILE_WALLET`, and
+  `FLIPFLOP_AUTH_WALLET_SMOKE_BEARER_TOKEN`.
+- Live mode is constrained to public route checks plus gateway-proxied Auth
+  wallet endpoints and cleanup. It does not submit checkout orders.
+
+Remaining blockers:
+
+- `[MISSING: owner-approved synthetic Auth token for FlipFlop gateway wallet smoke]`
+- `[MISSING: owner-approved authenticated browser/session smoke for delayed wallet response and selector interaction]`
+
+Next action: run the guarded smoke only after the synthetic token/approval id
+is supplied, or continue other Goal 10 consumer gates.
+
 # Orchestrator Status
 
 ## 2026-07-03 - Admin Order Inventory Pricing RBAC Hardened

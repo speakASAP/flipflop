@@ -45,12 +45,29 @@ Implemented as a source-only frontend change. Deployment and live checkout smoke
 - It fails if checkout starts sending Auth delivery/invoice wallet IDs to Orders
   before the provenance contract is approved.
 
+## Guarded Gateway Smoke Follow-Up
+
+- Added `npm run smoke:auth-wallet-checkout-profile`.
+- Default mode remains source-only and non-mutating. It runs
+  `verify:auth-wallet-profile-ui`, `verify:auth-wallet-checkout-selectors`, and
+  `verify:orders-hub-integration`, then reports missing approval gates without
+  calling authenticated endpoints.
+- Approved live mode is limited to FlipFlop public pages and gateway-proxied
+  Auth wallet endpoints under `/api/auth/profile/*`. It may create, update,
+  default, and delete synthetic delivery-address and invoice-profile rows for
+  one owner-approved synthetic Auth token, then verify cleanup.
+- The gateway smoke does not submit checkout orders, inspect DB rows, read
+  cookies, or prove interactive browser timing. Browser-session proof for a
+  delayed wallet response and selector interaction remains a separate approval
+  gate.
+
 ## Validation
 
 ```bash
 python3 scripts/pre_coding_gate.py --root .
 python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues
 npm run verify:auth-wallet-checkout-selectors
+npm run smoke:auth-wallet-checkout-profile
 cd services/frontend && npm exec -- tsc --noEmit
 cd services/frontend && npm run build
 git diff --check

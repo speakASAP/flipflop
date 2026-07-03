@@ -2,6 +2,22 @@
 
 ## Current Status
 
+## 2026-07-03 - Auth Wallet Checkout/Profile Smoke Harness
+
+FlipFlop Auth wallet checkout/profile smoke harness is source-prepared in
+`scripts/smoke-auth-wallet-checkout-profile.js` with package script
+`smoke:auth-wallet-checkout-profile` and approval packet
+`docs/orchestrator/2026-07-03-flipflop-auth-wallet-smoke-approval.md`.
+Default mode runs the existing non-mutating source verifiers and reports
+`approval_required_no_live_mutation`; live gateway execution is blocked until
+an owner-approved synthetic Auth token and non-secret approval id are supplied.
+The approved live path is constrained to public pages plus
+`/api/auth/profile/*` wallet create/update/default/delete and cleanup through
+FlipFlop gateway. It does not submit checkout orders, inspect DB rows, read
+cookies/secrets, or print tokens/request bodies/response bodies. Browser-session
+proof for delayed wallet responses and selector interaction remains a separate
+approval gate.
+
 ## 2026-07-03 - Admin RBAC Hardening
 
 FlipFlop admin order, inventory, and pricing routes are hardened with existing shared `JwtAuthGuard`, `RolesGuard`, and `@Roles` in commit `79dba51`. Deployed via `./scripts/deploy.sh`; all six FlipFlop deployments rolled out successfully and report ready/available/updated `1/1`. Validation passed with focused source verifier, `git diff --check`, pre-coding gate, strict doc audit 100/100, and order-service build. Public smoke returned HTTP 200 for storefront root, unauthenticated admin routes returned HTTP 401, and authenticated non-FlipFlop-admin runtime smoke returned HTTP 403 for `/admin/orders`, `/admin/inventory/low-stock`, and `/admin/pricing/suggestions` using an existing in-pod service token without printing it. Customer order reads remain scoped by `req.user.id`.
