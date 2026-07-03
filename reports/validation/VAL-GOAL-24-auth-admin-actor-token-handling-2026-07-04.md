@@ -40,6 +40,8 @@ Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding P
 - `[RESOLVED/NARROWED: approved token-handling shape is token file or in-process environment material read only by the final approved runner, never printed, never decoded into reports, never committed, and removed after the run]`.
 - `[RESOLVED/NARROWED: sanitized auth evidence may record only auth endpoint status class, token-present boolean, role-check boolean, actor label/hash, approval id, and timestamps]`.
 
+Service tokens/API keys are not approved user actor substitutes.
+
 These decisions do not name the actor and do not authorize runtime execution.
 
 ## Required Owner Inputs
