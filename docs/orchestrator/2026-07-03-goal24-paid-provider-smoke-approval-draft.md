@@ -268,6 +268,16 @@ Owner authorized Codex to continue autonomously and without further owner involv
 Retained evidence closeout remains accepted without exact FlipFlop/Orders/Warehouse correction. A new live paid/provider smoke remains blocked until the preserved runtime hard stops in `reports/validation/VAL-GOAL-24-autonomous-approval-integration-decision-2026-07-04.md` are resolved.
 
 
+
+## 2026-07-04 Channel Cleanup Owner Supersession
+
+[RESOLVED/NARROWED: Codex Goal 24 integration thread supersedes earlier FlipFlop channel executor/runtime owner blockers; channel cleanup runtime remains blocked until bank/refund authority, exact provider proof, Orders side-effect acknowledgements, Warehouse target facts, Auth token source, and final redacted evidence path exist]
+
+The approval draft now consumes `[RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]` as source-governance owner state. Codex owns source-controlled coordination and stop authority only; this does not provide Auth token material, bank/refund authority, provider proof, exact Orders/Warehouse facts, concrete rollback run id/cleanup idempotency keys, or final redacted evidence.
+
+Report: `reports/validation/VAL-GOAL-24-channel-cleanup-owner-supersession-2026-07-04.md`.
+
+
 ## 2026-07-04 Autonomous Runtime Ownership Packet
 
 [RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]

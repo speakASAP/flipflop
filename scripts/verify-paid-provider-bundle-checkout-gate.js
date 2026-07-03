@@ -27,6 +27,7 @@ const authAdminActorTokenHandling = read('reports/validation/VAL-GOAL-24-auth-ad
 const authAdminActorReadback = read('reports/validation/VAL-GOAL-24-auth-admin-actor-readback-2026-07-04.md');
 const paymentResultUrlRuntimeReadback = read('reports/validation/VAL-GOAL-24-payment-result-url-runtime-readback.md');
 const channelCleanupPacket = read('reports/validation/VAL-GOAL-24-channel-cleanup-packet-2026-07-04.md');
+const channelCleanupOwnerSupersession = read('reports/validation/VAL-GOAL-24-channel-cleanup-owner-supersession-2026-07-04.md');
 const autonomousApprovalIntegrationDecision = read('reports/validation/VAL-GOAL-24-autonomous-approval-integration-decision-2026-07-04.md');
 const autonomousRuntimeOwnershipPacket = read('reports/validation/VAL-GOAL-24-autonomous-runtime-ownership-packet-2026-07-04.md');
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
@@ -52,6 +53,7 @@ const runtimeUrlReadbackResolvedMarker = '[RESOLVED/NARROWED: runtime config rea
 const runtimeUrlReadbackMissingMarker = '[MISSING: sanitized runtime config readback or owner confirmation that PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL are unset or exactly match the approved FlipFlop payment-result URLs for the future smoke]';
 const autonomousApprovalDecisionMarker = '[RESOLVED/NARROWED: owner delegated autonomous Goal 24 continuation to Codex, but integration validation keeps new Fiobanka paid/provider side effects hard-stopped until bank/refund authority, exact Orders/Warehouse packet, and redacted provider proof exist]';
 const autonomousRuntimeOwnershipMarker = '[RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]';
+const channelCleanupOwnerSupersessionMarker = '[RESOLVED/NARROWED: Codex Goal 24 integration thread supersedes earlier FlipFlop channel executor/runtime owner blockers; channel cleanup runtime remains blocked until bank/refund authority, exact provider proof, Orders side-effect acknowledgements, Warehouse target facts, Auth token source, and final redacted evidence path exist]';
 
 const baseRequiredBlockers = [
   paidProviderRuntimeBlocker,
@@ -359,6 +361,39 @@ assert(channelCleanupPacket.includes('live_checkout_executed: false'), 'channel 
 assert(channelCleanupPacket.includes('provider_call: false'), 'channel cleanup packet report must forbid provider calls');
 assert(channelCleanupPacket.includes('secret_output: false'), 'channel cleanup packet report must forbid secret output');
 assert(channelCleanupPacket.includes('raw_customer_or_payment_evidence: false'), 'channel cleanup packet report must forbid raw customer/payment evidence');
+
+for (const [label, source] of [['channel cleanup owner supersession report', channelCleanupOwnerSupersession], ['channel cleanup contract', channelCleanupContract], ['approval draft', approvalDraft], ['paid/provider gate', gateGoal], ['implementation state', implementationState], ['orchestrator status', orchestratorStatus]]) {
+  assert(source.includes(channelCleanupOwnerSupersessionMarker), `${label} missing channel cleanup owner supersession marker`);
+  assert(source.includes(autonomousRuntimeOwnershipMarker), `${label} missing autonomous runtime ownership marker for channel supersession`);
+}
+for (const marker of [
+  '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
+  '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
+  '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]',
+  '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
+  '[MISSING: owner-approved Warehouse stock hold/release window, max quantity, target rows]',
+  '[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
+  '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
+  '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
+]) {
+  assert(channelCleanupOwnerSupersession.includes(marker), `channel cleanup owner supersession report missing ${marker}`);
+  assert(channelCleanupContract.includes(marker), `channel cleanup contract missing current supersession blocker ${marker}`);
+}
+for (const value of [
+  'mutation: false',
+  'live_checkout_executed: false',
+  'provider_call: false',
+  'orders_mutation: false',
+  'warehouse_mutation: false',
+  'channel_cleanup_mutation: false',
+  'secret_output: false',
+  'raw_customer_or_payment_evidence: false',
+  'must not infer Warehouse stock effects from Payments refund state',
+  'may acknowledge `sideEffectsHandled.channel=true` only after',
+  'only the source-controlled coordination and stop-authority owner',
+]) {
+  assert(channelCleanupOwnerSupersession.includes(value), `channel cleanup owner supersession report missing ${value}`);
+}
 
 assert(autonomousApprovalIntegrationDecision.includes('status: autonomous-approval-consumed-runtime-hard-stop'), 'autonomous approval integration decision must record hard-stop status');
 assert(autonomousApprovalIntegrationDecision.includes('mutation: false'), 'autonomous approval integration decision must remain non-mutating');
