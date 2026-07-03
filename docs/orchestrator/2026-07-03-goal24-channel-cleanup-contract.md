@@ -125,6 +125,33 @@ Runtime blockers preserved:
 
 Report: `reports/validation/VAL-GOAL-24-channel-cleanup-packet-2026-07-04.md`.
 
+
+
+## 2026-07-04 Channel Cleanup Owner Supersession
+
+Decision: `source-governance-superseded-runtime-blocked`.
+
+[RESOLVED/NARROWED: Codex Goal 24 integration thread supersedes earlier FlipFlop channel executor/runtime owner blockers; channel cleanup runtime remains blocked until bank/refund authority, exact provider proof, Orders side-effect acknowledgements, Warehouse target facts, Auth token source, and final redacted evidence path exist]
+
+The earlier packet line `[RESOLVED/NARROWED: channel cleanup packet is policy-complete for FlipFlop-owned URL, retry, cart/session/local projection duties; runtime remains blocked until named executor, rollback owner, and sanitized evidence path are supplied]` is retained as historical evidence from before the autonomous runtime-owner packet. Current FlipFlop source governance consumes `[RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]`. This resolves/narrows only the named runtime validation owner and FlipFlop channel cleanup executor blockers; it does not approve live checkout, discount-code creation, order submission, provider calls, refund/cancel/reversal, Orders mutation, Warehouse mutation, channel cleanup mutation, deploy, migration, secret/token output, or raw evidence capture.
+
+Current runtime hard stops now preserved for channel cleanup and customer-visible success/retry state:
+
+- `[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]`
+- `[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]`
+- `[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]`
+- `[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]`
+- `[MISSING: owner-approved Warehouse stock hold/release window, max quantity, target rows]`
+- `[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]`
+- `[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]`
+- `[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]`
+
+FlipFlop/channel cleanup is policy-complete for source/docs/verifier purposes. FlipFlop owns customer-visible success/cancel URL shape, `/payment-result` retry policy, synthetic cart/session/payment-result correlation cleanup, local projection messaging, and channel acknowledgement criteria. Runtime side effects remain blocked. The Codex Goal 24 integration thread is only the source-controlled coordination and stop-authority owner; it does not supply Auth token material, bank/refund authority, provider proof, exact Orders/Warehouse cleanup facts, or final redacted evidence.
+
+FlipFlop may acknowledge `sideEffectsHandled.channel=true` only after the exact smoke has redacted channel cleanup evidence and after Payments, Orders, and Warehouse owners supply exact proof. FlipFlop must not infer Warehouse stock effects from Payments refund state, must not infer Orders cancellation from `/payment-result`, and must keep customer-visible state blocked/manual-review until the exact upstream facts exist.
+
+Report: `reports/validation/VAL-GOAL-24-channel-cleanup-owner-supersession-2026-07-04.md`.
+
 ## Hard Stops
 
 - `[MISSING: named executor/rollback owner for future Fiobanka paid/provider smoke]`

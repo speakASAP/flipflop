@@ -132,6 +132,16 @@ Merge order: source-policy verifier, docs/state update, validation, commit/push.
 [RESOLVED/NARROWED: owner delegated autonomous Goal 24 continuation to Codex, but integration validation keeps new Fiobanka paid/provider side effects hard-stopped until bank/refund authority, exact Orders/Warehouse packet, and redacted provider proof exist]
 
 
+
+## 2026-07-04 Channel Cleanup Owner Supersession
+
+[RESOLVED/NARROWED: Codex Goal 24 integration thread supersedes earlier FlipFlop channel executor/runtime owner blockers; channel cleanup runtime remains blocked until bank/refund authority, exact provider proof, Orders side-effect acknowledgements, Warehouse target facts, Auth token source, and final redacted evidence path exist]
+
+Current runtime owner/channel executor ownership is source-governance resolved by `[RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]`. Historical references that requested a named runtime validation owner or FlipFlop channel cleanup executor remain historical pre-supersession evidence. Runtime still cannot start, and FlipFlop still cannot publish customer-visible success/retry-safe cleanup, until bank/refund authority, exact provider/payment/order facts, Orders side-effect acknowledgements, Warehouse target facts, approved Auth token source, and final redacted evidence path are present.
+
+Report: `reports/validation/VAL-GOAL-24-channel-cleanup-owner-supersession-2026-07-04.md`.
+
+
 ## 2026-07-04 Autonomous Runtime Ownership Packet
 
 [RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]
