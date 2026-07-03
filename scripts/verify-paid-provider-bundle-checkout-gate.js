@@ -21,6 +21,7 @@ const approvalDraft = read('docs/orchestrator/2026-07-03-goal24-paid-provider-sm
 const runtimePreflightBlocker = read('reports/validation/VAL-GOAL-24-discount-fixture-runtime-preflight-blocker.md');
 const discountFixtureQuoteHardStop = read('reports/validation/VAL-GOAL-24-discount-fixture-quote-hard-stop.md');
 const bundlePreservingFixtureSource = read('reports/validation/VAL-GOAL-24-bundle-preserving-fixture-source.md');
+const bundlePreservingFixtureRuntimeQuote = read('reports/validation/VAL-GOAL-24-bundle-preserving-fixture-runtime-quote.md');
 const runtimeOwnerCheck = read('reports/validation/VAL-GOAL-24-runtime-preflight-owner-check-2026-07-04.md');
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
 const orchestratorStatus = read('docs/orchestrator/STATUS.md');
@@ -258,6 +259,16 @@ assert(orderService.includes('Discount code cannot be combined with a bundle dis
 assert(approvalDraft.includes('Discount Fixture Quote Hard Stop'), 'approval draft missing discount fixture quote hard stop');
 assert(bundlePreservingFixtureSource.includes('source-prepared-runtime-deploy-gated'), 'bundle-preserving fixture source report must remain deploy gated');
 assert(bundlePreservingFixtureSource.includes('goalId=GOAL24-paid-provider-fixture-20260704'), 'bundle-preserving fixture source report missing goal id gate');
+assert(bundlePreservingFixtureRuntimeQuote.includes('quote-preflight-passed-before-checkout'), 'bundle-preserving fixture runtime quote must record passed quote preflight');
+assert(bundlePreservingFixtureRuntimeQuote.includes('codeHash=ab8323f331746bef'), 'bundle-preserving fixture runtime quote must include redacted code hash');
+assert(bundlePreservingFixtureRuntimeQuote.includes('schemaVersion=flipflop.checkout-quote.v1'), 'bundle-preserving fixture runtime quote must include quote schema');
+assert(bundlePreservingFixtureRuntimeQuote.includes('sideEffects=[]'), 'bundle-preserving fixture runtime quote must prove no quote side effects');
+assert(bundlePreservingFixtureRuntimeQuote.includes('total=300'), 'bundle-preserving fixture runtime quote must prove exact 300 CZK total');
+assert(bundlePreservingFixtureRuntimeQuote.includes('usedCount=0') && bundlePreservingFixtureRuntimeQuote.includes('remainingUses=1'), 'bundle-preserving fixture runtime quote must prove discount code stayed unredeemed');
+assert(bundlePreservingFixtureRuntimeQuote.includes('provider_call: false') && bundlePreservingFixtureRuntimeQuote.includes('live_checkout_executed: false'), 'bundle-preserving fixture runtime quote must stop before checkout/provider');
+assert(approvalDraft.includes('Bundle-Preserving Fixture Runtime Quote'), 'approval draft missing bundle-preserving fixture runtime quote');
+assert(orchestratorStatus.includes('VAL-GOAL-24-bundle-preserving-fixture-runtime-quote.md'), 'orchestrator status missing runtime quote report');
+assert(implementationState.includes('VAL-GOAL-24-bundle-preserving-fixture-runtime-quote.md'), 'implementation state missing runtime quote report');
 assert(orderService.includes('GOAL24_BUNDLE_FIXTURE_DISCOUNT_CZK = 2117.58'), 'order service missing exact Goal 24 fixture amount');
 assert(orderService.includes('private isGoal24BundleFixtureDiscount'), 'order service missing Goal 24 fixture guard');
 assert(orderService.includes('Number(params.validation.discountValue)'), 'Goal 24 fixture guard must normalize persisted discount value before money comparison');
@@ -328,6 +339,7 @@ console.log(JSON.stringify({
     runtimePreflight: 'blocked_guarded_admin_endpoint_requires_actor_or_token_path',
     discountFixtureQuote: 'blocked_discount_code_is_mutually_exclusive_with_bundle_intent',
     bundlePreservingFixtureSource: 'source_prepared_runtime_deploy_gated',
+    bundlePreservingFixtureRuntimeQuote: 'quote_preflight_passed_before_checkout',
     runtimeOwnerCheck: 'blocked_secret_access_is_not_sufficient_without_named_actor_and_cleanup_packet',
     successCancelUrlOwnership: 'source_prepared_runtime_blocked',
     retryStateCleanupOwnership: 'source_prepared_runtime_blocked',

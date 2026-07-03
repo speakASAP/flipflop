@@ -234,3 +234,11 @@ Merge order: final approval packet -> preflight verifier -> runtime smoke if all
 Decision: `draft only`.
 
 `FLIPFLOP-GOAL24-PAID-PROVIDER-SMOKE-APPROVAL-DRAFT` is prepared for owner review. Runtime remains blocked until every missing field is supplied and explicitly signed by the owner.
+
+## Bundle-Preserving Fixture Runtime Quote
+
+Owner delegated autonomous continuation on `2026-07-04`. FlipFlop deployed the narrow Goal 24 source gate and ran only a runtime quote preflight. A fresh guarded fixed `2117.58 CZK` one-use discount code was created with `goalId=GOAL24-paid-provider-fixture-20260704`; raw token/code/customer/order/payment/provider data was not printed. Redacted readback: `codeHash=ab8323f331746bef`, `usedCount=0`, `remainingUses=1`.
+
+The public quote for `paymentMethod=fiobanka`, `deliveryMethod=store`, bundle `919be990-1c76-4f9c-b100-829281c6a709`, and component Catalog product ids `ce4a51aa-2d12-4ab7-a965-7a36609d01fc` plus `dbc51dde-fc66-4511-b178-f929183f4647` returned HTTP `200`, `schemaVersion=flipflop.checkout-quote.v1`, `sideEffects=[]`, `subtotal=1998`, `tax=419.58`, `orderTotalBeforeDiscount=2417.58`, `discount=2117.58`, and `total=300`.
+
+This proves quote-level readiness only. It does not authorize `POST /api/orders/guest`, provider payment creation, provider callback simulation, Warehouse reservation, Orders mutation, channel cleanup mutation, or refund/cancel execution.
