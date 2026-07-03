@@ -20,7 +20,7 @@ Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding P
 - Task: assess the existing checkout smoke harness and add non-mutating source-policy verification.
 - Execution Plan: docs/verifier/source-policy only; do not run live checkout or mutate runtime state.
 - Coding Prompt: fail closed on missing owner approval, provider webhook evidence, stock rollback, or refund/cancel rollback; do not turn display-only `bundleId` evidence into checkout authority.
-- Code: this document, `scripts/verify-paid-provider-bundle-checkout-gate.js`, package script `verify:paid-provider-bundle-checkout-gate`, `implementation-goals/GOAL-24-catalog-bundle-adoption.md`, and `docs/IMPLEMENTATION_STATE.md`.
+- Code: this document, `scripts/verify-paid-provider-bundle-checkout-gate.js`, package script `verify:paid-provider-bundle-checkout-gate`, `implementation-goals/GOAL-24-catalog-bundle-adoption.md`, `docs/orchestrator/STATUS.md`, and `docs/IMPLEMENTATION_STATE.md`.
 - Validation: `npm run verify:paid-provider-bundle-checkout-gate`, `npm run verify:catalog-bundle-adoption`, `node --check scripts/verify-paid-provider-bundle-checkout-gate.js`, and `git diff --check`.
 - State Update: runtime paid/provider progression remains blocked.
 
@@ -43,7 +43,15 @@ The current order-service paths then:
 - call Payments for non-invoice provider methods;
 - record payment initiation metadata.
 
+The active authenticated checkout, guest checkout, and legacy `/payu/create-payment/:orderId` paths all fail closed unless central Orders returns a readable UUID. For provider payment creation they send that central Orders UUID as `orderId` and `centralOrderId` to Payments, while the local FlipFlop order id and order number are retained only in bounded payment metadata for callback correlation.
+
 These behaviors are correct for a paid checkout path, but they are not acceptable as an unapproved verifier because they cross order, reservation, provider, and cleanup boundaries.
+
+Resolved/narrowed channel-owned blockers:
+
+- `[RESOLVED: active FlipFlop checkout paths pass central Orders UUIDs to Payments before provider creation]`
+- `[RESOLVED/NARROWED: FlipFlop checkout owner owns initiation packet for any future paid catalog.bundle.v1 runtime smoke; execution remains owner-approval gated]`
+- `[RESOLVED/NARROWED: FlipFlop checkout cleanup owner owns customer-visible session/cart/local projection cleanup policy; live cleanup evidence remains approval-gated]`
 
 ## Fail-Closed Runtime Contract
 
@@ -56,7 +64,14 @@ A future live paid/provider bundle smoke may proceed only when all of these are 
 - evidence policy is sanitized and excludes tokens, provider payloads, customer data, raw order bodies, and secrets;
 - stock rollback plan covers every component line;
 - refund/cancel rollback plan is owner-approved and names which system performs provider refund or cancellation plus Orders/Warehouse cleanup;
-- durable Catalog `bundleId` checkout migration is explicitly accepted, or the smoke is scoped to existing local bundle intent with Catalog candidate provenance only.
+- durable Catalog `bundleId` checkout migration is explicitly accepted, or the smoke is scoped to existing local bundle intent with Catalog candidate provenance only;
+- FlipFlop checkout owner records customer-visible cleanup expectations for cart, session, order-result redirect state, local order projection, and retry/cancel messaging before the smoke starts.
+
+FlipFlop/channel ownership for a future approved smoke:
+
+- Initiation owner: FlipFlop checkout owner. Scope is storefront/session/cart preparation, selected bundle intent, central Orders pre-payment acceptance proof, and Payments create request proof. This owner must not approve the provider, refund, Warehouse, or Orders cancellation side effects.
+- Customer-visible cleanup owner: FlipFlop checkout owner. Scope is clearing or restoring browser/session cart state, local payment-result messaging, local order projection status, and customer retry/cancel guidance after the cross-service rollback packet completes.
+- Runtime execution remains blocked unless the owner-approved smoke packet names the provider, amount ceiling, bundle id, evidence redaction policy, Orders cleanup actor/reason, Warehouse cleanup operation, and Payments refund/cancel evidence source.
 
 Until then, runtime paid/provider progression remains blocked by:
 
@@ -88,7 +103,8 @@ This lane must not:
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | A Source-policy verifier | complete | FlipFlop checkout readiness worker | Non-mutating source assertions and package script | `scripts/verify-paid-provider-bundle-checkout-gate.js`, `package.json` | checkout source behavior changes, provider code, deploy scripts, secrets | Current checkout/payment source | `npm run verify:paid-provider-bundle-checkout-gate` | Verifier proves the blocker is preserved. |
 | B Goal 24 state/docs | complete | FlipFlop docs owner | Record assessment and blockers | Goal 24 docs, `docs/IMPLEMENTATION_STATE.md` | Catalog/Orders/Warehouse/Payments repos | Catalog Goal 24 contracts/status | strict doc/source gate if needed, `git diff --check` | Runtime remains blocked. |
-| C Live paid/provider smoke | dependency-gated | Runtime validation owner | Owner-approved one-run runtime smoke | `[MISSING: approved smoke packet]` | unapproved provider/order/stock/refund mutations | A+B plus owner/provider evidence | `[MISSING: live runtime evidence]` | Must be a separate approved lane. |
+| C Channel smoke initiation packet | dependency-gated | FlipFlop checkout owner | Prepare owner-approved paid `catalog.bundle.v1` smoke request and customer-visible cleanup expectations | Goal 24 docs/source-policy/verifier and approved smoke report only | provider calls, refund/cancel execution, Warehouse mutation, Orders lifecycle mutation | A+B plus owner-approved runtime packet | `[MISSING: owner-approved paid/provider checkout smoke packet]` | FlipFlop owns initiation and customer-visible cleanup only, not provider/Warehouse/Orders side effects. |
+| D Live paid/provider smoke | dependency-gated | Runtime validation owner | Owner-approved one-run runtime smoke | `[MISSING: approved smoke packet]` | unapproved provider/order/stock/refund mutations | A+B+C plus owner/provider evidence | `[MISSING: live runtime evidence]` | Must be a separate approved lane. |
 
 Shared contracts: Catalog `catalog.bundle.v1`, Orders create-order bundle evidence, Warehouse component reservation sign-off, Payments bundle metadata allowlist, and GOAL-13 local bundle intent.
 
@@ -96,4 +112,4 @@ Integration owner: commerce integration validator after owner approval.
 
 Validation owner: FlipFlop checkout readiness worker for source-policy only; runtime validation owner for any later live smoke.
 
-Merge order: source-policy verifier, docs/state update, validation, commit/push. Live runtime smoke remains a later dependency-gated lane.
+Merge order: source-policy verifier, docs/state update, validation, commit/push. Any future live runtime smoke merges only after Payments, Orders, Warehouse, and channel cleanup packets are complete.

@@ -1,3 +1,47 @@
+## 2026-07-03 - Goal 24 Checkout UUID And Cleanup Ownership Gate
+
+Status: source-policy validated, runtime paid/provider progression blocked.
+
+Intent Preservation Chain:
+
+- Vision: FlipFlop paid bundle checkout can progress only when central Orders identity, payment provider effects, stock cleanup, and customer-visible state remain auditable.
+- Goal Impact: Orders Goal 24 blocker `[MISSING: proof that active checkout paths pass central Orders UUIDs to Payments]` is resolved by FlipFlop source proof; channel initiation and customer-visible cleanup ownership are narrowed to FlipFlop checkout owner while runtime execution remains approval-gated.
+- System: FlipFlop checkout/order-service, central Orders, Payments create/status contract, Warehouse cleanup semantics, Catalog `catalog.bundle.v1`, and customer-visible cart/session/order projection.
+- Feature: paid/provider checkout UUID and cleanup ownership gate.
+- Task: add non-mutating verifier/docs proof for active checkout payment identity and channel-owned cleanup policy.
+- Execution Plan: source-policy/docs/verifier only; no live checkout, provider call, webhook, refund/cancel, Orders/Warehouse/Payments mutation, deploy, migration, secret read, DB mutation, or marketplace publication.
+- Coding Prompt: fail closed; mark unavailable runtime approvals as `[MISSING: ...]`; do not invent provider, Warehouse, or Orders cleanup evidence.
+- Code: `scripts/verify-paid-provider-bundle-checkout-gate.js`, `implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md`, and `docs/IMPLEMENTATION_STATE.md`.
+- Validation: `npm run verify:paid-provider-bundle-checkout-gate`, `npm run verify:catalog-bundleid-checkout-migration`, `npm run verify:catalog-bundle-adoption`, `node --check scripts/verify-paid-provider-bundle-checkout-gate.js`, and `git diff --check`.
+- State Update: central Orders UUID forwarding is source-proven; live paid/provider runtime smoke remains blocked.
+
+Resolved/narrowed blockers:
+
+- `[RESOLVED: active FlipFlop checkout paths pass central Orders UUIDs to Payments before provider creation]`
+- `[RESOLVED/NARROWED: FlipFlop checkout owner owns initiation packet for any future paid catalog.bundle.v1 runtime smoke; execution remains owner-approval gated]`
+- `[RESOLVED/NARROWED: FlipFlop checkout cleanup owner owns customer-visible session/cart/local projection cleanup policy; live cleanup evidence remains approval-gated]`
+
+Remaining blockers:
+
+- `[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]`
+- `[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]`
+- `[MISSING: Warehouse stock decrement/reservation-release evidence for every bundle component line]`
+- `[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]`
+- `[MISSING: owner-approved paid/provider test window, non-secret approval id, target active catalog.bundle.v1 bundle id, provider method, and sanitized evidence policy]`
+
+Parallel execution section:
+
+| Workstream | Status | Owner role | Scope | Dependencies | Blockers | Validation owner | Merge order |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Source UUID proof | complete in this lane | FlipFlop checkout UUID worker | verifier/docs prove central Orders UUID is sent to Payments before provider creation | current FlipFlop source | none for source proof | FlipFlop checkout readiness worker | first |
+| Channel initiation and cleanup packet | dependency-gated | FlipFlop checkout owner | future smoke request plus cart/session/local projection cleanup policy | owner-approved runtime packet | `[MISSING: owner-approved paid/provider checkout smoke packet]` | FlipFlop checkout owner | after source proof |
+| Payments/Orders/Warehouse rollback packets | dependency-gated | service owners | provider proof, Orders actor/reason, Warehouse cleanup semantics | selected provider/method/state | `[MISSING: provider/Warehouse/Orders rollback evidence]` | integration validator | before live smoke |
+| Final runtime smoke | final integration | Catalog/commerce integration owner | one approved paid/provider run with redacted evidence | all packets complete | `[MISSING: sanitized live runtime evidence]` | runtime validation owner | last |
+
+Shared contracts: Catalog `catalog.bundle.v1`, Orders `orders.create.v1`/`orders.payment-status.v1`, Payments create/status contract, Warehouse component-line cleanup contract, and FlipFlop customer-visible checkout state.
+
+Next action: do not run live paid/provider checkout until the missing owner-approved packet is supplied.
+
 ## 2026-07-03 - Auth Wallet Checkout/Profile Smoke Harness Source Prep
 
 Status: source-prepared, not deployed, authenticated execution approval-gated.

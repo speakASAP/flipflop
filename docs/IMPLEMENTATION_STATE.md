@@ -1,3 +1,5 @@
+2026-07-03: Goal 24 FlipFlop checkout UUID and cleanup ownership gate narrowed. Active authenticated checkout, guest checkout, and legacy create-payment paths already require central Orders acceptance before Payments provider creation and pass the central Orders UUID to Payments as both `orderId` and `centralOrderId`; local FlipFlop ids remain bounded metadata for callback correlation. `scripts/verify-paid-provider-bundle-checkout-gate.js` now checks that source proof directly. Channel ownership is narrowed to FlipFlop checkout owner for future smoke initiation and customer-visible cart/session/local projection cleanup policy, while live paid/provider execution remains blocked by owner approval, provider callback/refund evidence, Warehouse cleanup semantics, Orders cleanup actor/reason, and sanitized evidence policy. No live checkout, provider call, refund/cancel, order mutation, deploy, secret read, DB mutation, or marketplace publication occurred.
+
 2026-07-03: Goal 10 Auth wallet order snapshot create/read/cancel smoke passed. Auth issued an orders-status-cleanup service JWT with internal:orders-microservice:admin; the value was stored in Vault under secret/prod/flipflop-service#ORDERS_STATUS_SERVICE_TOKEN, projected through flipflop-service-secret, and flipflop-order-service was restarted only after ExternalSecret sync. Guarded smoke GOAL10-AUTH-SUBJECT-CREATE-READ-CANCEL-20260703 created one synthetic central Orders order (HTTP 201), read it back (HTTP 200), verified customer.authSubject persisted, and cancelled it through Orders status cleanup (HTTP 200). Evidence is sanitized in reports/validation/orders-auth-subject-smoke/report-goal10-create-read-cancel-20260703.json; no token value, raw order id, raw customer data, request/response body, DB row, payment provider data, or notification payload was printed.
 
 2026-07-03: Goal 10 Auth-subject smoke UUID validation fixed. The guarded auth-subject smoke now accepts normal UUIDs with a four-character variant group before the final 12-character group, so approval-gated fixture ids are validated correctly before the cleanup-token fail-closed gate. No live checkout/order mutation, deploy, DB read/write, token/secret inspection, or customer-data output occurred.
@@ -18,10 +20,10 @@ IPS chain:
 - Goal Impact: the paid/provider bundle checkout blocker is now machine-checkable from FlipFlop source and remains blocked until owner/provider rollback evidence exists.
 - System: FlipFlop checkout/order-service, Catalog `catalog.bundle.v1`, central Orders, Warehouse reservations, Payments provider execution, and owner-approved smoke governance.
 - Feature: paid/provider bundle checkout smoke readiness gate.
-- Task: classify the existing checkout smoke harness, document the unsafe live side effects, and add a source verifier that fails closed by default.
+- Task: classify the existing checkout smoke harness, prove active checkout paths pass central Orders UUIDs to Payments before provider creation, document the unsafe live side effects, and add a source verifier that fails closed by default.
 - Execution Plan: docs/verifier/source-policy only; no live checkout, redirect following, webhook, provider call, refund, cancellation, fulfillment, stock decrement, deploy, migration, secrets, or marketplace state change.
 - Coding Prompt: do not make paid/provider runtime progression appear complete; preserve `[MISSING: ...]` blockers for owner approval, provider webhook evidence, stock rollback, and refund/cancel rollback.
-- Code: `scripts/verify-paid-provider-bundle-checkout-gate.js`, package script `verify:paid-provider-bundle-checkout-gate`, `implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md`, and Goal 24 state docs.
+- Code: `scripts/verify-paid-provider-bundle-checkout-gate.js`, package script `verify:paid-provider-bundle-checkout-gate`, `implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md`, `docs/orchestrator/STATUS.md`, and Goal 24 state docs.
 - Validation: `npm run verify:paid-provider-bundle-checkout-gate`, `npm run verify:catalog-bundle-adoption`, `node --check scripts/verify-paid-provider-bundle-checkout-gate.js`, and `git diff --check`.
 - State Update: runtime paid/provider progression remains blocked.
 
@@ -30,6 +32,12 @@ Assessment:
 - `scripts/smoke-checkout.js` is not side-effect-safe for this Goal 24 paid/provider lane. It logs in, writes local DB seed rows, clears/adds cart state, creates an order, reserves Warehouse lines through order-service, creates a Payments payment, and expects a redirect URL.
 - The authenticated and guest order paths create local pending orders, reserve Warehouse lines, create central Orders before payment, and call Payments for non-invoice provider methods.
 - Existing `catalog.bundle.v1` adoption remains display-only; durable Catalog `bundleId` is not accepted as a checkout authority.
+
+Blockers resolved/narrowed:
+
+- `[RESOLVED: active FlipFlop checkout paths pass central Orders UUIDs to Payments before provider creation]`
+- `[RESOLVED/NARROWED: FlipFlop checkout owner owns initiation packet for any future paid catalog.bundle.v1 runtime smoke; execution remains owner-approval gated]`
+- `[RESOLVED/NARROWED: FlipFlop checkout cleanup owner owns customer-visible session/cart/local projection cleanup policy; live cleanup evidence remains approval-gated]`
 
 Blockers retained:
 
@@ -44,8 +52,9 @@ Blockers retained:
 Parallel execution section:
 
 - W1 FlipFlop source-policy/verifier hardening: complete in this lane; owner role FlipFlop checkout readiness worker; allowed files are Goal 24 docs, verifier, and package script; validation is the non-mutating verifier plus `git diff --check`.
-- W2 owner/provider runtime smoke: dependency-gated; owner role runtime validation owner; forbidden until the blockers above are resolved and explicit approval is recorded.
-- W3 commerce integration status: final integration; owner role Catalog/commerce integration validator; merge after this branch only updates source-policy evidence and keeps runtime progression blocked.
+- W2 channel smoke initiation and customer-visible cleanup packet: dependency-gated; owner role FlipFlop checkout owner; blocked until owner-approved smoke details exist; owns cart/session/local projection policy only, not provider/Warehouse/Orders side effects.
+- W3 owner/provider runtime smoke: dependency-gated; owner role runtime validation owner; forbidden until the blockers above are resolved and explicit approval is recorded.
+- W4 commerce integration status: final integration; owner role Catalog/commerce integration validator; merge after this branch only updates source-policy evidence and keeps runtime progression blocked.
 
 ## 2026-07-03 - Goal 10 Auth Wallet Order Snapshot Runtime Gate
 
