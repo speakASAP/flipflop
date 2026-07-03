@@ -24,6 +24,7 @@ const bundlePreservingFixtureSource = read('reports/validation/VAL-GOAL-24-bundl
 const bundlePreservingFixtureRuntimeQuote = read('reports/validation/VAL-GOAL-24-bundle-preserving-fixture-runtime-quote.md');
 const runtimeOwnerCheck = read('reports/validation/VAL-GOAL-24-runtime-preflight-owner-check-2026-07-04.md');
 const authAdminActorTokenHandling = read('reports/validation/VAL-GOAL-24-auth-admin-actor-token-handling-2026-07-04.md');
+const authAdminActorReadback = read('reports/validation/VAL-GOAL-24-auth-admin-actor-readback-2026-07-04.md');
 const paymentResultUrlRuntimeReadback = read('reports/validation/VAL-GOAL-24-payment-result-url-runtime-readback.md');
 const channelCleanupPacket = read('reports/validation/VAL-GOAL-24-channel-cleanup-packet-2026-07-04.md');
 const autonomousApprovalIntegrationDecision = read('reports/validation/VAL-GOAL-24-autonomous-approval-integration-decision-2026-07-04.md');
@@ -302,9 +303,8 @@ for (const marker of [
   '[RESOLVED/NARROWED: guarded Goal 24 discount-code generation must use an Auth-issued user access token carrying global:superadmin or app:flipflop-service:admin; service tokens/API keys are not approved user actor substitutes]',
   '[RESOLVED/NARROWED: approved token-handling shape is token file or in-process environment material read only by the final approved runner, never printed, never decoded into reports, never committed, and removed after the run]',
   '[RESOLVED/NARROWED: sanitized auth evidence may record only auth endpoint status class, token-present boolean, role-check boolean, actor label/hash, approval id, and timestamps]',
-  '[MISSING: named Auth admin actor approved for Goal 24 guarded discount-code generation]',
   '[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
-  '[MISSING: confirmation that the token belongs to the named actor and carries global:superadmin or app:flipflop-service:admin]',
+  '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
 ]) {
   assert(authAdminActorTokenHandling.includes(marker), `auth/admin actor report missing ${marker}`);
   assert(channelCleanupContract.includes(marker) || approvalDraft.includes(marker) || implementationState.includes(marker) || orchestratorStatus.includes(marker), `Goal 24 docs missing auth/admin marker ${marker}`);
@@ -313,6 +313,23 @@ assert(authAdminActorTokenHandling.includes('mutation: false'), 'auth/admin acto
 assert(authAdminActorTokenHandling.includes('token_output: false'), 'auth/admin actor report must forbid token output');
 assert(authAdminActorTokenHandling.includes('service tokens/API keys are not approved user actor substitutes'), 'auth/admin actor report must reject service token user substitution');
 assert(authAdminActorTokenHandling.includes('[MISSING: sanitized auth/admin evidence path for guarded discount-code generation]'), 'auth/admin actor report missing sanitized evidence fallback');
+for (const marker of [
+  'status: actor-hash-resolved-token-source-still-blocked',
+  'candidateCount: `3`',
+  'matchingAdminActorCount: `1`',
+  'selectedActorHash: `4215870ba488de17`',
+  'selectedActorRequiredAdminRolePresent: `true`',
+  'selectedActorFlipflopAdminPresent: `true`',
+  'tokenOutput: `false`',
+  'rawEmailOutput: `false`',
+  'rawUserIdOutput: `false`',
+  '[RESOLVED/NARROWED: sanitized Auth readback found one active verified Goal 24 actor hash 4215870ba488de17 with app:flipflop-service:admin and no token/raw email/user id output]',
+  '[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
+  '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
+]) {
+  assert(authAdminActorReadback.includes(marker), `auth/admin actor readback missing ${marker}`);
+}
+
 assert(implementationState.includes('VAL-GOAL-24-auth-admin-actor-token-handling-2026-07-04.md'), 'implementation state missing auth/admin actor report');
 assert(orchestratorStatus.includes('VAL-GOAL-24-auth-admin-actor-token-handling-2026-07-04.md'), 'orchestrator status missing auth/admin actor report');
 
@@ -324,9 +341,8 @@ for (const [label, source] of [['autonomous runtime ownership packet', autonomou
   assert(source.includes(autonomousRuntimeOwnershipMarker), `${label} missing autonomous runtime ownership marker`);
 }
 for (const marker of [
-  '[MISSING: named Auth admin actor approved for Goal 24 guarded discount-code generation]',
   '[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
-  '[MISSING: confirmation that the token belongs to the named actor and carries global:superadmin or app:flipflop-service:admin]',
+  '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
   '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
   '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
   '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',

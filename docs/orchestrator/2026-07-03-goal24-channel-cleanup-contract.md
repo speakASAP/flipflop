@@ -103,7 +103,7 @@ Markers:
 - `[RESOLVED/NARROWED: guarded Goal 24 discount-code generation must use an Auth-issued user access token carrying global:superadmin or app:flipflop-service:admin; service tokens/API keys are not approved user actor substitutes]`
 - `[RESOLVED/NARROWED: approved token-handling shape is token file or in-process environment material read only by the final approved runner, never printed, never decoded into reports, never committed, and removed after the run]`
 - `[RESOLVED/NARROWED: sanitized auth evidence may record only auth endpoint status class, token-present boolean, role-check boolean, actor label/hash, approval id, and timestamps]`
-- `[MISSING: named Auth admin actor approved for Goal 24 guarded discount-code generation]`
+- `[RESOLVED/NARROWED: sanitized Auth readback found one active verified Goal 24 actor hash 4215870ba488de17 with app:flipflop-service:admin and no token/raw email/user id output]`
 - `[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]`
 
 
@@ -214,3 +214,10 @@ Runtime side effects remain blocked by named Auth admin actor/token source, huma
 Goal 24 autonomous runtime ownership packet retained hard stops:
 - `[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]`
 - `[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]`
+
+
+## 2026-07-04 Sanitized Auth Admin Actor Readback
+
+[RESOLVED/NARROWED: sanitized Auth readback found one active verified Goal 24 actor hash 4215870ba488de17 with app:flipflop-service:admin and no token/raw email/user id output]
+
+Remaining hard stops: `[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]`; `[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]`; `[MISSING: sanitized auth/admin evidence path for guarded discount-code generation]`. No user creation, role assignment, login, token issuance/output, discount code, checkout, payment, provider call, Orders/Warehouse/channel mutation, deploy, migration, raw email/user id/DB row, or raw customer/order/payment/provider evidence occurred.

@@ -49,9 +49,9 @@ This does not create an Auth admin actor token, bank/refund authority, live chec
 
 ## Still Missing Before Any Live Side Effect
 
-- `[MISSING: named Auth admin actor approved for Goal 24 guarded discount-code generation]`.
+- `[RESOLVED/NARROWED: sanitized Auth readback found one active verified Goal 24 actor hash 4215870ba488de17 with app:flipflop-service:admin and no token/raw email/user id output]`.
 - `[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]`.
-- `[MISSING: confirmation that the token belongs to the named actor and carries global:superadmin or app:flipflop-service:admin]`.
+- `[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]`.
 - `[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]`.
 - `[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]`.
 - `[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]`.
@@ -72,3 +72,10 @@ This does not create an Auth admin actor token, bank/refund authority, live chec
 ## Boundary
 
 No live checkout, discount-code creation, order, payment, provider call, webhook replay, refund/cancel/reversal, Orders mutation, Warehouse mutation, channel cleanup mutation, deploy, migration, DB write, secret/token output, raw customer/order/payment/provider evidence, or marketplace/feed mutation occurred.
+
+
+## 2026-07-04 Sanitized Auth Admin Actor Readback
+
+[RESOLVED/NARROWED: sanitized Auth readback found one active verified Goal 24 actor hash 4215870ba488de17 with app:flipflop-service:admin and no token/raw email/user id output]
+
+Remaining hard stops: `[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]`; `[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]`; `[MISSING: sanitized auth/admin evidence path for guarded discount-code generation]`. No user creation, role assignment, login, token issuance/output, discount code, checkout, payment, provider call, Orders/Warehouse/channel mutation, deploy, migration, raw email/user id/DB row, or raw customer/order/payment/provider evidence occurred.
