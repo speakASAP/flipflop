@@ -1,3 +1,9 @@
+2026-07-03: Goal 10 Auth-subject smoke UUID validation fixed. The guarded auth-subject smoke now accepts normal UUIDs with a four-character variant group before the final 12-character group, so approval-gated fixture ids are validated correctly before the cleanup-token fail-closed gate. No live checkout/order mutation, deploy, DB read/write, token/secret inspection, or customer-data output occurred.
+
+2026-07-03: Goal 10 Auth-subject cleanup contract tightened against Orders cancellation policy. `scripts/smoke-orders-auth-subject.js` now requires `AUTH_SUBJECT_SMOKE_CLEANUP_CONFIRM=ORDERS_ADMIN_STATUS_CANCEL` for approved execution and sends Orders cancellation approval fields `approved=true`, `approvalType=human`, `reasonCode=synthetic_auth_subject_smoke_cleanup`, and side-effect acknowledgements for payment, warehouse, notification, crm, and channel. `scripts/verify-auth-wallet-order-snapshot-gate.js` checks these cleanup contract markers. No live checkout/order mutation, deploy, DB read/write, token/secret inspection, or customer-data output occurred.
+
+2026-07-03: Goal 10 Auth-subject order snapshot smoke cleanup gate hardened. The guarded `scripts/smoke-orders-auth-subject.js` now blocks approved live execution before order creation unless `ORDERS_STATUS_SERVICE_TOKEN` is projected into `flipflop-order-service`, and a passing smoke now requires the cleanup cancellation path to be attempted with HTTP 2xx. `scripts/verify-auth-wallet-order-snapshot-gate.js` records the cleanup-token evidence and preserves the remaining approval blockers. No live checkout/order mutation, deploy, DB read/write, token/secret inspection, or customer-data output occurred.
+
 # Implementation State
 
 ## 2026-07-03 - Catalog Goal 24 Paid Provider Bundle Checkout Gate

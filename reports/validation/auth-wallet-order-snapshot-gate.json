@@ -18,6 +18,8 @@
     "deploymentReady": "1/1",
     "ordersServiceUrlProjected": true,
     "ordersServiceTokenPresent": true,
+    "ordersStatusServiceTokenPresent": false,
+    "cleanupRequiredForPass": true,
     "billingSnapshotFields": [
       "companyName",
       "companyId",
@@ -34,7 +36,9 @@
   "blockers": [
     "[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with non-secret AUTH_SUBJECT_SMOKE_APPROVAL_ID]",
     "[MISSING: owner-approved fixture AUTH_SUBJECT_SMOKE_CATALOG_PRODUCT_ID and AUTH_SUBJECT_SMOKE_WAREHOUSE_ID]",
-    "[MISSING: persisted central Orders customer.authSubject/billingAddress runtime read evidence]"
+    "[MISSING: persisted central Orders customer.authSubject/billingAddress runtime read evidence]",
+    "[MISSING: cleanup-capable ORDERS_STATUS_SERVICE_TOKEN projection before create/read/cancel smoke]",
+    "[MISSING: AUTH_SUBJECT_SMOKE_CLEANUP_CONFIRM=ORDERS_ADMIN_STATUS_CANCEL]"
   ],
-  "next": "Open the guarded live create/read/cancel smoke only after owner approval for one synthetic central Orders order and sanitized persisted snapshot evidence."
+  "next": "Open the guarded live create/read/cancel smoke only after owner approval for one synthetic central Orders order, cleanup-capable ORDERS_STATUS_SERVICE_TOKEN projection, cleanup authority confirmation, and sanitized persisted snapshot evidence."
 }
