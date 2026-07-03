@@ -5,7 +5,7 @@ id: VAL-TASK-005
 status: passed
 created: 2026-07-03
 last_updated: 2026-07-03
-repository: /home/ssf/Documents/Github/codex-worktrees/flipflop-goal24-affinity-eligibility
+repository: /home/ssf/Documents/Github/flipflop
 branch: goal24-flipflop-affinity-eligibility
 deployment: not_run
 ```

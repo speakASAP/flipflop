@@ -81,6 +81,21 @@ nodes:
   - id: VAL-TASK-005-flipflop-affinity-replay-eligibility
     type: ValidationReport
     path: ../12_validation/VAL-TASK-005-flipflop-affinity-replay-eligibility.md
+  - id: TASK-006
+    type: Task
+    path: ../11_tasks/TASK-006-flipflop-affinity-replay-export.md
+  - id: EP-TASK-006
+    type: ExecutionPlan
+    path: ../21_execution_plans/EP-TASK-006-flipflop-affinity-replay-export.md
+  - id: CP-TASK-006-flipflop-affinity-replay-export
+    type: ContextPackage
+    path: ../13_context_packages/CP-TASK-006-flipflop-affinity-replay-export.md
+  - id: PROMPT-TASK-006-flipflop-affinity-replay-export
+    type: CodingPrompt
+    path: ../14_prompts/PROMPT-TASK-006-flipflop-affinity-replay-export.md
+  - id: VAL-TASK-006-flipflop-affinity-replay-export
+    type: ValidationReport
+    path: ../12_validation/VAL-TASK-006-flipflop-affinity-replay-export.md
   - id: ADR-001
     type: ADR
     path: ../07_decisions/ADR-001-adopt-intent-preservation-system.md
@@ -223,3 +238,30 @@ edges:
   - from: VAL-TASK-005-flipflop-affinity-replay-eligibility
     type: validates
     to: TASK-005
+  - from: TASK-006
+    type: impacts_goal
+    to: FF-GOALS
+  - from: TASK-006
+    type: implements
+    to: FEAT-001
+  - from: TASK-006
+    type: decomposes_into
+    to: EP-TASK-006
+  - from: EP-TASK-006
+    type: derives_from
+    to: TASK-006
+  - from: EP-TASK-006
+    type: generates
+    to: PROMPT-TASK-006-flipflop-affinity-replay-export
+  - from: EP-TASK-006
+    type: constrained_by
+    to: ADR-001
+  - from: PROMPT-TASK-006-flipflop-affinity-replay-export
+    type: derives_from
+    to: EP-TASK-006
+  - from: PROMPT-TASK-006-flipflop-affinity-replay-export
+    type: included_in_context
+    to: CP-TASK-006-flipflop-affinity-replay-export
+  - from: VAL-TASK-006-flipflop-affinity-replay-export
+    type: validates
+    to: TASK-006

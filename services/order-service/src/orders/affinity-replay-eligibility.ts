@@ -21,8 +21,8 @@ export type FlipFlopAffinityReplayOrderLine = {
   productId?: string | null;
   productSku?: string | null;
   quantity?: number | null;
-  unitPrice?: number | string | null;
-  totalPrice?: number | string | null;
+  unitPrice?: unknown;
+  totalPrice?: unknown;
   catalogProductId?: string | null;
   products?: {
     catalogProductId?: string | null;

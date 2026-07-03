@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Get,
   Headers,
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { PaymentResultDto } from './dto/payment-result.dto';
@@ -31,5 +33,18 @@ export class OrdersInternalController {
   ) {
     this.ordersService.assertInternalServiceKey(internalKey);
     return this.ordersService.updateInternalPaymentStatus(id, dto);
+  }
+
+  @Get('order-affinity/replay-candidates')
+  async getOrderAffinityReplayCandidates(
+    @Headers('x-flipflop-internal-key') internalKey: string | undefined,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+    @Query('dryRun') dryRun?: string,
+  ) {
+    this.ordersService.assertAffinityReplayAccess(internalKey);
+    return this.ordersService.getOrderAffinityReplayCandidates({ from, to, limit, cursor, dryRun });
   }
 }

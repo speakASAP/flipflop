@@ -1,5 +1,37 @@
 # Implementation State
 
+## 2026-07-03 - Catalog Goal 24 FlipFlop Protected Replay Endpoint
+
+Objective: resolve `[MISSING: FlipFlop protected replay endpoint or owner-run CLI export for marketplace.order_affinity_replay_candidates.v1]` for Catalog Goal 24 without live replay execution or checkout/order/payment/stock mutation.
+
+IPS chain:
+
+- Vision: FlipFlop remains a safe revenue-capable storefront using shared Catalog, Orders, Warehouse, Payments, and Marketing boundaries.
+- Goal Impact: Catalog Goal 24 now has a FlipFlop-owned protected producer surface for future Marketing dry-runs.
+- System: FlipFlop order-service owns local order history and product-to-Catalog mapping; Marketing remains replay aggregation/scheduling owner; Catalog remains relation persistence owner.
+- Feature: Marketplace-affinity replay readiness for FlipFlop local order history.
+- Task: `TASK-006-FLIPFLOP-AFFINITY-REPLAY-EXPORT`.
+- Execution Plan: `21_execution_plans/EP-TASK-006-flipflop-affinity-replay-export.md`.
+- Coding Prompt: `14_prompts/PROMPT-TASK-006-flipflop-affinity-replay-export.md`.
+- Code: `services/order-service/src/orders/orders-internal.controller.ts`, `services/order-service/src/orders/orders.service.ts`, `scripts/verify-flipflop-affinity-replay-export.js`, and package verifier wiring.
+- Validation: `npm run verify:flipflop-affinity-eligibility`, `npm run verify:flipflop-affinity-replay-export`, `git diff --check`, `cd services/order-service && npm run build`, and IPS gates passed.
+
+Producer shape:
+
+- `GET /internal/orders/order-affinity/replay-candidates`
+- Requires configured `FLIPFLOP_INTERNAL_SERVICE_SECRET` and matching `X-Flipflop-Internal-Key`.
+- Emits `sourceOwner=flipflop-service`, `consumerOwner=marketing-microservice`, `contract=marketplace.order_affinity_replay_candidates.v1`, and `channel=flipflop`.
+- Supports `from`, `to`, `limit`, `cursor`, and `dryRun`, returning `cursorBefore`, `cursorAfter`, bounded window metadata, aggregate diagnostics, and aggregate-safe candidate events from the TASK-005 helper.
+
+Boundaries preserved: no live replay run, no public endpoint, no checkout/payment/provider/order/stock mutation, no Warehouse/Catalog/Marketing source change, no Kubernetes/deploy/secrets change, and no customer/address/payment/provider/raw checkout data exposure.
+
+Parallel execution section:
+
+- W1 FlipFlop replay endpoint: complete in current branch; owner role this worker; allowed files are order-service internal route/service, verifier, package script, and TASK-006 IPS docs.
+- W2 Marketing parser: dependency-gated; owner role Marketing worker; blocked by `[MISSING: Marketing parser support for marketplace-owned replay source envelopes]`.
+- W3 Marketing scheduler/ledger: dependency-gated; owner role Marketing worker; blocked by `[MISSING: durable Marketing backfill run ledger and idempotency key registry]`.
+- W4 Integration validation: final integration; owner role Catalog/Marketing validator; blocked until W1-W3 and owner-approved dry-run windows exist.
+
 ## 2026-07-03 - Catalog Goal 24 FlipFlop Affinity Eligibility Mapping
 
 Objective: resolve `[MISSING: FlipFlop paid multi-product replay eligibility mapping]` for Catalog Goal 24 marketplace-affinity replay without adding a live replay endpoint or mutating checkout/order/payment/stock state.

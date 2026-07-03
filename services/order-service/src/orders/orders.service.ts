@@ -35,6 +35,16 @@ import { PaymentResultDto } from './dto/payment-result.dto';
 import { UpdateOrderPaymentStatusDto } from './dto/update-order-payment-status.dto';
 import { UpdateAdminOrderStatusDto } from './dto/update-admin-order-status.dto';
 import { CreateSupplierDeliveryDto } from './dto/create-supplier-delivery.dto';
+import {
+  FLIPFLOP_AFFINITY_CHANNEL,
+  FLIPFLOP_AFFINITY_CONSUMER_OWNER,
+  FLIPFLOP_AFFINITY_REPLAY_CONTRACT,
+  FLIPFLOP_AFFINITY_REPLAY_ELIGIBLE_ORDER_STATUSES,
+  FLIPFLOP_AFFINITY_REPLAY_ELIGIBLE_PAYMENT_STATUSES,
+  FLIPFLOP_AFFINITY_SOURCE_OWNER,
+  FlipFlopAffinityReplayCandidate,
+  getFlipFlopAffinityReplayEligibility,
+} from './affinity-replay-eligibility';
 import { DiscountService } from '../marketing/discount.service';
 
 type CheckoutOrderItem = {
@@ -104,6 +114,58 @@ type CheckoutDiscountApplication = {
   holidayDiscount?: HolidayDiscountApplication;
 };
 
+type AffinityReplayCursor = {
+  createdAt: string;
+  id: string;
+};
+
+type AffinityReplayQuery = {
+  from?: string;
+  to?: string;
+  limit?: string;
+  cursor?: string;
+  dryRun?: string;
+};
+
+type AffinityReplayResponse = {
+  success: true;
+  data: {
+    sourceOwner: typeof FLIPFLOP_AFFINITY_SOURCE_OWNER;
+    consumerOwner: typeof FLIPFLOP_AFFINITY_CONSUMER_OWNER;
+    contract: typeof FLIPFLOP_AFFINITY_REPLAY_CONTRACT;
+    channel: typeof FLIPFLOP_AFFINITY_CHANNEL;
+    filters: {
+      from: string | null;
+      to: string | null;
+      limit: number;
+      dryRun: boolean;
+    };
+    window: {
+      from: string | null;
+      to: string | null;
+      completeness: 'bounded-page';
+      complete: boolean;
+    };
+    cursorBefore: string | null;
+    cursorAfter: string | null;
+    count: number;
+    events: FlipFlopAffinityReplayCandidate[];
+    diagnostics: {
+      scannedOrders: number;
+      eligibleOrders: number;
+      skippedOrders: number;
+      skippedReasons: Record<string, number>;
+      mappedCatalogProductCount: number;
+      distinctCatalogProductCount: number;
+      unmappedLineCount: number;
+      emittedItemCount: number;
+    };
+  };
+};
+
+const DEFAULT_AFFINITY_REPLAY_LIMIT = 50;
+const MAX_AFFINITY_REPLAY_LIMIT = 200;
+const AFFINITY_REPLAY_CURSOR_VERSION = 1;
 const BUNDLE_DISCOUNT_RATE = 0.05;
 const BUNDLE_FREE_SHIPPING_THRESHOLD_CZK = 1000;
 const BUNDLE_ELIGIBILITY_LIMIT = 8;
@@ -198,6 +260,204 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     if (expected && internalKey !== expected) {
       throw new UnauthorizedException('Invalid internal service key');
     }
+  }
+
+  assertAffinityReplayAccess(internalKey: string | undefined): void {
+    const expected = this.configService.get<string>('FLIPFLOP_INTERNAL_SERVICE_SECRET')?.trim();
+    if (!expected || internalKey !== expected) {
+      throw new UnauthorizedException('Invalid internal service key');
+    }
+  }
+
+  async getOrderAffinityReplayCandidates(query: AffinityReplayQuery): Promise<AffinityReplayResponse> {
+    const from = this.parseOptionalIsoDate(query.from, 'from');
+    const to = this.parseOptionalIsoDate(query.to, 'to');
+    if (from && to && from.getTime() > to.getTime()) {
+      throw new BadRequestException('Replay from must be before or equal to to');
+    }
+
+    const limit = this.parseReplayLimit(query.limit);
+    const cursor = this.decodeReplayCursor(query.cursor);
+    const orders = await this.prisma.order.findMany({
+      where: this.buildAffinityReplayWhere(from, to, cursor),
+      include: {
+        order_items: {
+          include: {
+            products: {
+              select: {
+                catalogProductId: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: [
+        { createdAt: 'asc' },
+        { id: 'asc' },
+      ],
+      take: limit + 1,
+    });
+
+    const pageOrders = orders.slice(0, limit);
+    const hasMore = orders.length > limit;
+    const events: FlipFlopAffinityReplayCandidate[] = [];
+    const skippedReasons: Record<string, number> = {};
+    const diagnostics = {
+      scannedOrders: pageOrders.length,
+      eligibleOrders: 0,
+      skippedOrders: 0,
+      skippedReasons,
+      mappedCatalogProductCount: 0,
+      distinctCatalogProductCount: 0,
+      unmappedLineCount: 0,
+      emittedItemCount: 0,
+    };
+
+    for (const order of pageOrders) {
+      const result = getFlipFlopAffinityReplayEligibility(order);
+      diagnostics.mappedCatalogProductCount += result.diagnostics.mappedCatalogProductCount;
+      diagnostics.distinctCatalogProductCount += result.diagnostics.distinctCatalogProductCount;
+      diagnostics.unmappedLineCount += result.diagnostics.unmappedLineCount;
+      diagnostics.emittedItemCount += result.diagnostics.emittedItemCount;
+
+      if (result.eligible && result.candidate) {
+        events.push(result.candidate);
+        diagnostics.eligibleOrders += 1;
+      } else {
+        diagnostics.skippedOrders += 1;
+        skippedReasons[result.reason] = (skippedReasons[result.reason] ?? 0) + 1;
+      }
+    }
+
+    const cursorAfter = hasMore && pageOrders.length > 0
+      ? this.encodeReplayCursor(pageOrders[pageOrders.length - 1])
+      : null;
+    const normalizedFrom = from ? from.toISOString() : null;
+    const normalizedTo = to ? to.toISOString() : null;
+
+    return {
+      success: true,
+      data: {
+        sourceOwner: FLIPFLOP_AFFINITY_SOURCE_OWNER,
+        consumerOwner: FLIPFLOP_AFFINITY_CONSUMER_OWNER,
+        contract: FLIPFLOP_AFFINITY_REPLAY_CONTRACT,
+        channel: FLIPFLOP_AFFINITY_CHANNEL,
+        filters: {
+          from: normalizedFrom,
+          to: normalizedTo,
+          limit,
+          dryRun: this.parseReplayDryRun(query.dryRun),
+        },
+        window: {
+          from: normalizedFrom,
+          to: normalizedTo,
+          completeness: 'bounded-page',
+          complete: !hasMore,
+        },
+        cursorBefore: query.cursor || null,
+        cursorAfter,
+        count: events.length,
+        events,
+        diagnostics,
+      },
+    };
+  }
+
+  private parseOptionalIsoDate(value: string | undefined, field: string): Date | undefined {
+    if (value === undefined || value.trim() === '') {
+      return undefined;
+    }
+    const parsed = new Date(value);
+    if (!Number.isFinite(parsed.getTime())) {
+      throw new BadRequestException(`Replay ${field} must be an ISO timestamp`);
+    }
+    return parsed;
+  }
+
+  private parseReplayLimit(value: string | undefined): number {
+    if (value === undefined || value.trim() === '') {
+      return DEFAULT_AFFINITY_REPLAY_LIMIT;
+    }
+    const parsed = Number(value);
+    if (!Number.isInteger(parsed) || parsed < 1) {
+      throw new BadRequestException('Replay limit must be a positive integer');
+    }
+    return Math.min(parsed, MAX_AFFINITY_REPLAY_LIMIT);
+  }
+
+  private parseReplayDryRun(value: string | undefined): boolean {
+    return typeof value === 'string' && value.trim().toLowerCase() === 'true';
+  }
+
+  private buildAffinityReplayWhere(
+    from: Date | undefined,
+    to: Date | undefined,
+    cursor: AffinityReplayCursor | null,
+  ): Prisma.OrderWhereInput {
+    const where: Prisma.OrderWhereInput = {
+      status: { in: Array.from(FLIPFLOP_AFFINITY_REPLAY_ELIGIBLE_ORDER_STATUSES) },
+      paymentStatus: { in: Array.from(FLIPFLOP_AFFINITY_REPLAY_ELIGIBLE_PAYMENT_STATUSES) },
+    };
+
+    const createdAt: Prisma.DateTimeFilter = {};
+    if (from) {
+      createdAt.gte = from;
+    }
+    if (to) {
+      createdAt.lte = to;
+    }
+    if (Object.keys(createdAt).length > 0) {
+      where.createdAt = createdAt;
+    }
+
+    if (cursor) {
+      const cursorDate = new Date(cursor.createdAt);
+      where.AND = [
+        ...(Array.isArray(where.AND) ? where.AND : []),
+        {
+          OR: [
+            { createdAt: { gt: cursorDate } },
+            { createdAt: cursorDate, id: { gt: cursor.id } },
+          ],
+        },
+      ];
+    }
+
+    return where;
+  }
+
+  private decodeReplayCursor(value: string | undefined): AffinityReplayCursor | null {
+    if (value === undefined || value.trim() === '') {
+      return null;
+    }
+    try {
+      const parsed = JSON.parse(Buffer.from(value, 'base64url').toString('utf8')) as {
+        v?: unknown;
+        createdAt?: unknown;
+        id?: unknown;
+      };
+      if (
+        parsed.v !== AFFINITY_REPLAY_CURSOR_VERSION ||
+        typeof parsed.createdAt !== 'string' ||
+        typeof parsed.id !== 'string' ||
+        !Number.isFinite(new Date(parsed.createdAt).getTime()) ||
+        parsed.id.trim() === ''
+      ) {
+        throw new Error('invalid replay cursor payload');
+      }
+      return { createdAt: parsed.createdAt, id: parsed.id };
+    } catch {
+      throw new BadRequestException('Replay cursor is invalid');
+    }
+  }
+
+  private encodeReplayCursor(order: { createdAt: Date; id: string }): string {
+    const payload = {
+      v: AFFINITY_REPLAY_CURSOR_VERSION,
+      createdAt: order.createdAt.toISOString(),
+      id: order.id,
+    };
+    return Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url');
   }
 
   /**
