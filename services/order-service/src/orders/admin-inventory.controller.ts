@@ -3,12 +3,19 @@
  */
 
 import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard, ApiResponse } from '@flipflop/shared';
+import { JwtAuthGuard, RolesGuard, Roles, ApiResponse } from '@flipflop/shared';
 import { OrdersService } from './orders.service';
 import { CreateSupplierDeliveryDto } from './dto/create-supplier-delivery.dto';
 
 @Controller('admin/inventory')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(
+  'global:superadmin',
+  'global:platform_admin',
+  'app:flipflop-service:admin',
+  'app:flipflop:admin',
+  'flipflop:admin',
+)
 export class AdminInventoryController {
   constructor(private readonly ordersService: OrdersService) {}
 

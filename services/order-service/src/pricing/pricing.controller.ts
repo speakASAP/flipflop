@@ -1,9 +1,16 @@
 import { Controller, Get, Patch, Param, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiResponse, JwtAuthGuard } from '@flipflop/shared';
+import { ApiResponse, JwtAuthGuard, RolesGuard, Roles } from '@flipflop/shared';
 import { PricingService } from './pricing.service';
 
 @Controller('admin/pricing')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(
+  'global:superadmin',
+  'global:platform_admin',
+  'app:flipflop-service:admin',
+  'app:flipflop:admin',
+  'flipflop:admin',
+)
 export class PricingController {
   constructor(private readonly pricingService: PricingService) {}
 

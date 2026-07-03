@@ -5,12 +5,19 @@
 import { Body, Controller, Get, Param, Patch, Put, Query, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { OrdersService } from './orders.service';
-import { JwtAuthGuard, ApiResponse } from '@flipflop/shared';
+import { JwtAuthGuard, RolesGuard, Roles, ApiResponse } from '@flipflop/shared';
 import { UpdateAdminOrderStatusDto } from './dto/update-admin-order-status.dto';
 import { PricingService } from './pricing.service';
 
 @Controller('admin')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(
+  'global:superadmin',
+  'global:platform_admin',
+  'app:flipflop-service:admin',
+  'app:flipflop:admin',
+  'flipflop:admin',
+)
 export class AdminOrdersController {
   constructor(
     private readonly ordersService: OrdersService,
