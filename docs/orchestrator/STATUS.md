@@ -1,3 +1,5 @@
+2026-07-03: Goal 24 manual Fiobanka refund acknowledgement workflow narrowed. Owner clarified that completed Fiobanka refunds are performed manually in a separate refund service and then marked in backend/customer-visible order surfaces. FlipFlop source already supports the channel-local acknowledgement path: `/admin/orders/:id` can set order status `refunded`, payment status `refunded`, and notes. This resolves/narrows only FlipFlop acknowledgement ownership; runtime full paid/refund remains blocked until redacted external refund-service evidence, Orders post-paid correction approval, and Warehouse component-line cleanup evidence exist. No live checkout, payment, refund, provider call, Orders/Warehouse mutation, DB edit, deploy, migration, secret output, or raw customer/payment evidence was performed.
+
 ## 2026-07-03 - Goal 24 Channel Cleanup Contract Prepared
 
 Status: source-prepared, runtime paid/provider progression blocked.

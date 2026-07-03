@@ -90,3 +90,18 @@ Decision: `block` for runtime paid/provider progression.
 [RESOLVED/NARROWED: FlipFlop channel cleanup contract prepared for cart/session/local projection cleanup, idempotency, customer-visible hard stops, and redacted evidence policy; runtime remains blocked]
 
 FlipFlop/channel cleanup ownership is now source-prepared for cart/session/local projection cleanup, central Orders UUID propagation confirmation, idempotent cleanup keys, customer-visible hard stops, and redacted evidence policy. This contract does not authorize live checkout, provider calls, refund/cancel, Orders mutation, Warehouse mutation, marketplace mutation, deploy, migration, DB writes, secret reads, or raw evidence capture.
+
+## Manual Refund Acknowledgement Workflow
+
+Owner clarification on 2026-07-03: completed Fiobanka refunds are normally executed manually in the owner-operated refund service, then marked in backend/customer-visible order surfaces. FlipFlop already supports this local acknowledgement path through the admin order detail page `/admin/orders/:id`: the admin status form can set order status `refunded`, payment status `refunded`, and notes after the external refund is completed.
+
+This resolves/narrows the channel-local acknowledgement workflow only. It does not execute the bank refund, does not prove provider reversal, and does not authorize Orders/Warehouse post-paid correction by itself.
+
+Required evidence for a future full paid/refund Goal 24 smoke:
+
+- redacted external refund-service evidence for the exact completed Fiobanka transfer, using only amount/currency, timestamp, operator approval id, and hash/reference suffixes;
+- FlipFlop admin/user-page acknowledgement that the local order is marked `status=refunded` and `paymentStatus=refunded`, with notes referencing the non-secret refund approval id;
+- Orders owner-approved post-paid cancellation/correction packet and Warehouse component-line `cancel` or `return` result for the observed state;
+- no raw bank data, customer PII, raw order/payment ids, token values, provider payloads, or raw DB rows.
+
+Marker: `[RESOLVED/NARROWED: owner-approved manual Fiobanka refund acknowledgement workflow exists in FlipFlop admin order UI; runtime proof remains required for the exact paid smoke]`.

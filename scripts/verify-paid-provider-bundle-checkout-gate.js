@@ -12,6 +12,8 @@ const paymentService = read('shared/payments/payment.service.ts');
 const productsApi = read('services/frontend/lib/api/products.ts');
 const guestCart = read('services/frontend/lib/guest-cart.ts');
 const checkoutPage = read('services/frontend/app/checkout/page.tsx');
+const adminOrderDetailPage = read('services/frontend/app/admin/orders/[id]/page.tsx');
+const adminOrderStatusDto = read('services/order-service/src/orders/dto/update-admin-order-status.dto.ts');
 const adoptionGoal = read('implementation-goals/GOAL-24-catalog-bundle-adoption.md');
 const gateGoal = read('implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md');
 const channelCleanupContract = read('docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md');
@@ -130,6 +132,11 @@ assert(guestCart.includes('catalogCandidateId'), 'guest cart may carry Catalog c
 assert(guestCart.includes('bundleId?: string'), 'guest cart must carry durable Catalog bundleId as bounded intent evidence');
 assert(checkoutPage.includes('catalogCandidateId: bundleIntent.catalogCandidateId'), 'checkout submits Catalog candidate id as provenance only');
 assert(checkoutPage.includes('bundleId: bundleIntent.bundleId'), 'checkout submits durable Catalog bundleId as bounded intent evidence');
+assert(adminOrderDetailPage.includes('OrderStatus.REFUNDED'), 'admin order detail must allow manual refunded order acknowledgement');
+assert(adminOrderDetailPage.includes('PaymentStatus.REFUNDED'), 'admin order detail must allow manual refunded payment acknowledgement');
+assert(adminOrderDetailPage.includes('notes: statusForm.notes || undefined'), 'admin order detail must allow refund acknowledgement notes');
+assert(adminOrderStatusDto.includes("'refunded'"), 'admin order status DTO must accept refunded acknowledgement');
+assert(channelCleanupContract.includes('[RESOLVED/NARROWED: owner-approved manual Fiobanka refund acknowledgement workflow exists in FlipFlop admin order UI; runtime proof remains required for the exact paid smoke]'), 'channel cleanup contract missing manual refund acknowledgement workflow marker');
 
 includesAll(adoptionGoal, baseRequiredBlockers, 'GOAL-24 catalog bundle adoption doc');
 includesAll(gateGoal, requiredBlockers, 'GOAL-24 paid/provider gate doc');
