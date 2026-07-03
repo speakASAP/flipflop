@@ -53,6 +53,9 @@ Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding P
 
 - `[MISSING: renewed owner-approved execution window for Europe/Prague after 2026-07-03T23:59:59+02:00]`
 - `[MISSING: named runtime validation owner for the exact side-effectful smoke]`
+- `[MISSING: named Auth admin actor approved for Goal 24 guarded discount-code generation]`
+- `[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]`
+- `[MISSING: confirmation that the token belongs to the named actor and carries global:superadmin or app:flipflop-service:admin]`
 - `[MISSING: named FlipFlop channel cleanup executor]`
 - `[RESOLVED/NARROWED: owner approved Fiobanka QR with checkout-authoritative total <= 300 CZK via server-validated discount/price fixture]`
 - `[MISSING: owner confirmation that target bundle 919be990-1c76-4f9c-b100-829281c6a709 and component products remain valid for live smoke]`

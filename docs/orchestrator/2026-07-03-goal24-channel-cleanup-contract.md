@@ -96,6 +96,16 @@ Source inspection narrowed the safe fixture path:
 
 Runtime authority remains bounded to one exact attempt only after the executor can use the guarded server-validated discount-code path without printing secrets/tokens/raw customer/order/payment/provider data.
 
+Auth/admin actor lane update on 2026-07-04: source inspection found no named durable actor. The only narrowed token-handling path is an Auth-issued user access token for the owner-named actor carrying `global:superadmin` or `app:flipflop-service:admin`, supplied through an owner-approved token file or in-process handoff, read only by the final approved runner, never printed/decoded/persisted, and removed after the run. Service tokens/API keys are not approved user actor substitutes for this guarded admin endpoint. Report: `reports/validation/VAL-GOAL-24-auth-admin-actor-token-handling-2026-07-04.md`.
+
+Markers:
+
+- `[RESOLVED/NARROWED: guarded Goal 24 discount-code generation must use an Auth-issued user access token carrying global:superadmin or app:flipflop-service:admin; service tokens/API keys are not approved user actor substitutes]`
+- `[RESOLVED/NARROWED: approved token-handling shape is token file or in-process environment material read only by the final approved runner, never printed, never decoded into reports, never committed, and removed after the run]`
+- `[RESOLVED/NARROWED: sanitized auth evidence may record only auth endpoint status class, token-present boolean, role-check boolean, actor label/hash, approval id, and timestamps]`
+- `[MISSING: named Auth admin actor approved for Goal 24 guarded discount-code generation]`
+- `[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]`
+
 
 ## Hard Stops
 

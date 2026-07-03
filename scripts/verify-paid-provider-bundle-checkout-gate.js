@@ -23,6 +23,7 @@ const discountFixtureQuoteHardStop = read('reports/validation/VAL-GOAL-24-discou
 const bundlePreservingFixtureSource = read('reports/validation/VAL-GOAL-24-bundle-preserving-fixture-source.md');
 const bundlePreservingFixtureRuntimeQuote = read('reports/validation/VAL-GOAL-24-bundle-preserving-fixture-runtime-quote.md');
 const runtimeOwnerCheck = read('reports/validation/VAL-GOAL-24-runtime-preflight-owner-check-2026-07-04.md');
+const authAdminActorTokenHandling = read('reports/validation/VAL-GOAL-24-auth-admin-actor-token-handling-2026-07-04.md');
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
 const orchestratorStatus = read('docs/orchestrator/STATUS.md');
 const migrationGoal = read('implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md');
@@ -287,6 +288,24 @@ assert(runtimeOwnerCheck.includes('Secret retrieval alone is not a safe runtime 
 assert(orchestratorStatus.includes('VAL-GOAL-24-runtime-preflight-owner-check-2026-07-04.md'), 'orchestrator status missing runtime owner check report');
 assert(implementationState.includes('VAL-GOAL-24-runtime-preflight-owner-check-2026-07-04.md'), 'implementation state missing runtime owner check report');
 
+for (const marker of [
+  '[RESOLVED/NARROWED: guarded Goal 24 discount-code generation must use an Auth-issued user access token carrying global:superadmin or app:flipflop-service:admin; service tokens/API keys are not approved user actor substitutes]',
+  '[RESOLVED/NARROWED: approved token-handling shape is token file or in-process environment material read only by the final approved runner, never printed, never decoded into reports, never committed, and removed after the run]',
+  '[RESOLVED/NARROWED: sanitized auth evidence may record only auth endpoint status class, token-present boolean, role-check boolean, actor label/hash, approval id, and timestamps]',
+  '[MISSING: named Auth admin actor approved for Goal 24 guarded discount-code generation]',
+  '[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
+  '[MISSING: confirmation that the token belongs to the named actor and carries global:superadmin or app:flipflop-service:admin]',
+]) {
+  assert(authAdminActorTokenHandling.includes(marker), `auth/admin actor report missing ${marker}`);
+  assert(channelCleanupContract.includes(marker) || approvalDraft.includes(marker) || implementationState.includes(marker) || orchestratorStatus.includes(marker), `Goal 24 docs missing auth/admin marker ${marker}`);
+}
+assert(authAdminActorTokenHandling.includes('mutation: false'), 'auth/admin actor report must remain non-mutating');
+assert(authAdminActorTokenHandling.includes('token_output: false'), 'auth/admin actor report must forbid token output');
+assert(authAdminActorTokenHandling.includes('service tokens/API keys are not approved user actor substitutes'), 'auth/admin actor report must reject service token user substitution');
+assert(authAdminActorTokenHandling.includes('[MISSING: sanitized auth/admin evidence path for guarded discount-code generation]'), 'auth/admin actor report missing sanitized evidence fallback');
+assert(implementationState.includes('VAL-GOAL-24-auth-admin-actor-token-handling-2026-07-04.md'), 'implementation state missing auth/admin actor report');
+assert(orchestratorStatus.includes('VAL-GOAL-24-auth-admin-actor-token-handling-2026-07-04.md'), 'orchestrator status missing auth/admin actor report');
+
 for (const value of [
   '[RESOLVED/NARROWED: owner-approved stop-before-paid Fiobanka QR smoke executed and cleaned up]',
   '[RESOLVED/NARROWED: owner-confirmed manual Fiobanka refund was executed through the external refund service; FlipFlop acknowledgement path remains available for exact order marking]',
@@ -341,6 +360,7 @@ console.log(JSON.stringify({
     bundlePreservingFixtureSource: 'source_prepared_runtime_deploy_gated',
     bundlePreservingFixtureRuntimeQuote: 'quote_preflight_passed_before_checkout',
     runtimeOwnerCheck: 'blocked_secret_access_is_not_sufficient_without_named_actor_and_cleanup_packet',
+    authAdminActorTokenHandling: 'blocked_missing_named_actor_with_narrowed_non_printing_token_path',
     successCancelUrlOwnership: 'source_prepared_runtime_blocked',
     retryStateCleanupOwnership: 'source_prepared_runtime_blocked',
     defaultAuthSubjectSmokeNonMutating: true,
