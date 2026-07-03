@@ -200,3 +200,5 @@ Sanitized preflight evidence:
 Tax-aware fixture recalculation on 2026-07-04 found checkout subtotal `1998 CZK`, tax `419.58 CZK`, orderTotalBeforeDiscount `2417.58 CZK`, afterDiscount1698 `719.58 CZK`, and discountNeededFor300: `2117.58 CZK`. The executable fixed discount-code fixture is therefore `2117.58 CZK`.
 
 Decision update: owner approved the discount/price fixture path. Runtime must use only a server-validated fixed discount-code fixture that brings the checkout-authoritative total to `<= 300 CZK`; direct client `discount`, Catalog price mutation, marketplace/feed/listing mutation, persistent product price changes, direct DB row edits, and manual workaround remain forbidden.
+
+[RESOLVED/NARROWED: owner delegated autonomous Goal 24 continuation to Codex, but integration validation keeps new Fiobanka paid/provider side effects hard-stopped until bank/refund authority, exact Orders/Warehouse packet, and redacted provider proof exist]

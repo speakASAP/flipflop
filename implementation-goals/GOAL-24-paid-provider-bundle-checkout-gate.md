@@ -128,3 +128,5 @@ Integration owner: commerce integration validator after owner approval.
 Validation owner: FlipFlop checkout readiness worker for source-policy only; runtime validation owner for any later live smoke.
 
 Merge order: source-policy verifier, docs/state update, validation, commit/push. Any future live runtime smoke merges only after Payments, Orders, Warehouse, and channel cleanup packets are complete.
+
+[RESOLVED/NARROWED: owner delegated autonomous Goal 24 continuation to Codex, but integration validation keeps new Fiobanka paid/provider side effects hard-stopped until bank/refund authority, exact Orders/Warehouse packet, and redacted provider proof exist]

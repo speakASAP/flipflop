@@ -26,6 +26,7 @@ const runtimeOwnerCheck = read('reports/validation/VAL-GOAL-24-runtime-preflight
 const authAdminActorTokenHandling = read('reports/validation/VAL-GOAL-24-auth-admin-actor-token-handling-2026-07-04.md');
 const paymentResultUrlRuntimeReadback = read('reports/validation/VAL-GOAL-24-payment-result-url-runtime-readback.md');
 const channelCleanupPacket = read('reports/validation/VAL-GOAL-24-channel-cleanup-packet-2026-07-04.md');
+const autonomousApprovalIntegrationDecision = read('reports/validation/VAL-GOAL-24-autonomous-approval-integration-decision-2026-07-04.md');
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
 const orchestratorStatus = read('docs/orchestrator/STATUS.md');
 const migrationGoal = read('implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md');
@@ -47,6 +48,7 @@ const retryStateCleanupOwnerMarker = '[RESOLVED/NARROWED: FlipFlop owns retry-st
 const channelCleanupPacketMarker = '[RESOLVED/NARROWED: channel cleanup packet is policy-complete for FlipFlop-owned URL, retry, cart/session/local projection duties; runtime remains blocked until named executor, rollback owner, and sanitized evidence path are supplied]';
 const runtimeUrlReadbackResolvedMarker = '[RESOLVED/NARROWED: runtime config readback shows PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL resolve to approved FlipFlop payment-result URLs without secret output]';
 const runtimeUrlReadbackMissingMarker = '[MISSING: sanitized runtime config readback or owner confirmation that PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL are unset or exactly match the approved FlipFlop payment-result URLs for the future smoke]';
+const autonomousApprovalDecisionMarker = '[RESOLVED/NARROWED: owner delegated autonomous Goal 24 continuation to Codex, but integration validation keeps new Fiobanka paid/provider side effects hard-stopped until bank/refund authority, exact Orders/Warehouse packet, and redacted provider proof exist]';
 
 const baseRequiredBlockers = [
   paidProviderRuntimeBlocker,
@@ -326,6 +328,23 @@ assert(channelCleanupPacket.includes('provider_call: false'), 'channel cleanup p
 assert(channelCleanupPacket.includes('secret_output: false'), 'channel cleanup packet report must forbid secret output');
 assert(channelCleanupPacket.includes('raw_customer_or_payment_evidence: false'), 'channel cleanup packet report must forbid raw customer/payment evidence');
 
+assert(autonomousApprovalIntegrationDecision.includes('status: autonomous-approval-consumed-runtime-hard-stop'), 'autonomous approval integration decision must record hard-stop status');
+assert(autonomousApprovalIntegrationDecision.includes('mutation: false'), 'autonomous approval integration decision must remain non-mutating');
+assert(autonomousApprovalIntegrationDecision.includes('provider_call: false'), 'autonomous approval integration decision must forbid provider calls');
+assert(autonomousApprovalIntegrationDecision.includes('live_checkout_executed: false'), 'autonomous approval integration decision must forbid live checkout');
+for (const [label, source] of [['autonomous approval report', autonomousApprovalIntegrationDecision], ['approval draft', approvalDraft], ['paid/provider gate', gateGoal], ['channel cleanup contract', channelCleanupContract], ['implementation state', implementationState], ['orchestrator status', orchestratorStatus]]) {
+  assert(source.includes(autonomousApprovalDecisionMarker), `${label} missing autonomous approval integration decision marker`);
+}
+for (const value of [
+  '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
+  '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
+  '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
+  '[MISSING: owner-approved Warehouse stock hold/release window, max quantity, target rows]',
+  '[MISSING: final redacted integration evidence packet before any live side effect]',
+]) {
+  assert(autonomousApprovalIntegrationDecision.includes(value), `autonomous approval integration decision missing ${value}`);
+}
+
 for (const value of [
   '[RESOLVED/NARROWED: owner-approved stop-before-paid Fiobanka QR smoke executed and cleaned up]',
   '[RESOLVED/NARROWED: owner-confirmed manual Fiobanka refund was executed through the external refund service; FlipFlop acknowledgement path remains available for exact order marking]',
@@ -384,6 +403,7 @@ console.log(JSON.stringify({
     successCancelUrlOwnership: 'runtime_url_readback_resolved',
     retryStateCleanupOwnership: 'source_prepared_runtime_blocked',
     channelCleanupPacket: 'policy_complete_runtime_blocked',
+    autonomousApprovalIntegrationDecision: 'approval_consumed_new_runtime_side_effects_hard_stopped',
     defaultAuthSubjectSmokeNonMutating: true,
   },
   blockers: requiredBlockers,

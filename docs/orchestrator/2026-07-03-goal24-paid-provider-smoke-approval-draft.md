@@ -258,3 +258,11 @@ Owner delegated autonomous continuation on `2026-07-04`. FlipFlop deployed the n
 The public quote for `paymentMethod=fiobanka`, `deliveryMethod=store`, bundle `919be990-1c76-4f9c-b100-829281c6a709`, and component Catalog product ids `ce4a51aa-2d12-4ab7-a965-7a36609d01fc` plus `dbc51dde-fc66-4511-b178-f929183f4647` returned HTTP `200`, `schemaVersion=flipflop.checkout-quote.v1`, `sideEffects=[]`, `subtotal=1998`, `tax=419.58`, `orderTotalBeforeDiscount=2417.58`, `discount=2117.58`, and `total=300`.
 
 This proves quote-level readiness only. It does not authorize `POST /api/orders/guest`, provider payment creation, provider callback simulation, Warehouse reservation, Orders mutation, channel cleanup mutation, or refund/cancel execution.
+
+## 2026-07-04 Autonomous Approval Integration Decision
+
+Owner authorized Codex to continue autonomously and without further owner involvement. Integration validation consumed that approval as coordination authority only; it does not supply bank/refund authority, exact future provider evidence, Orders side-effect acknowledgements, or Warehouse live reservation facts.
+
+[RESOLVED/NARROWED: owner delegated autonomous Goal 24 continuation to Codex, but integration validation keeps new Fiobanka paid/provider side effects hard-stopped until bank/refund authority, exact Orders/Warehouse packet, and redacted provider proof exist]
+
+Retained evidence closeout remains accepted without exact FlipFlop/Orders/Warehouse correction. A new live paid/provider smoke remains blocked until the preserved runtime hard stops in `reports/validation/VAL-GOAL-24-autonomous-approval-integration-decision-2026-07-04.md` are resolved.
