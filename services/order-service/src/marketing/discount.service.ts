@@ -69,7 +69,7 @@ export class DiscountService {
    * When valid: discountValue is the stored rule amount (percentage points or fixed currency);
    * type indicates how to apply it in applyDiscount.
    */
-  async validateCode(code: string): Promise<{ valid: boolean; discountValue: number; type: string }> {
+  async validateCode(code: string): Promise<{ valid: boolean; discountValue: number; type: string; goalId?: string | null; maxUses?: number; usedCount?: number }> {
     const normalized = this.normalizeCode(code);
     if (!normalized) {
       return { valid: false, discountValue: 0, type: '' };
@@ -86,7 +86,14 @@ export class DiscountService {
     if (row.usedCount >= row.maxUses) {
       return { valid: false, discountValue: 0, type: '' };
     }
-    return { valid: true, discountValue: row.value, type: row.type };
+    return {
+      valid: true,
+      discountValue: row.value,
+      type: row.type,
+      goalId: row.goalId,
+      maxUses: row.maxUses,
+      usedCount: row.usedCount,
+    };
   }
 
   async applyDiscount(orderTotal: number, code: string): Promise<number> {

@@ -187,6 +187,13 @@ The quote preflight stopped before checkout/order/payment because `discountCode`
 Runtime remains blocked. The existing discount-code fixture path cannot satisfy the Goal 24 paid/provider bundle smoke while preserving `catalog.bundle.v1` evidence. Required next owner decision: `[MISSING: owner-approved server-side bundle-preserving fixture or different active <=300 CZK target]`.
 
 
+## 2026-07-04 Bundle-Preserving Fixture Source Gate
+
+Owner approved server-side bundle-preserving fixture. FlipFlop source now keeps ordinary `discountCode + bundleIntent` fail-closed, but allows a single narrow Goal 24 fixture gate when all of these are true: `goalId=GOAL24-paid-provider-fixture-20260704`, fixed discount `2117.58 CZK`, `maxUses=1`, unused code, target bundle `919be990-1c76-4f9c-b100-829281c6a709`, exact target component Catalog product ids, and checkout-authoritative final total `<=300 CZK`.
+
+This is source preparation only until deployed. Runtime still needs a fresh correct one-use code, quote proof, and the provider/Orders/Warehouse cleanup packet before any live checkout/payment attempt.
+
+
 ## Proposed Final Approval Statement
 
 The owner must replace this section with an explicit signed statement before any runtime execution:

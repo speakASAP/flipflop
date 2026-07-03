@@ -20,6 +20,7 @@ const channelCleanupContract = read('docs/orchestrator/2026-07-03-goal24-channel
 const approvalDraft = read('docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md');
 const runtimePreflightBlocker = read('reports/validation/VAL-GOAL-24-discount-fixture-runtime-preflight-blocker.md');
 const discountFixtureQuoteHardStop = read('reports/validation/VAL-GOAL-24-discount-fixture-quote-hard-stop.md');
+const bundlePreservingFixtureSource = read('reports/validation/VAL-GOAL-24-bundle-preserving-fixture-source.md');
 const runtimeOwnerCheck = read('reports/validation/VAL-GOAL-24-runtime-preflight-owner-check-2026-07-04.md');
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
 const orchestratorStatus = read('docs/orchestrator/STATUS.md');
@@ -237,6 +238,14 @@ assert(discountFixtureQuoteHardStop.includes('Discount code cannot be combined w
 assert(discountFixtureQuoteHardStop.includes('codeHash=c918c89d0b2fcf25'), 'discount fixture quote hard-stop must include redacted code hash readback');
 assert(orderService.includes('Discount code cannot be combined with a bundle discount'), 'order service must reject discountCode combined with bundleIntent');
 assert(approvalDraft.includes('Discount Fixture Quote Hard Stop'), 'approval draft missing discount fixture quote hard stop');
+assert(bundlePreservingFixtureSource.includes('source-prepared-runtime-deploy-gated'), 'bundle-preserving fixture source report must remain deploy gated');
+assert(bundlePreservingFixtureSource.includes('goalId=GOAL24-paid-provider-fixture-20260704'), 'bundle-preserving fixture source report missing goal id gate');
+assert(orderService.includes('GOAL24_BUNDLE_FIXTURE_DISCOUNT_CZK = 2117.58'), 'order service missing exact Goal 24 fixture amount');
+assert(orderService.includes('private isGoal24BundleFixtureDiscount'), 'order service missing Goal 24 fixture guard');
+assert(orderService.includes('goal24_bundle_fixture_exclusive'), 'order service missing fixture metadata marker');
+assert(orderService.includes('Discount code cannot be combined with a bundle discount'), 'order service must keep fallback discountCode+bundleIntent rejection');
+assert(read('services/order-service/src/marketing/discount.service.ts').includes('goalId: row.goalId'), 'discount validation must expose goalId for fixture gating');
+assert(approvalDraft.includes('Bundle-Preserving Fixture Source Gate'), 'approval draft missing bundle-preserving fixture source gate');
 assert(approvalDraft.includes('2026-07-04 Runtime Preflight Owner Check'), 'approval draft missing runtime owner check');
 assert(runtimeOwnerCheck.includes('blocked-before-side-effects'), 'runtime owner check must stop before side effects');
 assert(runtimeOwnerCheck.includes('[MISSING: named admin/actor or approved token-handling path for guarded discount-code generation]'), 'runtime owner check must preserve admin actor/token-handling blocker');
@@ -298,6 +307,7 @@ console.log(JSON.stringify({
     amountGate: 'owner_approved_server_validated_discount_fixture_to_300_czk',
     runtimePreflight: 'blocked_guarded_admin_endpoint_requires_actor_or_token_path',
     discountFixtureQuote: 'blocked_discount_code_is_mutually_exclusive_with_bundle_intent',
+    bundlePreservingFixtureSource: 'source_prepared_runtime_deploy_gated',
     runtimeOwnerCheck: 'blocked_secret_access_is_not_sufficient_without_named_actor_and_cleanup_packet',
     defaultAuthSubjectSmokeNonMutating: true,
   },

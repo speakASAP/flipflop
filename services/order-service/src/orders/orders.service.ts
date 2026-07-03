@@ -185,6 +185,14 @@ const HOLIDAY_DISCOUNT_PROCESS_ID = 'holiday-discount-2026';
 const DEFAULT_HOLIDAY_DISCOUNT_PROCESS_VERSION = 1;
 const HOLIDAY_DISCOUNT_POLICY_REF = 'holiday-10-percent-selected-categories';
 const HOLIDAY_DISCOUNT_RATE = 0.10;
+const GOAL24_BUNDLE_FIXTURE_GOAL_ID = 'GOAL24-paid-provider-fixture-20260704';
+const GOAL24_BUNDLE_FIXTURE_BUNDLE_ID = '919be990-1c76-4f9c-b100-829281c6a709';
+const GOAL24_BUNDLE_FIXTURE_DISCOUNT_CZK = 2117.58;
+const GOAL24_BUNDLE_FIXTURE_MAX_TOTAL_CZK = 300;
+const GOAL24_BUNDLE_FIXTURE_CATALOG_PRODUCT_IDS = [
+  'ce4a51aa-2d12-4ab7-a965-7a36609d01fc',
+  'dbc51dde-fc66-4511-b178-f929183f4647',
+];
 
 
 @Injectable()
@@ -1789,6 +1797,34 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     };
   }
 
+
+  private isGoal24BundleFixtureDiscount(params: {
+    validation: { valid: boolean; discountValue: number; type: string; goalId?: string | null; maxUses?: number; usedCount?: number };
+    bundleIntent: BundleDiscountIntent;
+    orderItems: CheckoutOrderItem[];
+    orderTotalBeforeDiscount: number;
+  }): boolean {
+    if (params.validation.goalId !== GOAL24_BUNDLE_FIXTURE_GOAL_ID) return false;
+    if (params.validation.type !== 'fixed') return false;
+    if (this.roundMoney(params.validation.discountValue) !== GOAL24_BUNDLE_FIXTURE_DISCOUNT_CZK) return false;
+    if (params.validation.maxUses !== 1) return false;
+    if (typeof params.validation.usedCount === 'number' && params.validation.usedCount > 0) return false;
+    if (params.bundleIntent.bundleId !== GOAL24_BUNDLE_FIXTURE_BUNDLE_ID) return false;
+
+    const submittedCatalogIds = params.orderItems
+      .map((item) => item.catalogProductId)
+      .filter((id): id is string => typeof id === 'string' && id.trim().length > 0)
+      .sort();
+    const expectedCatalogIds = [...GOAL24_BUNDLE_FIXTURE_CATALOG_PRODUCT_IDS].sort();
+    if (submittedCatalogIds.length !== expectedCatalogIds.length) return false;
+    for (let index = 0; index < expectedCatalogIds.length; index += 1) {
+      if (submittedCatalogIds[index] !== expectedCatalogIds[index]) return false;
+    }
+
+    const finalTotal = this.roundMoney(params.orderTotalBeforeDiscount - params.validation.discountValue);
+    return finalTotal > 0 && finalTotal <= GOAL24_BUNDLE_FIXTURE_MAX_TOTAL_CZK;
+  }
+
   private async calculateCheckoutDiscount(params: {
     orderItems: CheckoutOrderItem[];
     orderTotalBeforeDiscount: number;
@@ -1799,7 +1835,44 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     const trimmedDiscountCode = typeof params.discountCode === 'string' && params.discountCode.trim() ? params.discountCode.trim() : '';
     const bundleIntent = this.normalizeBundleIntent(params.bundleIntent);
     if (trimmedDiscountCode && bundleIntent) {
-      throw new BadRequestException('Discount code cannot be combined with a bundle discount');
+      const validation = await this.discountService.validateCode(trimmedDiscountCode);
+      if (!validation.valid) {
+        throw new BadRequestException('Invalid or expired discount code');
+      }
+      if (!this.isGoal24BundleFixtureDiscount({
+        validation,
+        bundleIntent,
+        orderItems: params.orderItems,
+        orderTotalBeforeDiscount: params.orderTotalBeforeDiscount,
+      })) {
+        throw new BadRequestException('Discount code cannot be combined with a bundle discount');
+      }
+      const holidayDiscount: HolidayDiscountApplication = {
+        source: HOLIDAY_DISCOUNT_SCHEMA_VERSION,
+        processId: HOLIDAY_DISCOUNT_PROCESS_ID,
+        processVersion: this.holidayDiscountProcessVersion(),
+        policyRefs: [],
+        reasonCodes: ['goal24_bundle_fixture_exclusive'],
+        discountAmount: 0,
+        currency: 'CZK',
+        applied: false,
+        failClosedReason: 'goal24_bundle_fixture_exclusive',
+        lines: [],
+      };
+      const bundleDiscount = await this.calculateBundleDiscount({
+        orderItems: params.orderItems,
+        orderTotalBeforeDiscount: params.orderTotalBeforeDiscount,
+        shippingCost: params.shippingCost,
+        bundleIntent,
+      });
+      const after = await this.discountService.applyDiscount(params.orderTotalBeforeDiscount, trimmedDiscountCode);
+      const discount = this.roundMoney(params.orderTotalBeforeDiscount - after);
+      return {
+        discount,
+        pendingDiscountCode: this.discountService.normalizeCode(trimmedDiscountCode),
+        bundleDiscount,
+        holidayDiscount,
+      };
     }
     if (trimmedDiscountCode || bundleIntent) {
       const holidayDiscount: HolidayDiscountApplication = {
