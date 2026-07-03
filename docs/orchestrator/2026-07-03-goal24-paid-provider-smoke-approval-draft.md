@@ -140,6 +140,20 @@ Source inspection narrowed the safe fixture path:
 Runtime authority remains bounded to one exact attempt only after the executor can use the guarded server-validated discount-code path without printing secrets/tokens/raw customer/order/payment/provider data.
 
 
+## 2026-07-03 Runtime Preflight Blocker
+
+After owner approval of the discount fixture, FlipFlop ran only a safe guarded endpoint preflight before side effects.
+
+Sanitized evidence:
+
+- `POST /api/admin/marketing/discount-codes` without admin authorization returned `401 Unauthorized`.
+- The guarded path requires a named admin/actor or approved token-handling path before the one-use fixed `1698 CZK` discount code can be generated.
+- Remote time was `2026-07-03T23:59:02+02:00`, too close to the prior approval window ending `2026-07-03T23:59:59+02:00` for a safe full paid/provider attempt.
+- No discount code, checkout, order, payment, provider call, Warehouse reservation, Orders mutation, DB write, deploy, migration, secret/token output, or raw evidence was created.
+
+Runtime remains blocked by `[MISSING: renewed owner-approved execution window for Europe/Prague after 2026-07-03T23:59:59+02:00]` and `[MISSING: named admin/actor or approved token-handling path for guarded discount-code generation]`.
+
+
 ## Proposed Final Approval Statement
 
 The owner must replace this section with an explicit signed statement before any runtime execution:

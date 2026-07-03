@@ -18,6 +18,7 @@ const adoptionGoal = read('implementation-goals/GOAL-24-catalog-bundle-adoption.
 const gateGoal = read('implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md');
 const channelCleanupContract = read('docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md');
 const approvalDraft = read('docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md');
+const runtimePreflightBlocker = read('reports/validation/VAL-GOAL-24-discount-fixture-runtime-preflight-blocker.md');
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
 const orchestratorStatus = read('docs/orchestrator/STATUS.md');
 const migrationGoal = read('implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md');
@@ -225,6 +226,10 @@ assert(implementationState.includes('Owner approved Goal 24 discount/price fixtu
 assert(orderService.includes('Client-provided discount is not accepted without a server-validated contract'), 'order service must reject direct client discount');
 assert(orderService.includes('const after = await this.discountService.applyDiscount(params.orderTotalBeforeDiscount, trimmedDiscountCode)'), 'order service must apply server-validated discount code to authoritative total');
 assert(read('services/order-service/src/marketing/marketing.controller.ts').includes('@UseGuards(JwtAuthGuard, RolesGuard)'), 'discount code generation endpoint must remain guarded');
+assert(runtimePreflightBlocker.includes('401 Unauthorized'), 'runtime preflight blocker must record guarded admin endpoint 401');
+assert(runtimePreflightBlocker.includes('blocked-before-side-effects'), 'runtime preflight blocker must stop before side effects');
+assert(runtimePreflightBlocker.includes('[MISSING: named admin/actor or approved token-handling path for guarded discount-code generation]'), 'runtime preflight blocker must preserve admin actor/token-handling blocker');
+assert(approvalDraft.includes('Runtime Preflight Blocker'), 'approval draft missing runtime preflight blocker');
 
 for (const value of [
   '[RESOLVED/NARROWED: owner-approved stop-before-paid Fiobanka QR smoke executed and cleaned up]',
@@ -275,6 +280,7 @@ console.log(JSON.stringify({
     approvalDraft: 'discount_fixture_approved_side_effects_gated',
     approvalDraftSelfDiscovery: 'refreshed_runtime_blocked',
     amountGate: 'owner_approved_server_validated_discount_fixture_to_300_czk',
+    runtimePreflight: 'blocked_guarded_admin_endpoint_requires_actor_or_token_path',
     defaultAuthSubjectSmokeNonMutating: true,
   },
   blockers: requiredBlockers,
