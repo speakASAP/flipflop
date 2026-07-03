@@ -133,7 +133,7 @@ Source inspection narrowed the safe fixture path:
 - The supported fixture path is a server-validated `discountCode` handled by `DiscountService.validateCode` and `DiscountService.applyDiscount`.
 - The admin generation endpoint is guarded by `JwtAuthGuard`, `RolesGuard`, and roles `global:superadmin` or `app:flipflop-service:admin`.
 - Current target component total remains `1998 CZK`.
-- Approved deterministic fixture amount is a fixed one-use discount code for `1698 CZK`, producing final checkout/payment amount `300 CZK`.
+- Approved deterministic fixture amount is a fixed one-use discount code for `2117.58 CZK`, producing final checkout/payment amount `300 CZK` after checkout tax.
 - The fixture must be recorded with Goal 24 correlation, maxUses `1`, and a short expiration window.
 - This approval does not authorize Catalog price mutation, marketplace/feed/listing mutation, persistent product price changes, direct DB row edits, or direct client `discount` override.
 
@@ -147,12 +147,25 @@ After owner approval of the discount fixture, FlipFlop ran only a safe guarded e
 Sanitized evidence:
 
 - `POST /api/admin/marketing/discount-codes` without admin authorization returned `401 Unauthorized`.
-- The guarded path requires a named admin/actor or approved token-handling path before the one-use fixed `1698 CZK` discount code can be generated.
+- The guarded path requires a named admin/actor or approved token-handling path before the one-use fixed `2117.58 CZK` discount code can be generated.
 - Remote time was `2026-07-03T23:59:02+02:00`, too close to the prior approval window ending `2026-07-03T23:59:59+02:00` for a safe full paid/provider attempt.
 - No discount code, checkout, order, payment, provider call, Warehouse reservation, Orders mutation, DB write, deploy, migration, secret/token output, or raw evidence was created.
 
 Runtime remains blocked by `[MISSING: renewed owner-approved execution window for Europe/Prague after 2026-07-03T23:59:59+02:00]` and `[MISSING: named admin/actor or approved token-handling path for guarded discount-code generation]`.
 
+
+## 2026-07-04 Tax-Aware Fixture Recalculation
+
+A read-only runtime calculation on the target active component products returned:
+
+- matched active products: `2`.
+- subtotal: `1998 CZK`.
+- checkout tax: `419.58 CZK`.
+- orderTotalBeforeDiscount: `2417.58 CZK`.
+- afterDiscount1698: `719.58 CZK`, which exceeds the approved Fiobanka ceiling.
+- discountNeededFor300: `2117.58 CZK`.
+
+Decision update: the executable fixed one-use discount-code fixture is `2117.58 CZK`, producing final checkout/payment amount `300 CZK` after checkout tax. The old `1698 CZK` draft value remains invalid for runtime execution.
 
 ## Proposed Final Approval Statement
 

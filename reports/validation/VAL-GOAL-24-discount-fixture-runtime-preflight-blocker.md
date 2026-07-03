@@ -14,7 +14,7 @@ live_checkout_executed: false
 ## Evidence
 
 - Remote repo was clean on `main` at `9a4bf90 docs: approve goal24 discount fixture gate`.
-- Safe unauthenticated guarded endpoint preflight was attempted against `POST /api/admin/marketing/discount-codes` with the owner-approved fixed `1698 CZK` fixture shape.
+- Safe unauthenticated guarded endpoint preflight was attempted against `POST /api/admin/marketing/discount-codes` with the owner-approved fixed `2117.58 CZK` fixture shape.
 - Result: `401 Unauthorized`, message class `Missing or invalid authorization header`.
 - No admin token, secret, raw customer/order/payment/provider data, discount code, order, payment, provider call, Warehouse reservation, Orders mutation, DB write, deploy, migration, or checkout side effect was created by this preflight.
 - Runtime clock at preflight: `2026-07-03T23:59:02+02:00`; the earlier approval window ending `2026-07-03T23:59:59+02:00` was no longer safe for a full paid/provider attempt.

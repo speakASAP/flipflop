@@ -211,7 +211,7 @@ for (const value of [
   approvedDiscountFixtureMarker,
   'Direct client-provided `discount` is rejected',
   'server-validated `discountCode`',
-  'fixed one-use discount code for `1698 CZK`',
+  'fixed one-use discount code for `2117.58 CZK`',
   'final checkout/payment amount `300 CZK`',
   'JwtAuthGuard',
   'RolesGuard',

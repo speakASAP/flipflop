@@ -66,7 +66,7 @@ Source inspection narrowed the safe fixture path:
 - The supported fixture path is a server-validated `discountCode` handled by `DiscountService.validateCode` and `DiscountService.applyDiscount`.
 - The admin generation endpoint is guarded by `JwtAuthGuard`, `RolesGuard`, and roles `global:superadmin` or `app:flipflop-service:admin`.
 - Current target component total remains `1998 CZK`.
-- Approved deterministic fixture amount is a fixed one-use discount code for `1698 CZK`, producing final checkout/payment amount `300 CZK`.
+- Approved deterministic fixture amount is a fixed one-use discount code for `2117.58 CZK`, producing final checkout/payment amount `300 CZK` after checkout tax.
 - The fixture must be recorded with Goal 24 correlation, maxUses `1`, and a short expiration window.
 - This approval does not authorize Catalog price mutation, marketplace/feed/listing mutation, persistent product price changes, direct DB row edits, or direct client `discount` override.
 
@@ -142,5 +142,7 @@ Sanitized preflight evidence:
 - total: `1998 CZK`.
 - approved Fiobanka amount ceiling: `300 CZK`.
 - result: `[HARD-STOP: current target component total is 1998 CZK, exceeding approved Fiobanka paid/provider smoke maximum 300 CZK]`.
+
+Tax-aware fixture recalculation on 2026-07-04 found checkout subtotal `1998 CZK`, tax `419.58 CZK`, orderTotalBeforeDiscount `2417.58 CZK`, afterDiscount1698 `719.58 CZK`, and discountNeededFor300: `2117.58 CZK`. The executable fixed discount-code fixture is therefore `2117.58 CZK`.
 
 Decision update: owner approved the discount/price fixture path. Runtime must use only a server-validated fixed discount-code fixture that brings the checkout-authoritative total to `<= 300 CZK`; direct client `discount`, Catalog price mutation, marketplace/feed/listing mutation, persistent product price changes, direct DB row edits, and manual workaround remain forbidden.
