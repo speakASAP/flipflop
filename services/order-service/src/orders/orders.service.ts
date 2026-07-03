@@ -1806,7 +1806,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
   }): boolean {
     if (params.validation.goalId !== GOAL24_BUNDLE_FIXTURE_GOAL_ID) return false;
     if (params.validation.type !== 'fixed') return false;
-    if (this.roundMoney(params.validation.discountValue) !== GOAL24_BUNDLE_FIXTURE_DISCOUNT_CZK) return false;
+    if (this.roundMoney(Number(params.validation.discountValue)) !== GOAL24_BUNDLE_FIXTURE_DISCOUNT_CZK) return false;
     if (params.validation.maxUses !== 1) return false;
     if (typeof params.validation.usedCount === 'number' && params.validation.usedCount > 0) return false;
     if (params.bundleIntent.bundleId !== GOAL24_BUNDLE_FIXTURE_BUNDLE_ID) return false;
@@ -1821,7 +1821,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       if (submittedCatalogIds[index] !== expectedCatalogIds[index]) return false;
     }
 
-    const finalTotal = this.roundMoney(params.orderTotalBeforeDiscount - params.validation.discountValue);
+    const finalTotal = this.roundMoney(params.orderTotalBeforeDiscount - Number(params.validation.discountValue));
     return finalTotal > 0 && finalTotal <= GOAL24_BUNDLE_FIXTURE_MAX_TOTAL_CZK;
   }
 
@@ -1865,7 +1865,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         shippingCost: params.shippingCost,
         bundleIntent,
       });
-      const discount = this.roundMoney(validation.discountValue);
+      const discount = this.roundMoney(Number(validation.discountValue));
       return {
         discount,
         pendingDiscountCode: this.discountService.normalizeCode(trimmedDiscountCode),

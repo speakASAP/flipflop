@@ -245,7 +245,7 @@ assert(read('services/frontend/app/payment-result/page.tsx').includes("status ==
 assert(orchestratorStatus.includes('Owner approved Goal 24 discount/price fixture path'), 'orchestrator status missing owner-approved fixture update');
 assert(implementationState.includes('Owner approved Goal 24 discount/price fixture path'), 'implementation state missing owner-approved fixture update');
 assert(orderService.includes('Client-provided discount is not accepted without a server-validated contract'), 'order service must reject direct client discount');
-assert(orderService.includes('const after = await this.discountService.applyDiscount(params.orderTotalBeforeDiscount, trimmedDiscountCode)') || orderService.includes('const discount = this.roundMoney(validation.discountValue);'), 'order service must apply server-validated discount code to authoritative total or use already guarded validation discount value');
+assert(orderService.includes('const after = await this.discountService.applyDiscount(params.orderTotalBeforeDiscount, trimmedDiscountCode)') || orderService.includes('const discount = this.roundMoney(Number(validation.discountValue));'), 'order service must apply server-validated discount code to authoritative total or use already guarded validation discount value');
 assert(read('services/order-service/src/marketing/marketing.controller.ts').includes('@UseGuards(JwtAuthGuard, RolesGuard)'), 'discount code generation endpoint must remain guarded');
 assert(runtimePreflightBlocker.includes('401 Unauthorized'), 'runtime preflight blocker must record guarded admin endpoint 401');
 assert(runtimePreflightBlocker.includes('blocked-before-side-effects'), 'runtime preflight blocker must stop before side effects');
@@ -260,7 +260,8 @@ assert(bundlePreservingFixtureSource.includes('source-prepared-runtime-deploy-ga
 assert(bundlePreservingFixtureSource.includes('goalId=GOAL24-paid-provider-fixture-20260704'), 'bundle-preserving fixture source report missing goal id gate');
 assert(orderService.includes('GOAL24_BUNDLE_FIXTURE_DISCOUNT_CZK = 2117.58'), 'order service missing exact Goal 24 fixture amount');
 assert(orderService.includes('private isGoal24BundleFixtureDiscount'), 'order service missing Goal 24 fixture guard');
-assert(orderService.includes('const discount = this.roundMoney(validation.discountValue);'), 'Goal 24 fixture branch must use the already guarded validation discount value');
+assert(orderService.includes('Number(params.validation.discountValue)'), 'Goal 24 fixture guard must normalize persisted discount value before money comparison');
+assert(orderService.includes('const discount = this.roundMoney(Number(validation.discountValue));'), 'Goal 24 fixture branch must use the already guarded validation discount value with explicit numeric normalization');
 assert(orderService.includes('goal24_bundle_fixture_exclusive'), 'order service missing fixture metadata marker');
 assert(orderService.includes('Discount code cannot be combined with a bundle discount'), 'order service must keep fallback discountCode+bundleIntent rejection');
 assert(read('services/order-service/src/marketing/discount.service.ts').includes('goalId: row.goalId'), 'discount validation must expose goalId for fixture gating');
