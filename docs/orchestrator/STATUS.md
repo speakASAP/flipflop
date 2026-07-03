@@ -1,3 +1,31 @@
+## 2026-07-03 - Goal 24 Paid Provider Smoke Approval Draft
+
+Status: draft prepared, no runtime authority.
+
+Intent Preservation Chain:
+
+- Vision: paid/provider `catalog.bundle.v1` validation can run only after every owner-controlled side effect and evidence boundary is approved.
+- Goal Impact: the owner now has a concrete fill-in approval packet draft for the remaining runtime smoke gaps.
+- System: FlipFlop channel cleanup, Payments Fiobanka provider boundary, Orders cancellation workflow, Warehouse component-line lifecycle, and Catalog bundle identity.
+- Feature: owner approval draft for one bounded paid/provider smoke.
+- Task: prefill known non-secret values and preserve every missing owner decision as `[MISSING: ...]`.
+- Execution Plan: docs/verifier/state only; no live checkout, provider call, refund/cancel, Orders mutation, Warehouse mutation, marketplace mutation, deploy, migration, secret read, DB write, or raw evidence capture.
+- Coding Prompt: do not treat the draft as approval; it is review material until explicitly signed.
+- Code: `docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md` (`FLIPFLOP-GOAL24-PAID-PROVIDER-SMOKE-APPROVAL-DRAFT`) and `scripts/verify-paid-provider-bundle-checkout-gate.js`.
+- Validation: `npm run verify:paid-provider-bundle-checkout-gate`, `node --check scripts/verify-paid-provider-bundle-checkout-gate.js`, and `git diff --check`.
+- State Update: draft exists; runtime remains blocked.
+
+Remaining owner decisions:
+
+- `[MISSING: renewed owner-approved execution window for Europe/Prague after 2026-07-03T23:59:59+02:00]`
+- `[MISSING: named runtime validation owner for the exact side-effectful smoke]`
+- `[MISSING: named FlipFlop channel cleanup executor]`
+- `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]`
+- `[MISSING: Orders cancellation actor/approvedBy, reasonCode, cleanup idempotency key, and payment/warehouse/notification/crm/channel side-effect acknowledgements]`
+- `[MISSING: final owner acceptance of redacted evidence policy and forbidden evidence list]`
+
+Next action: owner reviews the draft and either signs all missing values or rejects runtime execution.
+
 2026-07-03: Goal 24 manual Fiobanka refund acknowledgement workflow narrowed. Owner clarified that completed Fiobanka refunds are performed manually in a separate refund service and then marked in backend/customer-visible order surfaces. FlipFlop source already supports the channel-local acknowledgement path: `/admin/orders/:id` can set order status `refunded`, payment status `refunded`, and notes. This resolves/narrows only FlipFlop acknowledgement ownership; runtime full paid/refund remains blocked until redacted external refund-service evidence, Orders post-paid correction approval, and Warehouse component-line cleanup evidence exist. No live checkout, payment, refund, provider call, Orders/Warehouse mutation, DB edit, deploy, migration, secret output, or raw customer/payment evidence was performed.
 
 ## 2026-07-03 - Goal 24 Channel Cleanup Contract Prepared

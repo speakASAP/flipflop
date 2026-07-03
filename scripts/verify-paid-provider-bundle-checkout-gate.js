@@ -17,6 +17,7 @@ const adminOrderStatusDto = read('services/order-service/src/orders/dto/update-a
 const adoptionGoal = read('implementation-goals/GOAL-24-catalog-bundle-adoption.md');
 const gateGoal = read('implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md');
 const channelCleanupContract = read('docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md');
+const approvalDraft = read('docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md');
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
 const orchestratorStatus = read('docs/orchestrator/STATUS.md');
 const migrationGoal = read('implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md');
@@ -31,6 +32,7 @@ const paidProviderRuntimeBlocker = '[MISSING: owner-approved paid/provider check
 const paymentsRollbackPacketPath = '/home/ssf/Documents/Github/payments-microservice/docs/orchestrator/2026-07-03-goal24-owner-approved-rollback-packet.md';
 const channelCleanupContractMarker = 'FLIPFLOP-GOAL24-CHANNEL-CLEANUP-CONTRACT';
 const channelCleanupPreparedMarker = '[RESOLVED/NARROWED: FlipFlop channel cleanup contract prepared for cart/session/local projection cleanup, idempotency, customer-visible hard stops, and redacted evidence policy; runtime remains blocked]';
+const approvalDraftMarker = 'FLIPFLOP-GOAL24-PAID-PROVIDER-SMOKE-APPROVAL-DRAFT';
 
 const baseRequiredBlockers = [
   paidProviderRuntimeBlocker,
@@ -166,6 +168,29 @@ for (const value of [
 ]) {
   assert(channelCleanupContract.includes(value), `channel cleanup contract missing ${value}`);
 }
+for (const value of [
+  approvalDraftMarker,
+  'status: draft-no-runtime-authority',
+  'runtime_authority: none',
+  'GOAL24-PAID-PROVIDER-SMOKE-20260703-CODEX-OWNER-APPROVED-001',
+  '919be990-1c76-4f9c-b100-829281c6a709',
+  'paymentMethod=fiobanka',
+  'maximum `300 CZK`',
+  'Manual Fiobanka refund acknowledgement',
+  'This is an owner-review draft only. It does not authorize live checkout',
+]) {
+  assert(approvalDraft.includes(value), `approval draft missing ${value}`);
+}
+for (const value of [
+  '[MISSING: renewed owner-approved execution window for Europe/Prague after 2026-07-03T23:59:59+02:00]',
+  '[MISSING: named runtime validation owner for the exact side-effectful smoke]',
+  '[MISSING: named FlipFlop channel cleanup executor]',
+  '[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]',
+  '[MISSING: Orders cancellation actor/approvedBy, reasonCode, cleanup idempotency key, and payment/warehouse/notification/crm/channel side-effect acknowledgements]',
+  '[MISSING: final owner acceptance of redacted evidence policy and forbidden evidence list]',
+]) {
+  assert(approvalDraft.includes(value), `approval draft missing ${value}`);
+}
 assert(gateGoal.includes("runtime_progression: source-rollout-enabled-paid-provider-blocked"), "paid/provider gate must keep paid/provider runtime progression blocked after source rollout");
 assert(implementationState.includes("runtime paid/provider progression is source-rollout-enabled but paid/provider smoke remains blocked"), "state must preserve blocked paid/provider smoke progression after source rollout");
 
@@ -196,6 +221,7 @@ console.log(JSON.stringify({
     centralOrdersBundleEvidenceMapped: true,
     durableBundleIdMigration: 'source_rollout_enabled_paid_provider_blocked',
     channelCleanupContract: 'source_prepared_runtime_blocked',
+    approvalDraft: 'draft_no_runtime_authority',
     defaultAuthSubjectSmokeNonMutating: true,
   },
   blockers: requiredBlockers,
