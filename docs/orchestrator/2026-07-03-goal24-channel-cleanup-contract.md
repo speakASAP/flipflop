@@ -97,11 +97,14 @@ Owner clarification on 2026-07-03: completed Fiobanka refunds are normally execu
 
 This resolves/narrows the channel-local acknowledgement workflow only. It does not execute the bank refund, does not prove provider reversal, and does not authorize Orders/Warehouse post-paid correction by itself.
 
-Required evidence for a future full paid/refund Goal 24 smoke:
+Owner-confirmed execution update on 2026-07-03: the owner confirmed that automated Fiobanka refund is unavailable, the refund was sent manually through the separate refund service, and the manual refund is completed. FlipFlop records this as verified manual refund execution input for the channel acknowledgement path, without capturing raw bank/customer/payment data.
 
-- redacted external refund-service evidence for the exact completed Fiobanka transfer, using only amount/currency, timestamp, operator approval id, and hash/reference suffixes;
-- FlipFlop admin/user-page acknowledgement that the local order is marked `status=refunded` and `paymentStatus=refunded`, with notes referencing the non-secret refund approval id;
-- Orders owner-approved post-paid cancellation/correction packet and Warehouse component-line `cancel` or `return` result for the observed state;
-- no raw bank data, customer PII, raw order/payment ids, token values, provider payloads, or raw DB rows.
+Required evidence for a strict-audit full paid/refund Goal 24 closeout:
+
+- `[MISSING: sanitized exact-order linkage between the manual refund confirmation and the Goal 24 completed Fiobanka smoke order]`;
+- `[MISSING: FlipFlop runtime readback showing the exact smoke order acknowledged as status=refunded and paymentStatus=refunded after manual refund]`, with notes referencing the non-secret refund approval id or sanitized refund reference;
+- `[MISSING: owner-approved post-paid Orders/Warehouse correction packet for the exact completed payment state]`;
+- no raw bank data, customer PII, raw order/payment ids, token values, provider payloads, screenshots, or raw DB rows.
 
 Marker: `[RESOLVED/NARROWED: owner-approved manual Fiobanka refund acknowledgement workflow exists in FlipFlop admin order UI; runtime proof remains required for the exact paid smoke]`.
+Marker: `[RESOLVED/NARROWED: owner-confirmed manual Fiobanka refund was executed through the external refund service; FlipFlop acknowledgement path remains available for exact order marking]`.

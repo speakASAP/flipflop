@@ -139,6 +139,11 @@ assert(adminOrderDetailPage.includes('PaymentStatus.REFUNDED'), 'admin order det
 assert(adminOrderDetailPage.includes('notes: statusForm.notes || undefined'), 'admin order detail must allow refund acknowledgement notes');
 assert(adminOrderStatusDto.includes("'refunded'"), 'admin order status DTO must accept refunded acknowledgement');
 assert(channelCleanupContract.includes('[RESOLVED/NARROWED: owner-approved manual Fiobanka refund acknowledgement workflow exists in FlipFlop admin order UI; runtime proof remains required for the exact paid smoke]'), 'channel cleanup contract missing manual refund acknowledgement workflow marker');
+assert(channelCleanupContract.includes('[RESOLVED/NARROWED: owner-confirmed manual Fiobanka refund was executed through the external refund service; FlipFlop acknowledgement path remains available for exact order marking]'), 'channel cleanup contract missing owner-confirmed manual refund execution marker');
+assert(channelCleanupContract.includes('[MISSING: sanitized exact-order linkage between the manual refund confirmation and the Goal 24 completed Fiobanka smoke order]'), 'channel cleanup contract missing exact-order linkage blocker');
+assert(channelCleanupContract.includes('[MISSING: FlipFlop runtime readback showing the exact smoke order acknowledged as status=refunded and paymentStatus=refunded after manual refund]'), 'channel cleanup contract missing runtime refunded acknowledgement readback blocker');
+assert(orchestratorStatus.includes('[RESOLVED/NARROWED: owner-confirmed manual Fiobanka refund was executed through the external refund service; FlipFlop acknowledgement path remains available for exact order marking]'), 'orchestratorStatus missing owner-confirmed manual refund execution marker');
+assert(implementationState.includes('[RESOLVED/NARROWED: owner-confirmed manual Fiobanka refund was executed through the external refund service; FlipFlop acknowledgement path remains available for exact order marking]'), 'implementationState missing owner-confirmed manual refund execution marker');
 
 includesAll(adoptionGoal, baseRequiredBlockers, 'GOAL-24 catalog bundle adoption doc');
 includesAll(gateGoal, requiredBlockers, 'GOAL-24 paid/provider gate doc');
