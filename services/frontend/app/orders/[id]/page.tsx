@@ -5,6 +5,8 @@ import {
   DeliveryAddress,
   formatOrderMoney,
   getOrderDisplayData,
+  getOrderLifecycleColor,
+  getOrderLifecycleLabel,
   Order,
   ordersApi,
 } from '@/lib/api/orders';
@@ -13,47 +15,12 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useVisiblePolling } from "@/lib/hooks/useVisiblePolling";
 
-function normalizeStatus(status?: string) {
-  return (status || '').toLowerCase();
-}
-
 function getStatusColor(status?: string) {
-  switch (normalizeStatus(status)) {
-    case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'confirmed':
-    case 'accepted':
-      return 'bg-blue-100 text-blue-800';
-    case 'processing':
-      return 'bg-purple-100 text-purple-800';
-    case 'shipped':
-      return 'bg-indigo-100 text-indigo-800';
-    case 'delivered':
-      return 'bg-green-100 text-green-800';
-    case 'cancelled':
-    case 'failed':
-    case 'central_orders_failed':
-      return 'bg-red-100 text-red-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
+  return getOrderLifecycleColor(status);
 }
 
 function getStatusText(status?: string) {
-  const statusMap: Record<string, string> = {
-    pending: 'Čeká na potvrzení',
-    confirmed: 'Potvrzeno',
-    accepted: 'Přijato v Orders',
-    processing: 'Zpracovává se',
-    shipped: 'Odesláno',
-    delivered: 'Doručeno',
-    cancelled: 'Zrušeno',
-    refunded: 'Vráceno',
-    failed: 'Selhalo',
-    central_orders_failed: 'Nepřijato v Orders',
-    unknown: 'Stav není dostupný',
-  };
-  return statusMap[normalizeStatus(status)] || status || 'Stav není dostupný';
+  return getOrderLifecycleLabel(status, 'Stav není dostupný');
 }
 
 function getCentralNotice(order: Order) {
@@ -78,23 +45,30 @@ function addressName(address: DeliveryAddress | null | undefined) {
 export default function OrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
   const { isAuthenticated } = useAuth();
   const router = useRouter();
   const params = useParams();
 
   const loadOrder = useCallback(async (id: string, options: { background?: boolean } = {}) => {
-    if (!options.background) {
+    if (options.background) {
+      setRefreshing(true);
+    } else {
       setLoading(true);
     }
     try {
       const response = await ordersApi.getOrder(id);
       if (response.success && response.data) {
         setOrder(response.data);
+        setLastRefreshedAt(new Date());
       }
     } catch (error) {
       console.error("Failed to load order:", error);
     } finally {
-      if (!options.background) {
+      if (options.background) {
+        setRefreshing(false);
+      } else {
         setLoading(false);
       }
     }
@@ -150,9 +124,24 @@ export default function OrderDetailPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4 py-8">
-        <Link href="/orders" className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold mb-6 transition-colors">
-          Zpět na objednávky
-        </Link>
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Link href="/orders" className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold transition-colors">
+            Zpět na objednávky
+          </Link>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold text-gray-500">
+              {refreshing ? 'Aktualizuji stav...' : lastRefreshedAt ? `Aktualizováno ${lastRefreshedAt.toLocaleTimeString('cs-CZ')}` : 'Čeká na první načtení'}
+            </span>
+            <button
+              type="button"
+              onClick={() => params.id && void loadOrder(params.id as string, { background: Boolean(order) })}
+              disabled={refreshing}
+              className="rounded-xl border border-blue-200 bg-white px-5 py-3 text-sm font-bold text-blue-700 shadow-sm transition hover:bg-blue-50 disabled:opacity-60"
+            >
+              {refreshing ? 'Aktualizuji...' : 'Aktualizovat'}
+            </button>
+          </div>
+        </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start mb-8 gap-4">

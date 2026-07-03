@@ -36,6 +36,8 @@ export interface OrderItem {
   variantId?: string;
   productName: string;
   productSku: string;
+  title?: string;
+  sku?: string;
   quantity: number;
   unitPrice: number;
   totalPrice: number;
@@ -175,6 +177,98 @@ export interface PaymentResponse {
   centralOrderId?: string;
 }
 
+
+export const CENTRAL_ORDER_LIFECYCLE_STAGES = [
+  'ordered_unpaid',
+  'payment_failed',
+  'paid_not_delivered',
+  'warehouse_fulfillment_requested',
+  'warehouse_collecting',
+  'warehouse_forming',
+  'warehouse_formed',
+  'handed_to_delivery',
+  'in_delivery',
+  'received',
+  'not_received',
+  'returned',
+  'cancelled',
+] as const;
+
+export type CentralOrderLifecycleStage = (typeof CENTRAL_ORDER_LIFECYCLE_STAGES)[number];
+
+export const CENTRAL_ORDER_LIFECYCLE_LABELS: Record<string, string> = {
+  ordered_unpaid: 'Čeká na platbu',
+  payment_failed: 'Platba selhala',
+  paid_not_delivered: 'Zaplaceno, čeká na doručení',
+  warehouse_fulfillment_requested: 'Předáno skladu',
+  warehouse_collecting: 'Sklad připravuje položky',
+  warehouse_forming: 'Sklad kompletuje zásilku',
+  warehouse_formed: 'Zásilka připravena',
+  handed_to_delivery: 'Předáno dopravci',
+  in_delivery: 'Na cestě',
+  received: 'Doručeno',
+  not_received: 'Nedoručeno',
+  returned: 'Vráceno',
+  cancelled: 'Zrušeno',
+  pending: 'Čeká na potvrzení',
+  confirmed: 'Potvrzeno',
+  accepted: 'Přijato v Orders',
+  processing: 'Zpracovává se',
+  shipped: 'Odesláno',
+  delivered: 'Doručeno',
+  refunded: 'Vráceno',
+  paid: 'Zaplaceno',
+  failed: 'Selhalo',
+  central_orders_failed: 'Nepřijato v Orders',
+  unknown: 'Stav není dostupný',
+};
+
+export function normalizeOrderStatus(status?: string) {
+  return (status || '').toLowerCase();
+}
+
+export function getOrderLifecycleLabel(status?: string, fallback = 'Stav není dostupný') {
+  const normalized = normalizeOrderStatus(status);
+  return CENTRAL_ORDER_LIFECYCLE_LABELS[normalized] || status || fallback;
+}
+
+export function getOrderLifecycleColor(status?: string) {
+  switch (normalizeOrderStatus(status)) {
+    case 'ordered_unpaid':
+    case 'pending':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'payment_failed':
+    case 'not_received':
+    case 'cancelled':
+    case 'failed':
+    case 'central_orders_failed':
+      return 'bg-red-100 text-red-800';
+    case 'paid_not_delivered':
+    case 'warehouse_fulfillment_requested':
+    case 'handed_to_delivery':
+    case 'confirmed':
+    case 'accepted':
+      return 'bg-blue-100 text-blue-800';
+    case 'warehouse_collecting':
+    case 'warehouse_forming':
+    case 'processing':
+      return 'bg-purple-100 text-purple-800';
+    case 'warehouse_formed':
+    case 'in_delivery':
+    case 'shipped':
+      return 'bg-indigo-100 text-indigo-800';
+    case 'received':
+    case 'delivered':
+    case 'paid':
+      return 'bg-green-100 text-green-800';
+    case 'returned':
+    case 'refunded':
+      return 'bg-gray-100 text-gray-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+}
+
 export function isCentralLifecycleAvailable(order: Order): boolean {
   return order.centralOrder?.readStatus === 'available';
 }
@@ -199,8 +293,8 @@ export function getOrderDisplayData(order: Order) {
         ? central.items.map((item, index) => ({
             id: item.id || `${order.id}-central-${index}`,
             productId: item.productId || '',
-            productName: item.productName || (item as any).title || 'Položka objednávky',
-            productSku: (item as any).sku || '',
+            productName: item.productName || item.title || 'Položka objednávky',
+            productSku: item.productSku || item.sku || '',
             quantity: Number(item.quantity || 0),
             unitPrice: Number(item.unitPrice || 0),
             totalPrice: Number(item.totalPrice || 0),
