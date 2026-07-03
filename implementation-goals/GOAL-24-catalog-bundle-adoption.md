@@ -47,6 +47,7 @@ Current explicit blockers retained:
 - `[MISSING: active catalog.bundle.v1 aggregate visible to flipflop for this product]`
 - `[MISSING: owner-approved Rung 1 non-mutating real checkout smoke credentials and target products]`
 - `[MISSING: explicit ecosystem checkout migration accepting durable Catalog bundleId]`
+- `[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]`
 
 ## Parallel Execution
 
@@ -63,3 +64,28 @@ Integration owner: FlipFlop storefront adoption worker for this lane; final ecos
 Validation owner: FlipFlop integration validator.
 
 Merge order: Catalog client, product-service mapping, frontend display, verifier/docs, validation, commit/push.
+
+
+## 2026-07-03 Paid Provider Checkout Smoke Gate
+
+Intent Preservation Chain: Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding Prompt -> Code -> Validation -> State Update.
+
+- Vision: FlipFlop can sell bundles only when payment, stock, order, and rollback truth remain provider-backed and auditable.
+- Goal Impact: the remaining runtime blocker is narrowed to owner-approved paid/provider evidence instead of an ambiguous checkout-smoke task.
+- System: FlipFlop checkout/order-service remains the channel boundary; Catalog owns `catalog.bundle.v1`; Orders, Warehouse, and Payments retain checkout, reservation, and provider truth.
+- Feature: paid/provider bundle checkout readiness gate.
+- Task: classify the existing checkout smoke harness and keep paid/provider progression blocked until rollback facts are approved.
+- Execution Plan: docs/verifier/source-policy only; no live checkout, redirect, webhook, refund, cancellation, fulfillment, stock decrement, deploy, migration, secrets, or marketplace state change.
+- Coding Prompt: fail closed when approval, provider webhook evidence, stock rollback, or refund/cancel rollback evidence is missing.
+- Code: `scripts/verify-paid-provider-bundle-checkout-gate.js`, package script `verify:paid-provider-bundle-checkout-gate`, and Goal 24 state docs.
+- Validation: source verifier, catalog-bundle verifier, syntax check, and `git diff --check`.
+- State Update: paid/provider runtime progression remains blocked.
+
+The current `smoke:checkout` harness is intentionally not accepted as the paid/provider bundle smoke. It creates local/cart/order/payment state and obtains a payment redirect, while the order-service reserves Warehouse lines before provider payment creation. That is useful for production-readiness smoke only after owner approval, but it is not side-effect-safe evidence for Catalog `catalog.bundle.v1` paid/provider readiness.
+
+Required before any live paid/provider bundle smoke:
+
+- `[MISSING: owner-approved paid/provider test window, non-secret approval id, target active catalog.bundle.v1 bundle id, provider method, and sanitized evidence policy]`
+- `[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]`
+- `[MISSING: Warehouse stock decrement/reservation-release evidence for every bundle component line]`
+- `[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]`

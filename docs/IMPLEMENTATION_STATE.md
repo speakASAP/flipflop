@@ -1,5 +1,43 @@
 # Implementation State
 
+## 2026-07-03 - Catalog Goal 24 Paid Provider Bundle Checkout Gate
+
+Objective: assess and harden the FlipFlop-owned checkout-smoke harness boundary for the Catalog `catalog.bundle.v1` runtime blocker `[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]` without running live checkout, provider, webhook, refund, stock, or fulfillment side effects.
+
+IPS chain:
+
+- Vision: FlipFlop can become revenue-capable with Catalog bundles while preserving payment, stock, order, and rollback truth.
+- Goal Impact: the paid/provider bundle checkout blocker is now machine-checkable from FlipFlop source and remains blocked until owner/provider rollback evidence exists.
+- System: FlipFlop checkout/order-service, Catalog `catalog.bundle.v1`, central Orders, Warehouse reservations, Payments provider execution, and owner-approved smoke governance.
+- Feature: paid/provider bundle checkout smoke readiness gate.
+- Task: classify the existing checkout smoke harness, document the unsafe live side effects, and add a source verifier that fails closed by default.
+- Execution Plan: docs/verifier/source-policy only; no live checkout, redirect following, webhook, provider call, refund, cancellation, fulfillment, stock decrement, deploy, migration, secrets, or marketplace state change.
+- Coding Prompt: do not make paid/provider runtime progression appear complete; preserve `[MISSING: ...]` blockers for owner approval, provider webhook evidence, stock rollback, and refund/cancel rollback.
+- Code: `scripts/verify-paid-provider-bundle-checkout-gate.js`, package script `verify:paid-provider-bundle-checkout-gate`, `implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md`, and Goal 24 state docs.
+- Validation: `npm run verify:paid-provider-bundle-checkout-gate`, `npm run verify:catalog-bundle-adoption`, `node --check scripts/verify-paid-provider-bundle-checkout-gate.js`, and `git diff --check`.
+- State Update: runtime paid/provider progression remains blocked.
+
+Assessment:
+
+- `scripts/smoke-checkout.js` is not side-effect-safe for this Goal 24 paid/provider lane. It logs in, writes local DB seed rows, clears/adds cart state, creates an order, reserves Warehouse lines through order-service, creates a Payments payment, and expects a redirect URL.
+- The authenticated and guest order paths create local pending orders, reserve Warehouse lines, create central Orders before payment, and call Payments for non-invoice provider methods.
+- Existing `catalog.bundle.v1` adoption remains display-only; durable Catalog `bundleId` is not accepted as a checkout authority.
+
+Blockers retained:
+
+- `[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]`
+- `[MISSING: owner-approved paid/provider test window, non-secret approval id, target active catalog.bundle.v1 bundle id, provider method, and sanitized evidence policy]`
+- `[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]`
+- `[MISSING: Warehouse stock decrement/reservation-release evidence for every bundle component line]`
+- `[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]`
+- `[MISSING: explicit ecosystem checkout migration accepting durable Catalog bundleId]`
+
+Parallel execution section:
+
+- W1 FlipFlop source-policy/verifier hardening: complete in this lane; owner role FlipFlop checkout readiness worker; allowed files are Goal 24 docs, verifier, and package script; validation is the non-mutating verifier plus `git diff --check`.
+- W2 owner/provider runtime smoke: dependency-gated; owner role runtime validation owner; forbidden until the blockers above are resolved and explicit approval is recorded.
+- W3 commerce integration status: final integration; owner role Catalog/commerce integration validator; merge after this branch only updates source-policy evidence and keeps runtime progression blocked.
+
 ## 2026-07-03 - Goal 10 Auth Wallet Order Snapshot Runtime Gate
 
 Objective: make the remaining Auth wallet to immutable order snapshot runtime

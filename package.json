@@ -31,6 +31,7 @@
     "verify:flipflop-affinity-eligibility": "node scripts/verify-flipflop-affinity-eligibility.js",
     "verify:flipflop-affinity-replay-export": "node scripts/verify-flipflop-affinity-replay-export.js",
     "smoke:auth-wallet-browser-session": "node scripts/smoke-auth-wallet-browser-session.js",
+    "verify:paid-provider-bundle-checkout-gate": "node scripts/verify-paid-provider-bundle-checkout-gate.js",
     "verify:auth-wallet-order-snapshot-gate": "node scripts/verify-auth-wallet-order-snapshot-gate.js"
   },
   "dependencies": {
