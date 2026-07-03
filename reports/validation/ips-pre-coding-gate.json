@@ -1,12 +1,13 @@
 {
-  "created_at": "2026-07-03T04:53:45Z",
+  "created_at": "2026-07-03T09:01:39Z",
   "execution_plans": {
-    "execution_plan_count": 4,
+    "execution_plan_count": 5,
     "execution_plan_files": [
       "21_execution_plans/EP-TASK-001-flipflop-ips-baseline.md",
       "21_execution_plans/EP-TASK-002-smarty-checkout-reference-ux.md",
       "21_execution_plans/EP-TASK-003-catalog-connector-content-preview.md",
-      "21_execution_plans/EP-TASK-004-catalog-product-quality-review-consumer.md"
+      "21_execution_plans/EP-TASK-004-catalog-product-quality-review-consumer.md",
+      "21_execution_plans/EP-TASK-005-flipflop-affinity-replay-eligibility.md"
     ],
     "missing_validation_plan": []
   },
@@ -21,7 +22,7 @@
     "00_constitution/CONSTITUTION.md",
     "01_vision/VISION.md"
   ],
-  "root": "/home/ssf/Documents/Github/flipflop",
+  "root": "/home/ssf/Documents/Github/codex-worktrees/flipflop-integrate-goal24-affinity",
   "schema_version": "1.0.0",
   "sensitive_data_findings": [],
   "shared_principles_with_dos": {
@@ -32,12 +33,13 @@
   "status": "pass",
   "tasks": {
     "missing_upstream_traceability": [],
-    "task_count": 4,
+    "task_count": 5,
     "task_files": [
       "11_tasks/TASK-001-flipflop-ips-baseline.md",
       "11_tasks/TASK-002-smarty-checkout-reference-ux.md",
       "11_tasks/TASK-003-catalog-connector-content-preview.md",
-      "11_tasks/TASK-004-catalog-product-quality-review-consumer.md"
+      "11_tasks/TASK-004-catalog-product-quality-review-consumer.md",
+      "11_tasks/TASK-005-flipflop-affinity-replay-eligibility.md"
     ]
   }
 }
