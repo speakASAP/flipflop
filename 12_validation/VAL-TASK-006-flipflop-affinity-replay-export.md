@@ -59,7 +59,7 @@ cd services/order-service && npm run build
 
 ## Recommendation
 
-Ready for Catalog Goal 24 orchestrator review as the FlipFlop protected producer surface slice. Deployment, runtime smoke, Marketing parser support, Marketing ledger, and owner-approved dry-run windows remain downstream gates.
+Ready for Catalog Goal 24 orchestrator review as the FlipFlop protected producer surface slice. Deployment/runtime smoke, Marketing parser support, and Marketing ledger are resolved downstream gates. Future recurring marketplace publish/replace-window activation remains gated on explicit owner source/window approval.
 
 ## Traceability confirmation
 
@@ -70,7 +70,8 @@ Validation maps to `11_tasks/TASK-006-flipflop-affinity-replay-export.md`, `21_e
 - `[MISSING: Marketing parser support for marketplace-owned replay source envelopes]`
 - `[MISSING: durable Marketing backfill run ledger and idempotency key registry]`
 - `[MISSING: owner-approved dry-run window before live FlipFlop replay execution]`
-- `[MISSING: FlipFlop deployment and runtime smoke for the protected replay endpoint]`
+- `[RESOLVED: FlipFlop deployment and runtime smoke for the protected replay endpoint]`
+- `[MISSING: owner-approved FlipFlop recurring marketplace publish/replace-window schedule activation]`
 
 ## Intent Compliance Report
 
