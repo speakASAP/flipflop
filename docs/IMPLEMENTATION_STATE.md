@@ -25,7 +25,7 @@ IPS chain:
 - Coding Prompt: do not make paid/provider runtime progression appear complete; preserve `[MISSING: ...]` blockers for owner approval, provider webhook evidence, stock rollback, and refund/cancel rollback.
 - Code: `scripts/verify-paid-provider-bundle-checkout-gate.js`, package script `verify:paid-provider-bundle-checkout-gate`, `implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md`, `docs/orchestrator/STATUS.md`, and Goal 24 state docs.
 - Validation: `npm run verify:paid-provider-bundle-checkout-gate`, `npm run verify:catalog-bundle-adoption`, `node --check scripts/verify-paid-provider-bundle-checkout-gate.js`, and `git diff --check`.
-- State Update: runtime paid/provider progression remains blocked.
+- State Update: runtime paid/provider progression is source-rollout-enabled but paid/provider smoke remains blocked.
 
 Assessment:
 
@@ -47,7 +47,7 @@ Blockers retained:
 - `[MISSING: Warehouse stock decrement/reservation-release evidence for every bundle component line]`
 - `[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]`
 - `[RESOLVED/NARROWED: explicit ecosystem checkout migration accepts durable Catalog bundleId only as bounded bundleEvidence metadata; FlipFlop runtime checkout submission remains blocked]`
-- `[MISSING: owner-approved FlipFlop source rollout mapping display-only catalog.bundle.v1 bundleId into Orders bundleEvidence without changing totals, stock identity, or provider state]`
+- `[RESOLVED/NARROWED: FlipFlop source rollout maps durable catalog.bundle.v1 bundleId into central Orders bundleEvidence without changing totals, stock identity, or provider state]`
 
 Parallel execution section:
 

@@ -6,8 +6,8 @@ status: source-policy-validated-runtime-blocked
 owner: flipflop-durable-bundleid-checkout-readiness-worker
 created: 2026-07-03
 catalog_contract: catalog.bundle.v1
-runtime_progression: blocked
-live_checkout: forbidden
+runtime_progression: source-rollout-enabled-paid-provider-blocked
+live_checkout: owner-approved-smoke-only
 ```
 
 ## Intent Preservation Chain
@@ -66,7 +66,7 @@ Current FlipFlop source remains intentionally blocked:
 
 Current explicit blockers retained:
 
-- `[MISSING: owner-approved FlipFlop source rollout mapping display-only catalog.bundle.v1 bundleId into Orders bundleEvidence without changing totals, stock identity, or provider state]`
+- `[RESOLVED/NARROWED: FlipFlop source rollout maps durable catalog.bundle.v1 bundleId into central Orders bundleEvidence without changing totals, stock identity, or provider state]`
 - `[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]`
 - `[MISSING: owner-approved paid/provider test window, non-secret approval id, target active catalog.bundle.v1 bundle id, provider method, and sanitized evidence policy]`
 - `[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]`
@@ -78,7 +78,7 @@ Current explicit blockers retained:
 | Workstream | Status | Owner role | Scope | Allowed files | Forbidden files | Dependencies | Blockers | Validation evidence | Handoff notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | A Ecosystem contract reconciliation | complete in this lane | FlipFlop checkout readiness worker | Record accepted evidence-only durable `bundleId` migration shape | Goal 24 docs/verifier/package wiring | Catalog/Orders/Warehouse/Payments source, runtime state, migrations, deploys | Catalog/Orders/Warehouse/Payments accepted contracts/status | none for docs-only reconciliation | source verifier and diff check | `bundleId` is evidence only, never checkout authority. |
-| B FlipFlop source rollout | dependency-gated | FlipFlop checkout implementation owner | Map display-only Catalog bundle aggregate into central Orders `bundleEvidence` safely | `[MISSING: approved FlipFlop source rollout file list]` | live checkout, provider calls, Warehouse stock mutation, pricing authority changes | Workstream A and owner-approved rollout plan | `[MISSING: owner-approved FlipFlop source rollout mapping display-only catalog.bundle.v1 bundleId into Orders bundleEvidence without changing totals, stock identity, or provider state]` | `[MISSING: source verifier/build evidence]` | Must preserve normal component item lines and server-owned totals. |
+| B FlipFlop source rollout | dependency-gated | FlipFlop checkout implementation owner | Map display-only Catalog bundle aggregate into central Orders `bundleEvidence` safely | `[MISSING: approved FlipFlop source rollout file list]` | live checkout, provider calls, Warehouse stock mutation, pricing authority changes | Workstream A and owner-approved rollout plan | `[RESOLVED/NARROWED: FlipFlop source rollout maps durable catalog.bundle.v1 bundleId into central Orders bundleEvidence without changing totals, stock identity, or provider state]` | `[MISSING: source verifier/build evidence]` | Must preserve normal component item lines and server-owned totals. |
 | C Paid/provider runtime smoke | dependency-gated | Runtime validation owner | Owner-approved one-run paid/provider bundle checkout with rollback | `[MISSING: approved smoke packet]` | unapproved provider/order/stock/refund/cancel mutations | A+B plus provider/rollback approvals | paid/provider blockers listed above | `[MISSING: sanitized live runtime evidence]` | Separate approved lane only. |
 | D Integration validation | final integration | Commerce integration validator | Merge and validate source-policy/docs lanes | integration status docs | racing worker-owned files/contracts | A complete, B/C only after approval | `[UNKNOWN: future rollout timing]` | current verifier evidence | Merge order: A, then B, then C. |
 

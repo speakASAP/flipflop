@@ -128,6 +128,7 @@ export interface BundleIntentData {
   sourceProductId: string;
   productIds: string[];
   catalogCandidateId?: string;
+  bundleId?: string;
 }
 
 export interface CreateGuestOrderData {

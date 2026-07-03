@@ -21,6 +21,14 @@ interface CreateCentralOrderRequest {
   };
   shippingAddress?: CentralOrderAddress;
   billingAddress?: CentralOrderAddress;
+  bundleEvidence?: Array<{
+    contractVersion: 'catalog.bundle.v1';
+    bundleId: string;
+    productIds: string[];
+    discountPolicyRef?: string;
+    freeShippingPolicyRef?: string;
+    serverTotalSource: 'checkout_authoritative';
+  }>;
   items: Array<{
     productId: string;
     sku?: string;

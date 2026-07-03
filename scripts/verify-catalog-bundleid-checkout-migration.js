@@ -18,7 +18,7 @@ const orderService = read('services/order-service/src/orders/orders.service.ts')
 const ordersApi = read('services/frontend/lib/api/orders.ts');
 
 const narrowedMarker = '[RESOLVED/NARROWED: explicit ecosystem checkout migration accepts durable Catalog bundleId only as bounded bundleEvidence metadata; FlipFlop runtime checkout submission remains blocked]';
-const runtimeBlocker = '[MISSING: owner-approved FlipFlop source rollout mapping display-only catalog.bundle.v1 bundleId into Orders bundleEvidence without changing totals, stock identity, or provider state]';
+const runtimeBlocker = '[RESOLVED/NARROWED: FlipFlop source rollout maps durable catalog.bundle.v1 bundleId into central Orders bundleEvidence without changing totals, stock identity, or provider state]';
 const paidProviderBlocker = '[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]';
 
 assert.strictEqual(
@@ -43,22 +43,22 @@ assert(migrationGoal.includes('Orders accepts optional bounded `bundleEvidence[]
 assert(migrationGoal.includes('Payments accepts bounded `catalog.bundle.v1` metadata only as audit evidence'), 'Payments metadata evidence missing');
 assert(migrationGoal.includes('Warehouse accepts only normal component product reservation lines'), 'Warehouse component-line evidence missing');
 assert(migrationGoal.includes('Catalog owns durable `bundleId`'), 'Catalog bundle ownership evidence missing');
-assert(migrationGoal.includes('runtime_progression: blocked'), 'migration goal must keep runtime progression blocked');
-assert(migrationGoal.includes('live_checkout: forbidden'), 'migration goal must forbid live checkout');
+assert(migrationGoal.includes('runtime_progression: source-rollout-enabled-paid-provider-blocked'), 'migration goal must keep paid/provider runtime progression blocked after source rollout');
+assert(migrationGoal.includes('live_checkout: owner-approved-smoke-only'), 'migration goal must keep live checkout owner-approved only');
 
 assert(productsApi.includes('checkoutEnabled: false'), 'Catalog bundle display type must remain checkout disabled');
 assert(productsApi.includes('bundleId?: string'), 'frontend display type must retain optional durable bundleId evidence');
 assert(guestCart.includes('catalogCandidateId'), 'guest cart must keep legacy candidate provenance only');
-assert(!guestCart.includes('bundleId'), 'guest cart must not persist durable Catalog bundleId');
-assert(checkoutPage.includes('catalogCandidateId: bundleIntent.catalogCandidateId'), 'checkout must still submit only candidate provenance');
-assert(!checkoutPage.includes('bundleId: bundleIntent.bundleId'), 'checkout must not submit durable Catalog bundleId');
-assert(!checkoutPage.includes('bundleEvidence'), 'checkout must not submit Orders bundleEvidence before rollout approval');
-assert(!ordersApi.includes('bundleEvidence'), 'frontend orders API must not expose bundleEvidence before rollout approval');
-assert(!orderService.includes('bundleEvidence'), 'local order-service must not synthesize central Orders bundleEvidence before rollout approval');
-assert(!orderService.includes('bundleId'), 'local order-service bundle discount path must not consume durable Catalog bundleId');
+assert(guestCart.includes('bundleId?: string'), 'guest cart must carry durable Catalog bundleId as bounded intent evidence');
+assert(checkoutPage.includes('bundleId: bundleIntent.bundleId'), 'checkout must submit durable Catalog bundleId as bounded intent evidence');
+assert(!checkoutPage.includes('bundleEvidence'), 'browser checkout must not submit raw Orders bundleEvidence directly');
+assert(!ordersApi.includes('bundleEvidence'), 'frontend orders API must not expose raw bundleEvidence before server normalization');
+assert(orderService.includes('buildCatalogBundleEvidence'), 'order-service must synthesize bounded central Orders bundleEvidence server-side');
+assert(orderService.includes("contractVersion: 'catalog.bundle.v1'"), 'central Orders bundleEvidence must use catalog.bundle.v1');
+assert(orderService.includes("serverTotalSource: 'checkout_authoritative'"), 'bundleEvidence must keep checkout totals authoritative');
 
-assert(catalogAdoptionVerifier.includes('checkout does not submit durable Catalog bundleId'), 'catalog adoption verifier must keep checkout fail-closed assertion');
-assert(paidProviderVerifier.includes('catalogBundleIdCheckoutAuthority: false'), 'paid provider verifier must report Catalog bundleId checkout authority false');
+assert(catalogAdoptionVerifier.includes('bundle button forwards durable Catalog bundleId as bounded evidence'), 'catalog adoption verifier must check bounded bundleId forwarding');
+assert(paidProviderVerifier.includes("catalogBundleIdCheckoutAuthority: 'bounded_evidence_only'"), 'paid provider verifier must report Catalog bundleId as bounded evidence only');
 assert(paidProviderVerifier.includes(narrowedMarker), 'paid provider verifier must enforce narrowed migration marker');
 
 console.log(JSON.stringify({
@@ -66,11 +66,11 @@ console.log(JSON.stringify({
   mutation: false,
   providerCall: false,
   liveCheckoutExecuted: false,
-  runtimeProgression: 'blocked',
-  durableBundleIdCheckoutAuthority: 'evidence_only_not_runtime_submission',
+  runtimeProgression: 'source_rollout_enabled_paid_provider_still_blocked',
+  durableBundleIdCheckoutAuthority: 'bounded_bundleEvidence_only',
   verified: {
     ecosystemEvidenceShapeNarrowed: true,
-    flipflopCartCheckoutRuntimeStillBlocked: true,
+    flipflopCartCheckoutBundleEvidenceMapped: true,
     paidProviderRuntimeStillBlocked: true,
   },
   blockers: [runtimeBlocker, paidProviderBlocker],

@@ -31,12 +31,13 @@ assert(productService.includes('catalog_bundle_aggregate_display_then_order_affi
 
 assert(productsApi.includes('ProductRecommendationCatalogBundle'), 'frontend API types expose display-only Catalog bundle');
 assert(productPage.includes('Bundle ID: {catalogBundle.bundleId}'), 'product detail can display durable Catalog bundleId');
-assert(productPage.includes('pouze pro zobrazeni'), 'product detail states Catalog bundleId is display-only');
-assert(bundleButton.includes('catalogCandidateId?: string'), 'bundle button still accepts only legacy candidate provenance');
-assert(!bundleButton.includes('catalogBundle') && !bundleButton.includes('bundleId'), 'bundle button does not accept durable Catalog bundleId');
-assert(checkoutPage.includes('catalogCandidateId: bundleIntent.catalogCandidateId'), 'checkout remains on local bundle intent plus legacy candidate id');
-assert(!checkoutPage.includes('bundleId'), 'checkout does not submit durable Catalog bundleId');
-assert(!orderService.includes('bundleId'), 'order-service local bundle discount path does not consume durable Catalog bundleId');
+assert(productPage.includes('bounded bundleEvidence'), 'product detail states Catalog bundleId is bounded evidence');
+assert(bundleButton.includes('catalogCandidateId?: string'), 'bundle button still accepts legacy candidate provenance');
+assert(bundleButton.includes('bundleId?: string'), 'bundle button forwards durable Catalog bundleId as bounded evidence');
+assert(checkoutPage.includes('catalogCandidateId: bundleIntent.catalogCandidateId'), 'checkout keeps local bundle intent plus legacy candidate id');
+assert(checkoutPage.includes('bundleId: bundleIntent.bundleId'), 'checkout forwards durable Catalog bundleId as bounded intent evidence');
+assert(orderService.includes('buildCatalogBundleEvidence'), 'order-service maps durable Catalog bundleId to central Orders bundleEvidence');
+assert(orderService.includes("serverTotalSource: 'checkout_authoritative'"), 'bundle evidence does not own totals');
 
 assert(goal.includes('Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding Prompt -> Code -> Validation -> State Update'), 'GOAL-24 adoption doc preserves IPS chain');
 assert(goal.includes('[RESOLVED: FlipFlop adoption contract for catalog.bundle.v1 read/display before ecosystem checkout]'), 'GOAL-24 doc resolves requested missing contract');

@@ -47,7 +47,7 @@ Current explicit blockers retained:
 - `[MISSING: active catalog.bundle.v1 aggregate visible to flipflop for this product]`
 - `[MISSING: owner-approved Rung 1 non-mutating real checkout smoke credentials and target products]`
 - `[RESOLVED/NARROWED: explicit ecosystem checkout migration accepts durable Catalog bundleId only as bounded bundleEvidence metadata; FlipFlop runtime checkout submission remains blocked]`
-- `[MISSING: owner-approved FlipFlop source rollout mapping display-only catalog.bundle.v1 bundleId into Orders bundleEvidence without changing totals, stock identity, or provider state]`
+- `[RESOLVED/NARROWED: FlipFlop source rollout maps durable catalog.bundle.v1 bundleId into central Orders bundleEvidence without changing totals, stock identity, or provider state]`
 - `[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]`
 
 ## Parallel Execution

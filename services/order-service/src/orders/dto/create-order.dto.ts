@@ -33,6 +33,7 @@ export class CreateOrderDto {
     sourceProductId?: string;
     productIds?: string[];
     catalogCandidateId?: string;
+    bundleId?: string;
   };
 }
 

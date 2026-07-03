@@ -65,12 +65,23 @@ type BundleDiscountIntent = {
   sourceProductId: string;
   productIds: string[];
   catalogCandidateId?: string;
+  bundleId?: string;
+};
+
+type CatalogBundleEvidence = {
+  contractVersion: 'catalog.bundle.v1';
+  bundleId: string;
+  productIds: string[];
+  discountPolicyRef?: string;
+  freeShippingPolicyRef?: string;
+  serverTotalSource: 'checkout_authoritative';
 };
 
 type BundleDiscountApplication = {
   source: 'product_detail_buy_together';
   sourceProductId: string;
   productIds: string[];
+  bundleId?: string;
   eligible: true;
   merchandiseSubtotal: number;
   merchandiseSavings: number;
@@ -1129,6 +1140,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     billingAddress?: any;
     user?: { id?: string | null; email?: string | null } | null;
     warehouseId: string;
+    bundleEvidence?: CatalogBundleEvidence[];
   }) {
     const { order, orderItems, deliveryAddress, billingAddress, user, warehouseId } = params;
     const customerName = [deliveryAddress.firstName, deliveryAddress.lastName]
@@ -1178,6 +1190,8 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       };
     });
 
+    const bundleEvidence = params.bundleEvidence ?? this.getCatalogBundleEvidenceFromMetadata(order.metadata);
+
     return {
       externalOrderId: order.orderNumber,
       channel: 'flipflop',
@@ -1192,6 +1206,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       shippingAddress: boundedDeliveryAddress,
       billingAddress: boundedBillingAddress,
       items,
+      ...(bundleEvidence.length ? { bundleEvidence } : {}),
       totals: {
         subtotal: Number(order.subtotal),
         shippingCost: Number(order.shippingCost),
@@ -1476,12 +1491,49 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       throw new BadRequestException('Bundle discount source product must be included in the set');
     }
     const catalogCandidateId = this.normalizeGuestText(row.catalogCandidateId);
+    const bundleId = this.normalizeGuestText(row.bundleId);
     return {
       source: 'product_detail_buy_together',
       sourceProductId,
       productIds,
       ...(catalogCandidateId ? { catalogCandidateId } : {}),
+      ...(bundleId ? { bundleId } : {}),
     };
+  }
+
+  private buildCatalogBundleEvidence(raw: unknown, orderItems: CheckoutOrderItem[]): CatalogBundleEvidence[] {
+    const bundleIntent = this.normalizeBundleIntent(raw);
+    if (!bundleIntent?.bundleId) return [];
+
+    const productIds = Array.from(new Set(orderItems
+      .map((item) => item.catalogProductId)
+      .filter((id): id is string => typeof id === 'string' && id.trim().length > 0)))
+      .sort();
+    if (productIds.length !== orderItems.length || productIds.length < 2) {
+      throw new BadRequestException('Catalog bundle evidence requires every submitted component line to have a Catalog product id');
+    }
+
+    return [{
+      contractVersion: 'catalog.bundle.v1',
+      bundleId: bundleIntent.bundleId,
+      productIds,
+      ...(bundleIntent.catalogCandidateId ? { discountPolicyRef: `catalog-candidate:${bundleIntent.catalogCandidateId}` } : {}),
+      serverTotalSource: 'checkout_authoritative',
+    }];
+  }
+
+  private getCatalogBundleEvidenceFromMetadata(metadata: unknown): CatalogBundleEvidence[] {
+    const value = this.getMetadataObject(metadata).catalogBundleEvidence;
+    if (!Array.isArray(value)) return [];
+    return value.filter((item): item is CatalogBundleEvidence => {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) return false;
+      const row = item as Record<string, unknown>;
+      return row.contractVersion === 'catalog.bundle.v1'
+        && typeof row.bundleId === 'string'
+        && Array.isArray(row.productIds)
+        && row.productIds.every((id) => typeof id === 'string')
+        && row.serverTotalSource === 'checkout_authoritative';
+    });
   }
 
   private async getCatalogBundleCandidateTargetIds(bundleIntent: BundleDiscountIntent): Promise<Set<string> | null> {
@@ -1619,6 +1671,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       sourceProductId: params.bundleIntent.sourceProductId,
       productIds: params.bundleIntent.productIds,
       ...(params.bundleIntent.catalogCandidateId ? { catalogCandidateId: params.bundleIntent.catalogCandidateId } : {}),
+      ...(params.bundleIntent.bundleId ? { bundleId: params.bundleIntent.bundleId } : {}),
       eligible: true,
       merchandiseSubtotal,
       merchandiseSavings,
@@ -2012,6 +2065,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     billingAddress?: any;
     user?: { email?: string | null } | null;
     warehouseId: string;
+    bundleEvidence?: CatalogBundleEvidence[];
   }): Promise<{ centralOrderId: string; status: 'accepted' | 'conflict' }> {
     const orderData = this.buildCentralOrdersPayload(params);
 
@@ -2189,6 +2243,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     });
     const discount = discountApplication.discount;
     const total = this.roundMoney(orderTotalBeforeDiscount - discount);
+    const catalogBundleEvidence = this.buildCatalogBundleEvidence(dto.bundleIntent, orderItems);
 
     const metadataValue: Record<string, unknown> = {};
     if (discountApplication.pendingDiscountCode) {
@@ -2196,6 +2251,9 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     }
     if (discountApplication.bundleDiscount) {
       metadataValue.bundleDiscount = discountApplication.bundleDiscount;
+    }
+    if (catalogBundleEvidence.length > 0) {
+      metadataValue.catalogBundleEvidence = catalogBundleEvidence;
     }
     if (discountApplication.holidayDiscount) {
       metadataValue.holidayDiscount = discountApplication.holidayDiscount;
@@ -2261,6 +2319,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         deliveryAddress,
         user,
         warehouseId: reservationWarehouseId,
+        bundleEvidence: catalogBundleEvidence,
       });
     } catch (error: unknown) {
       await this.unreserveOrderLines(order.orderNumber, order.order_items);
@@ -2415,6 +2474,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     });
     const discount = discountApplication.discount;
     const total = this.roundMoney(orderTotalBeforeDiscount - discount);
+    const catalogBundleEvidence = this.buildCatalogBundleEvidence(dto.bundleIntent, orderItems);
     const metadataValue: Record<string, unknown> = {
       checkoutMode: 'guest',
       guestEmail,
@@ -2491,6 +2551,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         billingAddress: dto.billingAddress,
         user: { email: guestEmail },
         warehouseId: reservationWarehouseId,
+        bundleEvidence: catalogBundleEvidence,
       });
     } catch (error: unknown) {
       await this.unreserveOrderLines(order.orderNumber, order.order_items);
@@ -2858,6 +2919,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
           deliveryAddress: order.delivery_addresses,
           user,
           warehouseId: reservationWarehouseId,
+          bundleEvidence: this.getCatalogBundleEvidenceFromMetadata(order.metadata),
         });
         centralOrderId = centralAcceptance.centralOrderId;
       } catch (error: unknown) {

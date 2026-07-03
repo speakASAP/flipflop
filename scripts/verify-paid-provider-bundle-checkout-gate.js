@@ -19,7 +19,7 @@ const migrationGoal = read('implementation-goals/GOAL-24-durable-bundleid-checko
 
 
 const narrowedMigrationMarker = '[RESOLVED/NARROWED: explicit ecosystem checkout migration accepts durable Catalog bundleId only as bounded bundleEvidence metadata; FlipFlop runtime checkout submission remains blocked]';
-const flipflopRuntimeMigrationBlocker = '[MISSING: owner-approved FlipFlop source rollout mapping display-only catalog.bundle.v1 bundleId into Orders bundleEvidence without changing totals, stock identity, or provider state]';
+const flipflopRuntimeMigrationBlocker = '[RESOLVED/NARROWED: FlipFlop source rollout maps durable catalog.bundle.v1 bundleId into central Orders bundleEvidence without changing totals, stock identity, or provider state]';
 const centralOrdersUuidProofMarker = '[RESOLVED: active FlipFlop checkout paths pass central Orders UUIDs to Payments before provider creation]';
 const channelSmokeOwnerMarker = '[RESOLVED/NARROWED: FlipFlop checkout owner owns initiation packet for any future paid catalog.bundle.v1 runtime smoke; execution remains owner-approval gated]';
 const checkoutCleanupOwnerMarker = '[RESOLVED/NARROWED: FlipFlop checkout cleanup owner owns customer-visible session/cart/local projection cleanup policy; live cleanup evidence remains approval-gated]';
@@ -112,9 +112,9 @@ assert(productsApi.includes('checkoutEnabled: false'), 'Catalog bundle aggregate
 assert(productsApi.includes('checkoutReason: string'), 'Catalog bundle checkout-disabled reason missing');
 assert(guestCart.includes("source: 'product_detail_buy_together'"), 'guest cart must keep local product-detail bundle intent source');
 assert(guestCart.includes('catalogCandidateId'), 'guest cart may carry Catalog candidate provenance only');
-assert(!guestCart.includes('bundleId'), 'guest cart must not persist durable Catalog bundleId');
-assert(checkoutPage.includes('catalogCandidateId: bundleIntent.catalogCandidateId'), 'checkout submits Catalog candidate id as identifier only');
-assert(!checkoutPage.includes('bundleId: bundleIntent.bundleId'), 'checkout must not submit durable Catalog bundleId');
+assert(guestCart.includes('bundleId?: string'), 'guest cart must carry durable Catalog bundleId as bounded intent evidence');
+assert(checkoutPage.includes('catalogCandidateId: bundleIntent.catalogCandidateId'), 'checkout submits Catalog candidate id as provenance only');
+assert(checkoutPage.includes('bundleId: bundleIntent.bundleId'), 'checkout submits durable Catalog bundleId as bounded intent evidence');
 
 includesAll(adoptionGoal, requiredBlockers, 'GOAL-24 catalog bundle adoption doc');
 includesAll(gateGoal, requiredBlockers, 'GOAL-24 paid/provider gate doc');
@@ -128,8 +128,8 @@ for (const [label, source] of [['paid/provider gate', gateGoal], ['implementatio
   assert(source.includes(channelSmokeOwnerMarker), `${label} missing channel smoke owner marker`);
   assert(source.includes(checkoutCleanupOwnerMarker), `${label} missing checkout cleanup owner marker`);
 }
-assert(gateGoal.includes('runtime_progression: blocked'), 'paid/provider gate must keep runtime progression blocked');
-assert(implementationState.includes('runtime paid/provider progression remains blocked'), 'state must preserve blocked paid/provider runtime progression');
+assert(gateGoal.includes("runtime_progression: source-rollout-enabled-paid-provider-blocked"), "paid/provider gate must keep paid/provider runtime progression blocked after source rollout");
+assert(implementationState.includes("runtime paid/provider progression remains blocked") || implementationState.includes("paid/provider progression remains blocked") || implementationState.includes("paid/provider smoke remains blocked"), "state must preserve blocked paid/provider runtime progression");
 
 let defaultAuthSubjectSmoke;
 try {
@@ -149,13 +149,14 @@ console.log(JSON.stringify({
   mutation: false,
   providerCall: false,
   liveCheckoutExecuted: false,
-  runtimeProgression: 'blocked',
+  runtimeProgression: 'source_rollout_enabled_paid_provider_still_blocked',
   verified: {
     checkoutSmokeCreatesOrderAndPaymentRedirect: true,
     orderServiceReservesBeforePaymentCreation: true,
     activeCheckoutPathsPassCentralOrdersUuidToPayments: true,
-    catalogBundleIdCheckoutAuthority: false,
-    durableBundleIdMigration: 'evidence_only_runtime_blocked',
+    catalogBundleIdCheckoutAuthority: 'bounded_evidence_only',
+    centralOrdersBundleEvidenceMapped: true,
+    durableBundleIdMigration: 'source_rollout_enabled_paid_provider_blocked',
     defaultAuthSubjectSmokeNonMutating: true,
   },
   blockers: requiredBlockers,

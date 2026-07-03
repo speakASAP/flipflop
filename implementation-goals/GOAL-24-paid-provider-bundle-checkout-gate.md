@@ -6,7 +6,7 @@ status: source-policy-validated-runtime-blocked
 owner: flipflop-paid-provider-bundle-checkout-readiness-worker
 created: 2026-07-03
 catalog_contract: catalog.bundle.v1
-runtime_progression: blocked
+runtime_progression: source-rollout-enabled-paid-provider-blocked
 ```
 
 ## Intent Preservation Chain
@@ -22,7 +22,7 @@ Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding P
 - Coding Prompt: fail closed on missing owner approval, provider webhook evidence, stock rollback, or refund/cancel rollback; do not turn display-only `bundleId` evidence into checkout authority.
 - Code: this document, `scripts/verify-paid-provider-bundle-checkout-gate.js`, package script `verify:paid-provider-bundle-checkout-gate`, `implementation-goals/GOAL-24-catalog-bundle-adoption.md`, `docs/orchestrator/STATUS.md`, and `docs/IMPLEMENTATION_STATE.md`.
 - Validation: `npm run verify:paid-provider-bundle-checkout-gate`, `npm run verify:catalog-bundle-adoption`, `node --check scripts/verify-paid-provider-bundle-checkout-gate.js`, and `git diff --check`.
-- State Update: runtime paid/provider progression remains blocked.
+- State Update: runtime paid/provider progression is source-rollout-enabled but paid/provider smoke remains blocked.
 
 ## Assessment
 
@@ -73,7 +73,7 @@ FlipFlop/channel ownership for a future approved smoke:
 - Customer-visible cleanup owner: FlipFlop checkout owner. Scope is clearing or restoring browser/session cart state, local payment-result messaging, local order projection status, and customer retry/cancel guidance after the cross-service rollback packet completes.
 - Runtime execution remains blocked unless the owner-approved smoke packet names the provider, amount ceiling, bundle id, evidence redaction policy, Orders cleanup actor/reason, Warehouse cleanup operation, and Payments refund/cancel evidence source.
 
-Until then, runtime paid/provider progression remains blocked by:
+Until then, runtime paid/provider progression is source-rollout-enabled but paid/provider smoke remains blocked by:
 
 - `[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]`
 - `[MISSING: owner-approved paid/provider test window, non-secret approval id, target active catalog.bundle.v1 bundle id, provider method, and sanitized evidence policy]`
@@ -81,7 +81,7 @@ Until then, runtime paid/provider progression remains blocked by:
 - `[MISSING: Warehouse stock decrement/reservation-release evidence for every bundle component line]`
 - `[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]`
 - `[RESOLVED/NARROWED: explicit ecosystem checkout migration accepts durable Catalog bundleId only as bounded bundleEvidence metadata; FlipFlop runtime checkout submission remains blocked]`
-- `[MISSING: owner-approved FlipFlop source rollout mapping display-only catalog.bundle.v1 bundleId into Orders bundleEvidence without changing totals, stock identity, or provider state]`
+- `[RESOLVED/NARROWED: FlipFlop source rollout maps durable catalog.bundle.v1 bundleId into central Orders bundleEvidence without changing totals, stock identity, or provider state]`
 
 ## Forbidden Actions
 
