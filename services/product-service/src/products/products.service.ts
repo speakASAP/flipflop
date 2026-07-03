@@ -75,13 +75,33 @@ type FlipFlopOfferReconciliationProduct = {
   updatedAt?: Date | string | null;
 };
 
-type ProductRecommendationSource = 'catalog_order_affinity' | 'purchase_history' | 'related_fallback';
+type ProductRecommendationSource = 'catalog_bundle_aggregate' | 'catalog_order_affinity' | 'purchase_history' | 'related_fallback';
+
+type ProductRecommendationCatalogBundleAdoption = {
+  status: 'available' | 'blocked';
+  contractVersion: 'catalog.bundle.v1';
+  bundleId?: string;
+  displayName?: string;
+  description?: string | null;
+  catalogProductIds: string[];
+  products: any[];
+  pricePolicy: 'checkout_authoritative';
+  discountPolicyRef?: string | null;
+  freeShippingPolicyRef?: string | null;
+  currencyHint?: string | null;
+  blockers: string[];
+  checkout: {
+    enabled: false;
+    reason: string;
+  };
+};
 
 type ProductRecommendationBundle = {
   source: ProductRecommendationSource;
   products: any[];
   catalogCandidateId?: string;
   catalogProductIds?: string[];
+  catalogBundle?: ProductRecommendationCatalogBundleAdoption;
   subtotal: number;
   bundlePrice: number;
   merchandiseSavings: number;
@@ -705,8 +725,11 @@ export class ProductsService {
   async getProductRecommendations(id: string) {
     const currentProduct = await this.getLocalRecommendationProduct(id);
     const catalogRelatedProducts = await this.getCatalogRelatedProducts(currentProduct, 8);
+    const catalogAggregateBundle = await this.getCatalogBundleAggregateForDisplay(currentProduct, 3);
     const catalogBundle = await this.getCatalogBundleCandidateProducts(currentProduct, 3);
-    const catalogBundleProducts = catalogBundle.products;
+    const catalogBundleProducts = catalogAggregateBundle.status === 'available'
+      ? catalogAggregateBundle.products
+      : catalogBundle.products;
     const historyProducts = await this.getFrequentlyBoughtTogetherProducts(currentProduct.id, 8);
     const fallbackProducts = await this.getFallbackRelatedProducts(currentProduct, 8);
     const relatedProducts = this.uniqueProducts([
@@ -721,11 +744,13 @@ export class ProductsService {
         : historyProducts.length > 0
           ? historyProducts
           : fallbackProducts;
-    const recommendationSource: ProductRecommendationSource = catalogRelatedProducts.length > 0
-      ? 'catalog_order_affinity'
-      : historyProducts.length > 0
-        ? 'purchase_history'
-        : 'related_fallback';
+    const recommendationSource: ProductRecommendationSource = catalogAggregateBundle.status === 'available'
+      ? 'catalog_bundle_aggregate'
+      : catalogRelatedProducts.length > 0
+        ? 'catalog_order_affinity'
+        : historyProducts.length > 0
+          ? 'purchase_history'
+          : 'related_fallback';
     const bundleProducts = this.uniqueProducts(
       catalogBundleProducts.length > 1 ? bundleCandidates : [currentProduct, ...bundleCandidates],
       currentProduct.id,
@@ -735,8 +760,14 @@ export class ProductsService {
       bundleProducts.length > 1 ? bundleProducts : [currentProduct, ...relatedProducts.slice(0, 1)],
       recommendationSource,
       catalogBundleProducts.length > 1
-        ? { catalogCandidateId: catalogBundle.candidateId, catalogProductIds: catalogBundle.catalogProductIds }
-        : undefined,
+        ? {
+          catalogCandidateId: catalogAggregateBundle.status === 'available' ? undefined : catalogBundle.candidateId,
+          catalogProductIds: catalogAggregateBundle.status === 'available'
+            ? catalogAggregateBundle.catalogProductIds
+            : catalogBundle.catalogProductIds,
+          catalogBundle: catalogAggregateBundle,
+        }
+        : { catalogBundle: catalogAggregateBundle },
     );
 
     return {
@@ -745,11 +776,21 @@ export class ProductsService {
       relatedProducts,
       bundle,
       policy: {
-        source: catalogRelatedProducts.length > 0
-          ? 'catalog_order_affinity_then_purchase_history_then_category_fallback'
-          : historyProducts.length > 0
-            ? 'purchase_history_then_category_fallback'
-            : 'category_fallback',
+        source: catalogAggregateBundle.status === 'available'
+          ? 'catalog_bundle_aggregate_display_then_order_affinity_candidate_then_purchase_history_then_category_fallback'
+          : catalogRelatedProducts.length > 0
+            ? 'catalog_order_affinity_then_purchase_history_then_category_fallback'
+            : historyProducts.length > 0
+              ? 'purchase_history_then_category_fallback'
+              : 'category_fallback',
+        catalogBundleAggregate: {
+          status: catalogAggregateBundle.status,
+          contractVersion: catalogAggregateBundle.contractVersion,
+          bundleId: catalogAggregateBundle.bundleId || null,
+          blockers: catalogAggregateBundle.blockers,
+          checkoutEnabled: false,
+          checkoutReason: catalogAggregateBundle.checkout.reason,
+        },
         usesAi: false,
         mutatesPrices: false,
         mutatesOrders: false,
@@ -786,6 +827,106 @@ export class ProductsService {
     }
 
     return offer;
+  }
+
+
+  private blockedCatalogBundleAggregate(blocker: string): ProductRecommendationCatalogBundleAdoption {
+    return {
+      status: 'blocked',
+      contractVersion: 'catalog.bundle.v1',
+      catalogProductIds: [],
+      products: [],
+      pricePolicy: 'checkout_authoritative',
+      blockers: [blocker],
+      checkout: {
+        enabled: false,
+        reason: 'Catalog bundleId display is separated from FlipFlop local checkout bundle intent until an explicit ecosystem checkout migration is accepted.',
+      },
+    };
+  }
+
+  private async getCatalogBundleAggregateForDisplay(product: any, limit: number): Promise<ProductRecommendationCatalogBundleAdoption> {
+    if (!product?.catalogProductId) {
+      return this.blockedCatalogBundleAggregate('[MISSING: FlipFlop local product is not mapped to Catalog productId]');
+    }
+
+    const response = await this.catalogClient.getCatalogBundleAggregates({
+      status: 'active',
+      channel: 'flipflop',
+      productId: product.catalogProductId,
+      limit: 5,
+    });
+
+    if (!response) {
+      return this.blockedCatalogBundleAggregate('[MISSING: owner-approved Catalog bundle aggregate runtime read for FlipFlop]');
+    }
+
+    const aggregate = response.bundles.find((bundle: any) => {
+      const itemProductIds = Array.isArray(bundle.items)
+        ? bundle.items.map((item: any) => item?.productId).filter(Boolean)
+        : [];
+      return bundle.contractVersion === 'catalog.bundle.v1'
+        && bundle.status === 'active'
+        && bundle.presentation?.pricePolicy === 'checkout_authoritative'
+        && itemProductIds.includes(product.catalogProductId)
+        && itemProductIds.length > 1;
+    });
+
+    if (!aggregate) {
+      return this.blockedCatalogBundleAggregate('[MISSING: active catalog.bundle.v1 aggregate visible to flipflop for this product]');
+    }
+
+    const validationBlockers = Array.isArray(aggregate.validation?.blockers) ? aggregate.validation.blockers : [];
+    if (aggregate.validation?.state === 'blocked' || validationBlockers.length > 0) {
+      return this.blockedCatalogBundleAggregate(validationBlockers[0] || 'Catalog bundle aggregate validation is blocked');
+    }
+
+    const catalogProductIds = Array.from(new Set(
+      [...aggregate.items]
+        .sort((a: any, b: any) => Number(a?.position || 0) - Number(b?.position || 0))
+        .map((item: any) => item?.productId)
+        .filter((id: unknown): id is string => typeof id === 'string' && id.trim().length > 0),
+    )).slice(0, limit);
+
+    if (catalogProductIds.length < 2) {
+      return this.blockedCatalogBundleAggregate('Catalog bundle aggregate has fewer than two displayable component products');
+    }
+
+    const rows = await this.prisma.product.findMany({
+      where: { catalogProductId: { in: catalogProductIds }, isActive: true },
+      include: {
+        product_categories: { include: { categories: true } },
+        product_variants: true,
+      },
+    });
+    const offers = await Promise.all(rows.map((row: any) => this.catalogLinkedProductToOffer(row)));
+    const offerByCatalogId = new Map(
+      offers.filter(Boolean).map((offer: any) => [offer.catalogProductId, offer]),
+    );
+    const products = catalogProductIds.map((catalogProductId) => offerByCatalogId.get(catalogProductId)).filter(Boolean);
+
+    if (products.length !== catalogProductIds.length) {
+      return this.blockedCatalogBundleAggregate('Catalog bundle aggregate contains a component that is not a current FlipFlop sellable offer');
+    }
+
+    return {
+      status: 'available',
+      contractVersion: 'catalog.bundle.v1',
+      bundleId: aggregate.bundleId,
+      displayName: aggregate.presentation?.displayName || 'Katalogový set',
+      description: aggregate.presentation?.description ?? null,
+      catalogProductIds,
+      products,
+      pricePolicy: 'checkout_authoritative',
+      discountPolicyRef: aggregate.presentation?.discountPolicyRef ?? null,
+      freeShippingPolicyRef: aggregate.presentation?.freeShippingPolicyRef ?? null,
+      currencyHint: aggregate.presentation?.currencyHint ?? 'CZK',
+      blockers: response.blockers || [],
+      checkout: {
+        enabled: false,
+        reason: 'Catalog bundleId is display-only in FlipFlop until Orders, Warehouse, Payments, and owner-approved checkout migration accept ecosystem bundle checkout.',
+      },
+    };
   }
 
   private async getCatalogBundleCandidateProducts(product: any, limit: number): Promise<{ products: any[]; candidateId?: string; catalogProductIds: string[] }> {
@@ -1030,7 +1171,11 @@ export class ProductsService {
   private buildRecommendationBundle(
     products: any[],
     source: ProductRecommendationSource,
-    catalogMetadata?: { catalogCandidateId?: string; catalogProductIds?: string[] },
+    catalogMetadata?: {
+      catalogCandidateId?: string;
+      catalogProductIds?: string[];
+      catalogBundle?: ProductRecommendationCatalogBundleAdoption;
+    },
   ): ProductRecommendationBundle | null {
     const bundleProducts = products.filter((product) => product?.id && Number(product.price) > 0);
     if (bundleProducts.length < 2) {
@@ -1047,6 +1192,7 @@ export class ProductsService {
       products: bundleProducts,
       ...(catalogMetadata?.catalogCandidateId ? { catalogCandidateId: catalogMetadata.catalogCandidateId } : {}),
       ...(catalogMetadata?.catalogProductIds?.length ? { catalogProductIds: catalogMetadata.catalogProductIds } : {}),
+      ...(catalogMetadata?.catalogBundle ? { catalogBundle: catalogMetadata.catalogBundle } : {}),
       subtotal,
       bundlePrice,
       merchandiseSavings,

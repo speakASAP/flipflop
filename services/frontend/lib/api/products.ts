@@ -90,11 +90,31 @@ export interface Category {
   parentId?: string;
 }
 
+export interface ProductRecommendationCatalogBundle {
+  status: 'available' | 'blocked';
+  contractVersion: 'catalog.bundle.v1';
+  bundleId?: string;
+  displayName?: string;
+  description?: string | null;
+  catalogProductIds: string[];
+  products: Product[];
+  pricePolicy: 'checkout_authoritative';
+  discountPolicyRef?: string | null;
+  freeShippingPolicyRef?: string | null;
+  currencyHint?: string | null;
+  blockers: string[];
+  checkout: {
+    enabled: false;
+    reason: string;
+  };
+}
+
 export interface ProductRecommendationBundle {
-  source: 'catalog_order_affinity' | 'purchase_history' | 'related_fallback' | string;
+  source: 'catalog_bundle_aggregate' | 'catalog_order_affinity' | 'purchase_history' | 'related_fallback' | string;
   products: Product[];
   catalogCandidateId?: string;
   catalogProductIds?: string[];
+  catalogBundle?: ProductRecommendationCatalogBundle;
   subtotal: number;
   bundlePrice: number;
   merchandiseSavings: number;
@@ -111,6 +131,14 @@ export interface ProductRecommendations {
   bundle: ProductRecommendationBundle | null;
   policy?: {
     source: string;
+    catalogBundleAggregate?: {
+      status: 'available' | 'blocked';
+      contractVersion: 'catalog.bundle.v1';
+      bundleId: string | null;
+      blockers: string[];
+      checkoutEnabled: false;
+      checkoutReason: string;
+    };
     usesAi: boolean;
     mutatesPrices: boolean;
     mutatesOrders: boolean;

@@ -116,6 +116,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const recommendations = recommendationsResponse.success ? recommendationsResponse.data : null;
   const relatedProducts = recommendations?.relatedProducts ?? [];
   const bundle = recommendations?.bundle ?? null;
+  const catalogBundle = bundle?.catalogBundle?.status === 'available' ? bundle.catalogBundle : null;
   const galleryImages = getProductGalleryImages(product);
 
   return (
@@ -256,6 +257,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   <div className="flex justify-between gap-3 text-emerald-700"><span>Sleva setu</span><span>-{formatMoney(bundle.merchandiseSavings)}</span></div>
                   {bundle.shippingSavings > 0 && <div className="flex justify-between gap-3 text-emerald-700"><span>Doprava</span><span>-{formatMoney(bundle.shippingSavings)}</span></div>}
                 </div>
+                {catalogBundle && (
+                  <div className="mt-4 border border-blue-200 bg-blue-50 p-3 text-xs font-bold text-blue-900">
+                    <p>{catalogBundle.displayName || 'Katalogovy set'} · {catalogBundle.contractVersion}</p>
+                    <p className="mt-1 break-all">Bundle ID: {catalogBundle.bundleId}</p>
+                    <p className="mt-1 text-blue-800">Katalogovy bundleId je pouze pro zobrazeni. Kosik a checkout zatim pouzivaji lokalni setovy zamer bez durable bundleId.</p>
+                  </div>
+                )}
                 <div className="mt-4 border-t border-gray-200 pt-4">
                   <AddBundleToCartButton products={bundle.products} sourceProductId={product.id} estimatedSavings={bundle.totalSavings} catalogCandidateId={bundle.catalogCandidateId} />
                 </div>

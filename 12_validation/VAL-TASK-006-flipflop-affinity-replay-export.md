@@ -5,7 +5,7 @@ id: VAL-TASK-006
 status: passed
 created: 2026-07-03
 last_updated: 2026-07-03
-repository: /home/ssf/Documents/Github/codex-worktrees/flipflop-goal24-replay-export
+repository: /home/ssf/Documents/Github/flipflop
 branch: codex-goal24-flipflop-replay-export
 deployment: not_run
 ```

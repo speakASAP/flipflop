@@ -1,5 +1,26 @@
 # Implementation State
 
+## 2026-07-03 - Catalog Goal 24 FlipFlop Bundle Adoption Display
+
+Objective: resolve `[MISSING: FlipFlop adoption contract for catalog.bundle.v1 read/display before ecosystem checkout]` as a FlipFlop-owned source/docs/verifier lane without live checkout/payment/stock side effects.
+
+IPS chain:
+
+- Vision: FlipFlop remains a safe storefront using shared Catalog, Orders, Warehouse, and Payments boundaries.
+- Goal Impact: FlipFlop now has a display-only consumer contract for active Catalog `catalog.bundle.v1` aggregates before ecosystem checkout migration.
+- System: Catalog owns durable `bundleId`; FlipFlop owns storefront display and local bundle intent; Orders/Warehouse/Payments keep their accepted ownership.
+- Feature: product-detail/storefront Catalog bundle aggregate display adoption.
+- Task: read active FlipFlop-visible Catalog bundles, map components to sellable local offers, display bounded evidence, and keep durable `bundleId` out of cart/checkout/order paths.
+- Execution Plan: `implementation-goals/GOAL-24-catalog-bundle-adoption.md`.
+- Coding Prompt: fail closed on missing aggregate runtime/component sellability and keep checkout disabled for durable `bundleId` until explicit migration approval.
+- Code: Catalog client aggregate read, product-service recommendation adoption mapping, frontend API/product-detail display, focused verifier.
+- Validation: `npm run verify:catalog-bundle-adoption`; existing bundle verifiers/builds and `git diff --check` required before commit.
+- State Update: `[RESOLVED: FlipFlop adoption contract for catalog.bundle.v1 read/display before ecosystem checkout]`; runtime checkout smoke remains gated.
+
+Boundaries preserved: no live order, checkout submission change, payment/provider call, stock reservation/decrement, Catalog/Orders/Warehouse/Payments edit, marketplace publication, migration, deploy, Kubernetes, secret/config, or customer/provider data exposure.
+
+Remaining gates: `[MISSING: owner-approved Catalog bundle aggregate runtime read for FlipFlop]`, `[MISSING: explicit ecosystem checkout migration accepting durable Catalog bundleId]`, `[MISSING: owner-approved Rung 1 non-mutating real checkout smoke credentials and target products]`.
+
 ## 2026-07-03 - Catalog Goal 24 FlipFlop Protected Replay Endpoint
 
 Objective: resolve `[MISSING: FlipFlop protected replay endpoint or owner-run CLI export for marketplace.order_affinity_replay_candidates.v1]` for Catalog Goal 24 without live replay execution or checkout/order/payment/stock mutation.

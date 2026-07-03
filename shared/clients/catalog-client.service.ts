@@ -85,6 +85,57 @@ export interface CatalogDiscountEligibilityFacts {
   [key: string]: unknown;
 }
 
+
+export interface CatalogBundleAggregateItem {
+  productId: string;
+  quantity: number;
+  position: number;
+  role?: string;
+}
+
+export interface CatalogBundleAggregate {
+  bundleId: string;
+  contractVersion: 'catalog.bundle.v1' | string;
+  status: 'draft' | 'active' | 'archived' | string;
+  source?: string;
+  items: CatalogBundleAggregateItem[];
+  presentation?: {
+    displayName?: string | null;
+    description?: string | null;
+    pricePolicy?: 'checkout_authoritative' | string;
+    discountPolicyRef?: string | null;
+    freeShippingPolicyRef?: string | null;
+    currencyHint?: string | null;
+  };
+  visibility?: {
+    scope?: string;
+    channels?: string[];
+    startsAt?: string | null;
+    endsAt?: string | null;
+  };
+  validation?: {
+    state?: 'valid' | 'blocked' | string;
+    blockers?: string[];
+  };
+  evidence?: Record<string, unknown>;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CatalogBundleAggregateQuery {
+  status?: 'active' | 'draft' | 'archived' | string;
+  productId?: string;
+  channel?: string;
+  limit?: number;
+  cursor?: string;
+}
+
+export interface CatalogBundleAggregateListResponse {
+  bundles: CatalogBundleAggregate[];
+  blockers: string[];
+  cursor?: string | null;
+}
+
 export interface CatalogBundleCandidateProduct {
   productId: string;
   sku?: string;
@@ -307,6 +358,65 @@ export class CatalogClientService {
   }
   }
 
+
+
+  async getCatalogBundleAggregates(
+    query: CatalogBundleAggregateQuery = {},
+    options: CatalogProductRequestOptions = {},
+  ): Promise<CatalogBundleAggregateListResponse | null> {
+    try {
+      const params = new URLSearchParams();
+      if (query.status) params.append('status', query.status);
+      if (query.productId) params.append('productId', query.productId);
+      if (query.channel) params.append('channel', query.channel);
+      if (query.limit) params.append('limit', String(query.limit));
+      if (query.cursor) params.append('cursor', query.cursor);
+      const queryString = params.toString();
+
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `${this.baseUrl}/api/bundles${queryString ? `?${queryString}` : ''}`,
+          {
+            headers: this.catalogHeaders(
+              options.authorizationHeader ? { Authorization: options.authorizationHeader } : undefined,
+            ),
+          },
+        ),
+      );
+
+      const data = response.data?.data ?? response.data;
+      const rawBundles = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.bundles)
+          ? data.bundles
+          : Array.isArray(data?.items)
+            ? data.items
+            : [];
+      const blockers = Array.isArray(data?.blockers) ? data.blockers : [];
+
+      return {
+        bundles: rawBundles
+          .filter((bundle: unknown): bundle is CatalogBundleAggregate => Boolean(bundle) && typeof bundle === 'object' && !Array.isArray(bundle))
+          .map((bundle: any) => ({
+            ...bundle,
+            bundleId: String(bundle.bundleId || bundle.id || ''),
+            contractVersion: String(bundle.contractVersion || ''),
+            status: String(bundle.status || ''),
+            items: Array.isArray(bundle.items) ? bundle.items : [],
+          }))
+          .filter((bundle: CatalogBundleAggregate) => Boolean(bundle.bundleId)),
+        blockers,
+        cursor: data?.cursor ?? data?.nextCursor ?? null,
+      };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.warn(
+        `Catalog bundle aggregates unavailable for FlipFlop display: ${errorMessage}`,
+        'CatalogClient',
+      );
+      return null;
+    }
+  }
 
   async getProductBundleCandidates(
     productId: string,
