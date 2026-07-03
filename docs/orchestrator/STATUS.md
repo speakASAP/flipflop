@@ -1,5 +1,44 @@
 # Orchestrator Status
 
+## 2026-07-03 - Admin Order Inventory Pricing RBAC Hardened
+
+Status: implemented, pushed, deployed, and smoke-checked.
+
+Intent Preservation Chain:
+
+- Vision: FlipFlop admin order, inventory, and pricing surfaces must expose operational order and stock data only to authenticated admin roles.
+- Goal Impact: admin order reads/actions, inventory operations, and pricing suggestions no longer rely on JWT presence alone.
+- System: FlipFlop order-service admin controllers, shared `JwtAuthGuard`, shared `RolesGuard`, and existing Auth role claims.
+- Feature: role-based admin route enforcement for order, inventory, and pricing admin surfaces.
+- Task: apply the existing local `RolesGuard`/`@Roles` pattern to `admin-orders.controller`, `admin-inventory.controller`, and `pricing.controller` while preserving customer order scoping.
+- Execution Plan: reuse the already deployed marketing controller RBAC pattern; keep customer `/orders` reads scoped by `req.user.id`; validate source and deploy via standard FlipFlop script.
+- Coding Prompt: do not invent a new auth system; use existing shared guards and a conservative admin role set.
+- Code: commit `79dba51 feat: enhance admin controllers with role-based access control`.
+- Validation: focused source verifier passed; `git diff --check` passed; `python3 scripts/pre_coding_gate.py --root .` passed; `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed 100/100; `cd services/order-service && npm run build` passed.
+
+Evidence:
+
+- `services/order-service/src/orders/admin-orders.controller.ts` now uses `@UseGuards(JwtAuthGuard, RolesGuard)` and `@Roles(...)`.
+- `services/order-service/src/orders/admin-inventory.controller.ts` now uses `@UseGuards(JwtAuthGuard, RolesGuard)` and `@Roles(...)`.
+- `services/order-service/src/pricing/pricing.controller.ts` now uses `@UseGuards(JwtAuthGuard, RolesGuard)` and `@Roles(...)`.
+- Admin roles allowed by this slice: `global:superadmin`, `global:platform_admin`, `app:flipflop-service:admin`, `app:flipflop:admin`, and `flipflop:admin`.
+- Customer order controller scoping remains unchanged: customer list/detail reads still call user-scoped service methods with `req.user.id`.
+
+Deployment evidence:
+
+- Standard `./scripts/deploy.sh` completed successfully in `128.02s`.
+- Rollouts completed for `flipflop-service`, `flipflop-frontend`, `flipflop-product-service`, `flipflop-cart-service`, `flipflop-order-service`, and `flipflop-user-service`.
+- Kubernetes deployments report ready/available/updated `1/1` on `localhost:5000/flipflop-*:latest` images after the rollout.
+- Public smoke: `https://flipflop.alfares.cz/` returned HTTP 200.
+- Protected-route smoke without credentials returned HTTP 401 for `https://flipflop.alfares.cz/api/admin/orders`, `/api/admin/inventory/low-stock`, and `/api/admin/pricing/suggestions`.
+
+Remaining blockers:
+
+- `[MISSING: approved runtime smoke with a non-admin authenticated user proving RolesGuard returns 403 rather than data.]`
+- `[MISSING: owner-approved FlipFlop auth-subject create/read smoke proving persisted customer.authSubject.]`
+
+Next action: continue broader Orders lifecycle work; do not change customer order scoping without a separate contract.
+
 ## 2026-07-02 - F1 Central Orders Checkout And Cabinets
 
 Status: implemented in current source, validated on remote `alfares`, not deployed, not pushed by this worker.
