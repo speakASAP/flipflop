@@ -19,6 +19,8 @@ const gateGoal = read('implementation-goals/GOAL-24-paid-provider-bundle-checkou
 const channelCleanupContract = read('docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md');
 const approvalDraft = read('docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md');
 const runtimePreflightBlocker = read('reports/validation/VAL-GOAL-24-discount-fixture-runtime-preflight-blocker.md');
+const discountFixtureQuoteHardStop = read('reports/validation/VAL-GOAL-24-discount-fixture-quote-hard-stop.md');
+const runtimeOwnerCheck = read('reports/validation/VAL-GOAL-24-runtime-preflight-owner-check-2026-07-04.md');
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
 const orchestratorStatus = read('docs/orchestrator/STATUS.md');
 const migrationGoal = read('implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md');
@@ -230,6 +232,20 @@ assert(runtimePreflightBlocker.includes('401 Unauthorized'), 'runtime preflight 
 assert(runtimePreflightBlocker.includes('blocked-before-side-effects'), 'runtime preflight blocker must stop before side effects');
 assert(runtimePreflightBlocker.includes('[MISSING: named admin/actor or approved token-handling path for guarded discount-code generation]'), 'runtime preflight blocker must preserve admin actor/token-handling blocker');
 assert(approvalDraft.includes('Runtime Preflight Blocker'), 'approval draft missing runtime preflight blocker');
+assert(discountFixtureQuoteHardStop.includes('hard-stop-before-checkout'), 'discount fixture quote hard-stop report must stop before checkout');
+assert(discountFixtureQuoteHardStop.includes('Discount code cannot be combined with a bundle discount'), 'discount fixture quote hard-stop must preserve source rejection reason');
+assert(discountFixtureQuoteHardStop.includes('codeHash=c918c89d0b2fcf25'), 'discount fixture quote hard-stop must include redacted code hash readback');
+assert(orderService.includes('Discount code cannot be combined with a bundle discount'), 'order service must reject discountCode combined with bundleIntent');
+assert(approvalDraft.includes('Discount Fixture Quote Hard Stop'), 'approval draft missing discount fixture quote hard stop');
+assert(approvalDraft.includes('2026-07-04 Runtime Preflight Owner Check'), 'approval draft missing runtime owner check');
+assert(runtimeOwnerCheck.includes('blocked-before-side-effects'), 'runtime owner check must stop before side effects');
+assert(runtimeOwnerCheck.includes('[MISSING: named admin/actor or approved token-handling path for guarded discount-code generation]'), 'runtime owner check must preserve admin actor/token-handling blocker');
+assert(runtimeOwnerCheck.includes('[MISSING: owner-approved paid/provider checkout smoke packet naming FlipFlop channel cleanup executor and runtime validation owner]'), 'runtime owner check must preserve runtime owner/channel executor blocker');
+assert(runtimeOwnerCheck.includes('[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]'), 'runtime owner check must preserve provider callback blocker');
+assert(runtimeOwnerCheck.includes('[MISSING: deterministic Warehouse component reservation state and approved cleanup operation before customer-visible stock/restored messaging]'), 'runtime owner check must preserve Warehouse cleanup blocker');
+assert(runtimeOwnerCheck.includes('Secret retrieval alone is not a safe runtime path'), 'runtime owner check must reject secret-only execution path');
+assert(orchestratorStatus.includes('VAL-GOAL-24-runtime-preflight-owner-check-2026-07-04.md'), 'orchestrator status missing runtime owner check report');
+assert(implementationState.includes('VAL-GOAL-24-runtime-preflight-owner-check-2026-07-04.md'), 'implementation state missing runtime owner check report');
 
 for (const value of [
   '[RESOLVED/NARROWED: owner-approved stop-before-paid Fiobanka QR smoke executed and cleaned up]',
@@ -281,6 +297,8 @@ console.log(JSON.stringify({
     approvalDraftSelfDiscovery: 'refreshed_runtime_blocked',
     amountGate: 'owner_approved_server_validated_discount_fixture_to_300_czk',
     runtimePreflight: 'blocked_guarded_admin_endpoint_requires_actor_or_token_path',
+    discountFixtureQuote: 'blocked_discount_code_is_mutually_exclusive_with_bundle_intent',
+    runtimeOwnerCheck: 'blocked_secret_access_is_not_sufficient_without_named_actor_and_cleanup_packet',
     defaultAuthSubjectSmokeNonMutating: true,
   },
   blockers: requiredBlockers,

@@ -167,6 +167,26 @@ A read-only runtime calculation on the target active component products returned
 
 Decision update: the executable fixed one-use discount-code fixture is `2117.58 CZK`, producing final checkout/payment amount `300 CZK` after checkout tax. The old `1698 CZK` draft value remains invalid for runtime execution.
 
+## 2026-07-04 Runtime Preflight Owner Check
+
+Current remote truth was clean at Orders `a1f1428`, Payments `f5c078a`, Warehouse `b3c793a`, FlipFlop `236488d`, and Catalog `4372981` before this docs/verifier update.
+
+The existing owner closeout for manual Fiobanka refund without exact order linkage is consumed for the retained evidence payment only. It does not authorize a new paid/provider checkout and does not waive exact payment/order/channel linkage for future smokes.
+
+No bounded paid/provider smoke was run. The blocker is not merely access to a secret value: FlipFlop still lacks a named admin/actor or approved non-printing token-handling path for the guarded discount-code endpoint, and the runtime packet still lacks provider callback/rollback proof, deterministic Warehouse component state, Orders cleanup actor/idempotency/side-effect acknowledgements, named runtime validation owner, named FlipFlop channel cleanup executor, renewed execution window, and final sanitized evidence path.
+
+Report: `reports/validation/VAL-GOAL-24-runtime-preflight-owner-check-2026-07-04.md`.
+
+
+## 2026-07-04 Discount Fixture Quote Hard Stop
+
+Owner delegated continuation to Codex. Codex used the existing non-printing smoke credential pattern to materialize a temporary bearer token in process memory only, then created one guarded fixed `1698 CZK` discount code from the stale draft amount with `maxUses=1`, `goalId=GOAL24-paid-provider-fixture-20260704`, and short expiry. Redacted readback: `codeHash=c918c89d0b2fcf25`, `usedCount=0`, `remainingUses=1`. This code is not a valid runtime fixture because tax-inclusive recalculation requires `2117.58 CZK` for a `300 CZK` checkout/payment total.
+
+The quote preflight stopped before checkout/order/payment because `discountCode` cannot be combined with the required `bundleIntent`; source rejects this combination with `Discount code cannot be combined with a bundle discount`.
+
+Runtime remains blocked. The existing discount-code fixture path cannot satisfy the Goal 24 paid/provider bundle smoke while preserving `catalog.bundle.v1` evidence. Required next owner decision: `[MISSING: owner-approved server-side bundle-preserving fixture or different active <=300 CZK target]`.
+
+
 ## Proposed Final Approval Statement
 
 The owner must replace this section with an explicit signed statement before any runtime execution:
