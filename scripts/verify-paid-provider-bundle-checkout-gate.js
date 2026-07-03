@@ -38,6 +38,8 @@ const channelCleanupContractMarker = 'FLIPFLOP-GOAL24-CHANNEL-CLEANUP-CONTRACT';
 const channelCleanupPreparedMarker = '[RESOLVED/NARROWED: FlipFlop channel cleanup contract prepared for cart/session/local projection cleanup, idempotency, customer-visible hard stops, and redacted evidence policy; runtime remains blocked]';
 const approvalDraftMarker = 'FLIPFLOP-GOAL24-PAID-PROVIDER-SMOKE-APPROVAL-DRAFT';
 const approvedDiscountFixtureMarker = 'Owner-Approved Discount Fixture Narrowing';
+const successCancelUrlOwnerMarker = '[RESOLVED/NARROWED: FlipFlop owns exact customer-visible payment-result success/cancel URLs for provider redirects; provider callback evidence still owns payment truth]';
+const retryStateCleanupOwnerMarker = '[RESOLVED/NARROWED: FlipFlop owns retry-state cleanup policy for payment-result cancelled/failed views; retry-safe execution remains blocked until provider, Orders, Warehouse, and channel cleanup evidence exists]';
 
 const baseRequiredBlockers = [
   paidProviderRuntimeBlocker,
@@ -224,10 +226,23 @@ for (const value of [
 }
 assert(channelCleanupContract.includes('owner approved the discount/price fixture path'), 'channel cleanup contract missing owner-approved fixture update');
 assert(channelCleanupContract.includes('server-validated fixed discount-code fixture'), 'channel cleanup contract missing server-validated fixture constraint');
+for (const [label, source] of [['channel cleanup contract', channelCleanupContract], ['paid/provider gate', gateGoal], ['implementation state', implementationState], ['orchestrator status', orchestratorStatus]]) {
+  assert(source.includes(successCancelUrlOwnerMarker), `${label} missing success/cancel URL ownership marker`);
+  assert(source.includes(retryStateCleanupOwnerMarker), `${label} missing retry-state cleanup ownership marker`);
+}
+assert(channelCleanupContract.includes('https://flipflop.alfares.cz/payment-result?status=completed&orderId=<local-flipflop-order-id>'), 'channel cleanup contract missing exact success URL shape');
+assert(channelCleanupContract.includes('https://flipflop.alfares.cz/payment-result?status=cancelled&orderId=<local-flipflop-order-id>'), 'channel cleanup contract missing exact cancel URL shape');
+assert(channelCleanupContract.includes('https://flipflop.alfares.cz/api/webhooks/payment-result'), 'channel cleanup contract missing provider callback URL boundary');
+assert(channelCleanupContract.includes('[MISSING: sanitized runtime config readback or owner confirmation that PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL are unset or exactly match the approved FlipFlop payment-result URLs for the future smoke]'), 'channel cleanup contract missing runtime URL override blocker');
+assert(orderService.includes("const envKey = status === 'completed' ? 'PAYMENT_SUCCESS_URL' : 'PAYMENT_CANCEL_URL'"), 'order service must expose success/cancel URL override keys');
+assert(orderService.includes("'https://flipflop.alfares.cz'"), 'order service must keep FlipFlop frontend base fallback');
+assert(orderService.includes('new URLSearchParams({ status })') && orderService.includes("return this.getPaymentResultUrl('completed', orderId)") && orderService.includes("return this.getPaymentResultUrl('cancelled', orderId)"), 'order service must build explicit success/cancel payment-result statuses');
+assert(orderService.includes('successUrl: this.getPaymentSuccessUrl(order.id)') && orderService.includes('cancelUrl: this.getPaymentCancelUrl(order.id)'), 'order service must pass exact success/cancel URLs to Payments');
+assert(read('services/frontend/app/payment-result/page.tsx').includes("status === 'cancelled'") && read('services/frontend/app/payment-result/page.tsx').includes("router.push('/checkout')"), 'payment-result page must own cancelled retry routing');
 assert(orchestratorStatus.includes('Owner approved Goal 24 discount/price fixture path'), 'orchestrator status missing owner-approved fixture update');
 assert(implementationState.includes('Owner approved Goal 24 discount/price fixture path'), 'implementation state missing owner-approved fixture update');
 assert(orderService.includes('Client-provided discount is not accepted without a server-validated contract'), 'order service must reject direct client discount');
-assert(orderService.includes('const after = await this.discountService.applyDiscount(params.orderTotalBeforeDiscount, trimmedDiscountCode)'), 'order service must apply server-validated discount code to authoritative total');
+assert(orderService.includes('const after = await this.discountService.applyDiscount(params.orderTotalBeforeDiscount, trimmedDiscountCode)') || orderService.includes('const discount = this.roundMoney(validation.discountValue);'), 'order service must apply server-validated discount code to authoritative total or use already guarded validation discount value');
 assert(read('services/order-service/src/marketing/marketing.controller.ts').includes('@UseGuards(JwtAuthGuard, RolesGuard)'), 'discount code generation endpoint must remain guarded');
 assert(runtimePreflightBlocker.includes('401 Unauthorized'), 'runtime preflight blocker must record guarded admin endpoint 401');
 assert(runtimePreflightBlocker.includes('blocked-before-side-effects'), 'runtime preflight blocker must stop before side effects');
@@ -310,6 +325,8 @@ console.log(JSON.stringify({
     discountFixtureQuote: 'blocked_discount_code_is_mutually_exclusive_with_bundle_intent',
     bundlePreservingFixtureSource: 'source_prepared_runtime_deploy_gated',
     runtimeOwnerCheck: 'blocked_secret_access_is_not_sufficient_without_named_actor_and_cleanup_packet',
+    successCancelUrlOwnership: 'source_prepared_runtime_blocked',
+    retryStateCleanupOwnership: 'source_prepared_runtime_blocked',
     defaultAuthSubjectSmokeNonMutating: true,
   },
   blockers: requiredBlockers,

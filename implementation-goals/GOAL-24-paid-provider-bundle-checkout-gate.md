@@ -53,6 +53,8 @@ Resolved/narrowed channel-owned blockers:
 - `[RESOLVED/NARROWED: FlipFlop checkout owner owns initiation packet for any future paid catalog.bundle.v1 runtime smoke; execution remains owner-approval gated]`
 - `[RESOLVED/NARROWED: FlipFlop checkout cleanup owner owns customer-visible session/cart/local projection cleanup policy; live cleanup evidence remains approval-gated]`
 - `[RESOLVED/NARROWED: FlipFlop channel cleanup contract prepared for cart/session/local projection cleanup, idempotency, customer-visible hard stops, and redacted evidence policy; runtime remains blocked]`
+- `[RESOLVED/NARROWED: FlipFlop owns exact customer-visible payment-result success/cancel URLs for provider redirects; provider callback evidence still owns payment truth]`
+- `[RESOLVED/NARROWED: FlipFlop owns retry-state cleanup policy for payment-result cancelled/failed views; retry-safe execution remains blocked until provider, Orders, Warehouse, and channel cleanup evidence exists]`
 
 ## Fail-Closed Runtime Contract
 
@@ -69,7 +71,7 @@ A future live paid/provider bundle smoke may proceed only when all of these are 
 - stock rollback plan covers every component line;
 - refund/cancel rollback plan is owner-approved and names which system performs provider refund or cancellation plus Orders/Warehouse cleanup;
 - durable Catalog `bundleId` checkout migration is explicitly accepted, or the smoke is scoped to existing local bundle intent with Catalog candidate provenance only;
-- FlipFlop checkout owner records customer-visible cleanup expectations for cart, session, order-result redirect state, local order projection, and retry/cancel messaging before the smoke starts.
+- FlipFlop checkout owner records customer-visible cleanup expectations for cart, session, order-result redirect state, local order projection, retry/cancel messaging, and exact success/cancel URL ownership before the smoke starts.
 
 FlipFlop/channel ownership for a future approved smoke:
 

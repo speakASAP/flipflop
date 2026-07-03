@@ -56,6 +56,30 @@ For a future owner-approved paid/provider smoke, FlipFlop/channel owns only cust
 7. Idempotency: cleanup must be keyed by the central Orders UUID plus non-secret approval id or smoke correlation id. Re-running cleanup must not duplicate customer-visible messages, delete unrelated carts/sessions, or reissue provider/Orders/Warehouse actions.
 8. Evidence redaction: allowed evidence is booleans, counts, hashes, HTTP status classes, route names, contract ids, approval id, and timestamps. Forbidden evidence includes tokens, secrets, raw provider payloads, card/bank data, raw customer identifiers, raw order ids, raw payment ids, raw DB rows, cookies, or full request/response bodies.
 
+## Exact Success/Cancel URL And Retry-State Ownership
+
+Source owner: FlipFlop order-service builds the customer-visible provider redirect URLs through `getPaymentSuccessUrl(order.id)` and `getPaymentCancelUrl(order.id)` before calling Payments. `PAYMENT_SUCCESS_URL` and `PAYMENT_CANCEL_URL` can override the redirect URLs; without overrides, the URLs are anchored to `PUBLIC_BASE_URL`, `API_GATEWAY_URL`, or fallback base `https://flipflop.alfares.cz`.
+
+Exact URL shape for future paid/provider smoke:
+
+- default success URL without runtime override: `https://flipflop.alfares.cz/payment-result?status=completed&orderId=<local-flipflop-order-id>`.
+- default cancel URL without runtime override: `https://flipflop.alfares.cz/payment-result?status=cancelled&orderId=<local-flipflop-order-id>`.
+- provider callback URL remains `https://flipflop.alfares.cz/api/webhooks/payment-result` and is provider/payment truth, not customer-visible success proof.
+- `[MISSING: sanitized runtime config readback or owner confirmation that PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL are unset or exactly match the approved FlipFlop payment-result URLs for the future smoke]`.
+
+Retry-state cleanup ownership:
+
+- FlipFlop frontend owns the `/payment-result` cancelled/failed retry affordance that routes the customer back to `/checkout`.
+- For a future smoke, the channel cleanup executor must record whether retry returns to an empty cart, a restored synthetic smoke cart, or a blocked/manual-review state before checkout begins.
+- Retry state must be keyed by central Orders UUID plus non-secret approval id or smoke correlation id, and cleanup must remove only synthetic payment-result/cart/session correlation for that smoke.
+- A retry-safe or completed customer-visible state is forbidden until provider rollback/callback evidence, Orders cleanup, Warehouse cleanup, and channel cleanup evidence are all present.
+
+Markers:
+
+- `[RESOLVED/NARROWED: FlipFlop owns exact customer-visible payment-result success/cancel URLs for provider redirects; provider callback evidence still owns payment truth]`
+- `[RESOLVED/NARROWED: FlipFlop owns retry-state cleanup policy for payment-result cancelled/failed views; retry-safe execution remains blocked until provider, Orders, Warehouse, and channel cleanup evidence exists]`
+
+
 ## 2026-07-03 Owner-Approved Discount Fixture Narrowing
 
 Owner approved the `discount/price fixture` path for the Goal 24 exact linked paid/provider smoke with a checkout-authoritative total `<= 300 CZK`.
