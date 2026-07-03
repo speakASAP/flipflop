@@ -212,6 +212,9 @@ for (const value of [
   assert(approvalDraft.includes(value), `approval draft self-discovery missing ${value}`);
 }
 assert(orchestratorStatus.includes('Payments repo had uncommitted Goal 24 reconciliation files during discovery'), 'orchestrator status missing Payments dirty-worktree caveat');
+for (const source of [approvalDraft, channelCleanupContract, orchestratorStatus, implementationState]) {
+  assert(source.includes('[HARD-STOP: current target component total is 1998 CZK, exceeding approved Fiobanka paid/provider smoke maximum 300 CZK]'), 'Goal 24 amount gate hard-stop marker missing');
+}
 assert(gateGoal.includes("runtime_progression: source-rollout-enabled-paid-provider-blocked"), "paid/provider gate must keep paid/provider runtime progression blocked after source rollout");
 assert(implementationState.includes("runtime paid/provider progression is source-rollout-enabled but paid/provider smoke remains blocked"), "state must preserve blocked paid/provider smoke progression after source rollout");
 
@@ -244,6 +247,7 @@ console.log(JSON.stringify({
     channelCleanupContract: 'source_prepared_runtime_blocked',
     approvalDraft: 'draft_no_runtime_authority',
     approvalDraftSelfDiscovery: 'refreshed_runtime_blocked',
+    amountGate: 'hard_stop_current_total_exceeds_approved_ceiling',
     defaultAuthSubjectSmokeNonMutating: true,
   },
   blockers: requiredBlockers,

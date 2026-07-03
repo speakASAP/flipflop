@@ -104,6 +104,22 @@ Strict blockers still open:
 Decision: this draft can be updated with discovered facts, but it still cannot become an executable full paid/refund approval packet until the strict blockers above are resolved.
 
 
+## 2026-07-03 Amount Gate Preflight
+
+Owner replied `да, готов`, which is recorded as readiness to proceed with a new exact linked paid flow under the existing packet constraints. Before creating any checkout/order/payment, a read-only amount preflight checked the current active FlipFlop products mapped to the approved Catalog component products.
+
+Sanitized preflight evidence:
+
+- target component count: `2`.
+- matched active FlipFlop product count: `2`.
+- component prices: `999 CZK` and `999 CZK`.
+- total: `1998 CZK`.
+- approved Fiobanka amount ceiling: `300 CZK`.
+- result: `[HARD-STOP: current target component total is 1998 CZK, exceeding approved Fiobanka paid/provider smoke maximum 300 CZK]`.
+
+Decision: do not create live checkout, order, Fiobanka QR, provider payment row, Warehouse reservation, Orders record, channel cleanup, discount override, price mutation, or manual workaround. A new exact linked paid flow requires either an owner-approved target/amount change, an approved discount/price fixture contract, or a different active target whose checkout-authoritative total is `<= 300 CZK`.
+
+
 ## Proposed Final Approval Statement
 
 The owner must replace this section with an explicit signed statement before any runtime execution:

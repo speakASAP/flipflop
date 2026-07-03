@@ -112,3 +112,18 @@ Marker: `[RESOLVED/NARROWED: owner-confirmed manual Fiobanka refund was executed
 Sanitized exact-linkage readback on 2026-07-03: completed Fiobanka rows checked `2`; selected retained evidence row has provider suffix `9053`, payment hash `9fa68d05c012c879`, amount `1.00 CZK`, status `completed`, `completedAtPresent=true`, `refundedAtPresent=false`, transaction `payment/success/1.00`, and processed webhook suffix `9053:completed`. Payments metadata has no `flipflopOrderId` and no `centralOrderId`; FlipFlop local order lookup by payment/order reference returned `foundCount=0`. [RESOLVED/NARROWED: sanitized runtime readback found completed Fiobanka provider-payment evidence but no FlipFlop exact-order linkage for the retained Goal 24 payment].
 
 Remaining exact-linkage blockers after readback: `[MISSING: sanitized exact-order linkage between the manual refund confirmation and a completed Goal 24 paid-smoke FlipFlop order]`, `[MISSING: FlipFlop runtime readback showing an exact linked smoke order acknowledged as status=refunded and paymentStatus=refunded after manual refund]`, `[MISSING: owner-approved post-paid Orders/Warehouse correction packet for an exact linked completed payment state]`.
+
+## 2026-07-03 Amount Gate Preflight
+
+Owner replied `да, готов`, which is recorded as readiness to proceed with a new exact linked paid flow under the existing packet constraints. Before creating any checkout/order/payment, a read-only amount preflight checked the current active FlipFlop products mapped to the approved Catalog component products.
+
+Sanitized preflight evidence:
+
+- target component count: `2`.
+- matched active FlipFlop product count: `2`.
+- component prices: `999 CZK` and `999 CZK`.
+- total: `1998 CZK`.
+- approved Fiobanka amount ceiling: `300 CZK`.
+- result: `[HARD-STOP: current target component total is 1998 CZK, exceeding approved Fiobanka paid/provider smoke maximum 300 CZK]`.
+
+Decision: do not create live checkout, order, Fiobanka QR, provider payment row, Warehouse reservation, Orders record, channel cleanup, discount override, price mutation, or manual workaround. A new exact linked paid flow requires either an owner-approved target/amount change, an approved discount/price fixture contract, or a different active target whose checkout-authoritative total is `<= 300 CZK`.
