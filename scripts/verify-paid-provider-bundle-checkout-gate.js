@@ -242,6 +242,7 @@ assert(bundlePreservingFixtureSource.includes('source-prepared-runtime-deploy-ga
 assert(bundlePreservingFixtureSource.includes('goalId=GOAL24-paid-provider-fixture-20260704'), 'bundle-preserving fixture source report missing goal id gate');
 assert(orderService.includes('GOAL24_BUNDLE_FIXTURE_DISCOUNT_CZK = 2117.58'), 'order service missing exact Goal 24 fixture amount');
 assert(orderService.includes('private isGoal24BundleFixtureDiscount'), 'order service missing Goal 24 fixture guard');
+assert(orderService.includes('const discount = this.roundMoney(validation.discountValue);'), 'Goal 24 fixture branch must use the already guarded validation discount value');
 assert(orderService.includes('goal24_bundle_fixture_exclusive'), 'order service missing fixture metadata marker');
 assert(orderService.includes('Discount code cannot be combined with a bundle discount'), 'order service must keep fallback discountCode+bundleIntent rejection');
 assert(read('services/order-service/src/marketing/discount.service.ts').includes('goalId: row.goalId'), 'discount validation must expose goalId for fixture gating');

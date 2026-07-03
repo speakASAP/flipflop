@@ -1865,8 +1865,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         shippingCost: params.shippingCost,
         bundleIntent,
       });
-      const after = await this.discountService.applyDiscount(params.orderTotalBeforeDiscount, trimmedDiscountCode);
-      const discount = this.roundMoney(params.orderTotalBeforeDiscount - after);
+      const discount = this.roundMoney(validation.discountValue);
       return {
         discount,
         pendingDiscountCode: this.discountService.normalizeCode(trimmedDiscountCode),
