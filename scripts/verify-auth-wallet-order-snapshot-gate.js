@@ -26,6 +26,12 @@ function run(command, args, options = {}) {
   };
 }
 
+function readJsonIfExists(relativePath) {
+  const filePath = path.join(root, relativePath);
+  if (!fs.existsSync(filePath)) return null;
+  return parseJson(fs.readFileSync(filePath, 'utf8'));
+}
+
 function parseJson(text) {
   const trimmed = String(text || '').trim();
   if (!trimmed) return null;
@@ -140,7 +146,28 @@ for (const required of [
 
 assert(ordersVerifier.includes('central Orders payload must forward separate bounded shipping and billing snapshots with Auth invoice fields'), 'orders verifier missing Auth invoice snapshot assertion');
 assert(ordersVerifier.includes('authenticated FlipFlop checkout must forward the Auth-compatible user UUID as customer.authSubject'), 'orders verifier missing authSubject assertion');
-assert(state.includes('[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution'), 'state must preserve live runtime smoke blocker');
+assert(state.includes('[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution')
+  || state.includes('Goal 10 Auth wallet order snapshot create/read/cancel smoke passed'), 'state must preserve live blocker or record completed runtime smoke');
+
+const runtimeEvidence = readJsonIfExists('reports/validation/orders-auth-subject-smoke/report-goal10-create-read-cancel-20260703.json');
+const runtimeEvidencePassed = Boolean(
+  runtimeEvidence?.ok === true
+  && runtimeEvidence?.mutation === true
+  && runtimeEvidence?.providerCall === false
+  && runtimeEvidence?.preflight?.podEnv?.ORDERS_SERVICE_URL === true
+  && runtimeEvidence?.preflight?.podEnv?.ORDERS_SERVICE_TOKEN === true
+  && runtimeEvidence?.preflight?.podEnv?.ORDERS_STATUS_SERVICE_TOKEN === true
+  && runtimeEvidence?.result?.createHttpStatus === 201
+  && runtimeEvidence?.result?.orderIdPresent === true
+  && runtimeEvidence?.result?.readHttpStatus === 200
+  && runtimeEvidence?.result?.authSubjectPersisted === true
+  && runtimeEvidence?.result?.cleanup?.attempted === true
+  && runtimeEvidence?.result?.cleanup?.httpStatus >= 200
+  && runtimeEvidence?.result?.cleanup?.httpStatus < 300
+  && runtimeEvidence?.cleanupAuthorityConfirmed === true
+  && Array.isArray(runtimeEvidence?.blockers)
+  && runtimeEvidence.blockers.length === 0
+);
 
 const verifierRun = run('npm', ['run', 'verify:orders-hub-integration']);
 assert(verifierRun.status === 0, 'verify:orders-hub-integration failed');
@@ -158,11 +185,12 @@ assert(defaultSmokeJson.blockers.includes('[MISSING: AUTH_SUBJECT_SMOKE_CONFIRM=
 
 const report = {
   ok: true,
-  status: 'approval_required_auth_wallet_order_snapshot_runtime_gate',
+  status: runtimeEvidencePassed ? 'pass_auth_wallet_order_snapshot_create_read_cancel_smoke' : 'approval_required_auth_wallet_order_snapshot_runtime_gate',
   sourceOnly: true,
-  liveOrderSubmit: false,
-  orderCreated: false,
-  warehouseMutation: false,
+  runtimeEvidenceRecorded: runtimeEvidencePassed,
+  liveOrderSubmit: runtimeEvidencePassed,
+  orderCreated: runtimeEvidencePassed,
+  warehouseMutation: runtimeEvidencePassed,
   paymentCreation: false,
   notificationSend: false,
   databaseRead: false,
@@ -178,6 +206,12 @@ const report = {
     ordersServiceTokenPresent: Boolean(defaultSmokeJson.preflight?.podEnv?.ORDERS_SERVICE_TOKEN),
     ordersStatusServiceTokenPresent: Boolean(defaultSmokeJson.preflight?.podEnv?.ORDERS_STATUS_SERVICE_TOKEN),
     cleanupRequiredForPass: true,
+    runtimeEvidenceArtifact: runtimeEvidencePassed ? 'reports/validation/orders-auth-subject-smoke/report-goal10-create-read-cancel-20260703.json' : null,
+    runtimeCreateHttpStatus: runtimeEvidence?.result?.createHttpStatus || null,
+    runtimeReadHttpStatus: runtimeEvidence?.result?.readHttpStatus || null,
+    runtimeAuthSubjectPersisted: runtimeEvidence?.result?.authSubjectPersisted === true,
+    runtimeCleanupAttempted: runtimeEvidence?.result?.cleanup?.attempted === true,
+    runtimeCleanupHttpStatus: runtimeEvidence?.result?.cleanup?.httpStatus || null,
     billingSnapshotFields: ['companyName', 'companyId', 'taxId', 'vatId', 'email'],
     customerAuthSubjectSource: 'UUID-shaped authenticated user id only',
     authWalletSelectorEvidence: [
@@ -185,14 +219,16 @@ const report = {
       'browser selector delayed-response smoke passed previously',
     ],
   },
-  blockers: [
+  blockers: runtimeEvidencePassed ? [] : [
     '[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with non-secret AUTH_SUBJECT_SMOKE_APPROVAL_ID]',
     '[MISSING: owner-approved fixture AUTH_SUBJECT_SMOKE_CATALOG_PRODUCT_ID and AUTH_SUBJECT_SMOKE_WAREHOUSE_ID]',
     '[MISSING: persisted central Orders customer.authSubject/billingAddress runtime read evidence]',
     '[MISSING: cleanup-capable ORDERS_STATUS_SERVICE_TOKEN projection before create/read/cancel smoke]',
     '[MISSING: AUTH_SUBJECT_SMOKE_CLEANUP_CONFIRM=ORDERS_ADMIN_STATUS_CANCEL]',
   ],
-  next: 'Open the guarded live create/read/cancel smoke only after owner approval for one synthetic central Orders order, cleanup-capable ORDERS_STATUS_SERVICE_TOKEN projection, cleanup authority confirmation, and sanitized persisted snapshot evidence.',
+  next: runtimeEvidencePassed
+    ? 'Goal 10 Auth wallet order snapshot create/read/cancel smoke is recorded with sanitized evidence; no further FlipFlop order snapshot runtime action is required for this gate.'
+    : 'Open the guarded live create/read/cancel smoke only after owner approval for one synthetic central Orders order, cleanup-capable ORDERS_STATUS_SERVICE_TOKEN projection, cleanup authority confirmation, and sanitized persisted snapshot evidence.',
 };
 
 const reportDir = path.join(root, 'reports', 'validation');

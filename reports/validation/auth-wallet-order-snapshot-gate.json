@@ -1,10 +1,11 @@
 {
   "ok": true,
-  "status": "approval_required_auth_wallet_order_snapshot_runtime_gate",
+  "status": "pass_auth_wallet_order_snapshot_create_read_cancel_smoke",
   "sourceOnly": true,
-  "liveOrderSubmit": false,
-  "orderCreated": false,
-  "warehouseMutation": false,
+  "runtimeEvidenceRecorded": true,
+  "liveOrderSubmit": true,
+  "orderCreated": true,
+  "warehouseMutation": true,
   "paymentCreation": false,
   "notificationSend": false,
   "databaseRead": false,
@@ -18,8 +19,14 @@
     "deploymentReady": "1/1",
     "ordersServiceUrlProjected": true,
     "ordersServiceTokenPresent": true,
-    "ordersStatusServiceTokenPresent": false,
+    "ordersStatusServiceTokenPresent": true,
     "cleanupRequiredForPass": true,
+    "runtimeEvidenceArtifact": "reports/validation/orders-auth-subject-smoke/report-goal10-create-read-cancel-20260703.json",
+    "runtimeCreateHttpStatus": 201,
+    "runtimeReadHttpStatus": 200,
+    "runtimeAuthSubjectPersisted": true,
+    "runtimeCleanupAttempted": true,
+    "runtimeCleanupHttpStatus": 200,
     "billingSnapshotFields": [
       "companyName",
       "companyId",
@@ -33,12 +40,6 @@
       "browser selector delayed-response smoke passed previously"
     ]
   },
-  "blockers": [
-    "[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with non-secret AUTH_SUBJECT_SMOKE_APPROVAL_ID]",
-    "[MISSING: owner-approved fixture AUTH_SUBJECT_SMOKE_CATALOG_PRODUCT_ID and AUTH_SUBJECT_SMOKE_WAREHOUSE_ID]",
-    "[MISSING: persisted central Orders customer.authSubject/billingAddress runtime read evidence]",
-    "[MISSING: cleanup-capable ORDERS_STATUS_SERVICE_TOKEN projection before create/read/cancel smoke]",
-    "[MISSING: AUTH_SUBJECT_SMOKE_CLEANUP_CONFIRM=ORDERS_ADMIN_STATUS_CANCEL]"
-  ],
-  "next": "Open the guarded live create/read/cancel smoke only after owner approval for one synthetic central Orders order, cleanup-capable ORDERS_STATUS_SERVICE_TOKEN projection, cleanup authority confirmation, and sanitized persisted snapshot evidence."
+  "blockers": [],
+  "next": "Goal 10 Auth wallet order snapshot create/read/cancel smoke is recorded with sanitized evidence; no further FlipFlop order snapshot runtime action is required for this gate."
 }
