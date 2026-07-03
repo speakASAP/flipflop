@@ -14,7 +14,7 @@ Intent Preservation Chain:
 - Execution Plan: reuse the already deployed marketing controller RBAC pattern; keep customer `/orders` reads scoped by `req.user.id`; validate source and deploy via standard FlipFlop script.
 - Coding Prompt: do not invent a new auth system; use existing shared guards and a conservative admin role set.
 - Code: commit `79dba51 feat: enhance admin controllers with role-based access control`.
-- Validation: focused source verifier passed; `git diff --check` passed; `python3 scripts/pre_coding_gate.py --root .` passed; `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed 100/100; `cd services/order-service && npm run build` passed.
+- Validation: focused source verifier passed; `git diff --check` passed; `python3 scripts/pre_coding_gate.py --root .` passed; `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed 100/100; `cd services/order-service && npm run build` passed; authenticated non-FlipFlop-admin runtime smoke returned HTTP 403 for protected admin routes.
 
 Evidence:
 
@@ -31,10 +31,10 @@ Deployment evidence:
 - Kubernetes deployments report ready/available/updated `1/1` on `localhost:5000/flipflop-*:latest` images after the rollout.
 - Public smoke: `https://flipflop.alfares.cz/` returned HTTP 200.
 - Protected-route smoke without credentials returned HTTP 401 for `https://flipflop.alfares.cz/api/admin/orders`, `/api/admin/inventory/low-stock`, and `/api/admin/pricing/suggestions`.
+- Authenticated non-FlipFlop-admin runtime smoke, using an existing in-pod service token without printing it, returned HTTP 403 for `/admin/orders`, `/admin/inventory/low-stock`, and `/admin/pricing/suggestions`.
 
 Remaining blockers:
 
-- `[MISSING: approved runtime smoke with a non-admin authenticated user proving RolesGuard returns 403 rather than data.]`
 - `[MISSING: owner-approved FlipFlop auth-subject create/read smoke proving persisted customer.authSubject.]`
 
 Next action: continue broader Orders lifecycle work; do not change customer order scoping without a separate contract.

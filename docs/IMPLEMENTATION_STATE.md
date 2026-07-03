@@ -4,7 +4,7 @@
 
 ## 2026-07-03 - Admin RBAC Hardening
 
-FlipFlop admin order, inventory, and pricing routes are hardened with existing shared `JwtAuthGuard`, `RolesGuard`, and `@Roles` in commit `79dba51`. Deployed via `./scripts/deploy.sh`; all six FlipFlop deployments rolled out successfully and report ready/available/updated `1/1`. Validation passed with focused source verifier, `git diff --check`, pre-coding gate, strict doc audit 100/100, and order-service build. Public smoke returned HTTP 200 for storefront root and HTTP 401 for unauthenticated `/api/admin/orders`, `/api/admin/inventory/low-stock`, and `/api/admin/pricing/suggestions`. Customer order reads remain scoped by `req.user.id`.
+FlipFlop admin order, inventory, and pricing routes are hardened with existing shared `JwtAuthGuard`, `RolesGuard`, and `@Roles` in commit `79dba51`. Deployed via `./scripts/deploy.sh`; all six FlipFlop deployments rolled out successfully and report ready/available/updated `1/1`. Validation passed with focused source verifier, `git diff --check`, pre-coding gate, strict doc audit 100/100, and order-service build. Public smoke returned HTTP 200 for storefront root, unauthenticated admin routes returned HTTP 401, and authenticated non-FlipFlop-admin runtime smoke returned HTTP 403 for `/admin/orders`, `/admin/inventory/low-stock`, and `/admin/pricing/suggestions` using an existing in-pod service token without printing it. Customer order reads remain scoped by `req.user.id`.
 
 **Date:** 2026-06-30
 **Mode:** Goal-driven orchestration enabled
