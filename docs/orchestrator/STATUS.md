@@ -147,8 +147,8 @@ Intent Preservation Chain:
 Deployment evidence:
 
 - `./scripts/deploy.sh 4543385` built and pushed all FlipFlop images. The script timed out while waiting for rollout completion, but follow-up Kubernetes checks showed all six FlipFlop deployments at ready/updated/available `1/1` with observed generation current.
-- `./scripts/deploy.sh f758f94` was run after the Prisma write-shape fix. It built and pushed images, but Kubernetes rollout timed out while new pods were stuck in `ContainerCreating` / old replicas were pending termination due cluster-level sandbox/runtime pressure. Existing healthy pods kept the public quote endpoint available.
-- Runtime pod evidence: `flipflop-order-service-95c7f6d7-2bbb5` mapped `/orders/guest/quote`, had `FLIPFLOP_HOLIDAY_DISCOUNT_PROCESS_VERSION=2`, and returned `/health` 200.
+- `./scripts/deploy.sh f758f94` was run after the Prisma write-shape fix. The first wait timed out during cluster-level sandbox/runtime pressure; after k3s recovery, Kubernetes showed `flipflop-order-service-86667dd9f5-r6rsp` and `flipflop-service-66b9d57f65-rblrj` running and both deployments successfully rolled out.
+- Runtime pod evidence: `flipflop-order-service-86667dd9f5-r6rsp` mapped `/orders/guest/quote`, had `FLIPFLOP_HOLIDAY_DISCOUNT_PROCESS_VERSION=2`, and returned `/health` 200.
 - Branch cleanup evidence: local branches are `main`; remote branches are `origin/main`.
 
 Runtime smoke evidence:
@@ -165,11 +165,12 @@ Validation commands:
 - `git diff --check` passed before commit.
 - `kubectl get deploy -n statex-apps` confirmed all FlipFlop deployments ready after deploy.
 - Public quote smoke confirmed canary `applied=true` and non-canary `applied=false` without database writes.
-- Post-fix public quote smoke after `f758f94` returned HTTP 200 with `holidayDiscount.applied=true`, `discount=99.9`, and `sideEffects=[]` through the still-available public endpoint.
+- Post-fix public quote smoke after `f758f94` returned HTTP 200 with `holidayDiscount.applied=true`, `discount=99.9`, and `sideEffects=[]`.
+- Owner-approved paid multi-item checkout smoke created local order `f8aadf52-2622-4255-b8dd-974527926a70` / `ORD-1783052846350-494` with two mapped products, forwarded central Orders ID `4856b790-a753-4e66-b2ac-b715796f1641`, and then applied the paid transition through the existing payment-result and Orders payment-status boundaries. Local readback showed `status=confirmed`, `paymentStatus=paid`, `itemCount=2`, and central Orders returned `paymentStatus=paid`.
+- Marketing backfill dry-run against central Orders with `--channel=flipflop` returned `inputRecords=2`, `acceptedCreatedEvents=2`, `aggregatePairs=2`, and two directed `marketing_order_affinity` candidates for Catalog products `ce4a51aa-2d12-4ab7-a965-7a36609d01fc` and `dbc51dde-fc66-4511-b178-f929183f4647`.
 
 Remaining blockers:
 
-- `[MISSING: Kubernetes/container-runtime cleanup for completing the f758f94 pod replacement rollout]`.
-- `[MISSING: final paid checkout rollout decision for applying Holiday Discount to order creation]`.
+- `[MISSING: final paid checkout rollout decision for applying Holiday Discount to all eligible order creation traffic beyond the bounded owner-approved smoke]`.
 - `[MISSING: final orders.applied-discounts.v1 snapshot field contract in orders.create.v1]`.
 - `[MISSING: notification template provider contract for Holiday Discount post-purchase messages]`.
