@@ -260,7 +260,7 @@ Validation commands:
 - Marketing backfill dry-run against central Orders with `--channel=flipflop` returned `inputRecords=2`, `acceptedCreatedEvents=2`, `aggregatePairs=2`, and two directed `marketing_order_affinity` candidates for Catalog products `ce4a51aa-2d12-4ab7-a965-7a36609d01fc` and `dbc51dde-fc66-4511-b178-f929183f4647`.
 
 - Goal 24 protected FlipFlop replay runtime smoke now passes against the deployed order-service: in-pod dry-run `GET /internal/orders/order-affinity/replay-candidates?dryRun=true&limit=20` returned HTTP 200, `success=true`, `count=1`, `eventCount=1`, `scannedOrders=1`, `eligibleOrders=1`, `skippedOrders=0`, `mappedCatalogProductCount=2`, `distinctCatalogProductCount=2`, `unmappedLineCount=0`, and `emittedItemCount=2`. The smoke printed aggregate fields only and did not print secrets, raw order/customer/address/payment/provider data, raw payloads, event item payloads, or Catalog relation payloads.
-- Goal 24 blocker update: `[RESOLVED: deployed FlipFlop replay endpoint/runtime smoke]`; `[MISSING: owner-approved FlipFlop marketplace replay activation policy]` remains because existing Marketing contract text still treats FlipFlop protected replay runtime activation as blocked until an owner-approved source/window policy exists.
+- Goal 24 blocker update: `[RESOLVED: deployed FlipFlop replay endpoint/runtime smoke]`; `[RESOLVED: owner-approved conservative FlipFlop marketplace replay activation policy - no recurring marketplace CronJob, publish, or replace-window activation without future explicit source/window approval]`; remaining narrower gate: `[MISSING: owner-approved FlipFlop recurring marketplace publish/replace-window schedule activation]`.
 
 Remaining blockers:
 

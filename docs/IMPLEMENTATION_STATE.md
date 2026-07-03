@@ -28,7 +28,7 @@ Boundaries preserved: no live replay run, no public endpoint, no checkout/paymen
 Runtime smoke update (2026-07-03): deployed `flipflop-order-service` now serves the protected replay endpoint. In-pod dry-run probe `GET /internal/orders/order-affinity/replay-candidates?dryRun=true&limit=20` with the runtime-projected internal key returned HTTP 200, `success=true`, `sourceOwner=flipflop-service`, `consumerOwner=marketing-microservice`, `contract=marketplace.order_affinity_replay_candidates.v1`, `channel=flipflop`, `count=1`, `eventCount=1`, diagnostics `scannedOrders=1`, `eligibleOrders=1`, `skippedOrders=0`, `mappedCatalogProductCount=2`, `distinctCatalogProductCount=2`, `unmappedLineCount=0`, and `emittedItemCount=2`. Evidence is aggregate-only; no token values, raw order identifiers, customer/contact/address/payment/provider data, raw payloads, event item payloads, or Catalog relation payloads were printed.
 
 Resolved gate: `[RESOLVED: deployed FlipFlop replay endpoint/runtime smoke]`.
-Remaining gate: `[MISSING: owner-approved FlipFlop marketplace replay activation policy]` remains separate from endpoint readiness; the Marketing contract still records FlipFlop protected replay runtime use as blocked until owner-approved source/window scheduling or activation policy exists.
+Remaining gate: `[MISSING: owner-approved FlipFlop recurring marketplace publish/replace-window schedule activation]` remains separate from endpoint readiness. Marketing now records the conservative activation policy as resolved: no recurring marketplace CronJob, publish, or replace-window activation without future explicit source/window approval.
 
 Parallel execution section:
 
