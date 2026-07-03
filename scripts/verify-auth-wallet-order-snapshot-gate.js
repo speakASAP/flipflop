@@ -26,6 +26,12 @@ function run(command, args, options = {}) {
   };
 }
 
+function readJsonIfExists(relativePath) {
+  const filePath = path.join(root, relativePath);
+  if (!fs.existsSync(filePath)) return null;
+  return parseJson(fs.readFileSync(filePath, 'utf8'));
+}
+
 function parseJson(text) {
   const trimmed = String(text || '').trim();
   if (!trimmed) return null;
@@ -89,15 +95,35 @@ for (const required of [
   'RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE',
   'AUTH_SUBJECT_SMOKE_APPROVAL_ID',
   'AUTH_SUBJECT_SMOKE_CONFIRM=CREATE_READ_OPTIONAL_CANCEL',
+  'AUTH_SUBJECT_SMOKE_CLEANUP_CONFIRM=ORDERS_ADMIN_STATUS_CANCEL',
   'AUTH_SUBJECT_SMOKE_CATALOG_PRODUCT_ID',
   'AUTH_SUBJECT_SMOKE_WAREHOUSE_ID',
   'authSubjectPersisted',
   'WRITE_AUTH_SUBJECT_SMOKE_REPORT',
+  'ORDERS_STATUS_SERVICE_TOKEN projected into flipflop-order-service for cleanup',
+  'runtime cleanup cancelled synthetic Orders order',
+  '[89ab][0-9a-f]{3}',
+  "approvalType: 'human'",
+  "reasonCode: 'synthetic_auth_subject_smoke_cleanup'",
+  'sideEffectsHandled',
+  'payment: true',
+  'warehouse: true',
+  'notification: true',
+  'crm: true',
+  'channel: true',
 ]) {
   assert(authSubjectSmoke.includes(required), `auth-subject smoke missing guard marker ${required}`);
 }
 assert(authSubjectSmoke.includes('report.mutation = true') && authSubjectSmoke.includes('if (report.blockers.length)'), 'auth-subject smoke must remain non-mutating before approval gates pass');
 assert(authSubjectSmoke.includes('cleanup.attempted') && authSubjectSmoke.includes('/status'), 'auth-subject smoke cleanup path missing');
+assert(authSubjectSmoke.includes('validateApprovalInputs(report.blockers, report.preflight)'), 'auth-subject smoke must validate cleanup token before mutation');
+assert(authSubjectSmoke.includes('report.result.cleanup?.attempted === true'), 'auth-subject smoke pass condition must require cleanup attempt');
+assert(authSubjectSmoke.includes('report.result.cleanup?.httpStatus >= 200'), 'auth-subject smoke pass condition must require cleanup success status');
+assert(authSubjectSmoke.includes("cleanupAuthorityConfirmed: cleanupConfirm === 'ORDERS_ADMIN_STATUS_CANCEL'"), 'auth-subject smoke must require cleanup authority confirmation');
+assert(authSubjectSmoke.includes("approvalType: 'human'") && authSubjectSmoke.includes("reasonCode: 'synthetic_auth_subject_smoke_cleanup'"), 'auth-subject smoke cleanup body must satisfy Orders cancellation approval contract');
+for (const sideEffect of ['payment', 'warehouse', 'notification', 'crm', 'channel']) {
+  assert(authSubjectSmoke.includes(`${sideEffect}: true`), `auth-subject smoke cleanup must acknowledge ${sideEffect}`);
+}
 
 for (const required of [
   'approval_required_no_live_mutation',
@@ -120,7 +146,28 @@ for (const required of [
 
 assert(ordersVerifier.includes('central Orders payload must forward separate bounded shipping and billing snapshots with Auth invoice fields'), 'orders verifier missing Auth invoice snapshot assertion');
 assert(ordersVerifier.includes('authenticated FlipFlop checkout must forward the Auth-compatible user UUID as customer.authSubject'), 'orders verifier missing authSubject assertion');
-assert(state.includes('[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution'), 'state must preserve live runtime smoke blocker');
+assert(state.includes('[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution')
+  || state.includes('Goal 10 Auth wallet order snapshot create/read/cancel smoke passed'), 'state must preserve live blocker or record completed runtime smoke');
+
+const runtimeEvidence = readJsonIfExists('reports/validation/orders-auth-subject-smoke/report-goal10-create-read-cancel-20260703.json');
+const runtimeEvidencePassed = Boolean(
+  runtimeEvidence?.ok === true
+  && runtimeEvidence?.mutation === true
+  && runtimeEvidence?.providerCall === false
+  && runtimeEvidence?.preflight?.podEnv?.ORDERS_SERVICE_URL === true
+  && runtimeEvidence?.preflight?.podEnv?.ORDERS_SERVICE_TOKEN === true
+  && runtimeEvidence?.preflight?.podEnv?.ORDERS_STATUS_SERVICE_TOKEN === true
+  && runtimeEvidence?.result?.createHttpStatus === 201
+  && runtimeEvidence?.result?.orderIdPresent === true
+  && runtimeEvidence?.result?.readHttpStatus === 200
+  && runtimeEvidence?.result?.authSubjectPersisted === true
+  && runtimeEvidence?.result?.cleanup?.attempted === true
+  && runtimeEvidence?.result?.cleanup?.httpStatus >= 200
+  && runtimeEvidence?.result?.cleanup?.httpStatus < 300
+  && runtimeEvidence?.cleanupAuthorityConfirmed === true
+  && Array.isArray(runtimeEvidence?.blockers)
+  && runtimeEvidence.blockers.length === 0
+);
 
 const verifierRun = run('npm', ['run', 'verify:orders-hub-integration']);
 assert(verifierRun.status === 0, 'verify:orders-hub-integration failed');
@@ -138,11 +185,12 @@ assert(defaultSmokeJson.blockers.includes('[MISSING: AUTH_SUBJECT_SMOKE_CONFIRM=
 
 const report = {
   ok: true,
-  status: 'approval_required_auth_wallet_order_snapshot_runtime_gate',
+  status: runtimeEvidencePassed ? 'pass_auth_wallet_order_snapshot_create_read_cancel_smoke' : 'approval_required_auth_wallet_order_snapshot_runtime_gate',
   sourceOnly: true,
-  liveOrderSubmit: false,
-  orderCreated: false,
-  warehouseMutation: false,
+  runtimeEvidenceRecorded: runtimeEvidencePassed,
+  liveOrderSubmit: runtimeEvidencePassed,
+  orderCreated: runtimeEvidencePassed,
+  warehouseMutation: runtimeEvidencePassed,
   paymentCreation: false,
   notificationSend: false,
   databaseRead: false,
@@ -156,6 +204,14 @@ const report = {
     deploymentReady: defaultSmokeJson.preflight?.deploymentReady || null,
     ordersServiceUrlProjected: Boolean(defaultSmokeJson.preflight?.podEnv?.ORDERS_SERVICE_URL),
     ordersServiceTokenPresent: Boolean(defaultSmokeJson.preflight?.podEnv?.ORDERS_SERVICE_TOKEN),
+    ordersStatusServiceTokenPresent: Boolean(defaultSmokeJson.preflight?.podEnv?.ORDERS_STATUS_SERVICE_TOKEN),
+    cleanupRequiredForPass: true,
+    runtimeEvidenceArtifact: runtimeEvidencePassed ? 'reports/validation/orders-auth-subject-smoke/report-goal10-create-read-cancel-20260703.json' : null,
+    runtimeCreateHttpStatus: runtimeEvidence?.result?.createHttpStatus || null,
+    runtimeReadHttpStatus: runtimeEvidence?.result?.readHttpStatus || null,
+    runtimeAuthSubjectPersisted: runtimeEvidence?.result?.authSubjectPersisted === true,
+    runtimeCleanupAttempted: runtimeEvidence?.result?.cleanup?.attempted === true,
+    runtimeCleanupHttpStatus: runtimeEvidence?.result?.cleanup?.httpStatus || null,
     billingSnapshotFields: ['companyName', 'companyId', 'taxId', 'vatId', 'email'],
     customerAuthSubjectSource: 'UUID-shaped authenticated user id only',
     authWalletSelectorEvidence: [
@@ -163,12 +219,16 @@ const report = {
       'browser selector delayed-response smoke passed previously',
     ],
   },
-  blockers: [
+  blockers: runtimeEvidencePassed ? [] : [
     '[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with non-secret AUTH_SUBJECT_SMOKE_APPROVAL_ID]',
     '[MISSING: owner-approved fixture AUTH_SUBJECT_SMOKE_CATALOG_PRODUCT_ID and AUTH_SUBJECT_SMOKE_WAREHOUSE_ID]',
     '[MISSING: persisted central Orders customer.authSubject/billingAddress runtime read evidence]',
+    '[MISSING: cleanup-capable ORDERS_STATUS_SERVICE_TOKEN projection before create/read/cancel smoke]',
+    '[MISSING: AUTH_SUBJECT_SMOKE_CLEANUP_CONFIRM=ORDERS_ADMIN_STATUS_CANCEL]',
   ],
-  next: 'Open the guarded live create/read/cancel smoke only after owner approval for one synthetic central Orders order and sanitized persisted snapshot evidence.',
+  next: runtimeEvidencePassed
+    ? 'Goal 10 Auth wallet order snapshot create/read/cancel smoke is recorded with sanitized evidence; no further FlipFlop order snapshot runtime action is required for this gate.'
+    : 'Open the guarded live create/read/cancel smoke only after owner approval for one synthetic central Orders order, cleanup-capable ORDERS_STATUS_SERVICE_TOKEN projection, cleanup authority confirmation, and sanitized persisted snapshot evidence.',
 };
 
 const reportDir = path.join(root, 'reports', 'validation');

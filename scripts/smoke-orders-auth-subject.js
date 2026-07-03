@@ -10,6 +10,7 @@ const reportPath = path.join(reportDir, 'report-latest.json');
 const approved = process.env.RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE === '1';
 const approvalId = String(process.env.AUTH_SUBJECT_SMOKE_APPROVAL_ID || '').trim();
 const confirm = String(process.env.AUTH_SUBJECT_SMOKE_CONFIRM || '').trim();
+const cleanupConfirm = String(process.env.AUTH_SUBJECT_SMOKE_CLEANUP_CONFIRM || '').trim();
 const catalogProductId = String(process.env.AUTH_SUBJECT_SMOKE_CATALOG_PRODUCT_ID || '').trim();
 const warehouseId = String(process.env.AUTH_SUBJECT_SMOKE_WAREHOUSE_ID || '').trim();
 const authSubject = String(
@@ -46,7 +47,7 @@ function writeReport(report) {
 }
 
 function isUuid(value) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(value);
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 function preflight() {
@@ -79,7 +80,7 @@ function preflight() {
   };
 }
 
-function validateApprovalInputs(blockers) {
+function validateApprovalInputs(blockers, preflightResult) {
   if (!approved) blockers.push('[MISSING: RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1]');
   if (!approvalId) blockers.push('[MISSING: AUTH_SUBJECT_SMOKE_APPROVAL_ID]');
   if (confirm !== 'CREATE_READ_OPTIONAL_CANCEL') {
@@ -88,6 +89,12 @@ function validateApprovalInputs(blockers) {
   if (approved && !isUuid(authSubject)) blockers.push('[MISSING: UUID AUTH_SUBJECT_SMOKE_AUTH_SUBJECT]');
   if (approved && !isUuid(catalogProductId)) blockers.push('[MISSING: AUTH_SUBJECT_SMOKE_CATALOG_PRODUCT_ID]');
   if (approved && !isUuid(warehouseId)) blockers.push('[MISSING: AUTH_SUBJECT_SMOKE_WAREHOUSE_ID]');
+  if (approved && cleanupConfirm !== 'ORDERS_ADMIN_STATUS_CANCEL') {
+    blockers.push('[MISSING: AUTH_SUBJECT_SMOKE_CLEANUP_CONFIRM=ORDERS_ADMIN_STATUS_CANCEL]');
+  }
+  if (approved && !preflightResult?.podEnv?.ORDERS_STATUS_SERVICE_TOKEN) {
+    blockers.push('[MISSING: ORDERS_STATUS_SERVICE_TOKEN projected into flipflop-order-service for cleanup]');
+  }
 }
 
 function runApprovedSmoke() {
@@ -212,7 +219,17 @@ function runApprovedSmoke() {
               status: 'cancelled',
               approval: {
                 id: input.approvalId,
+                approved: true,
+                approvalType: 'human',
+                reasonCode: 'synthetic_auth_subject_smoke_cleanup',
                 reason: 'auth_subject_invoice_account_smoke_cleanup',
+                sideEffectsHandled: {
+                  payment: true,
+                  warehouse: true,
+                  notification: true,
+                  crm: true,
+                  channel: true,
+                },
               },
             }),
           });
@@ -241,10 +258,11 @@ function main() {
     preflight: preflight(),
     result: null,
     blockers: [],
-    next: 'Set RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1, AUTH_SUBJECT_SMOKE_APPROVAL_ID, AUTH_SUBJECT_SMOKE_CONFIRM=CREATE_READ_OPTIONAL_CANCEL, AUTH_SUBJECT_SMOKE_CATALOG_PRODUCT_ID, and AUTH_SUBJECT_SMOKE_WAREHOUSE_ID only after owner approval for one synthetic central Orders create/read smoke.',
+    cleanupAuthorityConfirmed: cleanupConfirm === 'ORDERS_ADMIN_STATUS_CANCEL',
+    next: 'Set RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1, AUTH_SUBJECT_SMOKE_APPROVAL_ID, AUTH_SUBJECT_SMOKE_CONFIRM=CREATE_READ_OPTIONAL_CANCEL, AUTH_SUBJECT_SMOKE_CLEANUP_CONFIRM=ORDERS_ADMIN_STATUS_CANCEL, AUTH_SUBJECT_SMOKE_CATALOG_PRODUCT_ID, AUTH_SUBJECT_SMOKE_WAREHOUSE_ID, and project ORDERS_STATUS_SERVICE_TOKEN only after owner approval for one synthetic central Orders create/read/cancel smoke.',
   };
   report.blockers.push(...report.preflight.blockers);
-  validateApprovalInputs(report.blockers);
+  validateApprovalInputs(report.blockers, report.preflight);
 
   if (report.blockers.length) {
     writeReport(report);
@@ -258,10 +276,18 @@ function main() {
     report.result.createHttpStatus === 201 &&
     report.result.orderIdPresent === true &&
     report.result.readHttpStatus === 200 &&
-    report.result.authSubjectPersisted === true;
+    report.result.authSubjectPersisted === true &&
+    report.result.cleanup?.attempted === true &&
+    report.result.cleanup?.httpStatus >= 200 &&
+    report.result.cleanup?.httpStatus < 300;
 
   if (!report.ok) {
-    report.blockers.push('[MISSING: runtime Orders snapshot persisted customer.authSubject]');
+    if (report.result?.authSubjectPersisted !== true) {
+      report.blockers.push('[MISSING: runtime Orders snapshot persisted customer.authSubject]');
+    }
+    if (report.result?.cleanup?.attempted !== true || !(report.result?.cleanup?.httpStatus >= 200 && report.result?.cleanup?.httpStatus < 300)) {
+      report.blockers.push('[MISSING: runtime cleanup cancelled synthetic Orders order]');
+    }
   }
 
   writeReport(report);
