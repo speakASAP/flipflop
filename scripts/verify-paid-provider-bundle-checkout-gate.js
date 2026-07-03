@@ -234,10 +234,13 @@ assert(channelCleanupContract.includes('https://flipflop.alfares.cz/payment-resu
 assert(channelCleanupContract.includes('https://flipflop.alfares.cz/payment-result?status=cancelled&orderId=<local-flipflop-order-id>'), 'channel cleanup contract missing exact cancel URL shape');
 assert(channelCleanupContract.includes('https://flipflop.alfares.cz/api/webhooks/payment-result'), 'channel cleanup contract missing provider callback URL boundary');
 assert(channelCleanupContract.includes('[MISSING: sanitized runtime config readback or owner confirmation that PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL are unset or exactly match the approved FlipFlop payment-result URLs for the future smoke]'), 'channel cleanup contract missing runtime URL override blocker');
-assert(orderService.includes("const envKey = status === 'completed' ? 'PAYMENT_SUCCESS_URL' : 'PAYMENT_CANCEL_URL'"), 'order service must expose success/cancel URL override keys');
+const normalizedOrderService = orderService.replace(/\s+/g, ' ');
+assert(normalizedOrderService.includes("const envKey = status === 'completed' ? 'PAYMENT_SUCCESS_URL' : 'PAYMENT_CANCEL_URL'"), 'order service must expose success/cancel URL override keys');
 assert(orderService.includes("'https://flipflop.alfares.cz'"), 'order service must keep FlipFlop frontend base fallback');
-assert(orderService.includes('new URLSearchParams({ status })') && orderService.includes("return this.getPaymentResultUrl('completed', orderId)") && orderService.includes("return this.getPaymentResultUrl('cancelled', orderId)"), 'order service must build explicit success/cancel payment-result statuses');
-assert(orderService.includes('successUrl: this.getPaymentSuccessUrl(order.id)') && orderService.includes('cancelUrl: this.getPaymentCancelUrl(order.id)'), 'order service must pass exact success/cancel URLs to Payments');
+assert(/new URLSearchParams\(\s*\{\s*status\s*\}\s*\)/.test(orderService), 'order service must construct payment-result query params from the explicit status argument');
+assert(normalizedOrderService.includes("return this.getPaymentResultUrl('completed', orderId)"), 'order service must build explicit success payment-result status');
+assert(normalizedOrderService.includes("return this.getPaymentResultUrl('cancelled', orderId)"), 'order service must build explicit cancel payment-result status');
+assert(normalizedOrderService.includes('successUrl: this.getPaymentSuccessUrl(order.id)') && normalizedOrderService.includes('cancelUrl: this.getPaymentCancelUrl(order.id)'), 'order service must pass exact success/cancel URLs to Payments');
 assert(read('services/frontend/app/payment-result/page.tsx').includes("status === 'cancelled'") && read('services/frontend/app/payment-result/page.tsx').includes("router.push('/checkout')"), 'payment-result page must own cancelled retry routing');
 assert(orchestratorStatus.includes('Owner approved Goal 24 discount/price fixture path'), 'orchestrator status missing owner-approved fixture update');
 assert(implementationState.includes('Owner approved Goal 24 discount/price fixture path'), 'implementation state missing owner-approved fixture update');
