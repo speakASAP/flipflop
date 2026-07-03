@@ -65,6 +65,45 @@ Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding P
 - `[MISSING: final owner acceptance of redacted evidence policy and forbidden evidence list]`
 - `[MISSING: abort criteria and stop owner if any provider, Orders, Warehouse, or channel proof fails]`
 
+## 2026-07-03 Self-Discovery Refresh
+
+Self-discovery was run from remote source-of-truth repos only. No runtime side effect was executed by this refresh.
+
+Remote state inspected:
+
+- Catalog `/home/ssf/Documents/Github/catalog-microservice` was clean on `main` at `613e57d docs: record goal24 manual refund execution`.
+- FlipFlop `/home/ssf/Documents/Github/flipflop` was clean on `main` at `0eee62d docs: record goal24 manual refund execution` before this draft refresh.
+- Orders `/home/ssf/Documents/Github/orders-microservice` was clean on `main` at `adddafb Merge goal24 orders cleanup idempotency key contract`.
+- Warehouse `/home/ssf/Documents/Github/warehouse-microservice` was clean on `main` at `b3c793a Merge goal24 warehouse cleanup approval packet`.
+- Payments `/home/ssf/Documents/Github/payments-microservice` had uncommitted Goal 24 reconciliation files, so Payments facts from that repo are treated as dirty-worktree context unless already reconciled in clean Catalog/FlipFlop docs.
+
+Facts found and narrowed:
+
+- `[RESOLVED/NARROWED: owner-approved stop-before-paid Fiobanka QR smoke executed and cleaned up]`: Catalog records one bounded stop-before-paid smoke that created a Fiobanka payment row, proved central Orders UUID propagation by sanitized readback, cancelled through `orders.payment-status.v1`, released Warehouse through Orders handoff, and cleaned FlipFlop local state. It did not complete/pay the bank transfer.
+- `[RESOLVED/NARROWED: target provider/method remains Fiobanka QR with paymentMethod=fiobanka, applicationId=flipflop-service, maximum 300 CZK]`.
+- `[RESOLVED/NARROWED: target bundle and component product ids remain the Catalog Goal 24 target set]`: bundle `919be990-1c76-4f9c-b100-829281c6a709`; component products `ce4a51aa-2d12-4ab7-a965-7a36609d01fc` qty `1` and `dbc51dde-fc66-4511-b178-f929183f4647` qty `1`.
+- `[RESOLVED/NARROWED: owner-confirmed manual Fiobanka refund was executed through the external refund service; FlipFlop acknowledgement path remains available for exact order marking]`.
+- `[RESOLVED/NARROWED: Orders source accepts sanitized approval.idempotencyKey and persists statusTransitionAudit]`; runtime still needs migration/deploy approval and exact approved key.
+- `[RESOLVED/NARROWED: Warehouse operation-selection matrix exists for release/cancel/return by component-line state]`; live stock window/max quantity and exact component reservation state still need owner/runtime proof for post-paid correction.
+
+Strict blockers still open:
+
+- `[MISSING: named runtime validation owner for the exact side-effectful full paid/refund smoke]`.
+- `[MISSING: named FlipFlop channel cleanup executor for exact-order refunded acknowledgement]`.
+- `[MISSING: sanitized exact-order linkage between the manual refund confirmation and the Goal 24 completed Fiobanka smoke order]`.
+- `[MISSING: FlipFlop runtime readback showing the exact smoke order acknowledged as status=refunded and paymentStatus=refunded after manual refund]`.
+- `[MISSING: owner-approved post-paid Orders/Warehouse correction packet for the exact completed payment state]`.
+- `[MISSING: named Orders cancellation actor/approvedBy for Goal 24 paid/provider cleanup]`.
+- `[MISSING: migration/deploy approval for persisted Orders cleanup idempotency key]`.
+- `[MISSING: approved Orders cleanup idempotency execution path and exact sanitized key for the run]`.
+- `[MISSING: approved Warehouse stock hold/release window and max quantity for post-paid correction]`.
+- `[MISSING: deterministic Warehouse component reservation state for the exact paid/refund cleanup]`.
+- `[MISSING: runtime FIO_BANKA_API_KEY read-token configuration and owner-approved polling run evidence]` if provider-authentic transaction polling is required.
+- `[MISSING: official/native Fio Banka callback signature contract]` if bank-originated native signed callbacks are required instead of accepted HMAC/polling/manual evidence.
+
+Decision: this draft can be updated with discovered facts, but it still cannot become an executable full paid/refund approval packet until the strict blockers above are resolved.
+
+
 ## Proposed Final Approval Statement
 
 The owner must replace this section with an explicit signed statement before any runtime execution:

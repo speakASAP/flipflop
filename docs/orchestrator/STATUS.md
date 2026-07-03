@@ -1,3 +1,32 @@
+## 2026-07-03 - Goal 24 Approval Draft Self-Discovery Refresh
+
+Status: draft refreshed, runtime still blocked.
+
+Intent Preservation Chain:
+
+- Vision: paid/provider full refund closeout can proceed only when discovered facts are separated from still-missing owner approvals.
+- Goal Impact: self-discovery resolved/narrowed stop-before-paid smoke evidence, provider/method/target ids, manual refund execution acknowledgement, Orders idempotency source support, and Warehouse operation matrix; it did not authorize full paid/refund runtime closeout.
+- System: Catalog integration status, FlipFlop channel acknowledgement, Payments Fiobanka evidence, Orders cancellation/idempotency, and Warehouse component-line cleanup.
+- Feature: approval draft self-discovery refresh.
+- Task: inspect remote repos and update the draft with found facts and remaining blockers.
+- Execution Plan: read-only discovery plus docs/verifier/state update; no live checkout, provider call, refund/cancel, Orders mutation, Warehouse mutation, marketplace mutation, deploy, migration, DB write, secret read, or raw evidence capture.
+- Coding Prompt: preserve dirty-worktree caveats and do not turn discovered facts into owner approval.
+- Code: `docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md`, `scripts/verify-paid-provider-bundle-checkout-gate.js`, and status/state updates.
+- Validation: `npm run verify:paid-provider-bundle-checkout-gate`, `node --check scripts/verify-paid-provider-bundle-checkout-gate.js`, and `git diff --check`.
+- State Update: self-discovery refreshed the draft; runtime remains blocked.
+
+Dirty-worktree caveat: Payments repo had uncommitted Goal 24 reconciliation files during discovery; only clean Catalog/FlipFlop/Orders/Warehouse facts are treated as integration evidence.
+
+Remaining strict blockers:
+
+- `[MISSING: named runtime validation owner for the exact side-effectful full paid/refund smoke]`
+- `[MISSING: named FlipFlop channel cleanup executor for exact-order refunded acknowledgement]`
+- `[MISSING: sanitized exact-order linkage between the manual refund confirmation and the Goal 24 completed Fiobanka smoke order]`
+- `[MISSING: FlipFlop runtime readback showing the exact smoke order acknowledged as status=refunded and paymentStatus=refunded after manual refund]`
+- `[MISSING: owner-approved post-paid Orders/Warehouse correction packet for the exact completed payment state]`
+
+Next action: resolve the remaining strict blockers before any full paid/refund runtime closeout.
+
 2026-07-03: Goal 24 owner-confirmed manual Fiobanka refund execution recorded for FlipFlop acknowledgement. Owner confirmed that automated Fiobanka refund is unavailable, the refund was sent manually through the separate refund service, and the manual refund is completed. FlipFlop records this as verified manual refund execution input for the admin/user-page acknowledgement path while keeping exact order marking and Orders/Warehouse post-paid correction separate. [RESOLVED/NARROWED: owner-confirmed manual Fiobanka refund was executed through the external refund service; FlipFlop acknowledgement path remains available for exact order marking] Remaining strict-audit evidence: [MISSING: sanitized exact-order linkage between the manual refund confirmation and the Goal 24 completed Fiobanka smoke order]; [MISSING: FlipFlop runtime readback showing the exact smoke order acknowledged as status=refunded and paymentStatus=refunded after manual refund]; [MISSING: owner-approved post-paid Orders/Warehouse correction packet for the exact completed payment state]. No new checkout, payment, automated refund, provider reversal, Orders/Warehouse mutation, DB edit, deploy, migration, secret output, raw bank/customer/payment payload, screenshot, or raw DB row was captured.
 
 ## 2026-07-03 - Goal 24 Paid Provider Smoke Approval Draft

@@ -196,6 +196,17 @@ for (const value of [
 ]) {
   assert(approvalDraft.includes(value), `approval draft missing ${value}`);
 }
+for (const value of [
+  '[RESOLVED/NARROWED: owner-approved stop-before-paid Fiobanka QR smoke executed and cleaned up]',
+  '[RESOLVED/NARROWED: owner-confirmed manual Fiobanka refund was executed through the external refund service; FlipFlop acknowledgement path remains available for exact order marking]',
+  '[RESOLVED/NARROWED: Orders source accepts sanitized approval.idempotencyKey and persists statusTransitionAudit]',
+  '[RESOLVED/NARROWED: Warehouse operation-selection matrix exists for release/cancel/return by component-line state]',
+  '[MISSING: sanitized exact-order linkage between the manual refund confirmation and the Goal 24 completed Fiobanka smoke order]',
+  '[MISSING: owner-approved post-paid Orders/Warehouse correction packet for the exact completed payment state]',
+]) {
+  assert(approvalDraft.includes(value), `approval draft self-discovery missing ${value}`);
+}
+assert(orchestratorStatus.includes('Payments repo had uncommitted Goal 24 reconciliation files during discovery'), 'orchestrator status missing Payments dirty-worktree caveat');
 assert(gateGoal.includes("runtime_progression: source-rollout-enabled-paid-provider-blocked"), "paid/provider gate must keep paid/provider runtime progression blocked after source rollout");
 assert(implementationState.includes("runtime paid/provider progression is source-rollout-enabled but paid/provider smoke remains blocked"), "state must preserve blocked paid/provider smoke progression after source rollout");
 
@@ -227,6 +238,7 @@ console.log(JSON.stringify({
     durableBundleIdMigration: 'source_rollout_enabled_paid_provider_blocked',
     channelCleanupContract: 'source_prepared_runtime_blocked',
     approvalDraft: 'draft_no_runtime_authority',
+    approvalDraftSelfDiscovery: 'refreshed_runtime_blocked',
     defaultAuthSubjectSmokeNonMutating: true,
   },
   blockers: requiredBlockers,
