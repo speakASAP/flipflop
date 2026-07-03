@@ -207,8 +207,21 @@ I approve exactly one Goal 24 paid/provider smoke for FlipFlop using approval id
 I understand this authorizes only the named bounded attempt. The executor must stop at the first hard stop and must not print secrets, tokens, raw provider payloads, raw DB rows, raw customer data, raw order ids, or raw payment ids.
 ```
 
+## 2026-07-04 Channel Cleanup Packet Close/Preserve Pass
+
+[RESOLVED/NARROWED: channel cleanup packet is policy-complete for FlipFlop-owned URL, retry, cart/session/local projection duties; runtime remains blocked until named executor, rollback owner, and sanitized evidence path are supplied]
+
+This narrows the channel/customer checkout side to exact FlipFlop-owned policy duties only: initiation packet, customer-visible success/cancel URL shape, `/payment-result` retry-state cleanup, synthetic cart/session/payment-result correlation cleanup, local projection messaging, and channel acknowledgement after upstream proofs.
+
+Runtime remains blocked by [MISSING: owner-approved channel/customer checkout owner for initiating and cleaning up paid catalog.bundle.v1 runtime smoke], [MISSING: named executor/rollback owner for future Fiobanka paid/provider smoke], the missing runtime validation owner, missing provider/Orders/Warehouse cleanup proofs, missing sanitized cleanup evidence path, and resolved runtime config readback for success/cancel URL overrides.
+
+Report: `reports/validation/VAL-GOAL-24-channel-cleanup-packet-2026-07-04.md`.
+
 ## Runtime Hard Stops
 
+- `[RESOLVED/NARROWED: runtime config readback shows PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL resolve to approved FlipFlop payment-result URLs without secret output]`
+- `[MISSING: named executor/rollback owner for future Fiobanka paid/provider smoke]`
+- `[MISSING: owner-approved channel/customer checkout owner for initiating and cleaning up paid catalog.bundle.v1 runtime smoke]`
 - The approval window is expired or missing.
 - Any required owner decision remains `[MISSING: ...]`.
 - The selected provider/method/environment differs from Fiobanka QR `<= 300 CZK`, or the amount is reduced by any path other than the owner-approved server-validated fixed discount-code fixture, without a new owner-approved packet.
@@ -240,7 +253,7 @@ Decision: `draft only`.
 
 ## Bundle-Preserving Fixture Runtime Quote
 
-Owner delegated autonomous continuation on `2026-07-04`. FlipFlop deployed the narrow Goal 24 source gate and ran only a runtime quote preflight. A fresh guarded fixed `2117.58 CZK` one-use discount code was created with `goalId=GOAL24-paid-provider-fixture-20260704`; raw token/code/customer/order/payment/provider data was not printed. Redacted readback: `codeHash=ab8323f331746bef`, `usedCount=0`, `remainingUses=1`.
+Owner delegated autonomous continuation on `2026-07-04`. FlipFlop deployed the narrow Goal 24 source gate and ran only a runtime quote preflight. A fresh guarded fixed `2117.58 CZK` one-use discount code was created with `goalId=GOAL24-paid-provider-fixture-20260704`; raw token/code/customer/order/payment/provider data was not printed. Redacted readback: `codeHash=8533c8372a079955`, `usedCount=0`, `remainingUses=1`.
 
 The public quote for `paymentMethod=fiobanka`, `deliveryMethod=store`, bundle `919be990-1c76-4f9c-b100-829281c6a709`, and component Catalog product ids `ce4a51aa-2d12-4ab7-a965-7a36609d01fc` plus `dbc51dde-fc66-4511-b178-f929183f4647` returned HTTP `200`, `schemaVersion=flipflop.checkout-quote.v1`, `sideEffects=[]`, `subtotal=1998`, `tax=419.58`, `orderTotalBeforeDiscount=2417.58`, `discount=2117.58`, and `total=300`.
 

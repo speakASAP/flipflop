@@ -6,7 +6,7 @@ status: quote-preflight-passed-before-checkout
 repository: /home/ssf/Documents/Github/flipflop
 commit_under_test: 9b57abe
 deployed_commit_lineage: fbe585c -> 9b57abe
-captured_at: 2026-07-04T01:25:51+02:00
+captured_at: 2026-07-04T02:34:30+02:00
 mutation: discount_code_created_only
 provider_call: false
 live_checkout_executed: false
@@ -33,8 +33,8 @@ orders_mutation_created: false
 
 - FlipFlop deployment was live and healthy after rollout: `flipflop-service`, `flipflop-frontend`, `flipflop-product-service`, `flipflop-cart-service`, `flipflop-order-service`, and `flipflop-user-service` were ready `1/1`; homepage and `/api/products?limit=1` returned successfully.
 - Existing non-printing smoke credential flow materialized a temporary bearer token in process memory only. Token, password, raw email, raw code, raw local product ids, raw customer ids, raw order ids, raw payment ids, provider payloads, cookies, and DB rows were not printed or recorded.
-- Guarded admin discount-code creation returned HTTP `200` with admin role present. The created code is redacted as `codeHash=ab8323f331746bef`.
-- Discount fixture readback: `type=fixed`, `value=2117.58`, `maxUses=1`, `usedCount=0`, `remainingUses=1`, `goalId=GOAL24-paid-provider-fixture-20260704`, `expiresAt=2026-07-03T23:10:51.168Z`.
+- Guarded admin discount-code creation returned HTTP `200` with admin role present. The created code is redacted as `codeHash=8533c8372a079955`.
+- Discount fixture readback: `type=fixed`, `value=2117.58`, `maxUses=1`, `usedCount=0`, `remainingUses=1`, `goalId=GOAL24-paid-provider-fixture-20260704`, `expiresAt=2026-07-04T00:34:22.413Z`.
 - Target products matched the exact Catalog component ids:
   - `ce4a51aa-2d12-4ab7-a965-7a36609d01fc`, local product hash `6d12775ab8f5bcaa`, price `999 CZK`, stock readback `118`.
   - `dbc51dde-fc66-4511-b178-f929183f4647`, local product hash `57a8a4639295b07a`, price `999 CZK`, stock readback `108`.

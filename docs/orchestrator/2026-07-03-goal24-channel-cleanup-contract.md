@@ -65,7 +65,7 @@ Exact URL shape for future paid/provider smoke:
 - default success URL without runtime override: `https://flipflop.alfares.cz/payment-result?status=completed&orderId=<local-flipflop-order-id>`.
 - default cancel URL without runtime override: `https://flipflop.alfares.cz/payment-result?status=cancelled&orderId=<local-flipflop-order-id>`.
 - provider callback URL remains `https://flipflop.alfares.cz/api/webhooks/payment-result` and is provider/payment truth, not customer-visible success proof.
-- `[MISSING: sanitized runtime config readback or owner confirmation that PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL are unset or exactly match the approved FlipFlop payment-result URLs for the future smoke]`.
+- `[RESOLVED/NARROWED: runtime config readback shows PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL resolve to approved FlipFlop payment-result URLs without secret output]`.
 
 Retry-state cleanup ownership:
 
@@ -107,8 +107,28 @@ Markers:
 - `[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]`
 
 
+## 2026-07-04 Channel Cleanup Packet Close/Preserve Pass
+
+Decision: `policy-complete-runtime-blocked`.
+
+[RESOLVED/NARROWED: channel cleanup packet is policy-complete for FlipFlop-owned URL, retry, cart/session/local projection duties; runtime remains blocked until named executor, rollback owner, and sanitized evidence path are supplied]
+
+The channel side is closed only as a source/policy packet. FlipFlop owns the customer-visible checkout initiation packet, exact provider redirect URL shapes, `/payment-result` cancelled/failed retry policy, synthetic cart cleanup, synthetic session/payment-result correlation cleanup, local order projection messaging, and channel side-effect acknowledgement criteria.
+
+The future runtime smoke still cannot start because the packet has no owner-approved named channel/customer checkout executor, no named runtime validation owner, no named executor/rollback owner for the future Fiobanka paid/provider smoke, no sanitized evidence path, and resolved runtime config readback for `PAYMENT_SUCCESS_URL` and `PAYMENT_CANCEL_URL` overrides.
+
+Runtime blockers preserved:
+
+- [MISSING: owner-approved channel/customer checkout owner for initiating and cleaning up paid catalog.bundle.v1 runtime smoke]
+- [MISSING: named executor/rollback owner for future Fiobanka paid/provider smoke]
+- [RESOLVED/NARROWED: runtime config readback shows PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL resolve to approved FlipFlop payment-result URLs without secret output]
+
+Report: `reports/validation/VAL-GOAL-24-channel-cleanup-packet-2026-07-04.md`.
+
 ## Hard Stops
 
+- `[MISSING: named executor/rollback owner for future Fiobanka paid/provider smoke]`
+- `[MISSING: owner-approved channel/customer checkout owner for initiating and cleaning up paid catalog.bundle.v1 runtime smoke]`
 - `[MISSING: owner-approved paid/provider checkout smoke packet naming FlipFlop channel cleanup executor and runtime validation owner]`
 - `[MISSING: provider rollback proof from Payments before customer-visible success or completed cleanup]`
 - `[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]`

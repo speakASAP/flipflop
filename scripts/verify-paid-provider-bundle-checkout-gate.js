@@ -24,6 +24,8 @@ const bundlePreservingFixtureSource = read('reports/validation/VAL-GOAL-24-bundl
 const bundlePreservingFixtureRuntimeQuote = read('reports/validation/VAL-GOAL-24-bundle-preserving-fixture-runtime-quote.md');
 const runtimeOwnerCheck = read('reports/validation/VAL-GOAL-24-runtime-preflight-owner-check-2026-07-04.md');
 const authAdminActorTokenHandling = read('reports/validation/VAL-GOAL-24-auth-admin-actor-token-handling-2026-07-04.md');
+const paymentResultUrlRuntimeReadback = read('reports/validation/VAL-GOAL-24-payment-result-url-runtime-readback.md');
+const channelCleanupPacket = read('reports/validation/VAL-GOAL-24-channel-cleanup-packet-2026-07-04.md');
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
 const orchestratorStatus = read('docs/orchestrator/STATUS.md');
 const migrationGoal = read('implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md');
@@ -42,6 +44,9 @@ const approvalDraftMarker = 'FLIPFLOP-GOAL24-PAID-PROVIDER-SMOKE-APPROVAL-DRAFT'
 const approvedDiscountFixtureMarker = 'Owner-Approved Discount Fixture Narrowing';
 const successCancelUrlOwnerMarker = '[RESOLVED/NARROWED: FlipFlop owns exact customer-visible payment-result success/cancel URLs for provider redirects; provider callback evidence still owns payment truth]';
 const retryStateCleanupOwnerMarker = '[RESOLVED/NARROWED: FlipFlop owns retry-state cleanup policy for payment-result cancelled/failed views; retry-safe execution remains blocked until provider, Orders, Warehouse, and channel cleanup evidence exists]';
+const channelCleanupPacketMarker = '[RESOLVED/NARROWED: channel cleanup packet is policy-complete for FlipFlop-owned URL, retry, cart/session/local projection duties; runtime remains blocked until named executor, rollback owner, and sanitized evidence path are supplied]';
+const runtimeUrlReadbackResolvedMarker = '[RESOLVED/NARROWED: runtime config readback shows PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL resolve to approved FlipFlop payment-result URLs without secret output]';
+const runtimeUrlReadbackMissingMarker = '[MISSING: sanitized runtime config readback or owner confirmation that PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL are unset or exactly match the approved FlipFlop payment-result URLs for the future smoke]';
 
 const baseRequiredBlockers = [
   paidProviderRuntimeBlocker,
@@ -57,6 +62,8 @@ const channelRequiredBlockers = [
   '[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]',
   '[MISSING: deterministic Warehouse component reservation state and approved cleanup operation before customer-visible stock/restored messaging]',
   '[MISSING: sanitized evidence path for required channel cleanup proof]',
+  '[MISSING: named executor/rollback owner for future Fiobanka paid/provider smoke]',
+  '[MISSING: owner-approved channel/customer checkout owner for initiating and cleaning up paid catalog.bundle.v1 runtime smoke]',
 ];
 
 const requiredBlockers = [...baseRequiredBlockers, ...channelRequiredBlockers];
@@ -235,7 +242,8 @@ for (const [label, source] of [['channel cleanup contract', channelCleanupContra
 assert(channelCleanupContract.includes('https://flipflop.alfares.cz/payment-result?status=completed&orderId=<local-flipflop-order-id>'), 'channel cleanup contract missing exact success URL shape');
 assert(channelCleanupContract.includes('https://flipflop.alfares.cz/payment-result?status=cancelled&orderId=<local-flipflop-order-id>'), 'channel cleanup contract missing exact cancel URL shape');
 assert(channelCleanupContract.includes('https://flipflop.alfares.cz/api/webhooks/payment-result'), 'channel cleanup contract missing provider callback URL boundary');
-assert(channelCleanupContract.includes('[MISSING: sanitized runtime config readback or owner confirmation that PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL are unset or exactly match the approved FlipFlop payment-result URLs for the future smoke]'), 'channel cleanup contract missing runtime URL override blocker');
+assert(channelCleanupContract.includes('[RESOLVED/NARROWED: runtime config readback shows PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL resolve to approved FlipFlop payment-result URLs without secret output]'), 'channel cleanup contract missing runtime URL override resolution');
+assert(paymentResultUrlRuntimeReadback.includes('PAYMENT_SUCCESS_URL_STATE=set approved_payment_result_url') && paymentResultUrlRuntimeReadback.includes('PAYMENT_CANCEL_URL_STATE=set approved_payment_result_url'), 'runtime URL readback report must prove success/cancel URLs are approved');
 const normalizedOrderService = orderService.replace(/\s+/g, ' ');
 assert(normalizedOrderService.includes("const envKey = status === 'completed' ? 'PAYMENT_SUCCESS_URL' : 'PAYMENT_CANCEL_URL'"), 'order service must expose success/cancel URL override keys');
 assert(orderService.includes("'https://flipflop.alfares.cz'"), 'order service must keep FlipFlop frontend base fallback');
@@ -261,7 +269,7 @@ assert(approvalDraft.includes('Discount Fixture Quote Hard Stop'), 'approval dra
 assert(bundlePreservingFixtureSource.includes('source-prepared-runtime-deploy-gated'), 'bundle-preserving fixture source report must remain deploy gated');
 assert(bundlePreservingFixtureSource.includes('goalId=GOAL24-paid-provider-fixture-20260704'), 'bundle-preserving fixture source report missing goal id gate');
 assert(bundlePreservingFixtureRuntimeQuote.includes('quote-preflight-passed-before-checkout'), 'bundle-preserving fixture runtime quote must record passed quote preflight');
-assert(bundlePreservingFixtureRuntimeQuote.includes('codeHash=ab8323f331746bef'), 'bundle-preserving fixture runtime quote must include redacted code hash');
+assert(bundlePreservingFixtureRuntimeQuote.includes('codeHash=8533c8372a079955'), 'bundle-preserving fixture runtime quote must include redacted code hash');
 assert(bundlePreservingFixtureRuntimeQuote.includes('schemaVersion=flipflop.checkout-quote.v1'), 'bundle-preserving fixture runtime quote must include quote schema');
 assert(bundlePreservingFixtureRuntimeQuote.includes('sideEffects=[]'), 'bundle-preserving fixture runtime quote must prove no quote side effects');
 assert(bundlePreservingFixtureRuntimeQuote.includes('total=300'), 'bundle-preserving fixture runtime quote must prove exact 300 CZK total');
@@ -305,6 +313,18 @@ assert(authAdminActorTokenHandling.includes('service tokens/API keys are not app
 assert(authAdminActorTokenHandling.includes('[MISSING: sanitized auth/admin evidence path for guarded discount-code generation]'), 'auth/admin actor report missing sanitized evidence fallback');
 assert(implementationState.includes('VAL-GOAL-24-auth-admin-actor-token-handling-2026-07-04.md'), 'implementation state missing auth/admin actor report');
 assert(orchestratorStatus.includes('VAL-GOAL-24-auth-admin-actor-token-handling-2026-07-04.md'), 'orchestrator status missing auth/admin actor report');
+
+for (const [label, source] of [['channel cleanup contract', channelCleanupContract], ['approval draft', approvalDraft], ['paid/provider gate', gateGoal], ['implementation state', implementationState], ['orchestrator status', orchestratorStatus], ['channel cleanup packet report', channelCleanupPacket]]) {
+  assert(source.includes(channelCleanupPacketMarker), `${label} missing channel cleanup packet marker`);
+  assert(source.includes('[MISSING: owner-approved channel/customer checkout owner for initiating and cleaning up paid catalog.bundle.v1 runtime smoke]'), `${label} missing channel/customer owner blocker`);
+  assert(source.includes('[MISSING: named executor/rollback owner for future Fiobanka paid/provider smoke]'), `${label} missing executor/rollback owner blocker`);
+  assert(source.includes('[RESOLVED/NARROWED: runtime config readback shows PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL resolve to approved FlipFlop payment-result URLs without secret output]'), `${label} missing success/cancel runtime override blocker`);
+}
+assert(channelCleanupPacket.includes('mutation: false'), 'channel cleanup packet report must remain non-mutating');
+assert(channelCleanupPacket.includes('live_checkout_executed: false'), 'channel cleanup packet report must forbid live checkout');
+assert(channelCleanupPacket.includes('provider_call: false'), 'channel cleanup packet report must forbid provider calls');
+assert(channelCleanupPacket.includes('secret_output: false'), 'channel cleanup packet report must forbid secret output');
+assert(channelCleanupPacket.includes('raw_customer_or_payment_evidence: false'), 'channel cleanup packet report must forbid raw customer/payment evidence');
 
 for (const value of [
   '[RESOLVED/NARROWED: owner-approved stop-before-paid Fiobanka QR smoke executed and cleaned up]',
@@ -361,8 +381,9 @@ console.log(JSON.stringify({
     bundlePreservingFixtureRuntimeQuote: 'quote_preflight_passed_before_checkout',
     runtimeOwnerCheck: 'blocked_secret_access_is_not_sufficient_without_named_actor_and_cleanup_packet',
     authAdminActorTokenHandling: 'blocked_missing_named_actor_with_narrowed_non_printing_token_path',
-    successCancelUrlOwnership: 'source_prepared_runtime_blocked',
+    successCancelUrlOwnership: 'runtime_url_readback_resolved',
     retryStateCleanupOwnership: 'source_prepared_runtime_blocked',
+    channelCleanupPacket: 'policy_complete_runtime_blocked',
     defaultAuthSubjectSmokeNonMutating: true,
   },
   blockers: requiredBlockers,
