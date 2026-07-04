@@ -55,7 +55,7 @@ const runtimeUrlReadbackMissingMarker = '[MISSING: sanitized runtime config read
 const autonomousApprovalDecisionMarker = '[RESOLVED/NARROWED: owner delegated autonomous Goal 24 continuation to Codex, but integration validation keeps new Fiobanka paid/provider side effects hard-stopped until bank/refund authority, exact Orders/Warehouse packet, and redacted provider proof exist]';
 const autonomousRuntimeOwnershipMarker = '[RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]';
 const channelCleanupOwnerSupersessionMarker = '[RESOLVED/NARROWED: Codex Goal 24 integration thread supersedes earlier FlipFlop channel executor/runtime owner blockers; channel cleanup runtime remains blocked until bank/refund authority, exact provider proof, Orders side-effect acknowledgements, Warehouse target facts, Auth token source, and final redacted evidence path exist]';
-const currentHeadSyncMarker = '[RESOLVED/NARROWED: FlipFlop consumed current Goal 24 source-governance heads Catalog `e379b54 merge goal24 current source head sync`, Orders `d5d2114 merge goal24 current source head sync`, Payments `eab6351 merge goal24 current source head sync`, Warehouse `11df002 merge goal24 warehouse target facts reconcile`, and FlipFlop `ad409fc merge goal24 current source head sync`; runtime side effects remain blocked]';
+const sourceWaveFreezeMarker = '[RESOLVED/NARROWED: Goal 24 frozen source-governance wave GOAL24-SOURCE-WAVE-2026-07-04A records Catalog `e379b54 merge goal24 current source head sync`, FlipFlop `e1f3e3a merge goal24 current source head sync`, Payments `eab6351 merge goal24 current source head sync`, Orders `d53de9f merge goal24 current source head sync`, and Warehouse `11df002 merge goal24 warehouse target facts reconcile` as input heads for runtime planning; post-merge self heads are validation evidence only; runtime side effects remain blocked]';
 
 const baseRequiredBlockers = [
   paidProviderRuntimeBlocker,
@@ -415,8 +415,8 @@ for (const value of [
 }
 
 
-for (const [label, source] of [['current head sync report', currentHeadSync], ['implementation state', implementationState], ['orchestrator status', orchestratorStatus]]) {
-  assert(source.includes(currentHeadSyncMarker), `${label} missing current head sync marker`);
+for (const [label, source] of [['source-wave freeze report', currentHeadSync], ['implementation state', implementationState], ['orchestrator status', orchestratorStatus]]) {
+  assert(source.includes(sourceWaveFreezeMarker), `${label} missing source-wave freeze marker`);
   for (const value of [
     '[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
     '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
@@ -440,12 +440,12 @@ for (const value of [
   'secret_output: false',
   'raw_customer_or_payment_evidence: false',
   'Catalog `e379b54 merge goal24 current source head sync`',
-  'Orders `d5d2114 merge goal24 current source head sync`',
+  'Orders `d53de9f merge goal24 current source head sync`',
   'Payments `eab6351 merge goal24 current source head sync`',
   'Warehouse `11df002 merge goal24 warehouse target facts reconcile`',
-  'FlipFlop `ad409fc merge goal24 current source head sync`',
+  'FlipFlop `e1f3e3a merge goal24 current source head sync`',
 ]) {
-  assert(currentHeadSync.includes(value), `current head sync report missing ${value}`);
+  assert(currentHeadSync.includes(value), `source-wave freeze report missing ${value}`);
 }
 
 for (const value of [
