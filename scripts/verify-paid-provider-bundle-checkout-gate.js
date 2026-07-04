@@ -40,6 +40,7 @@ const autonomousRuntimeOwnershipPacket = read('reports/validation/VAL-GOAL-24-au
 const flipflopWarehouseBlockerWordingSync = read('reports/validation/VAL-GOAL-24-flipflop-warehouse-blocker-wording-sync-2026-07-04.md');
 const currentHeadSync = read('reports/validation/VAL-GOAL-24-current-head-sync-2026-07-04.md');
 const warehouseTargetFactsWordingSync = read('reports/validation/VAL-GOAL-24-warehouse-target-facts-wording-sync-2026-07-04.md');
+const cleanupPacketRuntimeValuesSync = read('reports/validation/VAL-GOAL-24-cleanup-packet-runtime-values-sync-2026-07-04.md');
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
 const orchestratorStatus = read('docs/orchestrator/STATUS.md');
 const migrationGoal = read('implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md');
@@ -85,6 +86,9 @@ const warehouseProtectedReadbackMarker = '[RESOLVED/NARROWED: live current targe
 const warehouseHoldDurationResolvedMarker = '[RESOLVED/NARROWED: Warehouse hold/release duration is owner-approved for the bounded Goal 24 smoke as 15 minutes source-default TTL or shorter caller-supplied expiresAt]';
 const warehouseFinalApprovalResolvedMarker = '[RESOLVED/NARROWED: final owner approval before live Warehouse reservation mutation is bounded to one Goal 24 component-line smoke attempt with max quantity 1 per component after live readback]';
 const deterministicWarehouseCleanupBlocker = '[MISSING: deterministic Warehouse component reservation state for cleanup]';
+const ordersCleanupRuntimeValuesBlocker = '[MISSING: exact selected Orders cleanup packet runtime values and sideEffectsHandled acknowledgements]';
+const warehouseCleanupRuntimeValuesBlocker = '[MISSING: exact selected Warehouse reservation lookup state for cleanup]';
+const cleanupPacketRuntimeValuesMarker = '[RESOLVED/NARROWED: Orders cleanup packet shape and Warehouse component-line cleanup packet shape are source-defined; runtime remains blocked until the selected smoke supplies exact Orders packet values, sideEffectsHandled acknowledgements, provider proof, and deterministic Warehouse reservation lookup state]';
 const currentWarehouseRuntimeMarker = '[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [RESOLVED/NARROWED: live current target row readback at execution time captured through protected Warehouse API without mutation]; [RESOLVED/NARROWED: Warehouse hold/release duration is owner-approved for the bounded Goal 24 smoke as 15 minutes source-default TTL or shorter caller-supplied expiresAt]; [RESOLVED/NARROWED: final owner approval before live Warehouse reservation mutation is bounded to one Goal 24 component-line smoke attempt with max quantity 1 per component after live readback]; [MISSING: deterministic Warehouse component reservation state for cleanup]';
 
 const baseRequiredBlockers = [
@@ -110,10 +114,10 @@ const operativeRequiredBlockers = [
   '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
   '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
   '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]',
-  '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
+  ordersCleanupRuntimeValuesBlocker,
   '[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]',
   '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]',
-  '[MISSING: deterministic Warehouse component reservation state for cleanup]',
+  warehouseCleanupRuntimeValuesBlocker,
   '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
 ];
 
@@ -143,7 +147,8 @@ for (const staleOutputBlocker of baseRequiredBlockers.filter((blocker) => !opera
 assert(!baseRequiredBlockers.includes('[MISSING: owner-approved paid/provider test window, non-secret approval id, target active catalog.bundle.v1 bundle id, provider method, and sanitized evidence policy]'), 'base required blockers must not preserve stale broad owner approval/test window blocker');
 assert(!operativeRequiredBlockers.includes('[MISSING: Warehouse hold/release duration]'), 'operative output must not preserve resolved Warehouse hold duration blocker');
 assert(!operativeRequiredBlockers.includes('[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]'), 'operative output must not preserve resolved final Warehouse mutation approval blocker');
-assert(operativeRequiredBlockers.includes('[MISSING: deterministic Warehouse component reservation state for cleanup]'), 'operative output must preserve deterministic Warehouse cleanup lookup blocker');
+assert(operativeRequiredBlockers.includes(warehouseCleanupRuntimeValuesBlocker), 'operative output must preserve selected Warehouse cleanup lookup blocker');
+assert(operativeRequiredBlockers.includes(ordersCleanupRuntimeValuesBlocker), 'operative output must preserve selected Orders cleanup runtime values blocker');
 for (const marker of operativeRequiredBlockers) {
   assert(
     implementationState.includes(marker) || orchestratorStatus.includes(marker) || bundlePreservingFixtureRuntimeQuote.includes(marker) || autonomousApprovalIntegrationDecision.includes(marker) || authTestCredentialTokenProbe.includes(marker),
@@ -848,6 +853,16 @@ console.log(JSON.stringify({
   blockers: operativeRequiredBlockers,
 }, null, 2));
 
+for (const [label, source] of [['cleanup packet runtime values sync report', cleanupPacketRuntimeValuesSync], ['implementation state', implementationState], ['orchestrator status', orchestratorStatus]]) {
+  assert(source.includes(cleanupPacketRuntimeValuesMarker), `${label} missing cleanup packet runtime values marker`);
+  assert(source.includes(ordersCleanupRuntimeValuesBlocker), `${label} missing selected Orders runtime values blocker`);
+  assert(source.includes(warehouseCleanupRuntimeValuesBlocker), `${label} missing selected Warehouse reservation lookup blocker`);
+  assert(source.includes('mutation: false'), `${label} must remain non-mutating`);
+  assert(source.includes('provider_call: false'), `${label} must forbid provider calls`);
+  assert(source.includes('orders_mutation: false'), `${label} must forbid Orders mutation`);
+  assert(source.includes('warehouse_mutation: false'), `${label} must forbid Warehouse mutation`);
+}
+
 const goalDoc = fs.readFileSync('implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md', 'utf8');
 assert(!read('docs/orchestrator/STATUS.md').includes('[MISSING: owner-approved paid/provider test window, non-secret approval id, target active catalog.bundle.v1 bundle id, provider method, and sanitized evidence policy]'), 'docs/orchestrator/STATUS.md must not preserve stale broad owner approval/test window blocker as current');
 assert(!read('docs/IMPLEMENTATION_STATE.md').includes('[MISSING: owner-approved paid/provider test window, non-secret approval id, target active catalog.bundle.v1 bundle id, provider method, and sanitized evidence policy]'), 'docs/IMPLEMENTATION_STATE.md must not preserve stale broad owner approval/test window blocker as current');
@@ -855,7 +870,7 @@ assert(!read('implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md
 for (const marker of [
   sourceWaveCMarker,
   'Operative Runtime Hard Stops',
-  ...operativeRequiredBlockers,
+  ...operativeRequiredBlockers.filter((marker) => marker !== ordersCleanupRuntimeValuesBlocker && marker !== warehouseCleanupRuntimeValuesBlocker),
 ]) {
   assert(goalDoc.includes(marker), `Goal 24 FlipFlop goal doc missing operative marker: ${marker}`);
 }
