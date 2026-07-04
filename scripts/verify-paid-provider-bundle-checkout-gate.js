@@ -25,6 +25,7 @@ const bundlePreservingFixtureRuntimeQuote = read('reports/validation/VAL-GOAL-24
 const runtimeOwnerCheck = read('reports/validation/VAL-GOAL-24-runtime-preflight-owner-check-2026-07-04.md');
 const authAdminActorTokenHandling = read('reports/validation/VAL-GOAL-24-auth-admin-actor-token-handling-2026-07-04.md');
 const authAdminActorReadback = read('reports/validation/VAL-GOAL-24-auth-admin-actor-readback-2026-07-04.md');
+const authAdminTokenBindingProofContract = read('reports/validation/VAL-GOAL-24-auth-admin-token-binding-proof-contract-2026-07-04.md');
 const paymentResultUrlRuntimeReadback = read('reports/validation/VAL-GOAL-24-payment-result-url-runtime-readback.md');
 const channelCleanupPacket = read('reports/validation/VAL-GOAL-24-channel-cleanup-packet-2026-07-04.md');
 const channelCleanupOwnerSupersession = read('reports/validation/VAL-GOAL-24-channel-cleanup-owner-supersession-2026-07-04.md');
@@ -332,6 +333,56 @@ for (const marker of [
 ]) {
   assert(authAdminActorReadback.includes(marker), `auth/admin actor readback missing ${marker}`);
 }
+
+for (const marker of [
+  '[RESOLVED/NARROWED: Goal 24 token-binding proof may record only token-present, Auth validation status class, actor-hash match, required-role boolean, approval id, runner id, timestamps, and no-output booleans]',
+  '[RESOLVED/NARROWED: Goal 24 approved token source shape is owner-approved on-host token file or in-memory handoff read only by the approved runner, never printed, never decoded into reports, never persisted, never committed, and removed or invalidated after the run]',
+  '[RESOLVED/NARROWED: Goal 24 Auth token binding does not authorize Orders, Warehouse, Payments/provider, or channel side effects and does not prove stock effects]',
+  '[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
+  '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
+  '[MISSING: sanitized auth/admin evidence path for guarded discount-code generation]',
+  'tokenSourceType=on-host-token-file',
+  'tokenSourceType=in-memory-handoff',
+  'actorHashMatches=true',
+  'requiredAdminRolePresent=true',
+  'tokenOutput=false',
+  'decodedJwtOutput=false',
+  'rawUserOutput=false',
+  'secretOutput=false',
+  'tokenSourceDestroyedOrInvalidated=true',
+  'Auth token-binding proof is not Warehouse stock evidence and is not Orders cleanup authorization',
+]) {
+  assert(authAdminTokenBindingProofContract.includes(marker), `auth/admin token-binding proof contract missing ${marker}`);
+  assert(implementationState.includes(marker) || orchestratorStatus.includes(marker) || gateGoal.includes(marker) || channelCleanupContract.includes(marker) || approvalDraft.includes(marker), `Goal 24 docs missing token-binding marker ${marker}`);
+}
+for (const boundary of [
+  'mutation: false',
+  'live_auth_login: false',
+  'token_issuance: false',
+  'token_output: false',
+  'decoded_jwt_output: false',
+  'secret_output: false',
+  'raw_user_output: false',
+  'provider_call: false',
+  'live_checkout_executed: false',
+  'orders_mutation: false',
+  'warehouse_mutation: false',
+  'channel_cleanup_mutation: false',
+]) {
+  assert(authAdminTokenBindingProofContract.includes(boundary), `auth/admin token-binding proof contract missing boundary ${boundary}`);
+}
+for (const forbidden of [
+  'Bearer ey',
+  'access_token=',
+  'refresh_token=',
+  'Authorization: Bearer ',
+  'raw email:',
+  'raw user id:',
+]) {
+  assert(!authAdminTokenBindingProofContract.includes(forbidden), `auth/admin token-binding proof contract contains forbidden token/raw pattern ${forbidden}`);
+}
+assert(authAdminActorTokenHandling.includes('[RESOLVED/NARROWED: approved token-handling shape is token file or in-process environment material read only by the final approved runner, never printed, never decoded into reports, never committed, and removed after the run]'), 'auth/admin token handling must still define non-printing token shape');
+
 
 assert(implementationState.includes('VAL-GOAL-24-auth-admin-actor-token-handling-2026-07-04.md'), 'implementation state missing auth/admin actor report');
 assert(orchestratorStatus.includes('VAL-GOAL-24-auth-admin-actor-token-handling-2026-07-04.md'), 'orchestrator status missing auth/admin actor report');
