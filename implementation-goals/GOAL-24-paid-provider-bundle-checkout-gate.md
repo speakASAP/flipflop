@@ -180,3 +180,22 @@ Runtime remains blocked by `[MISSING: approved token source path, such as an on-
 Allowed source type markers for verifiers: `tokenSourceType=on-host-token-file`; `tokenSourceType=in-memory-handoff`; `actorHashMatches=true`; `requiredAdminRolePresent=true`; `tokenOutput=false`; `decodedJwtOutput=false`; `rawUserOutput=false`; `secretOutput=false`; `tokenSourceDestroyedOrInvalidated=true`.
 
 Auth token-binding proof is not Warehouse stock evidence and is not Orders cleanup authorization.
+
+## 2026-07-04 Current Source-Governance Head Sync Wave C
+
+[RESOLVED/NARROWED: Goal 24 source-governance wave GOAL24-SOURCE-WAVE-2026-07-04C input set records Auth `2faf719 docs: complete goal10 customer data wallet rollout`, Catalog `b20e95b merge goal24 catalog source wave c`, FlipFlop `2310c90 merge goal24 flipflop stale blocker wording sync`, Payments `080f293 merge goal24 payments source wave c`, Orders `d32abd2 merge goal24 orders source wave c`, and Warehouse `ea7b9e9 merge goal24 warehouse cleanup packet readback sync` as Wave C input heads for renewed runtime planning; post-merge source-sync commits are validation evidence only; runtime checkout/channel side effects remain blocked]
+
+Wave C supersedes Wave B for renewed runtime planning only. It does not authorize checkout, payment creation, provider calls, refund/reversal, Orders mutation, Warehouse mutation, channel cleanup, deploy, migration, DB write, secret/token output, raw customer/order/payment/provider evidence, or marketplace state change. Runtime remains blocked by `[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]`, `[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]`, `[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]`, `[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]`, `[MISSING: live current target row readback at execution time]`, `[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]`, `[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]`, and `[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]`.
+
+### Operative Runtime Hard Stops
+
+The broad paid/provider smoke blockers remain umbrella context only. Current runtime planning must fail closed on the exact packets below before any checkout/channel side effect:
+
+- `[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]`
+- `[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]`
+- `[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]`
+- `[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]`
+- `[MISSING: live current target row readback at execution time]`
+- `[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]`
+- `[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]`
+- `[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]`
