@@ -28,6 +28,7 @@ const authAdminActorTokenHandling = read('reports/validation/VAL-GOAL-24-auth-ad
 const authAdminActorReadback = read('reports/validation/VAL-GOAL-24-auth-admin-actor-readback-2026-07-04.md');
 const authAdminTokenBindingProofContract = read('reports/validation/VAL-GOAL-24-auth-admin-token-binding-proof-contract-2026-07-04.md');
 const authTestCredentialTokenProbe = read('reports/validation/VAL-GOAL-24-auth-test-credential-token-probe-2026-07-04.md');
+const authActorTokenProvisioning = read('/home/ssf/Documents/Github/auth-microservice/reports/validation/VAL-GOAL-24-auth-actor-token-provisioning-2026-07-04.md');
 const paymentResultUrlRuntimeReadback = read('reports/validation/VAL-GOAL-24-payment-result-url-runtime-readback.md');
 const channelCleanupPacket = read('reports/validation/VAL-GOAL-24-channel-cleanup-packet-2026-07-04.md');
 const channelCleanupOwnerSupersession = read('reports/validation/VAL-GOAL-24-channel-cleanup-owner-supersession-2026-07-04.md');
@@ -493,6 +494,26 @@ for (const marker of [
   assert(implementationState.includes(marker) || orchestratorStatus.includes(marker) || authTestCredentialTokenProbe.includes(marker), `Goal 24 docs missing auth test credential marker ${marker}`);
 }
 assert(!authTestCredentialTokenProbe.includes('actorHashMatches: true'), 'test credential probe must not claim selected actor hash match');
+
+for (const marker of [
+  '[RESOLVED/NARROWED: Goal 24 Auth actor-bound token source can be generated for actor hash 4215870ba488de17 using actorHashField=emailLower, requiredRole=app:flipflop-service:admin, tokenFileMode=0600, authValidationStatusClass=2xx, actorHashMatches=true, requiredAdminRolePresent=true, tokenOutput=false, decodedJwtOutput=false, rawUserOutput=false, rawEmailOutput=false, secretOutput=false, and tokenSourceDestroyedOrInvalidated=true]',
+  'contract: `auth-goal24-actor-token-provisioning.v1`',
+  'actorHashField: `emailLower`',
+  'selectedActorUserType: `service`',
+  'requiredAdminRolePresent: `true`',
+  'tokenFileModeOctal: `0600`',
+  'authValidationStatusClass: `2xx`',
+  'actorHashMatches: `true`',
+  'tokenSourceDestroyedOrInvalidated: `true`',
+  'No user, role, discount-code, checkout, order, payment, provider, refund, Orders, Warehouse, channel, deploy, migration, or DB mutation occurred',
+]) {
+  assert(authActorTokenProvisioning.includes(marker), `auth actor token provisioning report missing ${marker}`);
+  assert(implementationState.includes(marker) || orchestratorStatus.includes(marker) || authActorTokenProvisioning.includes(marker), `Goal 24 docs missing auth actor token marker ${marker}`);
+}
+assert(authActorTokenProvisioning.includes('tokenOutput: `false`'), 'auth actor token proof must not output token');
+assert(authActorTokenProvisioning.includes('decodedJwtOutput: `false`'), 'auth actor token proof must not output decoded JWT');
+assert(authActorTokenProvisioning.includes('rawUserOutput: `false`'), 'auth actor token proof must not output raw user');
+assert(authActorTokenProvisioning.includes('secretOutput: `false`'), 'auth actor token proof must not output secrets');
 
 for (const boundary of [
   'mutation: false',
