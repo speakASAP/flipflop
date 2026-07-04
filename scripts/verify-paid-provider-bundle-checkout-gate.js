@@ -95,6 +95,22 @@ const channelRequiredBlockers = [
 ];
 
 const requiredBlockers = [...baseRequiredBlockers, ...channelRequiredBlockers];
+const operativeRequiredBlockers = [
+  '[MISSING: approved token source path bound to actor hash 4215870ba488de17, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
+  '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
+  '[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]',
+  '[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]',
+  '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
+  '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
+  '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]',
+  '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
+  '[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]',
+  '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]',
+  '[MISSING: live current target row readback at execution time]',
+  '[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]',
+  '[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
+  '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
+];
 
 function includesAll(source, values, label) {
   for (const value of values) {
@@ -115,6 +131,16 @@ assert.strictEqual(
   'node scripts/verify-paid-provider-bundle-checkout-gate.js',
   'package script for paid/provider bundle gate missing',
 );
+
+for (const staleOutputBlocker of baseRequiredBlockers.filter((blocker) => !operativeRequiredBlockers.includes(blocker))) {
+  assert(!operativeRequiredBlockers.includes(staleOutputBlocker), `operative blocker output must not preserve stale broad blocker: ${staleOutputBlocker}`);
+}
+for (const marker of operativeRequiredBlockers) {
+  assert(
+    implementationState.includes(marker) || orchestratorStatus.includes(marker) || bundlePreservingFixtureRuntimeQuote.includes(marker) || autonomousApprovalIntegrationDecision.includes(marker) || authTestCredentialTokenProbe.includes(marker),
+    `operative blocker output marker missing source evidence: ${marker}`,
+  );
+}
 
 assert.strictEqual(
   packageJson.scripts['smoke:checkout'],
@@ -764,7 +790,7 @@ console.log(JSON.stringify({
     autonomousApprovalIntegrationDecision: 'approval_consumed_new_runtime_side_effects_hard_stopped',
     defaultAuthSubjectSmokeNonMutating: true,
   },
-  blockers: requiredBlockers,
+  blockers: operativeRequiredBlockers,
 }, null, 2));
 
 const goalDoc = fs.readFileSync('implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md', 'utf8');
