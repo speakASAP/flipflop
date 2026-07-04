@@ -47,7 +47,7 @@ Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding P
 
 - `[MISSING: renewed owner-approved execution window for Europe/Prague after 2026-07-03T23:59:59+02:00]`.
 - `[MISSING: named admin/actor or approved token-handling path for guarded discount-code generation]`.
-- `[MISSING: owner-approved paid/provider checkout smoke packet naming FlipFlop channel cleanup executor and runtime validation owner]`.
+- `[MISSING: owner-approved paid/provider checkout smoke packet naming a live-run executor and preserving Codex source-controlled validation/stop authority]`.
 - `[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]`.
 - `[MISSING: deterministic Warehouse component reservation state and approved cleanup operation before customer-visible stock/restored messaging]`.
 - `[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]`.
@@ -58,8 +58,8 @@ Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding P
 Before any bounded paid/provider smoke can run, the owner/service packet must provide non-secret values for:
 
 - renewed execution window with timezone;
-- named runtime validation owner;
-- named FlipFlop channel cleanup executor;
+- source-controlled validation/stop authority marker and named live-run executor;
+- source-controlled FlipFlop channel cleanup executor marker and selected-order channel acknowledgement owner;
 - named admin actor or approved non-printing token-handling path for the guarded discount-code endpoint;
 - approval id, target `catalog.bundle.v1` id, component products/quantities, provider method/environment, amount ceiling, and abort criteria;
 - Payments provider callback/reconciliation and rollback proof path;
@@ -75,7 +75,7 @@ Before any bounded paid/provider smoke can run, the owner/service packet must pr
 | Admin actor/token path | dependency-gated | FlipFlop/admin auth owner | approved non-printing token-handling path for fixed discount code | owner packet | `[MISSING: named admin/actor or approved token-handling path]` | runtime validation owner | before smoke |
 | Payments callback/rollback proof | dependency-gated | Payments provider owner | provider completion and rollback evidence | provider packet | `[MISSING: provider webhook/callback evidence]` | integration validator | before Orders/Warehouse cleanup |
 | Orders/Warehouse cleanup | dependency-gated | Orders/Warehouse owners | cancellation actor/idempotency and component cleanup | provider proof | `[MISSING: Orders/Warehouse cleanup packet]` | integration validator | before channel success |
-| Final paid/provider smoke | final integration | `[MISSING: runtime validation owner]` | one bounded run with sanitized evidence | all packets complete | any unresolved hard stop | runtime validation owner | last |
+| Final paid/provider smoke | final integration | Codex Goal 24 integration thread owns source-controlled validation/stop authority; live-run executor remains `[MISSING]` | one bounded run with sanitized evidence | all packets complete | any unresolved hard stop | source-controlled validation/stop authority plus named live-run executor | last |
 
 Shared contracts: Catalog `catalog.bundle.v1`, central Orders UUID, Payments create/status/callback boundary, Orders cancellation workflow, Warehouse component-line lifecycle, and FlipFlop cart/session/local projection cleanup.
 

@@ -38,7 +38,7 @@ Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding P
 
 ## Source Context Consumed
 
-- Payments packet `PAYMENTS-GOAL24-OWNER-APPROVED-ROLLBACK-PACKET` states that FlipFlop/channel must approve customer-visible cart/session/projection cleanup before checkout execution, while provider rollback and runtime validation owner facts remain missing.
+- Payments packet `PAYMENTS-GOAL24-OWNER-APPROVED-ROLLBACK-PACKET` states that FlipFlop/channel must approve customer-visible cart/session/projection cleanup before checkout execution, while provider rollback and live-run executor facts remain missing while source-controlled validation/stop authority is resolved/narrowed.
 - Orders packet `ORDERS-GOAL24-PAID-PROVIDER-CANCEL-CLEANUP-READINESS` states that Orders cleanup requires provider proof first, owner-approved cancellation actor/reason, idempotency key, and side-effect acknowledgements including channel.
 - Warehouse packet `WH-G24-WAREHOUSE-CLEANUP-APPROVAL-PACKET` states that stock cleanup is component-line scoped and remains blocked on owner-approved hold/release window, max quantity, and deterministic component reservation state.
 - FlipFlop source verifier already proves active authenticated checkout, guest checkout, and legacy create-payment paths pass central Orders UUIDs to Payments before provider creation.
@@ -115,7 +115,7 @@ Decision: `policy-complete-runtime-blocked`.
 
 The channel side is closed only as a source/policy packet. FlipFlop owns the customer-visible checkout initiation packet, exact provider redirect URL shapes, `/payment-result` cancelled/failed retry policy, synthetic cart cleanup, synthetic session/payment-result correlation cleanup, local order projection messaging, and channel side-effect acknowledgement criteria.
 
-The future runtime smoke still cannot start because the packet has no owner-approved named channel/customer checkout executor, no named runtime validation owner, no named executor/rollback owner for the future Fiobanka paid/provider smoke, no sanitized evidence path, and resolved runtime config readback for `PAYMENT_SUCCESS_URL` and `PAYMENT_CANCEL_URL` overrides.
+The future runtime smoke still cannot start because the packet has no owner-approved named channel/customer checkout executor, no named live-run executor, no named executor/rollback owner for the future Fiobanka paid/provider smoke, no sanitized evidence path, and resolved runtime config readback for `PAYMENT_SUCCESS_URL` and `PAYMENT_CANCEL_URL` overrides.
 
 Runtime blockers preserved:
 
@@ -182,7 +182,7 @@ FlipFlop must not infer provider rollback from `/payment-result`, must not infer
 
 - `[MISSING: named executor/rollback owner for future Fiobanka paid/provider smoke]`
 - `[MISSING: owner-approved channel/customer checkout owner for initiating and cleaning up paid catalog.bundle.v1 runtime smoke]`
-- `[MISSING: owner-approved paid/provider checkout smoke packet naming FlipFlop channel cleanup executor and runtime validation owner]`
+- `[MISSING: owner-approved paid/provider checkout smoke packet naming a live-run executor and preserving Codex source-controlled validation/stop authority]`
 - `[MISSING: provider rollback proof from Payments before customer-visible success or completed cleanup]`
 - `[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]`
 - `[MISSING: deterministic Warehouse component reservation state and approved cleanup operation before customer-visible stock/restored messaging]`
@@ -194,16 +194,16 @@ FlipFlop must not infer provider rollback from `/payment-result`, must not infer
 | Workstream | Status | Owner role | Objective | Allowed files/repos | Forbidden actions | Dependencies | Validation evidence | Handoff notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Channel cleanup contract | complete-source-only | FlipFlop channel cleanup owner | Define cart/session/local projection cleanup ownership and hard stops | FlipFlop docs/verifier/state | live checkout, provider calls, Orders/Warehouse/marketplace mutation | Payments/Orders/Warehouse packets | static verifier and diff-check | Ready for integration owner review; grants no runtime permission. |
-| Channel cleanup implementation | dependency-gated | FlipFlop checkout owner | Add or run cleanup only if approved smoke packet requires runtime executor code | focused FlipFlop source/tests after approval | unapproved side effects or broad UX rewrites | owner-approved packet and runtime validation owner | `[MISSING: runtime validation evidence]` | Not started in this lane. |
+| Channel cleanup implementation | dependency-gated | FlipFlop checkout owner | Add or run cleanup only if approved smoke packet requires runtime executor code | focused FlipFlop source/tests after approval | unapproved side effects or broad UX rewrites | owner-approved packet and source-controlled validation/stop authority | `[MISSING: runtime validation evidence]` | Not started in this lane. |
 | Payments rollback proof | dependency-gated | Payments provider owner | Prove provider refund/reversal or unpaid cancel/void | Payments docs/source/evidence | invented provider rollback | provider owner approval | `[MISSING]` | Must precede post-paid channel cleanup success. |
 | Orders/Warehouse cleanup | dependency-gated | Orders/Warehouse owners | Execute approved cancellation and component-line cleanup | service-owned contracts | direct DB/stock edits | provider proof and owner approvals | `[MISSING]` | FlipFlop consumes only bounded results. |
-| Final paid/provider smoke | final integration | `[MISSING: runtime validation owner]` | One bounded smoke with redacted rollback evidence | approved final runner/report | any unapproved side effect | all packets complete | `[MISSING]` | Stop at first hard stop. |
+| Final paid/provider smoke | final integration | Codex Goal 24 integration thread owns source-controlled validation/stop authority; live-run executor remains `[MISSING]` | One bounded smoke with redacted rollback evidence | approved final runner/report | any unapproved side effect | all packets complete | `[MISSING: named live-run executor for the exact side-effectful smoke]` | Stop at first hard stop. |
 
 Shared contracts: Catalog `catalog.bundle.v1`, central Orders UUID, Payments create/status/refund boundary, Orders cancellation workflow, Warehouse component-line lifecycle, FlipFlop customer-visible checkout state.
 
 Integration owner: Catalog commerce integration owner until a dedicated paid/provider smoke owner is assigned.
 
-Validation owner: FlipFlop checkout readiness worker for source-policy validation; `[MISSING: runtime validation owner]` for future live smoke.
+Validation owner: FlipFlop checkout readiness worker for source-policy validation; Codex Goal 24 integration thread owns source-controlled validation/stop authority; future live smoke still requires `[MISSING: named live-run executor for the exact side-effectful smoke]`.
 
 Merge order: Payments rollback packet -> Orders cleanup readiness -> Warehouse cleanup approval packet -> FlipFlop channel cleanup contract -> final integration owner review -> owner-approved runtime smoke only after all hard stops clear.
 

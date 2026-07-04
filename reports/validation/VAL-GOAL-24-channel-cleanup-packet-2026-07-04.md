@@ -47,7 +47,7 @@ Preserved runtime blockers:
 - [MISSING: owner-approved channel/customer checkout owner for initiating and cleaning up paid catalog.bundle.v1 runtime smoke]
 - [MISSING: named executor/rollback owner for future Fiobanka paid/provider smoke]
 - [RESOLVED/NARROWED: runtime config readback shows PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL resolve to approved FlipFlop payment-result URLs without secret output]
-- `[MISSING: named runtime validation owner for the exact side-effectful smoke]`
+- `[RESOLVED/NARROWED: Codex Goal 24 integration thread is the source-controlled validation/stop authority for future source-controlled smoke coordination; live execution still requires a named live-run executor]`
 - `[MISSING: provider rollback proof from Payments before customer-visible success or completed cleanup]`
 - `[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]`
 - `[MISSING: deterministic Warehouse component reservation state and approved cleanup operation before customer-visible stock/restored messaging]`
@@ -62,6 +62,6 @@ No live checkout, discount creation, order submission, provider payment creation
 | Workstream | Status | Owner role | Scope | Dependencies | Blockers | Validation owner | Merge order |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Channel policy packet | complete-source-only | FlipFlop channel cleanup packet worker | Record URL/retry/cart/session/local projection duties and hard stops | current FlipFlop docs/source | none for policy docs | FlipFlop checkout readiness worker | current commit |
-| Runtime channel executor | dependency-gated | `[MISSING: named executor/rollback owner for future Fiobanka paid/provider smoke]` | Run cleanup and channel acknowledgement after proofs | signed smoke packet plus Payments/Orders/Warehouse proofs | owner/executor/evidence path missing | `[MISSING: runtime validation owner]` | after final approval packet |
+| Runtime channel executor | dependency-gated | `[MISSING: named executor/rollback owner for future Fiobanka paid/provider smoke]` | Run cleanup and channel acknowledgement after proofs | signed smoke packet plus Payments/Orders/Warehouse proofs | owner/executor/evidence path missing | source-controlled validation/stop authority plus named live-run executor | after final approval packet |
 | Provider/Orders/Warehouse rollback | dependency-gated | service owners | Provider rollback, Orders cleanup, Warehouse component cleanup | final smoke packet | provider/Orders/Warehouse proof missing | integration validator | before channel acknowledgement |
-| Final live smoke | final integration | `[MISSING: named runtime validation owner]` | one bounded Fiobanka run | every hard stop cleared | any remaining `[MISSING]` | integration validator | last |
+| Final live smoke | final integration | Codex Goal 24 integration thread owns source-controlled validation/stop authority; live-run executor remains `[MISSING]` | one bounded Fiobanka run | every hard stop cleared | any remaining `[MISSING]` | integration validator plus named live-run executor | last |

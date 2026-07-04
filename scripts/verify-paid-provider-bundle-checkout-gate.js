@@ -218,6 +218,22 @@ for (const [label, source] of [
   assert(source.includes('must not infer Warehouse stock effects from Payments refund state'), `${label} missing no Warehouse stock inference rule`);
 }
 
+for (const [label, source] of [
+  ['channel cleanup contract', channelCleanupContract],
+  ['paid/provider gate', gateGoal],
+  ['runtime preflight owner check report', runtimeOwnerCheck],
+  ['channel cleanup packet report', channelCleanupPacket],
+]) {
+  for (const stale of [
+    '[MISSING: owner-approved paid/provider checkout smoke packet naming FlipFlop channel cleanup executor and runtime validation owner]',
+    '[MISSING: named runtime validation owner for the exact side-effectful smoke]',
+    '[MISSING: named runtime validation owner]',
+    '[MISSING: runtime validation owner]',
+  ]) {
+    assert(!source.includes(stale), `${label} still contains stale runtime owner hard stop ${stale}`);
+  }
+}
+
 for (const value of [
   'central Orders UUID',
   'cart/session/local projection cleanup',

@@ -89,7 +89,7 @@ Until then, runtime paid/provider progression is source-rollout-enabled but paid
 - `[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]`
 - `[RESOLVED/NARROWED: explicit ecosystem checkout migration accepts durable Catalog bundleId only as bounded bundleEvidence metadata; FlipFlop runtime checkout submission remains blocked]`
 - `[RESOLVED/NARROWED: FlipFlop source rollout maps durable catalog.bundle.v1 bundleId into central Orders bundleEvidence without changing totals, stock identity, or provider state]`
-- `[MISSING: owner-approved paid/provider checkout smoke packet naming FlipFlop channel cleanup executor and runtime validation owner]`
+- `[MISSING: owner-approved paid/provider checkout smoke packet naming a live-run executor and preserving Codex source-controlled validation/stop authority]`
 - `[MISSING: provider rollback proof from Payments before customer-visible success or completed cleanup]`
 - `[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]`
 - `[MISSING: deterministic Warehouse component reservation state and approved cleanup operation before customer-visible stock/restored messaging]`
@@ -125,7 +125,7 @@ Shared contracts: Catalog `catalog.bundle.v1`, Orders create-order bundle eviden
 
 Integration owner: commerce integration validator after owner approval.
 
-Validation owner: FlipFlop checkout readiness worker for source-policy only; runtime validation owner for any later live smoke.
+Validation owner: FlipFlop checkout readiness worker for source-policy only; Codex Goal 24 integration thread owns source-controlled validation/stop authority for future source-controlled smoke coordination, while live execution still requires a named live-run executor.
 
 Merge order: source-policy verifier, docs/state update, validation, commit/push. Any future live runtime smoke merges only after Payments, Orders, Warehouse, and channel cleanup packets are complete.
 
