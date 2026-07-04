@@ -59,7 +59,7 @@ A new side-effectful Fiobanka paid/provider smoke remains blocked by:
 - `[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]`
 - `[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]`
 - `[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]`
-- `[MISSING: owner-approved Warehouse stock hold/release window, max quantity, target rows]`
+- `[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [MISSING: renewed owner-approved execution window and Warehouse hold/release duration]; [MISSING: live current target row readback at execution time]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]`
 - `[MISSING: final redacted integration evidence packet before any live side effect]`
 
 ## Safety Outcome
