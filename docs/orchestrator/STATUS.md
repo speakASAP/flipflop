@@ -129,7 +129,7 @@ Parallel execution section:
 
 Shared contracts: Catalog `catalog.bundle.v1`, central Orders UUID, Payments provider/refund boundary, Orders cancellation workflow, Warehouse component-line lifecycle, and FlipFlop customer-visible checkout state.
 
-Next action: keep paid/provider runtime smoke blocked until provider rollback proof, Orders/Warehouse cleanup approvals, channel cleanup executor, sanitized evidence path, and runtime validation owner are all present.
+Next action: keep paid/provider runtime smoke blocked until provider rollback proof, Payments bank/refund authority, Orders/Warehouse cleanup approvals, channel sideEffectsHandled acknowledgement for the selected central order, approved Auth token source/token-to-actor proof, named live-run executor, and sanitized evidence path are all present.
 
 ## 2026-07-03 - Goal 24 Checkout UUID And Cleanup Ownership Gate
 
