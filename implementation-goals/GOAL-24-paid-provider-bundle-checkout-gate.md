@@ -269,3 +269,9 @@ Runtime quote evidence is still quote-level only. Live paid/provider checkout re
 [RESOLVED/NARROWED: Warehouse dfab9ec captured live current target row readback through protected Warehouse API without mutation]
 
 Operative runtime blockers now exclude the live target row readback blocker. Remaining hard stops are provider callback/refund proof, named Payments rollback authority, exact future payment/order/provider hashes, concrete rollback idempotency keys, exact Orders cleanup packet and side-effect acknowledgements, Warehouse hold/release duration, final Warehouse mutation approval, and final redacted evidence path.
+
+## 2026-07-04 Channel Acknowledgement Continuation Approval
+
+[RESOLVED/NARROWED: owner approved continuation for FlipFlop channel side-effect acknowledgement policy on 2026-07-04; this is source-governance approval only and does not create or select a central order hash, does not approve checkout/payment/provider calls, and does not authorize sideEffectsHandled.channel=true before selected-order evidence exists]
+
+Runtime remains blocked by [MISSING: owner-approved channel side-effect acknowledgement for the selected central order hash], [MISSING: selected central order hash and FlipFlop local order/session correlation for channel cleanup acknowledgement], [MISSING: redacted channel cleanup evidence proving synthetic cart/session/payment-result/local projection cleanup for the selected central order hash], [MISSING: channel cleanup idempotency key derived from approval id and sanitized payment/order hash], and [MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]. No checkout, payment creation, provider call, refund/reversal, Orders mutation, Warehouse mutation, channel cleanup mutation, deploy, migration, DB write, secret/token output, raw customer/order/payment/provider evidence, or marketplace state change occurred.

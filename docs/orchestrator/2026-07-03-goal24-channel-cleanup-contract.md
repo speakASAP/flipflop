@@ -288,3 +288,13 @@ Runtime remains blocked by `[MISSING: approved token source path, such as an on-
 Allowed source type markers for verifiers: `tokenSourceType=on-host-token-file`; `tokenSourceType=in-memory-handoff`; `actorHashMatches=true`; `requiredAdminRolePresent=true`; `tokenOutput=false`; `decodedJwtOutput=false`; `rawUserOutput=false`; `secretOutput=false`; `tokenSourceDestroyedOrInvalidated=true`.
 
 Auth token-binding proof is not Warehouse stock evidence and is not Orders cleanup authorization.
+
+## 2026-07-04 Channel Acknowledgement Continuation Approval
+
+Decision: `policy-approval-recorded-runtime-selected-order-blocked`.
+
+[RESOLVED/NARROWED: owner approved continuation for FlipFlop channel side-effect acknowledgement policy on 2026-07-04; this is source-governance approval only and does not create or select a central order hash, does not approve checkout/payment/provider calls, and does not authorize sideEffectsHandled.channel=true before selected-order evidence exists]
+
+Runtime remains blocked by [MISSING: owner-approved channel side-effect acknowledgement for the selected central order hash], [MISSING: selected central order hash and FlipFlop local order/session correlation for channel cleanup acknowledgement], [MISSING: redacted channel cleanup evidence proving synthetic cart/session/payment-result/local projection cleanup for the selected central order hash], [MISSING: channel cleanup idempotency key derived from approval id and sanitized payment/order hash], and [MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]. No checkout, payment creation, provider call, refund/reversal, Orders mutation, Warehouse mutation, channel cleanup mutation, deploy, migration, DB write, secret/token output, raw customer/order/payment/provider evidence, or marketplace state change occurred.
+
+This approval can be consumed by the future final integration owner only as policy/readiness input. FlipFlop may still set or attest `sideEffectsHandled.channel=true` only after the same sanitized central order hash has Payments proof or unpaid acknowledgement, Orders approval/idempotency, Warehouse selected reservation state, FlipFlop local cleanup evidence, channel idempotency key, and final redacted evidence path.
