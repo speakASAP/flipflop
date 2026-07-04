@@ -31,6 +31,7 @@ const channelCleanupPacket = read('reports/validation/VAL-GOAL-24-channel-cleanu
 const channelCleanupOwnerSupersession = read('reports/validation/VAL-GOAL-24-channel-cleanup-owner-supersession-2026-07-04.md');
 const autonomousApprovalIntegrationDecision = read('reports/validation/VAL-GOAL-24-autonomous-approval-integration-decision-2026-07-04.md');
 const autonomousRuntimeOwnershipPacket = read('reports/validation/VAL-GOAL-24-autonomous-runtime-ownership-packet-2026-07-04.md');
+const flipflopWarehouseBlockerWordingSync = read('reports/validation/VAL-GOAL-24-flipflop-warehouse-blocker-wording-sync-2026-07-04.md');
 const currentHeadSync = read('reports/validation/VAL-GOAL-24-current-head-sync-2026-07-04.md');
 const warehouseTargetFactsWordingSync = read('reports/validation/VAL-GOAL-24-warehouse-target-facts-wording-sync-2026-07-04.md');
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
@@ -409,6 +410,21 @@ for (const [label, source] of [['channel cleanup contract', channelCleanupContra
   assert(source.includes(channelCleanupPacketMarker), `${label} missing channel cleanup packet marker`);
   assert(source.includes('[RESOLVED/NARROWED: runtime config readback shows PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL resolve to approved FlipFlop payment-result URLs without secret output]'), `${label} missing success/cancel runtime override blocker`);
 }
+for (const [label, source] of [
+  ['implementation state', implementationState],
+  ['orchestrator status', orchestratorStatus],
+  ['approval draft', approvalDraft],
+  ['autonomous runtime ownership packet', autonomousRuntimeOwnershipPacket],
+  ['FlipFlop Warehouse blocker wording sync', flipflopWarehouseBlockerWordingSync],
+]) {
+  assert(!source.includes('Warehouse target rows/window/max quantity'), `${label} still contains generic Warehouse target/window/max wording`);
+  assert(!source.includes('Warehouse live target rows/window/max quantity'), `${label} still contains generic Warehouse live target/window/max wording`);
+  assert(source.includes('[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]'), `${label} missing Warehouse candidate target facts marker`);
+  assert(source.includes('[MISSING: live current target row readback at execution time]'), `${label} missing live Warehouse readback blocker`);
+  assert(source.includes('[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]'), `${label} missing renewed Warehouse window blocker`);
+  assert(source.includes('[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]'), `${label} missing final Warehouse mutation approval blocker`);
+}
+
 for (const [label, source] of [['autonomous runtime ownership packet', autonomousRuntimeOwnershipPacket], ['channel cleanup contract', channelCleanupContract], ['approval draft', approvalDraft], ['paid/provider gate', gateGoal], ['implementation state', implementationState], ['orchestrator status', orchestratorStatus]]) {
   assert(source.includes(autonomousRuntimeOwnershipMarker), `${label} missing autonomous runtime ownership marker`);
 }
