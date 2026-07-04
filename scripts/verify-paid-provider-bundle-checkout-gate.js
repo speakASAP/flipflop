@@ -27,6 +27,7 @@ const runtimeOwnerCheck = read('reports/validation/VAL-GOAL-24-runtime-preflight
 const authAdminActorTokenHandling = read('reports/validation/VAL-GOAL-24-auth-admin-actor-token-handling-2026-07-04.md');
 const authAdminActorReadback = read('reports/validation/VAL-GOAL-24-auth-admin-actor-readback-2026-07-04.md');
 const authAdminTokenBindingProofContract = read('reports/validation/VAL-GOAL-24-auth-admin-token-binding-proof-contract-2026-07-04.md');
+const authTestCredentialTokenProbe = read('reports/validation/VAL-GOAL-24-auth-test-credential-token-probe-2026-07-04.md');
 const paymentResultUrlRuntimeReadback = read('reports/validation/VAL-GOAL-24-payment-result-url-runtime-readback.md');
 const channelCleanupPacket = read('reports/validation/VAL-GOAL-24-channel-cleanup-packet-2026-07-04.md');
 const channelCleanupOwnerSupersession = read('reports/validation/VAL-GOAL-24-channel-cleanup-owner-supersession-2026-07-04.md');
@@ -441,6 +442,30 @@ for (const marker of [
   assert(authAdminTokenBindingProofContract.includes(marker), `auth/admin token-binding proof contract missing ${marker}`);
   assert(implementationState.includes(marker) || orchestratorStatus.includes(marker) || gateGoal.includes(marker) || channelCleanupContract.includes(marker) || approvalDraft.includes(marker), `Goal 24 docs missing token-binding marker ${marker}`);
 }
+for (const marker of [
+  '[RESOLVED/NARROWED: Auth TEST_EMAIL/TEST_PASSWORD token probe returned loginStatusClass=2xx, tokenPresent=true, authValidationStatusClass=2xx, requiredAdminRolePresent=true, actorHashMatches=false, and no token/JWT/user/secret output; test credentials are not an approved Goal 24 discount-fixture token source]',
+  'status: test-credential-token-valid-role-actor-mismatch',
+  'live_auth_login: true',
+  'token_issuance: true',
+  'token_output: false',
+  'decoded_jwt_output: false',
+  'secret_output: false',
+  'raw_user_output: false',
+  'raw_email_output: false',
+  'provider_call: false',
+  'live_checkout_executed: false',
+  'discount_code_created: false',
+  'actorHashMatches: false for selected actor hash 4215870ba488de17',
+  'requiredAdminRolePresent: true',
+  '[MISSING: approved token source path bound to actor hash 4215870ba488de17, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
+  '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
+  '[MISSING: sanitized auth/admin evidence path for guarded discount-code generation using the selected actor-bound token]',
+]) {
+  assert(authTestCredentialTokenProbe.includes(marker), `auth test credential token probe missing ${marker}`);
+  assert(implementationState.includes(marker) || orchestratorStatus.includes(marker) || authTestCredentialTokenProbe.includes(marker), `Goal 24 docs missing auth test credential marker ${marker}`);
+}
+assert(!authTestCredentialTokenProbe.includes('actorHashMatches: true'), 'test credential probe must not claim selected actor hash match');
+
 for (const boundary of [
   'mutation: false',
   'live_auth_login: false',
