@@ -41,6 +41,18 @@ const orchestratorStatus = read('docs/orchestrator/STATUS.md');
 const migrationGoal = read('implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md');
 
 
+const goal24CurrentHeadVerifierSync = read('reports/validation/VAL-GOAL-24-current-head-verifier-sync-2026-07-04.md');
+const goal24CurrentHeadMarker = '[RESOLVED/NARROWED: Goal 24 current-head verifier sync GOAL24-CURRENT-HEADS-2026-07-04F requires Auth 2faf719 docs: complete goal10 customer data wallet rollout, Payments 6bd7b04 docs: sync goal24 payments source wave e, Catalog 12f3386 docs: sync goal24 catalog source wave e, FlipFlop e4ec887 docs: sync goal24 flipflop source wave e, Orders df17b25 docs: sync goal24 orders source wave e, and Warehouse ea7b9e9 merge goal24 warehouse cleanup packet readback sync as the current post-merge validation heads; historical Wave A-E markers are evidence only; runtime side effects remain blocked]';
+for (const [label, source] of [
+  ['current-head verifier sync report', goal24CurrentHeadVerifierSync],
+  ['orchestrator status', orchestratorStatus],
+  ['implementation state', implementationState],
+]) {
+  if (!source.includes(goal24CurrentHeadMarker)) {
+    throw new Error(label + ' missing Goal 24 current-head verifier sync marker');
+  }
+}
+
 const narrowedMigrationMarker = '[RESOLVED/NARROWED: explicit ecosystem checkout migration accepts durable Catalog bundleId only as bounded bundleEvidence metadata; FlipFlop runtime checkout submission remains blocked]';
 const flipflopRuntimeMigrationBlocker = '[RESOLVED/NARROWED: FlipFlop source rollout maps durable catalog.bundle.v1 bundleId into central Orders bundleEvidence without changing totals, stock identity, or provider state]';
 const centralOrdersUuidProofMarker = '[RESOLVED: active FlipFlop checkout paths pass central Orders UUIDs to Payments before provider creation]';
