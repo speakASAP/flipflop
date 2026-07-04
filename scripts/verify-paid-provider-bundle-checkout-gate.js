@@ -98,8 +98,6 @@ const channelRequiredBlockers = [
 
 const requiredBlockers = [...baseRequiredBlockers, ...channelRequiredBlockers];
 const operativeRequiredBlockers = [
-  '[MISSING: fresh Auth actor-bound token generated through the Auth c389c1e no-print/no-decode/no-persist pattern for the exact guarded discount-fixture step]',
-  '[MISSING: sanitized auth/admin evidence path for guarded discount-code generation using the fresh selected actor-bound token]',
   '[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]',
   '[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]',
   '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
@@ -376,7 +374,11 @@ assert(approvalDraft.includes('Discount Fixture Quote Hard Stop'), 'approval dra
 assert(bundlePreservingFixtureSource.includes('source-prepared-runtime-deploy-gated'), 'bundle-preserving fixture source report must remain deploy gated');
 assert(bundlePreservingFixtureSource.includes('goalId=GOAL24-paid-provider-fixture-20260704'), 'bundle-preserving fixture source report missing goal id gate');
 assert(bundlePreservingFixtureRuntimeQuote.includes('quote-preflight-passed-before-checkout'), 'bundle-preserving fixture runtime quote must record passed quote preflight');
-assert(bundlePreservingFixtureRuntimeQuote.includes('codeHash=8533c8372a079955'), 'bundle-preserving fixture runtime quote must include redacted code hash');
+assert(bundlePreservingFixtureRuntimeQuote.includes('codeHash=8533c8372a079955'), 'bundle-preserving fixture runtime quote must preserve original redacted code hash');
+assert(bundlePreservingFixtureRuntimeQuote.includes('codeHash=42b0b921ca10b658'), 'bundle-preserving fixture runtime quote must include actor-bound redacted code hash');
+assert(bundlePreservingFixtureRuntimeQuote.includes('[RESOLVED/NARROWED: fresh Auth actor-bound token generated through the Auth c389c1e no-print/no-decode/no-persist pattern for the exact guarded discount-fixture step]'), 'bundle-preserving fixture runtime quote must resolve fresh actor-bound token marker');
+assert(bundlePreservingFixtureRuntimeQuote.includes('[RESOLVED/NARROWED: sanitized auth/admin evidence path for guarded discount-code generation using the fresh selected actor-bound token is reports/validation/VAL-GOAL-24-bundle-preserving-fixture-runtime-quote.md]'), 'bundle-preserving fixture runtime quote must resolve guarded auth/admin evidence path marker');
+assert(bundlePreservingFixtureRuntimeQuote.includes('tokenSourceDestroyed=true'), 'bundle-preserving fixture runtime quote must prove token source cleanup');
 assert(bundlePreservingFixtureRuntimeQuote.includes('schemaVersion=flipflop.checkout-quote.v1'), 'bundle-preserving fixture runtime quote must include quote schema');
 assert(bundlePreservingFixtureRuntimeQuote.includes('sideEffects=[]'), 'bundle-preserving fixture runtime quote must prove no quote side effects');
 assert(bundlePreservingFixtureRuntimeQuote.includes('total=300'), 'bundle-preserving fixture runtime quote must prove exact 300 CZK total');
@@ -806,7 +808,7 @@ console.log(JSON.stringify({
     bundlePreservingFixtureSource: 'source_prepared_runtime_deploy_gated',
     bundlePreservingFixtureRuntimeQuote: 'quote_preflight_passed_before_checkout',
     runtimeOwnerCheck: 'blocked_secret_access_is_not_sufficient_without_named_actor_and_cleanup_packet',
-    authAdminActorTokenHandling: 'actor_bound_source_proven_fresh_fixture_step_blocked',
+    authAdminActorTokenHandling: 'actor_bound_source_proven_fixture_step_completed',
     successCancelUrlOwnership: 'runtime_url_readback_resolved',
     retryStateCleanupOwnership: 'source_prepared_runtime_blocked',
     channelCleanupPacket: 'policy_complete_runtime_blocked',

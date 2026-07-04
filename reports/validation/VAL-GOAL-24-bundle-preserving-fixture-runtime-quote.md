@@ -44,6 +44,26 @@ orders_mutation_created: false
 - Holiday discount stayed explicitly inactive for this fixture: `applied=false`, `failClosedReason=goal24_bundle_fixture_exclusive`, `reasonCodes=[goal24_bundle_fixture_exclusive]`.
 - Post-quote discount readback remained unredeemed: `usedCount=0`, `remainingUses=1`; therefore quote did not consume the one-use code.
 
+
+## Actor-Bound Runtime Evidence Refresh
+
+Captured on `2026-07-04T10:00:00+02:00` after Auth `c389c1e` token provisioning proof was available.
+
+- A fresh Auth-issued actor-bound token was generated for actor hash `4215870ba488de17` with `actorHashField=emailLower`, required role `app:flipflop-service:admin`, token file mode `0600`, and no token/JWT/user/email/secret output.
+- The token was used only for guarded `POST /api/admin/marketing/discount-codes`; raw token and raw discount code were not printed, decoded into reports, committed, or persisted.
+- Guarded admin discount-code creation returned HTTP `200`; redacted code hash `codeHash=42b0b921ca10b658`.
+- Discount fixture readback: `type=fixed`, `value=2117.58`, `maxUses=1`, `usedCount=0`, `remainingUses=1`, `goalId=GOAL24-paid-provider-fixture-20260704`, `expiresAt=2026-07-04T08:28:52.712Z`.
+- A DTO-complete public quote used `POST https://flipflop.alfares.cz/api/orders/guest/quote` with `paymentMethod=fiobanka`, `deliveryMethod=store`, target `bundleId=919be990-1c76-4f9c-b100-829281c6a709`, and the redacted one-use code.
+- Quote response: HTTP `200`, `schemaVersion=flipflop.checkout-quote.v1`, `sideEffects=[]`, `currency=CZK`, `subtotal=1998`, `tax=419.58`, `shippingCost=0`, `operatorTip=0`, `orderTotalBeforeDiscount=2417.58`, `discount=2117.58`, `total=300`.
+- Bundle evidence remained preserved: `bundleDiscount.source=product_detail_buy_together`, `eligible=true`, `bundleId=919be990-1c76-4f9c-b100-829281c6a709`, `productCount=2`; `catalogCandidatePresent=true`.
+- Holiday discount stayed inactive: `applied=false`, `failClosedReason=goal24_bundle_fixture_exclusive`.
+- Post-quote readback kept the code unredeemed: `usedCount=0`, `remainingUses=1`.
+- Temporary token/script artifacts were removed from the Auth pod and host after the run; `tokenSourceDestroyed=true`.
+- A preliminary quote attempt without the DTO-required `email` and `billingAddress` failed closed with `400`; no checkout/order/payment/provider/Warehouse/Orders side effect occurred.
+
+[RESOLVED/NARROWED: fresh Auth actor-bound token generated through the Auth c389c1e no-print/no-decode/no-persist pattern for the exact guarded discount-fixture step]
+[RESOLVED/NARROWED: sanitized auth/admin evidence path for guarded discount-code generation using the fresh selected actor-bound token is reports/validation/VAL-GOAL-24-bundle-preserving-fixture-runtime-quote.md]
+
 ## Decision
 
 The exact linked `catalog.bundle.v1` bundle now has deployed FlipFlop runtime quote evidence at the approved `300 CZK` Fiobanka ceiling while preserving bundle identity and stopping before side effects.

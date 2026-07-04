@@ -231,3 +231,11 @@ The broad paid/provider smoke blockers remain umbrella context only. Current run
 - `[RESOLVED/NARROWED: approval intake 003 supplies the bounded smoke execution window]; [MISSING: Warehouse hold/release duration]`
 - `[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]`
 - `[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]`
+
+
+## Actor-Bound Guarded Fixture Quote Refresh
+
+[RESOLVED/NARROWED: fresh Auth actor-bound token generated through the Auth c389c1e no-print/no-decode/no-persist pattern for the exact guarded discount-fixture step]
+[RESOLVED/NARROWED: sanitized auth/admin evidence path for guarded discount-code generation using the fresh selected actor-bound token is reports/validation/VAL-GOAL-24-bundle-preserving-fixture-runtime-quote.md]
+
+Runtime quote evidence is still quote-level only. Live paid/provider checkout remains blocked by provider callback/refund proof, named Payments rollback authority, exact future payment/order/provider hashes, Orders cleanup packet and side-effect acknowledgements, Warehouse live readback/hold-release/final approval, and final redacted evidence path.
