@@ -55,7 +55,7 @@ const runtimeUrlReadbackMissingMarker = '[MISSING: sanitized runtime config read
 const autonomousApprovalDecisionMarker = '[RESOLVED/NARROWED: owner delegated autonomous Goal 24 continuation to Codex, but integration validation keeps new Fiobanka paid/provider side effects hard-stopped until bank/refund authority, exact Orders/Warehouse packet, and redacted provider proof exist]';
 const autonomousRuntimeOwnershipMarker = '[RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]';
 const channelCleanupOwnerSupersessionMarker = '[RESOLVED/NARROWED: Codex Goal 24 integration thread supersedes earlier FlipFlop channel executor/runtime owner blockers; channel cleanup runtime remains blocked until bank/refund authority, exact provider proof, Orders side-effect acknowledgements, Warehouse target facts, Auth token source, and final redacted evidence path exist]';
-const currentHeadSyncMarker = '[RESOLVED/NARROWED: FlipFlop consumed current Goal 24 source-governance heads Catalog `b0ed9f5 merge goal24 current integration head sync`, Orders `ccc9f92 merge goal24 current source head sync`, Payments `52f9b7e merge goal24 current source head sync`, Warehouse `11df002 merge goal24 warehouse target facts reconcile`, and FlipFlop `b2a4b4d merge goal24 current source head sync`; runtime side effects remain blocked]';
+const currentHeadSyncMarker = '[RESOLVED/NARROWED: FlipFlop consumed current Goal 24 source-governance heads Catalog `e379b54 merge goal24 current source head sync`, Orders `d5d2114 merge goal24 current source head sync`, Payments `eab6351 merge goal24 current source head sync`, Warehouse `11df002 merge goal24 warehouse target facts reconcile`, and FlipFlop `ad409fc merge goal24 current source head sync`; runtime side effects remain blocked]';
 
 const baseRequiredBlockers = [
   paidProviderRuntimeBlocker,
@@ -439,11 +439,11 @@ for (const value of [
   'channel_cleanup_mutation: false',
   'secret_output: false',
   'raw_customer_or_payment_evidence: false',
-  'Catalog `b0ed9f5 merge goal24 current integration head sync`',
-  'Orders `ccc9f92 merge goal24 current source head sync`',
-  'Payments `52f9b7e merge goal24 current source head sync`',
+  'Catalog `e379b54 merge goal24 current source head sync`',
+  'Orders `d5d2114 merge goal24 current source head sync`',
+  'Payments `eab6351 merge goal24 current source head sync`',
   'Warehouse `11df002 merge goal24 warehouse target facts reconcile`',
-  'FlipFlop `b2a4b4d merge goal24 current source head sync`',
+  'FlipFlop `ad409fc merge goal24 current source head sync`',
 ]) {
   assert(currentHeadSync.includes(value), `current head sync report missing ${value}`);
 }
