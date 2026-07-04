@@ -12,7 +12,7 @@ channel_cleanup_mutation: false
 secret_output: false
 raw_customer_or_payment_evidence: false
 
-[RESOLVED/NARROWED: FlipFlop consumed current Goal 24 source-governance heads Catalog `51eac73 merge goal24 orders payments head sync`, Orders `3901ec1 merge goal24 latest cleanup head sync`, Payments `53ce5cc merge goal24 orders head sync`, Warehouse `46a66dc docs: define goal24 warehouse cleanup packet`, and FlipFlop `5202c15 merge goal24 channel cleanup owner supersession`; runtime side effects remain blocked]
+[RESOLVED/NARROWED: FlipFlop consumed current Goal 24 source-governance heads Catalog `b0ed9f5 merge goal24 current integration head sync`, Orders `ccc9f92 merge goal24 current source head sync`, Payments `52f9b7e merge goal24 current source head sync`, Warehouse `11df002 merge goal24 warehouse target facts reconcile`, and FlipFlop `b2a4b4d merge goal24 current source head sync`; runtime side effects remain blocked]
 
 The older autonomous read-only discovery lines that named Payments `d5ee11b`, Orders `e3f6e18`, and FlipFlop `31845ef` are historical context only. They are not current dependency evidence for a new Fiobanka paid/provider side-effectful smoke.
 
@@ -32,11 +32,11 @@ The older autonomous read-only discovery lines that named Payments `d5ee11b`, Or
 
 | Service | Current source-governance head | Runtime authority |
 | --- | --- | --- |
-| Catalog | `51eac73 merge goal24 orders payments head sync` | bundle/integration docs only |
-| Orders | `3901ec1 merge goal24 latest cleanup head sync` | lifecycle/cancellation/idempotency source packet only |
-| Payments | `53ce5cc merge goal24 orders head sync` | provider/refund rollback docs only |
-| Warehouse | `46a66dc docs: define goal24 warehouse cleanup packet` | component-line cleanup operation packet only |
-| FlipFlop | `5202c15 merge goal24 channel cleanup owner supersession` | channel cleanup ownership source packet only |
+| Catalog | `b0ed9f5 merge goal24 current integration head sync` | bundle/integration docs only |
+| Orders | `ccc9f92 merge goal24 current source head sync` | lifecycle/cancellation/idempotency source packet only |
+| Payments | `52f9b7e merge goal24 current source head sync` | provider/refund rollback docs only |
+| Warehouse | `11df002 merge goal24 warehouse target facts reconcile` | component-line cleanup operation packet only |
+| FlipFlop | `b2a4b4d merge goal24 current source head sync` | channel cleanup ownership source packet only |
 
 ## Preserved Runtime Hard Stops
 
