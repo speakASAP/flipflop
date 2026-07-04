@@ -83,7 +83,7 @@ FlipFlop/channel ownership for a future approved smoke:
 Until then, runtime paid/provider progression is source-rollout-enabled but paid/provider smoke remains blocked by:
 
 - `[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]`
-- `[MISSING: owner-approved paid/provider test window, non-secret approval id, target active catalog.bundle.v1 bundle id, provider method, and sanitized evidence policy]`
+- `[RESOLVED/NARROWED: owner-approved bounded paid/provider smoke intake GOAL24-PAID-PROVIDER-SMOKE-20260704-CODEX-OWNER-APPROVED-003 covers Fiobanka QR, flipflop-service, catalog.bundle.v1 919be990-1c76-4f9c-b100-829281c6a709, component qty 1 each, max 300 CZK, one attempt, window 2026-07-04T09:00:08+02:00 through 2026-07-04T23:59:59+02:00 Europe/Prague, and sanitized evidence path reports/validation/VAL-GOAL-24-live-paid-provider-runtime-evidence-2026-07-04.md; runtime remains blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and final redacted evidence exist]`
 - `[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]`
 - `[MISSING: Warehouse stock decrement/reservation-release evidence for every bundle component line]`
 - `[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]`
@@ -217,10 +217,16 @@ Wave C supersedes Wave B for renewed runtime planning only. It does not authoriz
 
 The broad paid/provider smoke blockers remain umbrella context only. Current runtime planning must fail closed on the exact packets below before any checkout/channel side effect:
 
+- `[MISSING: approved token source path bound to actor hash 4215870ba488de17, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]`
+- `[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]`
+- `[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]`
+- `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]`
 - `[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]`
 - `[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]`
+- `[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]`
 - `[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]`
 - `[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]`
+- `[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]`
 - `[MISSING: live current target row readback at execution time]`
 - `[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]`
 - `[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]`
