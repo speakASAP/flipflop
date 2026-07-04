@@ -98,8 +98,8 @@ const channelRequiredBlockers = [
 
 const requiredBlockers = [...baseRequiredBlockers, ...channelRequiredBlockers];
 const operativeRequiredBlockers = [
-  '[MISSING: approved token source path bound to actor hash 4215870ba488de17, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
-  '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
+  '[MISSING: fresh Auth actor-bound token generated through the Auth c389c1e no-print/no-decode/no-persist pattern for the exact guarded discount-fixture step]',
+  '[MISSING: sanitized auth/admin evidence path for guarded discount-code generation using the fresh selected actor-bound token]',
   '[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]',
   '[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]',
   '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
@@ -806,7 +806,7 @@ console.log(JSON.stringify({
     bundlePreservingFixtureSource: 'source_prepared_runtime_deploy_gated',
     bundlePreservingFixtureRuntimeQuote: 'quote_preflight_passed_before_checkout',
     runtimeOwnerCheck: 'blocked_secret_access_is_not_sufficient_without_named_actor_and_cleanup_packet',
-    authAdminActorTokenHandling: 'blocked_missing_named_actor_with_narrowed_non_printing_token_path',
+    authAdminActorTokenHandling: 'actor_bound_source_proven_fresh_fixture_step_blocked',
     successCancelUrlOwnership: 'runtime_url_readback_resolved',
     retryStateCleanupOwnership: 'source_prepared_runtime_blocked',
     channelCleanupPacket: 'policy_complete_runtime_blocked',

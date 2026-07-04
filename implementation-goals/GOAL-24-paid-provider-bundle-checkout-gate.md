@@ -217,8 +217,8 @@ Wave C supersedes Wave B for renewed runtime planning only. It does not authoriz
 
 The broad paid/provider smoke blockers remain umbrella context only. Current runtime planning must fail closed on the exact packets below before any checkout/channel side effect:
 
-- `[MISSING: approved token source path bound to actor hash 4215870ba488de17, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]`
-- `[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]`
+- `[MISSING: fresh Auth actor-bound token generated through the Auth c389c1e no-print/no-decode/no-persist pattern for the exact guarded discount-fixture step]`
+- `[MISSING: sanitized auth/admin evidence path for guarded discount-code generation using the fresh selected actor-bound token]`
 - `[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]`
 - `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]`
 - `[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]`
