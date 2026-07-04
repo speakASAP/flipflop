@@ -306,6 +306,8 @@ assert(channelCleanupContract.includes('https://flipflop.alfares.cz/payment-resu
 assert(channelCleanupContract.includes('https://flipflop.alfares.cz/api/webhooks/payment-result'), 'channel cleanup contract missing provider callback URL boundary');
 assert(channelCleanupContract.includes('[RESOLVED/NARROWED: runtime config readback shows PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL resolve to approved FlipFlop payment-result URLs without secret output]'), 'channel cleanup contract missing runtime URL override resolution');
 assert(paymentResultUrlRuntimeReadback.includes('PAYMENT_SUCCESS_URL_STATE=set approved_payment_result_url') && paymentResultUrlRuntimeReadback.includes('PAYMENT_CANCEL_URL_STATE=set approved_payment_result_url'), 'runtime URL readback report must prove success/cancel URLs are approved');
+assert(paymentResultUrlRuntimeReadback.includes(autonomousRuntimeOwnershipMarker), 'runtime URL readback report missing current runtime owner/channel executor narrowing');
+assert(!paymentResultUrlRuntimeReadback.includes('named runtime validation owner, named FlipFlop cleanup executor'), 'runtime URL readback report still treats owner/executor as current missing blockers');
 const normalizedOrderService = orderService.replace(/\s+/g, ' ');
 assert(normalizedOrderService.includes("const envKey = status === 'completed' ? 'PAYMENT_SUCCESS_URL' : 'PAYMENT_CANCEL_URL'"), 'order service must expose success/cancel URL override keys');
 assert(orderService.includes("'https://flipflop.alfares.cz'"), 'order service must keep FlipFlop frontend base fallback');
