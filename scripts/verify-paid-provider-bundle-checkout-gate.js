@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const fs = require('fs');
+const sourceWaveCMarker = '[RESOLVED/NARROWED: Goal 24 source-governance wave GOAL24-SOURCE-WAVE-2026-07-04C input set records Auth `2faf719 docs: complete goal10 customer data wallet rollout`, Catalog `b20e95b merge goal24 catalog source wave c`, FlipFlop `2310c90 merge goal24 flipflop stale blocker wording sync`, Payments `080f293 merge goal24 payments source wave c`, Orders `d32abd2 merge goal24 orders source wave c`, and Warehouse `ea7b9e9 merge goal24 warehouse cleanup packet readback sync` as Wave C input heads for renewed runtime planning; post-merge source-sync commits are validation evidence only; runtime checkout/channel side effects remain blocked]';
 const assert = require('assert');
 const { execFileSync } = require('child_process');
 
@@ -650,3 +651,23 @@ console.log(JSON.stringify({
   },
   blockers: requiredBlockers,
 }, null, 2));
+
+const goalDoc = fs.readFileSync('implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md', 'utf8');
+for (const marker of [
+  sourceWaveCMarker,
+  'Operative Runtime Hard Stops',
+  '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
+  '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
+  '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
+  '[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]',
+  '[MISSING: live current target row readback at execution time]',
+  '[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]',
+  '[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
+  '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
+]) {
+  assert(goalDoc.includes(marker), `Goal 24 FlipFlop goal doc missing operative marker: ${marker}`);
+}
+for (const rel of ['reports/validation/VAL-GOAL-24-current-head-sync-2026-07-04.md', 'docs/IMPLEMENTATION_STATE.md', 'docs/orchestrator/STATUS.md']) {
+  const source = fs.readFileSync(rel, 'utf8');
+  assert(source.includes(sourceWaveCMarker), `${rel} missing source Wave C marker`);
+}
