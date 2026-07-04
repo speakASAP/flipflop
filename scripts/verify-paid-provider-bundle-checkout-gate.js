@@ -49,11 +49,42 @@ const catalogOrdersWarehouseNoGoConsumption = read('/home/ssf/Documents/Github/c
 const ordersNoGoCurrentHeadsConsumption = read('/home/ssf/Documents/Github/orders-microservice/reports/validation/VAL-GOAL-24-orders-consume-goal24-source-only-current-heads-2026-07-04.md');
 const warehouseOrdersNoGoConsumption = read('/home/ssf/Documents/Github/warehouse-microservice/reports/validation/VAL-GOAL-24-warehouse-consume-live-no-go-preflight-9287e3f-cc49c08-d1eef3d-9a7c664-2026-07-04.md');
 const paymentsLiveNoGoPreflight = read('/home/ssf/Documents/Github/payments-microservice/reports/validation/VAL-GOAL-24-live-paid-provider-no-go-preflight-2026-07-04.md');
+const flipflopCurrentPaymentsOrdersCatalogHeads = read('reports/validation/VAL-GOAL-24-flipflop-consume-current-payments-orders-catalog-heads-2026-07-04.md');
 const flipflopCurrentPaymentsOrdersCatalogWarehouseHeads = read('reports/validation/VAL-GOAL-24-flipflop-consume-current-payments-orders-catalog-warehouse-heads-2026-07-04.md');
 const paymentsPreSideEffectPacket = read('/home/ssf/Documents/Github/payments-microservice/docs/orchestrator/2026-07-04-goal24-pre-side-effect-runtime-execution-packet.md');
 const ordersPaymentsPreSideEffectConsumption = read('/home/ssf/Documents/Github/orders-microservice/reports/validation/VAL-GOAL-24-orders-consume-payments-pre-side-effect-packet-445c4e7-2026-07-04.md');
 const catalogCurrentPaymentsOrdersHeads = read('/home/ssf/Documents/Github/catalog-microservice/reports/validation/VAL-GOAL-24-catalog-consume-current-payments-orders-heads-2026-07-04.md');
 const warehouseCurrentPaymentsOrdersCatalogHeads = read('/home/ssf/Documents/Github/warehouse-microservice/reports/validation/VAL-GOAL-24-warehouse-consume-current-payments-orders-catalog-heads-2026-07-04.md');
+
+
+const flipflopCurrentPaymentsOrdersCatalogMarker = '[RESOLVED/NARROWED: FlipFlop consumed Catalog 1a51b61 current Payments/Orders head sync plus Payments 445c4e7 and Orders 6360baa as source-governance inputs only; runtime checkout, provider progression, channel cleanup, Orders mutation, and Warehouse mutation remain hard-stopped]';
+for (const [label, source] of [
+  ['FlipFlop current Payments/Orders/Catalog heads report', flipflopCurrentPaymentsOrdersCatalogHeads],
+  ['implementation state', implementationState],
+  ['orchestrator status', orchestratorStatus],
+  ['paid/provider gate goal', gateGoal],
+]) {
+  assert(source.includes(flipflopCurrentPaymentsOrdersCatalogMarker), `${label} missing current Payments/Orders/Catalog marker`);
+  for (const blocker of [
+    '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
+    '[MISSING: exact selected Orders cleanup packet runtime values and sideEffectsHandled acknowledgements]',
+    '[MISSING: exact selected Warehouse reservation lookup state for cleanup]',
+    '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
+  ]) {
+    assert(source.includes(blocker), `${label} missing blocker ${blocker}`);
+  }
+  for (const boundary of ['mutation: false', 'live_checkout_executed: false', 'provider_call: false', 'orders_mutation: false', 'warehouse_mutation: false', 'channel_cleanup_mutation: false', 'secret_output: false']) {
+    assert(source.includes(boundary), `${label} missing boundary ${boundary}`);
+  }
+}
+for (const marker of [
+  '[RESOLVED/NARROWED: Catalog consumed Payments 445c4e7 pre-side-effect packet, Orders 6360baa Payments pre-side-effect consumption, FlipFlop 793f8ef owner-authority sync, and Auth c389c1e actor token provisioning proof as source-governance inputs only; Catalog approval planning remains hard-stopped until a separate current side-effect execution window, exact future payment/order/provider hashes, Orders sideEffectsHandled acknowledgements, exact Warehouse reservation lookup state, channel acknowledgement, provider proof or unpaid acknowledgement, and final redacted evidence exist]',
+  '[MISSING: current side-effect execution window owned by a separate newer integration owner thread]',
+]) {
+  assert(catalogCurrentPaymentsOrdersHeads.includes(marker), `Catalog current Payments/Orders heads missing ${marker}`);
+}
+assert(paymentsPreSideEffectPacket.includes('[MISSING: official/native Fio Banka callback signature contract if provider-authentic bank-originated signatures are required]'), 'Payments pre-side-effect packet native callback blocker missing');
+assert(ordersPaymentsPreSideEffectConsumption.includes('[RESOLVED/NARROWED: Orders consumed Payments 445c4e7 pre-side-effect runtime execution packet as source-only provider-authenticity handoff evidence; Orders route invocation remains blocked until a separate current side-effect execution window, exact future payment/order/provider hashes, provider proof or unpaid acknowledgement, Orders actor/reason/idempotency/sideEffectsHandled, deterministic Warehouse reservation lookup state, channel acknowledgement, and final redacted evidence exist]'), 'Orders Payments pre-side-effect consumption marker missing');
 
 
 const flipflopCurrentNoGoHeadsMarker = '[RESOLVED/NARROWED: FlipFlop consumed Catalog 7c85732 consolidated no-go marker plus Orders 9287e3f, Warehouse eee2f20, Payments cc49c08, and FlipFlop 9a7c664 as source-governance inputs only; runtime checkout, provider progression, channel cleanup, Orders mutation, and Warehouse mutation remain hard-stopped]';
