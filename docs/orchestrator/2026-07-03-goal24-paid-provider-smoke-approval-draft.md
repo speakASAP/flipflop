@@ -59,7 +59,7 @@ Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding P
 - `[MISSING: named FlipFlop channel cleanup executor]`
 - `[RESOLVED/NARROWED: owner approved Fiobanka QR with checkout-authoritative total <= 300 CZK via server-validated discount/price fixture]`
 - `[MISSING: owner confirmation that target bundle 919be990-1c76-4f9c-b100-829281c6a709 and component products remain valid for live smoke]`
-- `[MISSING: owner-approved Warehouse stock hold/release window and max quantity for the exact run]`
+- `[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [MISSING: live current target row readback at execution time]; [MISSING: renewed owner-approved execution window and Warehouse hold/release duration]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]`
 - `[MISSING: deterministic Warehouse component reservation lookup and cleanup operation for every component line]`
 - `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]`
 - `[MISSING: owner decision whether native/official Fiobanka callback signature proof is required or a one-run fixture/reconciliation proof is accepted]`
@@ -282,7 +282,7 @@ Report: `reports/validation/VAL-GOAL-24-channel-cleanup-owner-supersession-2026-
 
 [RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]
 
-Runtime side effects remain blocked by named Auth admin actor/token source, human Payments/provider rollback authority, exact payment/order/provider ids or hashes, Orders side-effect acknowledgements, Warehouse target rows/window/max quantity, and final redacted evidence path. This update is docs/verifier governance only and performed no live checkout, payment, provider call, refund/cancel, Orders/Warehouse/channel mutation, deploy, migration, secret/token output, or raw evidence capture.
+Runtime side effects remain blocked by named Auth admin actor/token source, human Payments/provider rollback authority, exact payment/order/provider ids or hashes, Orders side-effect acknowledgements, Warehouse candidate target rows/max quantity are source-documented while live row readback, renewed window/hold duration, and final mutation approval remain missing, and final redacted evidence path. This update is docs/verifier governance only and performed no live checkout, payment, provider call, refund/cancel, Orders/Warehouse/channel mutation, deploy, migration, secret/token output, or raw evidence capture.
 
 
 Goal 24 autonomous runtime ownership packet retained hard stops:

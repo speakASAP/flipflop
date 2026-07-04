@@ -45,7 +45,7 @@ The owner delegated autonomous continuation to Codex in this thread. This packet
 - hard-stop authority: stop before each side effect if any selected-path marker remains `[MISSING: ...]`;
 - sanitized evidence owner: `Codex Goal 24 integration thread`, limited to booleans, counts, hashes, HTTP status classes, route names, contract ids, approval ids, and timestamps.
 
-This does not create an Auth admin actor token, bank/refund authority, live checkout approval, provider completion proof, provider rollback proof, exact Orders cleanup actor/idempotency for a selected order, Warehouse live target rows/window/max quantity, or permission to print secrets/raw payloads.
+This does not create an Auth admin actor token, bank/refund authority, live checkout approval, provider completion proof, provider rollback proof, exact Orders cleanup actor/idempotency for a selected order, Warehouse candidate target rows/max quantity are source-documented while live row readback, renewed window/hold duration, and final mutation approval remain missing, or permission to print secrets/raw payloads.
 
 ## Still Missing Before Any Live Side Effect
 
