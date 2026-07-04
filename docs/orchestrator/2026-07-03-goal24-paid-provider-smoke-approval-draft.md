@@ -282,7 +282,7 @@ Report: `reports/validation/VAL-GOAL-24-channel-cleanup-owner-supersession-2026-
 
 [RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]
 
-Runtime side effects remain blocked by named Auth admin actor/token source, human Payments/provider rollback authority, exact payment/order/provider ids or hashes, Orders side-effect acknowledgements, Warehouse candidate target rows/max quantity are source-documented while live row readback, renewed window/hold duration, and final mutation approval remain missing, and final redacted evidence path. This update is docs/verifier governance only and performed no live checkout, payment, provider call, refund/cancel, Orders/Warehouse/channel mutation, deploy, migration, secret/token output, or raw evidence capture.
+Runtime side effects remain blocked by named Auth admin actor/token source, human Payments/provider rollback authority, exact payment/order/provider ids or hashes, Orders side-effect acknowledgements, Warehouse candidate target rows/max quantity are source-documented with live row readback, hold duration, and final bounded reservation approval consumed while deterministic reservation cleanup state remains missing, and final redacted evidence path. This update is docs/verifier governance only and performed no live checkout, payment, provider call, refund/cancel, Orders/Warehouse/channel mutation, deploy, migration, secret/token output, or raw evidence capture.
 
 
 Goal 24 autonomous runtime ownership packet retained hard stops:
