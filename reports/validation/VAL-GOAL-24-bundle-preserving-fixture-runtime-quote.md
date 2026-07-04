@@ -76,7 +76,7 @@ The exact linked `catalog.bundle.v1` bundle now has deployed FlipFlop runtime qu
 
 Live checkout remains blocked until these strict runtime facts exist:
 
-- `[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]`
+- `[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]`
 - `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]`
 - `[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state]`
 - `[MISSING: owner-approved side-effect acknowledgements for payment/warehouse/notification/crm/channel]`

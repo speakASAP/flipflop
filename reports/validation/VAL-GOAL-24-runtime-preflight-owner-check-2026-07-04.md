@@ -48,7 +48,7 @@ Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding P
 - `[MISSING: renewed owner-approved execution window for Europe/Prague after 2026-07-03T23:59:59+02:00]`.
 - `[MISSING: named admin/actor or approved token-handling path for guarded discount-code generation]`.
 - `[MISSING: owner-approved paid/provider checkout smoke packet naming a live-run executor and preserving Codex source-controlled validation/stop authority]`.
-- `[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]`.
+- `[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]`.
 - `[MISSING: deterministic Warehouse component reservation state and approved cleanup operation before customer-visible stock/restored messaging]`.
 - `[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]`.
 - `[MISSING: sanitized evidence path for required channel cleanup proof]`.
@@ -73,7 +73,7 @@ Before any bounded paid/provider smoke can run, the owner/service packet must pr
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | FlipFlop preflight owner check | complete-source-only | FlipFlop checkout readiness worker | state/report/verifier proof of hard stop | current remote truth | none for docs/verifier | FlipFlop checkout readiness worker | current |
 | Admin actor/token path | dependency-gated | FlipFlop/admin auth owner | approved non-printing token-handling path for fixed discount code | owner packet | `[MISSING: named admin/actor or approved token-handling path]` | runtime validation owner | before smoke |
-| Payments callback/rollback proof | dependency-gated | Payments provider owner | provider completion and rollback evidence | provider packet | `[MISSING: provider webhook/callback evidence]` | integration validator | before Orders/Warehouse cleanup |
+| Payments callback/rollback proof | dependency-gated | Payments provider owner | provider completion and rollback evidence | provider packet | `[MISSING: provider completion evidence from callback or authenticated polling reconciliation]` | integration validator | before Orders/Warehouse cleanup |
 | Orders/Warehouse cleanup | dependency-gated | Orders/Warehouse owners | cancellation actor/idempotency and component cleanup | provider proof | `[MISSING: Orders/Warehouse cleanup packet]` | integration validator | before channel success |
 | Final paid/provider smoke | final integration | Codex Goal 24 integration thread owns source-controlled validation/stop authority; live-run executor remains `[MISSING]` | one bounded run with sanitized evidence | all packets complete | any unresolved hard stop | source-controlled validation/stop authority plus named live-run executor | last |
 

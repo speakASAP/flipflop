@@ -72,11 +72,11 @@ Retry-state cleanup ownership:
 - FlipFlop frontend owns the `/payment-result` cancelled/failed retry affordance that routes the customer back to `/checkout`.
 - For a future smoke, the channel cleanup executor must record whether retry returns to an empty cart, a restored synthetic smoke cart, or a blocked/manual-review state before checkout begins.
 - Retry state must be keyed by central Orders UUID plus non-secret approval id or smoke correlation id, and cleanup must remove only synthetic payment-result/cart/session correlation for that smoke.
-- A retry-safe or completed customer-visible state is forbidden until provider rollback/callback evidence, Orders cleanup, Warehouse cleanup, and channel cleanup evidence are all present.
+- A retry-safe or completed customer-visible state is forbidden until provider completion/rollback evidence, Orders cleanup, Warehouse cleanup, and channel cleanup evidence are all present.
 
 Markers:
 
-- `[RESOLVED/NARROWED: FlipFlop owns exact customer-visible payment-result success/cancel URLs for provider redirects; provider callback evidence still owns payment truth]`
+- `[RESOLVED/NARROWED: FlipFlop owns exact customer-visible payment-result success/cancel URLs for provider redirects; Payments provider callback or accepted authenticated polling reconciliation evidence still owns payment truth]`
 - `[RESOLVED/NARROWED: FlipFlop owns retry-state cleanup policy for payment-result cancelled/failed views; retry-safe execution remains blocked until provider, Orders, Warehouse, and channel cleanup evidence exists]`
 
 

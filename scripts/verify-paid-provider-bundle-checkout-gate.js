@@ -69,7 +69,7 @@ const channelCleanupContractMarker = 'FLIPFLOP-GOAL24-CHANNEL-CLEANUP-CONTRACT';
 const channelCleanupPreparedMarker = '[RESOLVED/NARROWED: FlipFlop channel cleanup contract prepared for cart/session/local projection cleanup, idempotency, customer-visible hard stops, and redacted evidence policy; runtime remains blocked]';
 const approvalDraftMarker = 'FLIPFLOP-GOAL24-PAID-PROVIDER-SMOKE-APPROVAL-DRAFT';
 const approvedDiscountFixtureMarker = 'Owner-Approved Discount Fixture Narrowing';
-const successCancelUrlOwnerMarker = '[RESOLVED/NARROWED: FlipFlop owns exact customer-visible payment-result success/cancel URLs for provider redirects; provider callback evidence still owns payment truth]';
+const successCancelUrlOwnerMarker = '[RESOLVED/NARROWED: FlipFlop owns exact customer-visible payment-result success/cancel URLs for provider redirects; Payments provider callback or accepted authenticated polling reconciliation evidence still owns payment truth]';
 const retryStateCleanupOwnerMarker = '[RESOLVED/NARROWED: FlipFlop owns retry-state cleanup policy for payment-result cancelled/failed views; retry-safe execution remains blocked until provider, Orders, Warehouse, and channel cleanup evidence exists]';
 const channelCleanupPacketMarker = '[RESOLVED/NARROWED: channel cleanup packet is policy-complete for FlipFlop-owned URL, retry, cart/session/local projection duties; runtime remains blocked until named executor, rollback owner, and sanitized evidence path are supplied]';
 const runtimeUrlReadbackResolvedMarker = '[RESOLVED/NARROWED: runtime config readback shows PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL resolve to approved FlipFlop payment-result URLs without secret output]';
@@ -94,7 +94,7 @@ const currentWarehouseRuntimeMarker = '[RESOLVED/NARROWED: candidate target comp
 const baseRequiredBlockers = [
   paidProviderRuntimeBlocker,
   '[RESOLVED/NARROWED: owner-approved bounded paid/provider smoke intake GOAL24-PAID-PROVIDER-SMOKE-20260704-CODEX-OWNER-APPROVED-003 covers Fiobanka QR, flipflop-service, catalog.bundle.v1 919be990-1c76-4f9c-b100-829281c6a709, component qty 1 each, max 300 CZK, one attempt, window 2026-07-04T09:00:08+02:00 through 2026-07-04T23:59:59+02:00 Europe/Prague, and sanitized evidence path reports/validation/VAL-GOAL-24-live-paid-provider-runtime-evidence-2026-07-04.md; runtime remains blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and final redacted evidence exist]',
-  '[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]',
+  '[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]',
   '[MISSING: Warehouse stock decrement/reservation-release evidence for every bundle component line]',
   '[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]',
 ];
@@ -109,7 +109,7 @@ const channelRequiredBlockers = [
 
 const requiredBlockers = [...baseRequiredBlockers, ...channelRequiredBlockers];
 const operativeRequiredBlockers = [
-  '[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]',
+  '[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]',
   '[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]',
   '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
   '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
@@ -446,7 +446,7 @@ assert(approvalDraft.includes('2026-07-04 Runtime Preflight Owner Check'), 'appr
 assert(runtimeOwnerCheck.includes('blocked-before-side-effects'), 'runtime owner check must stop before side effects');
 assert(runtimeOwnerCheck.includes('[MISSING: named admin/actor or approved token-handling path for guarded discount-code generation]'), 'runtime owner check must preserve admin actor/token-handling blocker');
 assert(autonomousRuntimeOwnershipPacket.includes(autonomousRuntimeOwnershipMarker), 'runtime ownership packet must supersede runtime owner/channel executor blocker');
-assert(runtimeOwnerCheck.includes('[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]'), 'runtime owner check must preserve provider callback blocker');
+assert(runtimeOwnerCheck.includes('[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]'), 'runtime owner check must preserve provider callback blocker');
 assert(runtimeOwnerCheck.includes('[MISSING: deterministic Warehouse component reservation state and approved cleanup operation before customer-visible stock/restored messaging]'), 'runtime owner check must preserve Warehouse cleanup blocker');
 assert(runtimeOwnerCheck.includes('Secret retrieval alone is not a safe runtime path'), 'runtime owner check must reject secret-only execution path');
 assert(orchestratorStatus.includes('VAL-GOAL-24-runtime-preflight-owner-check-2026-07-04.md'), 'orchestrator status missing runtime owner check report');

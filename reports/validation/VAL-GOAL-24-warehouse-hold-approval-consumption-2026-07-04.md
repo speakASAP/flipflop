@@ -33,7 +33,7 @@ token_output: false
 
 Remaining hard stops:
 
-- `[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]`
+- `[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]`
 - `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]`
 - `[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]`
 - `[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]`

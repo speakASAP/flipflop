@@ -177,7 +177,7 @@ Current remote truth was clean at Orders `a1f1428`, Payments `f5c078a`, Warehous
 
 The existing owner closeout for manual Fiobanka refund without exact order linkage is consumed for the retained evidence payment only. It does not authorize a new paid/provider checkout and does not waive exact payment/order/channel linkage for future smokes.
 
-No bounded paid/provider smoke was run. The blocker is not merely access to a secret value: FlipFlop still lacks a named admin/actor or approved non-printing token-handling path for the guarded discount-code endpoint, and the runtime packet still lacks provider callback/rollback proof, deterministic Warehouse component state, Orders cleanup actor/idempotency/side-effect acknowledgements, source-controlled validation/stop authority marker, named live-run executor, selected-order channel acknowledgement owner, renewed execution window, and final sanitized evidence path.
+No bounded paid/provider smoke was run. The blocker is not merely access to a secret value: FlipFlop still lacks a named admin/actor or approved non-printing token-handling path for the guarded discount-code endpoint, and the runtime packet still lacks provider completion/rollback proof, deterministic Warehouse component state, Orders cleanup actor/idempotency/side-effect acknowledgements, source-controlled validation/stop authority marker, named live-run executor, selected-order channel acknowledgement owner, renewed execution window, and final sanitized evidence path.
 
 Report: `reports/validation/VAL-GOAL-24-runtime-preflight-owner-check-2026-07-04.md`.
 
