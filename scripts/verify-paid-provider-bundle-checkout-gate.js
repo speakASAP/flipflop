@@ -30,6 +30,7 @@ const channelCleanupPacket = read('reports/validation/VAL-GOAL-24-channel-cleanu
 const channelCleanupOwnerSupersession = read('reports/validation/VAL-GOAL-24-channel-cleanup-owner-supersession-2026-07-04.md');
 const autonomousApprovalIntegrationDecision = read('reports/validation/VAL-GOAL-24-autonomous-approval-integration-decision-2026-07-04.md');
 const autonomousRuntimeOwnershipPacket = read('reports/validation/VAL-GOAL-24-autonomous-runtime-ownership-packet-2026-07-04.md');
+const currentHeadSync = read('reports/validation/VAL-GOAL-24-current-head-sync-2026-07-04.md');
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
 const orchestratorStatus = read('docs/orchestrator/STATUS.md');
 const migrationGoal = read('implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md');
@@ -54,6 +55,7 @@ const runtimeUrlReadbackMissingMarker = '[MISSING: sanitized runtime config read
 const autonomousApprovalDecisionMarker = '[RESOLVED/NARROWED: owner delegated autonomous Goal 24 continuation to Codex, but integration validation keeps new Fiobanka paid/provider side effects hard-stopped until bank/refund authority, exact Orders/Warehouse packet, and redacted provider proof exist]';
 const autonomousRuntimeOwnershipMarker = '[RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]';
 const channelCleanupOwnerSupersessionMarker = '[RESOLVED/NARROWED: Codex Goal 24 integration thread supersedes earlier FlipFlop channel executor/runtime owner blockers; channel cleanup runtime remains blocked until bank/refund authority, exact provider proof, Orders side-effect acknowledgements, Warehouse target facts, Auth token source, and final redacted evidence path exist]';
+const currentHeadSyncMarker = '[RESOLVED/NARROWED: FlipFlop consumed current Goal 24 source-governance heads Catalog `51eac73 merge goal24 orders payments head sync`, Orders `3901ec1 merge goal24 latest cleanup head sync`, Payments `53ce5cc merge goal24 orders head sync`, Warehouse `46a66dc docs: define goal24 warehouse cleanup packet`, and FlipFlop `5202c15 merge goal24 channel cleanup owner supersession`; runtime side effects remain blocked]';
 
 const baseRequiredBlockers = [
   paidProviderRuntimeBlocker,
@@ -410,6 +412,40 @@ for (const value of [
   '[MISSING: final redacted integration evidence packet before any live side effect]',
 ]) {
   assert(autonomousApprovalIntegrationDecision.includes(value), `autonomous approval integration decision missing ${value}`);
+}
+
+
+for (const [label, source] of [['current head sync report', currentHeadSync], ['implementation state', implementationState], ['orchestrator status', orchestratorStatus]]) {
+  assert(source.includes(currentHeadSyncMarker), `${label} missing current head sync marker`);
+  for (const value of [
+    '[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
+    '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
+    '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
+    '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
+    '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]',
+    '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
+    '[MISSING: owner-approved Warehouse stock hold/release window, max quantity, target rows]',
+    '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
+  ]) {
+    assert(source.includes(value), `${label} missing preserved blocker ${value}`);
+  }
+}
+for (const value of [
+  'mutation: false',
+  'provider_call: false',
+  'live_checkout_executed: false',
+  'orders_mutation: false',
+  'warehouse_mutation: false',
+  'channel_cleanup_mutation: false',
+  'secret_output: false',
+  'raw_customer_or_payment_evidence: false',
+  'Catalog `51eac73 merge goal24 orders payments head sync`',
+  'Orders `3901ec1 merge goal24 latest cleanup head sync`',
+  'Payments `53ce5cc merge goal24 orders head sync`',
+  'Warehouse `46a66dc docs: define goal24 warehouse cleanup packet`',
+  'FlipFlop `5202c15 merge goal24 channel cleanup owner supersession`',
+]) {
+  assert(currentHeadSync.includes(value), `current head sync report missing ${value}`);
 }
 
 for (const value of [
