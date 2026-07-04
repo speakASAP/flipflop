@@ -477,6 +477,16 @@ for (const [label, source] of [
 for (const [label, source] of [['autonomous runtime ownership packet', autonomousRuntimeOwnershipPacket], ['channel cleanup contract', channelCleanupContract], ['approval draft', approvalDraft], ['paid/provider gate', gateGoal], ['implementation state', implementationState], ['orchestrator status', orchestratorStatus]]) {
   assert(source.includes(autonomousRuntimeOwnershipMarker), `${label} missing autonomous runtime ownership marker`);
 }
+
+for (const stale of [
+  '[MISSING: named runtime validation owner for the exact side-effectful smoke]',
+  '[MISSING: named runtime validation owner for the exact side-effectful full paid/refund smoke]',
+  'runtime validation owner [MISSING: owner], channel cleanup executor [MISSING: executor]',
+  'the missing runtime validation owner, missing provider/Orders/Warehouse cleanup proofs',
+  '| Final live smoke | final integration | `[MISSING: named runtime validation owner]` |',
+]) {
+  assert(!approvalDraft.includes(stale), `approval draft still contains stale runtime validation owner wording: ${stale}`);
+}
 for (const marker of [
   '[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
   '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
