@@ -58,6 +58,7 @@ const autonomousApprovalDecisionMarker = '[RESOLVED/NARROWED: owner delegated au
 const autonomousRuntimeOwnershipMarker = '[RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]';
 const channelCleanupOwnerSupersessionMarker = '[RESOLVED/NARROWED: Codex Goal 24 integration thread supersedes earlier FlipFlop channel executor/runtime owner blockers; channel cleanup runtime remains blocked until bank/refund authority, exact provider proof, Orders side-effect acknowledgements, Warehouse target facts, Auth token source, and final redacted evidence path exist]';
 const sourceWaveFreezeMarker = '[RESOLVED/NARROWED: Goal 24 frozen source-governance wave GOAL24-SOURCE-WAVE-2026-07-04A records Catalog `e379b54 merge goal24 current source head sync`, FlipFlop `e1f3e3a merge goal24 current source head sync`, Payments `eab6351 merge goal24 current source head sync`, Orders `d53de9f merge goal24 current source head sync`, and Warehouse `11df002 merge goal24 warehouse target facts reconcile` as input heads for runtime planning; post-merge self heads are validation evidence only; runtime side effects remain blocked]';
+const sourceWaveBMarker = '[RESOLVED/NARROWED: Goal 24 current source-governance wave GOAL24-SOURCE-WAVE-2026-07-04B records Auth `2faf719 docs: complete goal10 customer data wallet rollout`, Catalog `43608e5 merge goal24 catalog source wave b`, FlipFlop `e8abb44 merge goal24 implementation target facts wording sync`, Payments `9069fd3 merge goal24 payments source wave b`, Orders `908b6ee merge goal24 orders source wave b`, and Warehouse `3fdeabd merge goal24 live target readback wording sync` as current input heads for renewed runtime planning; runtime side effects remain blocked]';
 
 const baseRequiredBlockers = [
   paidProviderRuntimeBlocker,
@@ -227,6 +228,22 @@ for (const value of [
   '[MISSING: final owner acceptance of redacted evidence policy and forbidden evidence list]',
 ]) {
   assert(approvalDraft.includes(value), `approval draft missing ${value}`);
+}
+
+for (const [label, source] of [['source-wave freeze report', currentHeadSync], ['implementation state', implementationState], ['orchestrator status', orchestratorStatus]]) {
+  assert(source.includes(sourceWaveBMarker), `${label} missing source-wave B marker`);
+  for (const value of [
+    'Auth `2faf719 docs: complete goal10 customer data wallet rollout`',
+    'Catalog `43608e5 merge goal24 catalog source wave b`',
+    'FlipFlop `e8abb44 merge goal24 implementation target facts wording sync`',
+    'Payments `9069fd3 merge goal24 payments source wave b`',
+    'Orders `908b6ee merge goal24 orders source wave b`',
+    'Warehouse `3fdeabd merge goal24 live target readback wording sync`',
+    '[MISSING: live current target row readback at execution time]',
+    '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
+  ]) {
+    assert(source.includes(value), `${label} missing source-wave B value ${value}`);
+  }
 }
 
 for (const value of [
