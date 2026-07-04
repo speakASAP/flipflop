@@ -49,7 +49,7 @@ These decisions do not name the actor and do not authorize runtime execution.
 Before the final Goal 24 paid/provider smoke can create the guarded one-use discount code, the owner packet must provide all of the following non-secret fields:
 
 - `[RESOLVED/NARROWED: sanitized Auth readback found one active verified Goal 24 actor hash 4215870ba488de17 with app:flipflop-service:admin and no token/raw email/user id output]`.
-- `[MISSING: named runtime validation owner with authority to stop before each side effect]`.
+- `[RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]`.
 - `[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]`.
 - `[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]`.
 - `[MISSING: non-secret approval id and renewed execution window for the exact side-effectful smoke]`.
@@ -80,7 +80,7 @@ If proof requires any forbidden evidence, stop before discount-code generation a
 
 ## Decision
 
-Runtime remains blocked. No durable owner identity was source-proven in the inspected repos. The exact next blocker is `[RESOLVED/NARROWED: sanitized Auth readback found one active verified Goal 24 actor hash 4215870ba488de17 with app:flipflop-service:admin and no token/raw email/user id output]` plus `[MISSING: named runtime validation owner with authority to stop before each side effect]` and the approved non-printing token-source path.
+Runtime remains blocked. No durable owner identity was source-proven in the inspected repos. The exact next blocker is `[RESOLVED/NARROWED: sanitized Auth readback found one active verified Goal 24 actor hash 4215870ba488de17 with app:flipflop-service:admin and no token/raw email/user id output]` plus `[RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]` and the approved non-printing token-source path.
 
 
 ## 2026-07-04 Sanitized Auth Admin Actor Readback

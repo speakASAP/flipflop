@@ -384,6 +384,10 @@ assert(authAdminActorTokenHandling.includes('mutation: false'), 'auth/admin acto
 assert(authAdminActorTokenHandling.includes('token_output: false'), 'auth/admin actor report must forbid token output');
 assert(authAdminActorTokenHandling.includes('service tokens/API keys are not approved user actor substitutes'), 'auth/admin actor report must reject service token user substitution');
 assert(authAdminActorTokenHandling.includes('[MISSING: sanitized auth/admin evidence path for guarded discount-code generation]'), 'auth/admin actor report missing sanitized evidence fallback');
+for (const [label, source] of [['auth/admin actor report', authAdminActorTokenHandling], ['implementation state', implementationState], ['orchestrator status', orchestratorStatus]]) {
+  assert(!source.includes('[MISSING: named runtime validation owner with authority to stop before each side effect]'), `${label} still contains stale runtime validation owner blocker`);
+  assert(source.includes(autonomousRuntimeOwnershipMarker), `${label} missing autonomous runtime validation owner marker`);
+}
 for (const marker of [
   'status: actor-hash-resolved-token-source-still-blocked',
   'candidateCount: `3`',
