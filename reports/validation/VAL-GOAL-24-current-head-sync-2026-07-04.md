@@ -12,7 +12,7 @@ channel_cleanup_mutation: false
 secret_output: false
 raw_customer_or_payment_evidence: false
 
-[RESOLVED/NARROWED: FlipFlop consumed current Goal 24 source-governance heads Catalog `b0ed9f5 merge goal24 current integration head sync`, Orders `ccc9f92 merge goal24 current source head sync`, Payments `52f9b7e merge goal24 current source head sync`, Warehouse `11df002 merge goal24 warehouse target facts reconcile`, and FlipFlop `b2a4b4d merge goal24 current source head sync`; runtime side effects remain blocked]
+[RESOLVED/NARROWED: FlipFlop consumed current Goal 24 source-governance heads Catalog `e379b54 merge goal24 current source head sync`, Orders `d5d2114 merge goal24 current source head sync`, Payments `eab6351 merge goal24 current source head sync`, Warehouse `11df002 merge goal24 warehouse target facts reconcile`, and FlipFlop `ad409fc merge goal24 current source head sync`; runtime side effects remain blocked]
 
 The older autonomous read-only discovery lines that named Payments `d5ee11b`, Orders `e3f6e18`, and FlipFlop `31845ef` are historical context only. They are not current dependency evidence for a new Fiobanka paid/provider side-effectful smoke.
 
@@ -32,11 +32,11 @@ The older autonomous read-only discovery lines that named Payments `d5ee11b`, Or
 
 | Service | Current source-governance head | Runtime authority |
 | --- | --- | --- |
-| Catalog | `b0ed9f5 merge goal24 current integration head sync` | bundle/integration docs only |
-| Orders | `ccc9f92 merge goal24 current source head sync` | lifecycle/cancellation/idempotency source packet only |
-| Payments | `52f9b7e merge goal24 current source head sync` | provider/refund rollback docs only |
+| Catalog | `e379b54 merge goal24 current source head sync` | bundle/integration docs only |
+| Orders | `d5d2114 merge goal24 current source head sync` | lifecycle/cancellation/idempotency source packet only |
+| Payments | `eab6351 merge goal24 current source head sync` | provider/refund rollback docs only |
 | Warehouse | `11df002 merge goal24 warehouse target facts reconcile` | component-line cleanup operation packet only |
-| FlipFlop | `b2a4b4d merge goal24 current source head sync` | channel cleanup ownership source packet only |
+| FlipFlop | `ad409fc merge goal24 current source head sync` | channel cleanup ownership source packet only |
 
 ## Preserved Runtime Hard Stops
 
