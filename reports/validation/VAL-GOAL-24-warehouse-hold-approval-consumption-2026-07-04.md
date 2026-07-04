@@ -35,7 +35,7 @@ Remaining hard stops:
 
 - `[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]`
 - `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]`
-- `[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]`
+- `[RESOLVED/NARROWED: owner statement names Sergey Stasok / Сергей Сташок as the human Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; runtime side effects remain blocked until exact future payment/order/provider hashes, provider proof, Orders/Warehouse/channel packets, idempotency keys, and final redacted evidence exist]`
 - `[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]`
 - `[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]`
 - `[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]`

@@ -52,7 +52,7 @@ This does not create an Auth admin actor token, bank/refund authority, live chec
 - `[RESOLVED/NARROWED: sanitized Auth readback found one active verified Goal 24 actor hash 4215870ba488de17 with app:flipflop-service:admin and no token/raw email/user id output]`.
 - `[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]`.
 - `[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]`.
-- `[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]`.
+- `[RESOLVED/NARROWED: owner statement names Sergey Stasok / Сергей Сташок as the human Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; runtime side effects remain blocked until exact future payment/order/provider hashes, provider proof, Orders/Warehouse/channel packets, idempotency keys, and final redacted evidence exist]`.
 - `[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]`.
 - `[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]`.
 - `[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]`.

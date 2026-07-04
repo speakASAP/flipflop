@@ -45,7 +45,7 @@ Historical packet retained as historical evidence only:
 
 Current hard stops before any runtime channel cleanup, customer-visible success, retry-safe state, or side-effect acknowledgement:
 
-- `[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]`
+- `[RESOLVED/NARROWED: owner statement names Sergey Stasok / Сергей Сташок as the human Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; runtime side effects remain blocked until exact future payment/order/provider hashes, provider proof, Orders/Warehouse/channel packets, idempotency keys, and final redacted evidence exist]`
 - `[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]`
 - `[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]`
 - `[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]`

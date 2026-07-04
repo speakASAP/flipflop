@@ -287,7 +287,7 @@ Runtime side effects remain blocked by named Auth admin actor/token source, huma
 
 
 Goal 24 autonomous runtime ownership packet retained hard stops:
-- `[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]`
+- `[RESOLVED/NARROWED: owner statement names Sergey Stasok / Сергей Сташок as the human Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; runtime side effects remain blocked until exact future payment/order/provider hashes, provider proof, Orders/Warehouse/channel packets, idempotency keys, and final redacted evidence exist]`
 - `[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]`
 
 

@@ -22,7 +22,7 @@ Remaining runtime blockers:
 
 - [MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]
 - [MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]
-- [MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]
+- [RESOLVED/NARROWED: owner statement names Sergey Stasok / Сергей Сташок as the human Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; runtime side effects remain blocked until exact future payment/order/provider hashes, provider proof, Orders/Warehouse/channel packets, idempotency keys, and final redacted evidence exist]
 - [MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]
 - [MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]
 - [MISSING: exact selected Orders cleanup packet runtime values and sideEffectsHandled acknowledgements]
@@ -60,7 +60,7 @@ Parallel execution state:
 | Workstream | Status | Owner role | Remaining blocker | Merge/order dependency |
 | --- | --- | --- | --- | --- |
 | FlipFlop current no-go consumer sync | source-complete | FlipFlop channel owner | none for source sync | before renewed runtime planning |
-| Payments provider/refund authority | blocked | named human with bank/refund authority | [MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime] | before checkout/payment side effects |
+| Payments provider/refund authority | blocked | named human with bank/refund authority | [RESOLVED/NARROWED: owner statement names Sergey Stasok / Сергей Сташок as the human Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; runtime side effects remain blocked until exact future payment/order/provider hashes, provider proof, Orders/Warehouse/channel packets, idempotency keys, and final redacted evidence exist] | before checkout/payment side effects |
 | Orders correction packet | dependency-gated | Orders lifecycle owner | exact target order hash/state, actor, reason, idempotency, sideEffectsHandled | after exact payment identity exists |
 | Warehouse cleanup packet | dependency-gated | Warehouse reservation owner | exact selected reservation lookup state | after selected order/reservation exists |
 | Channel cleanup acknowledgement | dependency-gated | FlipFlop channel cleanup owner | selected central order hash and final evidence path | after provider/Orders/Warehouse evidence |

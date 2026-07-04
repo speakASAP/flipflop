@@ -62,7 +62,7 @@ for (const [label, source] of [
   for (const blocker of [
     '[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]',
     '[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]',
-    '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
+    '[RESOLVED/NARROWED: owner statement names Sergey Stasok / Сергей Сташок as the human Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; runtime side effects remain blocked until exact future payment/order/provider hashes, provider proof, Orders/Warehouse/channel packets, idempotency keys, and final redacted evidence exist]',
     '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
     '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]',
     '[MISSING: exact selected Orders cleanup packet runtime values and sideEffectsHandled acknowledgements]',
@@ -133,7 +133,7 @@ const channelCleanupPacketMarker = '[RESOLVED/NARROWED: channel cleanup packet i
 const runtimeUrlReadbackResolvedMarker = '[RESOLVED/NARROWED: runtime config readback shows PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL resolve to approved FlipFlop payment-result URLs without secret output]';
 const runtimeUrlReadbackMissingMarker = '[MISSING: sanitized runtime config readback or owner confirmation that PAYMENT_SUCCESS_URL and PAYMENT_CANCEL_URL are unset or exactly match the approved FlipFlop payment-result URLs for the future smoke]';
 const autonomousApprovalDecisionMarker = '[RESOLVED/NARROWED: owner delegated autonomous Goal 24 continuation to Codex, but integration validation keeps new Fiobanka paid/provider side effects hard-stopped until bank/refund authority, exact Orders/Warehouse packet, and redacted provider proof exist]';
-const ownerApproval003Marker = '[RESOLVED/NARROWED: owner-approved bounded paid/provider smoke intake GOAL24-PAID-PROVIDER-SMOKE-20260704-CODEX-OWNER-APPROVED-003 covers Fiobanka QR, flipflop-service, catalog.bundle.v1 919be990-1c76-4f9c-b100-829281c6a709, component qty 1 each, max 300 CZK, one attempt, window 2026-07-04T09:00:08+02:00 through 2026-07-04T23:59:59+02:00 Europe/Prague, and sanitized evidence path reports/validation/VAL-GOAL-24-live-paid-provider-runtime-evidence-2026-07-04.md; runtime remains blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and final redacted evidence exist]';
+const ownerApproval003Marker = '[RESOLVED/NARROWED: owner-approved bounded paid/provider smoke intake GOAL24-PAID-PROVIDER-SMOKE-20260704-CODEX-OWNER-APPROVED-003 covers Fiobanka QR, flipflop-service, catalog.bundle.v1 919be990-1c76-4f9c-b100-829281c6a709, component qty 1 each, max 300 CZK, one attempt, window 2026-07-04T09:00:08+02:00 through 2026-07-04T23:59:59+02:00 Europe/Prague, and sanitized evidence path reports/validation/VAL-GOAL-24-live-paid-provider-runtime-evidence-2026-07-04.md; runtime remains blocked until exact provider proof, Orders/Warehouse packets, idempotency keys, bank/refund completion evidence, and final redacted evidence exist]';
 const autonomousRuntimeOwnershipMarker = '[RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]';
 const channelCleanupOwnerSupersessionMarker = '[RESOLVED/NARROWED: Codex Goal 24 integration thread supersedes earlier FlipFlop channel executor/runtime owner blockers; channel cleanup runtime remains blocked until bank/refund authority, exact provider proof, Orders side-effect acknowledgements, Warehouse target facts, Auth token source, and final redacted evidence path exist]';
 const channelSideEffectAckPacket = '[RESOLVED/NARROWED: FlipFlop channel side-effect acknowledgement packet shape is source-defined; runtime channel acknowledgement remains blocked until selected order hash, provider proof, Orders approval, Warehouse approval, idempotency key, cleanup evidence, and final redacted evidence path exist]';
@@ -151,7 +151,7 @@ const currentWarehouseRuntimeMarker = '[RESOLVED/NARROWED: candidate target comp
 
 const baseRequiredBlockers = [
   paidProviderRuntimeBlocker,
-  '[RESOLVED/NARROWED: owner-approved bounded paid/provider smoke intake GOAL24-PAID-PROVIDER-SMOKE-20260704-CODEX-OWNER-APPROVED-003 covers Fiobanka QR, flipflop-service, catalog.bundle.v1 919be990-1c76-4f9c-b100-829281c6a709, component qty 1 each, max 300 CZK, one attempt, window 2026-07-04T09:00:08+02:00 through 2026-07-04T23:59:59+02:00 Europe/Prague, and sanitized evidence path reports/validation/VAL-GOAL-24-live-paid-provider-runtime-evidence-2026-07-04.md; runtime remains blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and final redacted evidence exist]',
+  '[RESOLVED/NARROWED: owner-approved bounded paid/provider smoke intake GOAL24-PAID-PROVIDER-SMOKE-20260704-CODEX-OWNER-APPROVED-003 covers Fiobanka QR, flipflop-service, catalog.bundle.v1 919be990-1c76-4f9c-b100-829281c6a709, component qty 1 each, max 300 CZK, one attempt, window 2026-07-04T09:00:08+02:00 through 2026-07-04T23:59:59+02:00 Europe/Prague, and sanitized evidence path reports/validation/VAL-GOAL-24-live-paid-provider-runtime-evidence-2026-07-04.md; runtime remains blocked until exact provider proof, Orders/Warehouse packets, idempotency keys, bank/refund completion evidence, and final redacted evidence exist]',
   '[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]',
   '[MISSING: Warehouse stock decrement/reservation-release evidence for every bundle component line]',
   '[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]',
@@ -159,7 +159,7 @@ const baseRequiredBlockers = [
 
 const channelRequiredBlockers = [
   '[MISSING: provider rollback proof from Payments before customer-visible success or completed cleanup]',
-  '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
+  '[RESOLVED/NARROWED: owner statement names Sergey Stasok / Сергей Сташок as the human Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; runtime side effects remain blocked until exact future payment/order/provider hashes, provider proof, Orders/Warehouse/channel packets, idempotency keys, and final redacted evidence exist]',
   '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
   '[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]',
   '[MISSING: deterministic Warehouse component reservation state and approved cleanup operation before customer-visible stock/restored messaging]',
@@ -169,7 +169,7 @@ const requiredBlockers = [...baseRequiredBlockers, ...channelRequiredBlockers];
 const operativeRequiredBlockers = [
   '[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]',
   '[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]',
-  '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
+  '[RESOLVED/NARROWED: owner statement names Sergey Stasok / Сергей Сташок as the human Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; runtime side effects remain blocked until exact future payment/order/provider hashes, provider proof, Orders/Warehouse/channel packets, idempotency keys, and final redacted evidence exist]',
   '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
   '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]',
   ordersCleanupRuntimeValuesBlocker,
@@ -692,7 +692,7 @@ for (const stale of [
 for (const marker of [
   '[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
   '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
-  '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
+  '[RESOLVED/NARROWED: owner statement names Sergey Stasok / Сергей Сташок as the human Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; runtime side effects remain blocked until exact future payment/order/provider hashes, provider proof, Orders/Warehouse/channel packets, idempotency keys, and final redacted evidence exist]',
   '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
   '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
   '[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [RESOLVED/NARROWED: live current target row readback at execution time captured through protected Warehouse API without mutation]; [RESOLVED/NARROWED: Warehouse hold/release duration is owner-approved for the bounded Goal 24 smoke as 15 minutes source-default TTL or shorter caller-supplied expiresAt]; [RESOLVED/NARROWED: final owner approval before live Warehouse reservation mutation is bounded to one Goal 24 component-line smoke attempt with max quantity 1 per component after live readback]; [MISSING: deterministic Warehouse component reservation state for cleanup]',
@@ -715,7 +715,7 @@ for (const [label, source] of [['channel cleanup owner supersession report', cha
   assert(source.includes(autonomousRuntimeOwnershipMarker), `${label} missing autonomous runtime ownership marker for channel supersession`);
 }
 for (const marker of [
-  '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
+  '[RESOLVED/NARROWED: owner statement names Sergey Stasok / Сергей Сташок as the human Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; runtime side effects remain blocked until exact future payment/order/provider hashes, provider proof, Orders/Warehouse/channel packets, idempotency keys, and final redacted evidence exist]',
   '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
   '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]',
   '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
@@ -751,7 +751,7 @@ for (const [label, source] of [['autonomous approval report', autonomousApproval
   assert(source.includes(autonomousApprovalDecisionMarker), `${label} missing autonomous approval integration decision marker`);
 }
 for (const value of [
-  '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
+  '[RESOLVED/NARROWED: owner statement names Sergey Stasok / Сергей Сташок as the human Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; runtime side effects remain blocked until exact future payment/order/provider hashes, provider proof, Orders/Warehouse/channel packets, idempotency keys, and final redacted evidence exist]',
   '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
   '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
   '[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [RESOLVED/NARROWED: live current target row readback at execution time captured through protected Warehouse API without mutation]; [RESOLVED/NARROWED: Warehouse hold/release duration is owner-approved for the bounded Goal 24 smoke as 15 minutes source-default TTL or shorter caller-supplied expiresAt]; [RESOLVED/NARROWED: final owner approval before live Warehouse reservation mutation is bounded to one Goal 24 component-line smoke attempt with max quantity 1 per component after live readback]; [MISSING: deterministic Warehouse component reservation state for cleanup]',
@@ -779,7 +779,7 @@ for (const [label, source] of [['source-wave freeze report', currentHeadSync], [
   for (const value of [
     '[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
     '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
-    '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
+    '[RESOLVED/NARROWED: owner statement names Sergey Stasok / Сергей Сташок as the human Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; runtime side effects remain blocked until exact future payment/order/provider hashes, provider proof, Orders/Warehouse/channel packets, idempotency keys, and final redacted evidence exist]',
     '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
     '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]',
     '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
