@@ -1,3 +1,23 @@
+
+## 2026-07-04 Warehouse 89222f8 Hold Approval Consumption
+
+[RESOLVED/NARROWED: Warehouse 89222f8 consumes live current target row readback, 15 minute bounded hold duration, max quantity 1 per component, and one-attempt final Warehouse reservation approval after live readback]
+
+Operative Runtime Hard Stops:
+
+- `[MISSING: provider webhook/callback evidence that marks the paid order complete without manual payment-state bypass]`
+- `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]`
+- `[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]`
+- `[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]`
+- `[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]`
+- `[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]`
+- `[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]`
+- `[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]`
+- `[MISSING: deterministic Warehouse component reservation state for cleanup]`
+- `[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]`
+
+Warehouse hold/release duration and final bounded Warehouse reservation approval are no longer operative FlipFlop blockers after Warehouse `89222f8`; this does not authorize checkout, payment creation, provider calls, Orders mutation, Warehouse mutation, channel cleanup, deploy, migration, DB write, secret/token output, or raw evidence output.
+
 # GOAL-24: Paid Provider Bundle Checkout Gate
 
 ```yaml

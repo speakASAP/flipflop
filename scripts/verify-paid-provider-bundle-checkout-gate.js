@@ -23,6 +23,8 @@ const runtimePreflightBlocker = read('reports/validation/VAL-GOAL-24-discount-fi
 const discountFixtureQuoteHardStop = read('reports/validation/VAL-GOAL-24-discount-fixture-quote-hard-stop.md');
 const bundlePreservingFixtureSource = read('reports/validation/VAL-GOAL-24-bundle-preserving-fixture-source.md');
 const bundlePreservingFixtureRuntimeQuote = read('reports/validation/VAL-GOAL-24-bundle-preserving-fixture-runtime-quote.md');
+const warehouseHoldApprovalConsumption = read('reports/validation/VAL-GOAL-24-warehouse-hold-approval-consumption-2026-07-04.md');
+const warehouseLiveReadbackConsumption = read('/home/ssf/Documents/Github/warehouse-microservice/reports/validation/VAL-GOAL-24-warehouse-live-readback-consumption-2026-07-04.md');
 const runtimeOwnerCheck = read('reports/validation/VAL-GOAL-24-runtime-preflight-owner-check-2026-07-04.md');
 const authAdminActorTokenHandling = read('reports/validation/VAL-GOAL-24-auth-admin-actor-token-handling-2026-07-04.md');
 const authAdminActorReadback = read('reports/validation/VAL-GOAL-24-auth-admin-actor-readback-2026-07-04.md');
@@ -106,8 +108,7 @@ const operativeRequiredBlockers = [
   '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
   '[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]',
   '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]',
-  '[MISSING: Warehouse hold/release duration]',
-  '[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
+  '[MISSING: deterministic Warehouse component reservation state for cleanup]',
   '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
 ];
 
@@ -135,6 +136,9 @@ for (const staleOutputBlocker of baseRequiredBlockers.filter((blocker) => !opera
   assert(!operativeRequiredBlockers.includes(staleOutputBlocker), `operative blocker output must not preserve stale broad blocker: ${staleOutputBlocker}`);
 }
 assert(!baseRequiredBlockers.includes('[MISSING: owner-approved paid/provider test window, non-secret approval id, target active catalog.bundle.v1 bundle id, provider method, and sanitized evidence policy]'), 'base required blockers must not preserve stale broad owner approval/test window blocker');
+assert(!operativeRequiredBlockers.includes('[MISSING: Warehouse hold/release duration]'), 'operative output must not preserve resolved Warehouse hold duration blocker');
+assert(!operativeRequiredBlockers.includes('[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]'), 'operative output must not preserve resolved final Warehouse mutation approval blocker');
+assert(operativeRequiredBlockers.includes('[MISSING: deterministic Warehouse component reservation state for cleanup]'), 'operative output must preserve deterministic Warehouse cleanup lookup blocker');
 for (const marker of operativeRequiredBlockers) {
   assert(
     implementationState.includes(marker) || orchestratorStatus.includes(marker) || bundlePreservingFixtureRuntimeQuote.includes(marker) || autonomousApprovalIntegrationDecision.includes(marker) || authTestCredentialTokenProbe.includes(marker),
@@ -379,6 +383,18 @@ assert(bundlePreservingFixtureRuntimeQuote.includes('[RESOLVED/NARROWED: fresh A
 assert(bundlePreservingFixtureRuntimeQuote.includes('[RESOLVED/NARROWED: sanitized auth/admin evidence path for guarded discount-code generation using the fresh selected actor-bound token is reports/validation/VAL-GOAL-24-bundle-preserving-fixture-runtime-quote.md]'), 'bundle-preserving fixture runtime quote must resolve guarded auth/admin evidence path marker');
 assert(bundlePreservingFixtureRuntimeQuote.includes('tokenSourceDestroyed=true'), 'bundle-preserving fixture runtime quote must prove token source cleanup');
 assert(bundlePreservingFixtureRuntimeQuote.includes('[RESOLVED/NARROWED: Warehouse dfab9ec captured live current target row readback through protected Warehouse API without mutation]'), 'bundle-preserving fixture runtime quote must consume Warehouse live readback evidence');
+
+const warehouse89222f8Marker = '[RESOLVED/NARROWED: Warehouse 89222f8 consumes live current target row readback, 15 minute bounded hold duration, max quantity 1 per component, and one-attempt final Warehouse reservation approval after live readback]';
+for (const [label, source] of [
+  ['warehouse hold approval consumption report', warehouseHoldApprovalConsumption],
+  ['implementation state', implementationState],
+  ['orchestrator status', orchestratorStatus],
+]) {
+  assert(source.includes(warehouse89222f8Marker), `${label} missing Warehouse 89222f8 hold approval consumption marker`);
+}
+assert(warehouseLiveReadbackConsumption.includes('[RESOLVED/NARROWED: Warehouse hold/release duration is owner-approved for the bounded Goal 24 smoke as 15 minutes source-default TTL or shorter caller-supplied expiresAt]'), 'Warehouse live readback consumption must include hold duration approval marker');
+assert(warehouseLiveReadbackConsumption.includes('[RESOLVED/NARROWED: final owner approval before live Warehouse reservation mutation is bounded to one Goal 24 component-line smoke attempt with max quantity 1 per component after live readback]'), 'Warehouse live readback consumption must include bounded final mutation approval marker');
+assert(warehouseHoldApprovalConsumption.includes('[MISSING: deterministic Warehouse component reservation state for cleanup]'), 'FlipFlop consumption must preserve deterministic Warehouse cleanup lookup blocker');
 assert(implementationState.includes('[RESOLVED/NARROWED: Warehouse dfab9ec captured live current target row readback through protected Warehouse API without mutation]') && orchestratorStatus.includes('[RESOLVED/NARROWED: Warehouse dfab9ec captured live current target row readback through protected Warehouse API without mutation]'), 'state/status must consume Warehouse live readback evidence');
 assert(bundlePreservingFixtureRuntimeQuote.includes('schemaVersion=flipflop.checkout-quote.v1'), 'bundle-preserving fixture runtime quote must include quote schema');
 assert(bundlePreservingFixtureRuntimeQuote.includes('sideEffects=[]'), 'bundle-preserving fixture runtime quote must prove no quote side effects');
