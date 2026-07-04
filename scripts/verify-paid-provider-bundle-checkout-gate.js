@@ -302,6 +302,18 @@ assert(bundlePreservingFixtureRuntimeQuote.includes('total=300'), 'bundle-preser
 assert(bundlePreservingFixtureRuntimeQuote.includes('usedCount=0') && bundlePreservingFixtureRuntimeQuote.includes('remainingUses=1'), 'bundle-preserving fixture runtime quote must prove discount code stayed unredeemed');
 assert(bundlePreservingFixtureRuntimeQuote.includes('provider_call: false') && bundlePreservingFixtureRuntimeQuote.includes('live_checkout_executed: false'), 'bundle-preserving fixture runtime quote must stop before checkout/provider');
 assert(approvalDraft.includes('Bundle-Preserving Fixture Runtime Quote'), 'approval draft missing bundle-preserving fixture runtime quote');
+assert(!approvalDraft.includes('[MISSING: migration/deploy approval for persisted Orders cleanup idempotency key]'), 'approval draft must not preserve stale Orders idempotency migration blocker');
+assert(approvalDraft.includes('[RESOLVED/NARROWED: Orders cleanup idempotency persistence is source/deploy-evidence recorded; runtime exact sanitized cleanup idempotency key remains missing]'), 'approval draft missing narrowed Orders idempotency persistence marker');
+for (const marker of [
+  '[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]',
+  '[MISSING: live current target row readback at execution time]',
+  '[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]',
+  '[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
+]) {
+  assert(approvalDraft.includes(marker), `approval draft missing Warehouse split blocker ${marker}`);
+  assert(bundlePreservingFixtureRuntimeQuote.includes(marker), `bundle-preserving quote report missing Warehouse split blocker ${marker}`);
+}
+assert(bundlePreservingFixtureRuntimeQuote.includes('[RESOLVED/NARROWED: FlipFlop channel cleanup executor is the Codex Goal 24 integration thread for future source-controlled coordination]'), 'bundle-preserving quote report missing channel executor narrowing');
 assert(orchestratorStatus.includes('VAL-GOAL-24-bundle-preserving-fixture-runtime-quote.md'), 'orchestrator status missing runtime quote report');
 assert(implementationState.includes('VAL-GOAL-24-bundle-preserving-fixture-runtime-quote.md'), 'implementation state missing runtime quote report');
 assert(orderService.includes('GOAL24_BUNDLE_FIXTURE_DISCOUNT_CZK = 2117.58'), 'order service missing exact Goal 24 fixture amount');
@@ -419,6 +431,7 @@ for (const [label, source] of [
 ]) {
   assert(!source.includes('Warehouse target rows/window/max quantity'), `${label} still contains generic Warehouse target/window/max wording`);
   assert(!source.includes('Warehouse live target rows/window/max quantity'), `${label} still contains generic Warehouse live target/window/max wording`);
+  assert(!source.includes('approved Warehouse stock hold/release window and max quantity'), `${label} still contains stale Warehouse hold/max wording`);
   assert(source.includes('[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]'), `${label} missing Warehouse candidate target facts marker`);
   assert(source.includes('[MISSING: live current target row readback at execution time]'), `${label} missing live Warehouse readback blocker`);
   assert(source.includes('[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]'), `${label} missing renewed Warehouse window blocker`);

@@ -87,7 +87,7 @@ Facts found and narrowed:
 - `[RESOLVED/NARROWED: target bundle and component product ids remain the Catalog Goal 24 target set]`: bundle `919be990-1c76-4f9c-b100-829281c6a709`; component products `ce4a51aa-2d12-4ab7-a965-7a36609d01fc` qty `1` and `dbc51dde-fc66-4511-b178-f929183f4647` qty `1`.
 - `[RESOLVED/NARROWED: owner-confirmed manual Fiobanka refund was executed through the external refund service; FlipFlop acknowledgement path remains available for exact order marking]`.
 - `[RESOLVED/NARROWED: Orders source accepts sanitized approval.idempotencyKey and persists statusTransitionAudit]`; runtime still needs migration/deploy approval and exact approved key.
-- `[RESOLVED/NARROWED: Warehouse operation-selection matrix exists for release/cancel/return by component-line state]`; live stock window/max quantity and exact component reservation state still need owner/runtime proof for post-paid correction.
+- `[RESOLVED/NARROWED: Warehouse operation-selection matrix exists for release/cancel/return by component-line state]`; live row readback, renewed window/hold duration, final mutation approval, and exact component reservation state still need owner/runtime proof for post-paid correction.
 
 Strict blockers still open:
 
@@ -100,9 +100,9 @@ Strict blockers still open:
 - `[RESOLVED/NARROWED: runtime readback found no linked FlipFlop order state, so no FlipFlop refunded acknowledgement mutation is required for this evidence-only closeout]` for the retained evidence closeout only.
 - `[RESOLVED/NARROWED: runtime readback found no linked central Orders or FlipFlop state, so no Orders/Warehouse post-paid correction is required for this evidence-only closeout]` for the retained evidence closeout only.
 - `[MISSING: named Orders cancellation actor/approvedBy for Goal 24 paid/provider cleanup]`.
-- `[MISSING: migration/deploy approval for persisted Orders cleanup idempotency key]`.
+- `[RESOLVED/NARROWED: Orders cleanup idempotency persistence is source/deploy-evidence recorded; runtime exact sanitized cleanup idempotency key remains missing]`.
 - `[MISSING: approved Orders cleanup idempotency execution path and exact sanitized key for the run]`.
-- `[MISSING: approved Warehouse stock hold/release window and max quantity for post-paid correction]`.
+- `[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [MISSING: live current target row readback at execution time]; [MISSING: renewed owner-approved execution window and Warehouse hold/release duration]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]`.
 - `[MISSING: deterministic Warehouse component reservation state for the exact paid/refund cleanup]`.
 - `[MISSING: runtime FIO_BANKA_API_KEY read-token configuration and owner-approved polling run evidence]` if provider-authentic transaction polling is required.
 - `[MISSING: official/native Fio Banka callback signature contract]` if bank-originated native signed callbacks are required instead of accepted HMAC/polling/manual evidence.
