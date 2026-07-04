@@ -23,8 +23,8 @@ live_checkout_executed: false
 
 - `[MISSING: renewed owner-approved execution window for Europe/Prague after 2026-07-03T23:59:59+02:00]`.
 - `[MISSING: named admin/actor or approved token-handling path for guarded discount-code generation]`.
-- `[MISSING: named runtime validation owner for the exact side-effectful smoke]`.
-- `[MISSING: named FlipFlop channel cleanup executor]`.
+- [RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist].
+- [RESOLVED/NARROWED: FlipFlop channel cleanup executor is the Codex Goal 24 integration thread for future source-controlled coordination].
 - `[MISSING: approved post-discount-code runtime sequence for quote -> order/payment -> provider completion evidence -> rollback/cleanup]`.
 
 ## Decision

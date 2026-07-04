@@ -497,6 +497,19 @@ for (const [label, source] of [['autonomous runtime ownership packet', autonomou
   assert(source.includes(autonomousRuntimeOwnershipMarker), `${label} missing autonomous runtime ownership marker`);
 }
 
+const currentFlipFlopStatusSurface = orchestratorStatus.split('\n').slice(0, 80).join('\n');
+for (const stale of [
+  '[MISSING: named runtime validation owner for the exact side-effectful smoke]',
+  '[MISSING: named runtime validation owner for the exact side-effectful full paid/refund smoke]',
+  '[MISSING: named FlipFlop channel cleanup executor]',
+  '[MISSING: named FlipFlop channel cleanup executor for exact-order refunded acknowledgement]',
+  'missing runtime validation owner, missing provider/Orders/Warehouse cleanup proofs',
+]) {
+  assert(!currentFlipFlopStatusSurface.includes(stale), 'current FlipFlop status still contains stale owner/executor wording: ' + stale);
+  assert(!runtimePreflightBlocker.includes(stale), 'runtime preflight blocker report still contains stale owner/executor wording: ' + stale);
+}
+assert(currentFlipFlopStatusSurface.includes(autonomousRuntimeOwnershipMarker), 'current FlipFlop status missing autonomous runtime ownership marker');
+
 for (const stale of [
   '[MISSING: named runtime validation owner for the exact side-effectful smoke]',
   '[MISSING: named runtime validation owner for the exact side-effectful full paid/refund smoke]',
