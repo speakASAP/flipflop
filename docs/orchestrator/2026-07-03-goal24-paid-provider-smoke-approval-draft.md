@@ -59,7 +59,7 @@ Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding P
 - `[MISSING: named FlipFlop channel cleanup executor]`
 - `[RESOLVED/NARROWED: owner approved Fiobanka QR with checkout-authoritative total <= 300 CZK via server-validated discount/price fixture]`
 - `[MISSING: owner confirmation that target bundle 919be990-1c76-4f9c-b100-829281c6a709 and component products remain valid for live smoke]`
-- `[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [MISSING: live current target row readback at execution time]; [MISSING: renewed owner-approved execution window and Warehouse hold/release duration]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]`
+- `[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [MISSING: live current target row readback at execution time]; [RESOLVED/NARROWED: approval intake 003 supplies the bounded smoke execution window]; [MISSING: Warehouse hold/release duration]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]`
 - `[MISSING: deterministic Warehouse component reservation lookup and cleanup operation for every component line]`
 - `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]`
 - `[MISSING: owner decision whether native/official Fiobanka callback signature proof is required or a one-run fixture/reconciliation proof is accepted]`
@@ -102,7 +102,7 @@ Strict blockers still open:
 - `[MISSING: named Orders cancellation actor/approvedBy for Goal 24 paid/provider cleanup]`.
 - `[RESOLVED/NARROWED: Orders cleanup idempotency persistence is source/deploy-evidence recorded; runtime exact sanitized cleanup idempotency key remains missing]`.
 - `[MISSING: approved Orders cleanup idempotency execution path and exact sanitized key for the run]`.
-- `[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [MISSING: live current target row readback at execution time]; [MISSING: renewed owner-approved execution window and Warehouse hold/release duration]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]`.
+- `[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [MISSING: live current target row readback at execution time]; [RESOLVED/NARROWED: approval intake 003 supplies the bounded smoke execution window]; [MISSING: Warehouse hold/release duration]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]`.
 - `[MISSING: deterministic Warehouse component reservation state for the exact paid/refund cleanup]`.
 - `[MISSING: runtime FIO_BANKA_API_KEY read-token configuration and owner-approved polling run evidence]` if provider-authentic transaction polling is required.
 - `[MISSING: official/native Fio Banka callback signature contract]` if bank-originated native signed callbacks are required instead of accepted HMAC/polling/manual evidence.

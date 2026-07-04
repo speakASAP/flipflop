@@ -54,6 +54,6 @@ Live checkout remains blocked until these strict runtime facts exist:
 - `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]`
 - `[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state]`
 - `[MISSING: owner-approved side-effect acknowledgements for payment/warehouse/notification/crm/channel]`
-- `[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [MISSING: live current target row readback at execution time]; [MISSING: renewed owner-approved execution window and Warehouse hold/release duration]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]`
+- `[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [MISSING: live current target row readback at execution time]; [RESOLVED/NARROWED: approval intake 003 supplies the bounded smoke execution window]; [MISSING: Warehouse hold/release duration]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]`
 - `[MISSING: deterministic target component reservation state/lookup for cleanup]`
 - `[RESOLVED/NARROWED: FlipFlop channel cleanup executor is the Codex Goal 24 integration thread for future source-controlled coordination]; [MISSING: final approved redaction evidence path for channel cleanup proof]`

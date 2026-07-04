@@ -108,7 +108,7 @@ const operativeRequiredBlockers = [
   '[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]',
   '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]',
   '[MISSING: live current target row readback at execution time]',
-  '[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]',
+  '[MISSING: Warehouse hold/release duration]',
   '[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
   '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
 ];
@@ -387,7 +387,7 @@ assert(approvalDraft.includes('[RESOLVED/NARROWED: Orders cleanup idempotency pe
 for (const marker of [
   '[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]',
   '[MISSING: live current target row readback at execution time]',
-  '[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]',
+  '[RESOLVED/NARROWED: approval intake 003 supplies the bounded smoke execution window]; [MISSING: Warehouse hold/release duration]',
   '[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
 ]) {
   assert(approvalDraft.includes(marker), `approval draft missing Warehouse split blocker ${marker}`);
@@ -542,7 +542,7 @@ for (const [label, source] of [
   assert(!source.includes('approved Warehouse stock hold/release window and max quantity'), `${label} still contains stale Warehouse hold/max wording`);
   assert(source.includes('[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]'), `${label} missing Warehouse candidate target facts marker`);
   assert(source.includes('[MISSING: live current target row readback at execution time]'), `${label} missing live Warehouse readback blocker`);
-  assert(source.includes('[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]'), `${label} missing renewed Warehouse window blocker`);
+  assert(source.includes('[RESOLVED/NARROWED: approval intake 003 supplies the bounded smoke execution window]; [MISSING: Warehouse hold/release duration]'), `${label} missing renewed Warehouse window blocker`);
   assert(source.includes('[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]'), `${label} missing final Warehouse mutation approval blocker`);
 }
 
@@ -578,7 +578,7 @@ for (const marker of [
   '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
   '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
   '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
-  '[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [MISSING: renewed owner-approved execution window and Warehouse hold/release duration]; [MISSING: live current target row readback at execution time]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
+  '[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [RESOLVED/NARROWED: approval intake 003 supplies the bounded smoke execution window]; [MISSING: Warehouse hold/release duration]; [MISSING: live current target row readback at execution time]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
   '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
 ]) {
   assert(autonomousRuntimeOwnershipPacket.includes(marker), `autonomous runtime ownership packet missing ${marker}`);
@@ -602,7 +602,7 @@ for (const marker of [
   '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
   '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]',
   '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
-  '[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [MISSING: renewed owner-approved execution window and Warehouse hold/release duration]; [MISSING: live current target row readback at execution time]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
+  '[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [RESOLVED/NARROWED: approval intake 003 supplies the bounded smoke execution window]; [MISSING: Warehouse hold/release duration]; [MISSING: live current target row readback at execution time]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
   '[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
   '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
   '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
@@ -637,7 +637,7 @@ for (const value of [
   '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
   '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
   '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
-  '[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [MISSING: renewed owner-approved execution window and Warehouse hold/release duration]; [MISSING: live current target row readback at execution time]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
+  '[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [RESOLVED/NARROWED: approval intake 003 supplies the bounded smoke execution window]; [MISSING: Warehouse hold/release duration]; [MISSING: live current target row readback at execution time]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
   '[MISSING: final redacted integration evidence packet before any live side effect]',
 ]) {
   assert(autonomousApprovalIntegrationDecision.includes(value), `autonomous approval integration decision missing ${value}`);
@@ -667,7 +667,7 @@ for (const [label, source] of [['source-wave freeze report', currentHeadSync], [
     '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]',
     '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
     '[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]',
-    '[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]',
+    '[RESOLVED/NARROWED: approval intake 003 supplies the bounded smoke execution window]; [MISSING: Warehouse hold/release duration]',
     '[MISSING: live current target row readback at execution time]',
     '[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
     '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
@@ -739,7 +739,7 @@ for (const [label, source] of [
   ['warehouse target facts wording sync report', warehouseTargetFactsWordingSync],
 ]) {
   assert(source.includes('[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]'), `${label} missing source-documented target facts marker`);
-  assert(source.includes('[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]'), `${label} missing Warehouse hold/release duration blocker`);
+  assert(source.includes('[RESOLVED/NARROWED: approval intake 003 supplies the bounded smoke execution window]; [MISSING: Warehouse hold/release duration]'), `${label} missing Warehouse hold/release duration blocker`);
   assert(source.includes('[MISSING: live current target row readback at execution time]'), `${label} missing live target row readback blocker`);
   assert(source.includes('[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]'), `${label} missing final Warehouse mutation approval blocker`);
   if (label !== 'implementation state') {

@@ -33,12 +33,12 @@ Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding P
 - Coding Prompt: do not infer stock effects from Payments state or channel coordination; preserve Warehouse live readback/window/final approval blockers.
 - Code: `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/STATUS.md`, `docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md`, `reports/validation/VAL-GOAL-24-autonomous-runtime-ownership-packet-2026-07-04.md`, and `scripts/verify-paid-provider-bundle-checkout-gate.js`.
 - Validation: `node --check scripts/verify-paid-provider-bundle-checkout-gate.js`, `node scripts/verify-paid-provider-bundle-checkout-gate.js`, and `git diff --check`.
-- State Update: `[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [MISSING: live current target row readback at execution time]; [MISSING: renewed owner-approved execution window and Warehouse hold/release duration]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]`.
+- State Update: `[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [MISSING: live current target row readback at execution time]; [RESOLVED/NARROWED: approval intake 003 supplies the bounded smoke execution window]; [MISSING: Warehouse hold/release duration]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]`.
 
 ## Still Blocked
 
 - `[MISSING: live current target row readback at execution time]`
-- `[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]`
+- `[RESOLVED/NARROWED: approval intake 003 supplies the bounded smoke execution window]; [MISSING: Warehouse hold/release duration]`
 - `[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]`
 - `[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]`
 - `[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]`
