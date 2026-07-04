@@ -384,7 +384,8 @@ assert(discountFixtureQuoteHardStop.includes('Discount code cannot be combined w
 assert(discountFixtureQuoteHardStop.includes('codeHash=c918c89d0b2fcf25'), 'discount fixture quote hard-stop must include redacted code hash readback');
 assert(orderService.includes('Discount code cannot be combined with a bundle discount'), 'order service must reject discountCode combined with bundleIntent');
 assert(approvalDraft.includes('Discount Fixture Quote Hard Stop'), 'approval draft missing discount fixture quote hard stop');
-assert(bundlePreservingFixtureSource.includes('source-prepared-runtime-deploy-gated'), 'bundle-preserving fixture source report must remain deploy gated');
+assert(bundlePreservingFixtureSource.includes('source-prepared-runtime-quote-deployed'), 'bundle-preserving fixture source report must record runtime quote deployment evidence');
+assert(bundlePreservingFixtureSource.includes('VAL-GOAL-24-bundle-preserving-fixture-runtime-quote.md'), 'bundle-preserving fixture source report must link runtime quote evidence');
 assert(bundlePreservingFixtureSource.includes('goalId=GOAL24-paid-provider-fixture-20260704'), 'bundle-preserving fixture source report missing goal id gate');
 assert(bundlePreservingFixtureRuntimeQuote.includes('quote-preflight-passed-before-checkout'), 'bundle-preserving fixture runtime quote must record passed quote preflight');
 assert(bundlePreservingFixtureRuntimeQuote.includes('codeHash=8533c8372a079955'), 'bundle-preserving fixture runtime quote must preserve original redacted code hash');
@@ -840,7 +841,7 @@ console.log(JSON.stringify({
     amountGate: 'owner_approved_server_validated_discount_fixture_to_300_czk',
     runtimePreflight: 'blocked_guarded_admin_endpoint_requires_actor_or_token_path',
     discountFixtureQuote: 'blocked_discount_code_is_mutually_exclusive_with_bundle_intent',
-    bundlePreservingFixtureSource: 'source_prepared_runtime_deploy_gated',
+    bundlePreservingFixtureSource: 'source_prepared_runtime_quote_deployed',
     bundlePreservingFixtureRuntimeQuote: 'quote_preflight_passed_before_checkout',
     runtimeOwnerCheck: 'blocked_secret_access_is_not_sufficient_without_named_actor_and_cleanup_packet',
     authAdminActorTokenHandling: 'actor_bound_source_proven_fixture_step_completed',

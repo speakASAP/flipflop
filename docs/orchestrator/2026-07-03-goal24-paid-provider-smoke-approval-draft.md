@@ -1,3 +1,4 @@
+2026-07-04: Goal 24 bundle-preserving fixture deployment marker reconciled. [RESOLVED/NARROWED: bundle-preserving discount fixture source is deployed and runtime quote evidence passed before checkout; live paid/provider checkout remains blocked until provider, Orders, Warehouse, channel cleanup, exact IDs, idempotency keys, and final redacted evidence path exist]. No live checkout, order, payment, provider call, Warehouse reservation, Orders mutation, channel cleanup, secret/token output, or raw evidence output occurred in this marker sync. Report: `reports/validation/VAL-GOAL-24-bundle-preserving-fixture-runtime-quote.md`.
 # Goal 24 Paid Provider Smoke Approval Draft - FlipFlop
 
 ```yaml

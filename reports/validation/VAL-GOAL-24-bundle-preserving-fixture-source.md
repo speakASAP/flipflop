@@ -2,7 +2,7 @@
 
 ```yaml
 id: VAL-GOAL-24-BUNDLE-PRESERVING-FIXTURE-SOURCE
-status: source-prepared-runtime-deploy-gated
+status: source-prepared-runtime-quote-deployed
 repository: /home/ssf/Documents/Github/flipflop
 captured_at: 2026-07-04T00:09:00+02:00
 mutation: source-only
@@ -26,4 +26,4 @@ live_checkout_executed: false
 
 ## Runtime Gate
 
-This report is source evidence only. A runtime quote/order/payment still requires deploy of the source change, a fresh correct one-use code, quote proving total `300 CZK` with bundle evidence, and the remaining provider/Orders/Warehouse cleanup packet.
+The source change was later deployed and exercised by `reports/validation/VAL-GOAL-24-bundle-preserving-fixture-runtime-quote.md`, which records ready FlipFlop deployments, guarded one-use fixture creation, HTTP `200` public quote, `total=300`, preserved bundle evidence, `sideEffects=[]`, and no checkout/order/payment/provider/Warehouse/Orders side effects. Runtime paid/provider checkout still requires the remaining provider, Orders, Warehouse, and channel cleanup packet.
