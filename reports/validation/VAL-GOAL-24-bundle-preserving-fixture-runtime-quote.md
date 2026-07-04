@@ -64,6 +64,12 @@ Captured on `2026-07-04T10:00:00+02:00` after Auth `c389c1e` token provisioning 
 [RESOLVED/NARROWED: fresh Auth actor-bound token generated through the Auth c389c1e no-print/no-decode/no-persist pattern for the exact guarded discount-fixture step]
 [RESOLVED/NARROWED: sanitized auth/admin evidence path for guarded discount-code generation using the fresh selected actor-bound token is reports/validation/VAL-GOAL-24-bundle-preserving-fixture-runtime-quote.md]
 
+## Warehouse Live Readback Consumption
+
+[RESOLVED/NARROWED: Warehouse dfab9ec captured live current target row readback through protected Warehouse API without mutation]
+
+Warehouse evidence path: `/home/ssf/Documents/Github/warehouse-microservice/reports/validation/VAL-GOAL-24-warehouse-live-target-readback-runtime-2026-07-04.md`. FlipFlop consumes this as read-only runtime evidence only; it does not authorize checkout, reservation, fulfillment, release, cancel, return, expire, provider calls, Orders mutation, or channel cleanup.
+
 ## Decision
 
 The exact linked `catalog.bundle.v1` bundle now has deployed FlipFlop runtime quote evidence at the approved `300 CZK` Fiobanka ceiling while preserving bundle identity and stopping before side effects.

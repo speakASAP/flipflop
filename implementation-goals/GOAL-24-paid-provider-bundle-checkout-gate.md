@@ -239,3 +239,10 @@ The broad paid/provider smoke blockers remain umbrella context only. Current run
 [RESOLVED/NARROWED: sanitized auth/admin evidence path for guarded discount-code generation using the fresh selected actor-bound token is reports/validation/VAL-GOAL-24-bundle-preserving-fixture-runtime-quote.md]
 
 Runtime quote evidence is still quote-level only. Live paid/provider checkout remains blocked by provider callback/refund proof, named Payments rollback authority, exact future payment/order/provider hashes, Orders cleanup packet and side-effect acknowledgements, Warehouse live readback/hold-release/final approval, and final redacted evidence path.
+
+
+## Warehouse Live Readback Consumption
+
+[RESOLVED/NARROWED: Warehouse dfab9ec captured live current target row readback through protected Warehouse API without mutation]
+
+Operative runtime blockers now exclude the live target row readback blocker. Remaining hard stops are provider callback/refund proof, named Payments rollback authority, exact future payment/order/provider hashes, concrete rollback idempotency keys, exact Orders cleanup packet and side-effect acknowledgements, Warehouse hold/release duration, final Warehouse mutation approval, and final redacted evidence path.

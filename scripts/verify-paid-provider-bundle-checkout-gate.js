@@ -106,7 +106,6 @@ const operativeRequiredBlockers = [
   '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
   '[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]',
   '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]',
-  '[MISSING: live current target row readback at execution time]',
   '[MISSING: Warehouse hold/release duration]',
   '[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
   '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
@@ -379,6 +378,8 @@ assert(bundlePreservingFixtureRuntimeQuote.includes('codeHash=42b0b921ca10b658')
 assert(bundlePreservingFixtureRuntimeQuote.includes('[RESOLVED/NARROWED: fresh Auth actor-bound token generated through the Auth c389c1e no-print/no-decode/no-persist pattern for the exact guarded discount-fixture step]'), 'bundle-preserving fixture runtime quote must resolve fresh actor-bound token marker');
 assert(bundlePreservingFixtureRuntimeQuote.includes('[RESOLVED/NARROWED: sanitized auth/admin evidence path for guarded discount-code generation using the fresh selected actor-bound token is reports/validation/VAL-GOAL-24-bundle-preserving-fixture-runtime-quote.md]'), 'bundle-preserving fixture runtime quote must resolve guarded auth/admin evidence path marker');
 assert(bundlePreservingFixtureRuntimeQuote.includes('tokenSourceDestroyed=true'), 'bundle-preserving fixture runtime quote must prove token source cleanup');
+assert(bundlePreservingFixtureRuntimeQuote.includes('[RESOLVED/NARROWED: Warehouse dfab9ec captured live current target row readback through protected Warehouse API without mutation]'), 'bundle-preserving fixture runtime quote must consume Warehouse live readback evidence');
+assert(implementationState.includes('[RESOLVED/NARROWED: Warehouse dfab9ec captured live current target row readback through protected Warehouse API without mutation]') && orchestratorStatus.includes('[RESOLVED/NARROWED: Warehouse dfab9ec captured live current target row readback through protected Warehouse API without mutation]'), 'state/status must consume Warehouse live readback evidence');
 assert(bundlePreservingFixtureRuntimeQuote.includes('schemaVersion=flipflop.checkout-quote.v1'), 'bundle-preserving fixture runtime quote must include quote schema');
 assert(bundlePreservingFixtureRuntimeQuote.includes('sideEffects=[]'), 'bundle-preserving fixture runtime quote must prove no quote side effects');
 assert(bundlePreservingFixtureRuntimeQuote.includes('total=300'), 'bundle-preserving fixture runtime quote must prove exact 300 CZK total');
@@ -791,7 +792,7 @@ console.log(JSON.stringify({
   mutation: false,
   providerCall: false,
   liveCheckoutExecuted: false,
-  runtimeProgression: 'source_rollout_enabled_paid_provider_still_blocked',
+  runtimeProgression: 'quote_and_warehouse_readback_ready_paid_provider_still_blocked',
   verified: {
     checkoutSmokeCreatesOrderAndPaymentRedirect: true,
     orderServiceReservesBeforePaymentCreation: true,
