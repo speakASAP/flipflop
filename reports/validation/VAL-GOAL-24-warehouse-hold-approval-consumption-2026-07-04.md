@@ -29,6 +29,7 @@ token_output: false
 ## Consumed Warehouse Evidence
 
 [RESOLVED/NARROWED: Warehouse 89222f8 consumes live current target row readback, 15 minute bounded hold duration, max quantity 1 per component, and one-attempt final Warehouse reservation approval after live readback]
+[RESOLVED/NARROWED: live current target row readback at execution time captured through protected Warehouse API without mutation]
 
 Remaining hard stops:
 
