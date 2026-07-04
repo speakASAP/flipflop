@@ -44,6 +44,64 @@ const cleanupPacketRuntimeValuesSync = read('reports/validation/VAL-GOAL-24-clea
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
 const orchestratorStatus = read('docs/orchestrator/STATUS.md');
 const migrationGoal = read('implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md');
+const flipflopCurrentNoGoHeadsConsumption = read('reports/validation/VAL-GOAL-24-flipflop-consume-current-no-go-heads-2026-07-04.md');
+const catalogOrdersWarehouseNoGoConsumption = read('/home/ssf/Documents/Github/catalog-microservice/reports/validation/VAL-GOAL-24-catalog-consume-orders-warehouse-no-go-9287e3f-eee2f20-2026-07-04.md');
+const ordersNoGoCurrentHeadsConsumption = read('/home/ssf/Documents/Github/orders-microservice/reports/validation/VAL-GOAL-24-orders-consume-goal24-source-only-current-heads-2026-07-04.md');
+const warehouseOrdersNoGoConsumption = read('/home/ssf/Documents/Github/warehouse-microservice/reports/validation/VAL-GOAL-24-warehouse-consume-live-no-go-preflight-9287e3f-cc49c08-d1eef3d-9a7c664-2026-07-04.md');
+const paymentsLiveNoGoPreflight = read('/home/ssf/Documents/Github/payments-microservice/reports/validation/VAL-GOAL-24-live-paid-provider-no-go-preflight-2026-07-04.md');
+
+
+const flipflopCurrentNoGoHeadsMarker = '[RESOLVED/NARROWED: FlipFlop consumed Catalog 7c85732 consolidated no-go marker plus Orders 9287e3f, Warehouse eee2f20, Payments cc49c08, and FlipFlop 9a7c664 as source-governance inputs only; runtime checkout, provider progression, channel cleanup, Orders mutation, and Warehouse mutation remain hard-stopped]';
+for (const [label, source] of [
+  ['FlipFlop current no-go heads consumption report', flipflopCurrentNoGoHeadsConsumption],
+  ['implementation state', implementationState],
+  ['orchestrator status', orchestratorStatus],
+  ['paid/provider gate goal', gateGoal],
+]) {
+  assert(source.includes(flipflopCurrentNoGoHeadsMarker), `${label} missing FlipFlop current no-go heads marker`);
+  for (const blocker of [
+    '[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]',
+    '[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]',
+    '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
+    '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
+    '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]',
+    '[MISSING: exact selected Orders cleanup packet runtime values and sideEffectsHandled acknowledgements]',
+    '[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]',
+    '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]',
+    '[MISSING: exact selected Warehouse reservation lookup state for cleanup]',
+    '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
+  ]) {
+    assert(source.includes(blocker), `${label} missing operative blocker ${blocker}`);
+  }
+  for (const boundary of ['mutation: false', 'live_checkout_executed: false', 'provider_call: false', 'orders_mutation: false', 'warehouse_mutation: false', 'channel_cleanup_mutation: false', 'secret_output: false']) {
+    assert(source.includes(boundary), `${label} missing boundary ${boundary}`);
+  }
+}
+for (const marker of [
+  '[RESOLVED/NARROWED: Catalog consumed Orders 9287e3f live no-go consumer sync and Warehouse eee2f20 Orders no-go consumer sync as source-governance inputs only; Catalog approval planning remains hard-stopped until bank/refund authority, exact future smoke identities, Orders sideEffectsHandled acknowledgements, exact Warehouse reservation lookup state, channel acknowledgement, and final redacted evidence exist]',
+  '[MISSING: exact selected Warehouse reservation lookup state for cleanup]',
+]) {
+  assert(catalogOrdersWarehouseNoGoConsumption.includes(marker), `Catalog consolidated no-go missing ${marker}`);
+}
+for (const marker of [
+  '[RESOLVED/NARROWED: Orders consumed Payments cc49c08 live no-go preflight, Catalog d1eef3d live no-go preflight consumption, Warehouse 686d49c blocker wording, and FlipFlop 9a7c664 durable migration provider marker as source-governance inputs only; runtime Orders route invocation and cleanup side effects remain blocked]',
+  '[MISSING: exact selected Orders cleanup packet runtime values and sideEffectsHandled acknowledgements]',
+]) {
+  assert(ordersNoGoCurrentHeadsConsumption.includes(marker), `Orders no-go missing ${marker}`);
+}
+for (const marker of [
+  '[RESOLVED/NARROWED: Warehouse consumed Orders 9287e3f live no-go consumer sync, Payments cc49c08 live no-go preflight, Catalog d1eef3d no-go consumer sync, and FlipFlop 9a7c664 durable migration provider marker as source-governance inputs only; Warehouse stock/reservation effects remain hard-stopped until exact selected reservation lookup state, selected order/payment/provider hashes, Orders sideEffectsHandled acknowledgements, provider proof or unpaid acknowledgement, channel acknowledgement, and final redacted evidence exist]',
+  '[MISSING: exact selected Warehouse reservation lookup state for cleanup]',
+]) {
+  assert(warehouseOrdersNoGoConsumption.includes(marker), `Warehouse no-go missing ${marker}`);
+}
+for (const marker of [
+  'status: runtime-ready-but-side-effect-hard-stopped',
+  'Decision: `block` before checkout/payment/provider side effects.',
+]) {
+  assert(paymentsLiveNoGoPreflight.includes(marker), `Payments no-go missing ${marker}`);
+}
+
 
 
 const goal24CurrentHeadVerifierSync = read('reports/validation/VAL-GOAL-24-current-head-verifier-sync-2026-07-04.md');
