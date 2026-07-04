@@ -141,6 +141,32 @@ Current runtime owner/channel executor ownership is source-governance resolved b
 
 Report: `reports/validation/VAL-GOAL-24-channel-cleanup-owner-supersession-2026-07-04.md`.
 
+## 2026-07-04 Channel Side-Effect Acknowledgement Packet
+
+Decision: `source-defined-runtime-blocked`.
+
+[RESOLVED/NARROWED: FlipFlop channel side-effect acknowledgement packet shape is source-defined; runtime channel acknowledgement remains blocked until selected order hash, provider proof, Orders approval, Warehouse approval, idempotency key, cleanup evidence, and final redacted evidence path exist]
+
+FlipFlop may set or attest `sideEffectsHandled.channel=true` for a future Orders cancellation packet only after all of these selected-order facts exist for the same sanitized central order hash:
+
+- Payments has supplied provider rollback proof hash or an owner-approved unpaid no-provider-cancel acknowledgement.
+- Orders has supplied the target order hash/state, named cancellation actor or `approvedBy`, safe Goal 24 reason code, approved route, and cleanup idempotency key.
+- Warehouse has supplied the observed component-line operation matrix, live target row readback, renewed hold/release window, and final mutation approval.
+- FlipFlop has redacted evidence that synthetic smoke cart entries, checkout/session/payment-result correlation, and local customer-visible projection state were cleared, restored, or moved to blocked/manual-review state according to the approved packet.
+- The channel cleanup idempotency key uses the source-defined namespace `channel:goal24:checkout-cleanup:<approvalId>:<paymentHash>` and is unused before the side effect or replayed only for the same request hash.
+- Final evidence contains only hashes, status classes, booleans, counts, route names, timestamps, approval id, and no-output flags.
+
+Runtime blockers preserved:
+
+- [MISSING: owner-approved channel side-effect acknowledgement for the selected central order hash]
+- [MISSING: selected central order hash and FlipFlop local order/session correlation for channel cleanup acknowledgement]
+- [MISSING: redacted channel cleanup evidence proving synthetic cart/session/payment-result/local projection cleanup for the selected central order hash]
+- [MISSING: channel cleanup idempotency key derived from approval id and sanitized payment/order hash]
+- `[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]`
+
+FlipFlop must not infer provider rollback from `/payment-result`, must not infer Orders cancellation from local projection state, and must not infer Warehouse stock effects from Payments refund state, Auth token state, or channel cleanup state. Customer-visible success or retry-safe state remains blocked until the exact provider, Orders, Warehouse, and channel evidence packets are all complete.
+
+
 
 
 ## 2026-07-04 Warehouse Target Facts Wording Sync

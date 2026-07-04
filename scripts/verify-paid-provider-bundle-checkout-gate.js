@@ -30,6 +30,7 @@ const authAdminTokenBindingProofContract = read('reports/validation/VAL-GOAL-24-
 const paymentResultUrlRuntimeReadback = read('reports/validation/VAL-GOAL-24-payment-result-url-runtime-readback.md');
 const channelCleanupPacket = read('reports/validation/VAL-GOAL-24-channel-cleanup-packet-2026-07-04.md');
 const channelCleanupOwnerSupersession = read('reports/validation/VAL-GOAL-24-channel-cleanup-owner-supersession-2026-07-04.md');
+const channelSideEffectAckReport = read('reports/validation/VAL-GOAL-24-channel-side-effect-ack-packet-2026-07-04.md');
 const autonomousApprovalIntegrationDecision = read('reports/validation/VAL-GOAL-24-autonomous-approval-integration-decision-2026-07-04.md');
 const autonomousRuntimeOwnershipPacket = read('reports/validation/VAL-GOAL-24-autonomous-runtime-ownership-packet-2026-07-04.md');
 const flipflopWarehouseBlockerWordingSync = read('reports/validation/VAL-GOAL-24-flipflop-warehouse-blocker-wording-sync-2026-07-04.md');
@@ -59,6 +60,7 @@ const runtimeUrlReadbackMissingMarker = '[MISSING: sanitized runtime config read
 const autonomousApprovalDecisionMarker = '[RESOLVED/NARROWED: owner delegated autonomous Goal 24 continuation to Codex, but integration validation keeps new Fiobanka paid/provider side effects hard-stopped until bank/refund authority, exact Orders/Warehouse packet, and redacted provider proof exist]';
 const autonomousRuntimeOwnershipMarker = '[RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]';
 const channelCleanupOwnerSupersessionMarker = '[RESOLVED/NARROWED: Codex Goal 24 integration thread supersedes earlier FlipFlop channel executor/runtime owner blockers; channel cleanup runtime remains blocked until bank/refund authority, exact provider proof, Orders side-effect acknowledgements, Warehouse target facts, Auth token source, and final redacted evidence path exist]';
+const channelSideEffectAckPacket = '[RESOLVED/NARROWED: FlipFlop channel side-effect acknowledgement packet shape is source-defined; runtime channel acknowledgement remains blocked until selected order hash, provider proof, Orders approval, Warehouse approval, idempotency key, cleanup evidence, and final redacted evidence path exist]';
 const sourceWaveFreezeMarker = '[RESOLVED/NARROWED: Goal 24 frozen source-governance wave GOAL24-SOURCE-WAVE-2026-07-04A records Catalog `e379b54 merge goal24 current source head sync`, FlipFlop `e1f3e3a merge goal24 current source head sync`, Payments `eab6351 merge goal24 current source head sync`, Orders `d53de9f merge goal24 current source head sync`, and Warehouse `11df002 merge goal24 warehouse target facts reconcile` as input heads for runtime planning; post-merge self heads are validation evidence only; runtime side effects remain blocked]';
 const sourceWaveBMarker = '[RESOLVED/NARROWED: Goal 24 source-governance wave GOAL24-SOURCE-WAVE-2026-07-04B input set records Auth `2faf719 docs: complete goal10 customer data wallet rollout`, Catalog `43608e5 merge goal24 catalog source wave b`, FlipFlop `e8abb44 merge goal24 implementation target facts wording sync`, Payments `9069fd3 merge goal24 payments source wave b`, Orders `908b6ee merge goal24 orders source wave b`, and Warehouse `3fdeabd merge goal24 live target readback wording sync` as Wave B input heads for renewed runtime planning; post-merge source-sync commits are validation evidence only; runtime side effects remain blocked]';
 
@@ -199,6 +201,23 @@ for (const [label, source] of [['channel cleanup contract', channelCleanupContra
   assert(source.includes(channelCleanupPreparedMarker), `${label} missing channel cleanup prepared marker`);
   includesAll(source, channelRequiredBlockers, label);
 }
+
+for (const [label, source] of [
+  ['channel cleanup contract', channelCleanupContract],
+  ['paid/provider gate', gateGoal],
+  ['implementation state', implementationState],
+  ['orchestrator status', orchestratorStatus],
+  ['channel side-effect acknowledgement report', channelSideEffectAckReport],
+]) {
+  assert(source.includes(channelSideEffectAckPacket), `${label} missing channel side-effect acknowledgement packet marker`);
+  assert(source.includes('[MISSING: owner-approved channel side-effect acknowledgement for the selected central order hash]'), `${label} missing selected-order channel acknowledgement blocker`);
+  assert(source.includes('[MISSING: selected central order hash and FlipFlop local order/session correlation for channel cleanup acknowledgement]'), `${label} missing selected-order channel correlation blocker`);
+  assert(source.includes('[MISSING: redacted channel cleanup evidence proving synthetic cart/session/payment-result/local projection cleanup for the selected central order hash]'), `${label} missing redacted channel cleanup evidence blocker`);
+  assert(source.includes('[MISSING: channel cleanup idempotency key derived from approval id and sanitized payment/order hash]'), `${label} missing channel idempotency blocker`);
+  assert(source.includes('channel:goal24:checkout-cleanup:<approvalId>:<paymentHash>'), `${label} missing channel cleanup idempotency namespace`);
+  assert(source.includes('must not infer Warehouse stock effects from Payments refund state'), `${label} missing no Warehouse stock inference rule`);
+}
+
 for (const value of [
   'central Orders UUID',
   'cart/session/local projection cleanup',
