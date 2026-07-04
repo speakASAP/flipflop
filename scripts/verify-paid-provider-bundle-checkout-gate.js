@@ -32,6 +32,7 @@ const channelCleanupOwnerSupersession = read('reports/validation/VAL-GOAL-24-cha
 const autonomousApprovalIntegrationDecision = read('reports/validation/VAL-GOAL-24-autonomous-approval-integration-decision-2026-07-04.md');
 const autonomousRuntimeOwnershipPacket = read('reports/validation/VAL-GOAL-24-autonomous-runtime-ownership-packet-2026-07-04.md');
 const currentHeadSync = read('reports/validation/VAL-GOAL-24-current-head-sync-2026-07-04.md');
+const warehouseTargetFactsWordingSync = read('reports/validation/VAL-GOAL-24-warehouse-target-facts-wording-sync-2026-07-04.md');
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
 const orchestratorStatus = read('docs/orchestrator/STATUS.md');
 const migrationGoal = read('implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md');
@@ -400,7 +401,7 @@ for (const marker of [
   '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
   '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
   '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
-  '[MISSING: owner-approved Warehouse stock hold/release window, max quantity, target rows]',
+  '[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [MISSING: renewed owner-approved execution window and Warehouse hold/release duration]; [MISSING: live current target row readback at execution time]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
   '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
 ]) {
   assert(autonomousRuntimeOwnershipPacket.includes(marker), `autonomous runtime ownership packet missing ${marker}`);
@@ -424,7 +425,7 @@ for (const marker of [
   '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
   '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]',
   '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
-  '[MISSING: owner-approved Warehouse stock hold/release window, max quantity, target rows]',
+  '[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [MISSING: renewed owner-approved execution window and Warehouse hold/release duration]; [MISSING: live current target row readback at execution time]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
   '[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
   '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
   '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
@@ -459,7 +460,7 @@ for (const value of [
   '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
   '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
   '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
-  '[MISSING: owner-approved Warehouse stock hold/release window, max quantity, target rows]',
+  '[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [MISSING: renewed owner-approved execution window and Warehouse hold/release duration]; [MISSING: live current target row readback at execution time]; [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
   '[MISSING: final redacted integration evidence packet before any live side effect]',
 ]) {
   assert(autonomousApprovalIntegrationDecision.includes(value), `autonomous approval integration decision missing ${value}`);
@@ -475,7 +476,10 @@ for (const [label, source] of [['source-wave freeze report', currentHeadSync], [
     '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
     '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]',
     '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
-    '[MISSING: owner-approved Warehouse stock hold/release window, max quantity, target rows]',
+    '[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]',
+    '[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]',
+    '[MISSING: live current target row readback at execution time]',
+    '[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
     '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
   ]) {
     assert(source.includes(value), `${label} missing preserved blocker ${value}`);
@@ -530,6 +534,44 @@ try {
 const authSubjectReport = JSON.parse(defaultAuthSubjectSmoke);
 assert.strictEqual(authSubjectReport.mutation, false, 'default auth-subject smoke must remain non-mutating');
 assert.strictEqual(authSubjectReport.providerCall, false, 'default auth-subject smoke must not call provider');
+
+
+
+const staleWarehouseTargetFactsBlocker = '[MISSING: owner-approved Warehouse stock hold/release window, max quantity, target rows]';
+for (const [label, source] of [
+  ['channel cleanup contract', channelCleanupContract],
+  ['paid/provider gate', gateGoal],
+  ['implementation state', implementationState],
+  ['orchestrator status', orchestratorStatus],
+  ['current head sync report', currentHeadSync],
+  ['channel cleanup owner supersession report', channelCleanupOwnerSupersession],
+  ['autonomous runtime ownership packet', autonomousRuntimeOwnershipPacket],
+  ['warehouse target facts wording sync report', warehouseTargetFactsWordingSync],
+]) {
+  assert(source.includes('[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]'), `${label} missing source-documented target facts marker`);
+  assert(source.includes('[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]'), `${label} missing Warehouse hold/release duration blocker`);
+  assert(source.includes('[MISSING: live current target row readback at execution time]'), `${label} missing live target row readback blocker`);
+  assert(source.includes('[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]'), `${label} missing final Warehouse mutation approval blocker`);
+  if (label !== 'implementation state') {
+    assert(!source.includes(staleWarehouseTargetFactsBlocker), `${label} still contains stale combined Warehouse target facts blocker`);
+  }
+}
+for (const boundary of [
+  'mutation: false',
+  'live_checkout_executed: false',
+  'discount_code_created: false',
+  'payment_creation: false',
+  'provider_call: false',
+  'orders_mutation: false',
+  'warehouse_mutation: false',
+  'channel_cleanup_mutation: false',
+  'deployment: false',
+  'secret_output: false',
+  'token_output: false',
+  'raw_customer_or_payment_evidence: false',
+]) {
+  assert(warehouseTargetFactsWordingSync.includes(boundary), `Warehouse target facts wording sync missing boundary ${boundary}`);
+}
 
 console.log(JSON.stringify({
   ok: true,
