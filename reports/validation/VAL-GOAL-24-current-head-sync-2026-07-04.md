@@ -12,7 +12,7 @@ channel_cleanup_mutation: false
 secret_output: false
 raw_customer_or_payment_evidence: false
 
-[RESOLVED/NARROWED: FlipFlop consumed current Goal 24 source-governance heads Catalog `e379b54 merge goal24 current source head sync`, Orders `d5d2114 merge goal24 current source head sync`, Payments `eab6351 merge goal24 current source head sync`, Warehouse `11df002 merge goal24 warehouse target facts reconcile`, and FlipFlop `ad409fc merge goal24 current source head sync`; runtime side effects remain blocked]
+[RESOLVED/NARROWED: Goal 24 frozen source-governance wave GOAL24-SOURCE-WAVE-2026-07-04A records Catalog `e379b54 merge goal24 current source head sync`, FlipFlop `e1f3e3a merge goal24 current source head sync`, Payments `eab6351 merge goal24 current source head sync`, Orders `d53de9f merge goal24 current source head sync`, and Warehouse `11df002 merge goal24 warehouse target facts reconcile` as input heads for runtime planning; post-merge self heads are validation evidence only; runtime side effects remain blocked]
 
 The older autonomous read-only discovery lines that named Payments `d5ee11b`, Orders `e3f6e18`, and FlipFlop `31845ef` are historical context only. They are not current dependency evidence for a new Fiobanka paid/provider side-effectful smoke.
 
@@ -28,15 +28,15 @@ The older autonomous read-only discovery lines that named Payments `d5ee11b`, Or
 - Code: `docs/orchestrator/STATUS.md`, `docs/IMPLEMENTATION_STATE.md`, `reports/validation/VAL-GOAL-24-current-head-sync-2026-07-04.md`, and `scripts/verify-paid-provider-bundle-checkout-gate.js`.
 - Validation: `npm run verify:paid-provider-bundle-checkout-gate`, `node --check scripts/verify-paid-provider-bundle-checkout-gate.js`, and `git diff --check`.
 
-## Current Source Heads
+## Frozen Source-Governance Wave Inputs
 
-| Service | Current source-governance head | Runtime authority |
+| Service | Frozen source-governance wave input head | Runtime authority |
 | --- | --- | --- |
 | Catalog | `e379b54 merge goal24 current source head sync` | bundle/integration docs only |
-| Orders | `d5d2114 merge goal24 current source head sync` | lifecycle/cancellation/idempotency source packet only |
+| Orders | `d53de9f merge goal24 current source head sync` | lifecycle/cancellation/idempotency source packet only |
 | Payments | `eab6351 merge goal24 current source head sync` | provider/refund rollback docs only |
 | Warehouse | `11df002 merge goal24 warehouse target facts reconcile` | component-line cleanup operation packet only |
-| FlipFlop | `ad409fc merge goal24 current source head sync` | channel cleanup ownership source packet only |
+| FlipFlop | `e1f3e3a merge goal24 current source head sync` | channel cleanup frozen-wave source packet only |
 
 ## Preserved Runtime Hard Stops
 
