@@ -18,7 +18,7 @@ assert(service.includes('data: { notes: dto.notes }'), 'notes-only admin updates
 assert(api.includes('export function isCentralAuthorityOrder(order: Order): boolean'), 'frontend helper must identify central authority orders');
 assert(adminPage.includes('status: centralStatusLocked'), 'admin status changes must be submitted for central authority orders only when changed');
 assert(adminPage.includes('disabled={centralStatusLocked}'), 'admin payment controls must remain disabled for central authority orders');
-assert(adminPage.includes('Odeslat do Orders / uložit poznámky'), 'admin submit text must switch to Orders action mode');
+assert(adminPage.includes('Odeslat do Orders'), 'admin submit text must switch to Orders action mode');
 assert(report.includes('Vision ->'), 'report must preserve Intent Preservation chain');
 assert(report.includes('[RESOLVED/NARROWED: Orders admin lifecycle action contract source-validated in orders-microservice 333b131]'), 'report must preserve missing Orders command contract');
 assert(report.includes('mutation: false'), 'report must state no runtime mutation occurred');

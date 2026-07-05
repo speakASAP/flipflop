@@ -344,7 +344,7 @@ export default function AdminOrderDetailPage() {
                   <option value={OrderStatus.SHIPPED}>Odesláno</option>
                   <option value={OrderStatus.DELIVERED}>Doručeno</option>
                   <option value={OrderStatus.CANCELLED}>Zrušeno</option>
-                  <option value={OrderStatus.REFUNDED}>Vráceno</option>
+                  {!centralStatusLocked && <option value={OrderStatus.REFUNDED}>Vráceno</option>}
                 </select>
               </div>
               <div>
@@ -386,7 +386,7 @@ export default function AdminOrderDetailPage() {
                 disabled={updating}
                 className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium"
               >
-                {updating ? 'Ukládání...' : centralStatusLocked ? 'Odeslat do Orders / uložit poznámky' : 'Uložit změny'}
+                {updating ? 'Ukládání...' : centralStatusLocked ? 'Odeslat do Orders' : 'Uložit změny'}
               </button>
             </form>
           </div>

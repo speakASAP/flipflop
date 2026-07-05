@@ -30,7 +30,7 @@ Validation -> `npm run verify:admin-status-central-authority`; `npm run verify:w
 - The route uses a dedicated `ORDERS_STATUS_SERVICE_TOKEN` bearer token and fails closed with `[MISSING: approved live action-admin session packet]` when it is absent.
 - Central-owned payment changes remain blocked with `[MISSING: payment/refund/provider correction workflow]`.
 - Notes remain local and do not require a central Orders lifecycle action.
-- The admin page initializes status from central display data and sends status only when changed, avoiding accidental status action on notes-only saves.
+- The admin page initializes status from central display data, sends status only when changed, hides the refund-like local status option for central-owned orders, and avoids accidental status action on notes-only saves.
 
 ## Runtime Blockers
 

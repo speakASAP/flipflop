@@ -31,7 +31,7 @@ assertContains(adminPage, 'centralStatusChanged', 'frontend avoids accidental no
 assertContains(adminPage, 'status: centralStatusLocked', 'frontend can submit central status changes');
 assertContains(adminPage, 'paymentStatus: statusForm.paymentStatus || undefined', 'frontend preserves local payment update for non-central orders');
 assertContains(adminPage, 'disabled={updating}', 'frontend central status control is not locked by central authority');
-assertContains(adminPage, 'Odeslat do Orders / uložit poznámky', 'frontend central action label');
+assertContains(adminPage, 'Odeslat do Orders', 'frontend central action label');
 
 console.log(JSON.stringify({
   ok: true,
