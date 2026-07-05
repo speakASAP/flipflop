@@ -113,6 +113,7 @@ type ProductRecommendationBundle = {
 
 const FREE_SHIPPING_THRESHOLD_CZK = 1000;
 const DEFAULT_SHIPPING_COST_CZK = 89;
+const BUNDLE_DISPLAY_PRODUCT_LIMIT = 8;
 
 @Injectable()
 export class ProductsService {
@@ -724,9 +725,9 @@ export class ProductsService {
    */
   async getProductRecommendations(id: string) {
     const currentProduct = await this.getLocalRecommendationProduct(id);
-    const catalogRelatedProducts = await this.getCatalogRelatedProducts(currentProduct, 8);
-    const catalogAggregateBundle = await this.getCatalogBundleAggregateForDisplay(currentProduct, 3);
-    const catalogBundle = await this.getCatalogBundleCandidateProducts(currentProduct, 3);
+    const catalogRelatedProducts = await this.getCatalogRelatedProducts(currentProduct, BUNDLE_DISPLAY_PRODUCT_LIMIT);
+    const catalogAggregateBundle = await this.getCatalogBundleAggregateForDisplay(currentProduct, BUNDLE_DISPLAY_PRODUCT_LIMIT);
+    const catalogBundle = await this.getCatalogBundleCandidateProducts(currentProduct, BUNDLE_DISPLAY_PRODUCT_LIMIT);
     const catalogBundleProducts = catalogAggregateBundle.status === 'available'
       ? catalogAggregateBundle.products
       : catalogBundle.products;
@@ -751,13 +752,18 @@ export class ProductsService {
         : historyProducts.length > 0
           ? 'purchase_history'
           : 'related_fallback';
-    const bundleProducts = this.uniqueProducts(
-      catalogBundleProducts.length > 1 ? bundleCandidates : [currentProduct, ...bundleCandidates],
+    const bundleProducts = this.selectBundleProductsForShippingThreshold(
+      catalogBundleProducts.length > 1
+        ? bundleCandidates
+        : [currentProduct, ...bundleCandidates, ...relatedProducts],
       currentProduct.id,
-      true,
-    ).slice(0, 3);
+    );
+    const fallbackBundleProducts = this.selectBundleProductsForShippingThreshold(
+      [currentProduct, ...relatedProducts],
+      currentProduct.id,
+    );
     const bundle = this.buildRecommendationBundle(
-      bundleProducts.length > 1 ? bundleProducts : [currentProduct, ...relatedProducts.slice(0, 1)],
+      bundleProducts.length > 1 ? bundleProducts : fallbackBundleProducts,
       recommendationSource,
       catalogBundleProducts.length > 1
         ? {
@@ -1168,6 +1174,23 @@ export class ProductsService {
     return unique;
   }
 
+  private selectBundleProductsForShippingThreshold(products: any[], currentProductId: string) {
+    const uniqueProducts = this.uniqueProducts(products, currentProductId, true)
+      .filter((product) => product?.id && Number(product.price) > 0)
+      .slice(0, BUNDLE_DISPLAY_PRODUCT_LIMIT);
+    const selected: any[] = [];
+
+    for (const product of uniqueProducts) {
+      selected.push(product);
+      const subtotal = this.roundCzk(selected.reduce((sum, item) => sum + Number(item.price || 0), 0));
+      if (selected.length >= 2 && subtotal >= FREE_SHIPPING_THRESHOLD_CZK && subtotal > DEFAULT_SHIPPING_COST_CZK) {
+        break;
+      }
+    }
+
+    return selected;
+  }
+
   private buildRecommendationBundle(
     products: any[],
     source: ProductRecommendationSource,
@@ -1183,6 +1206,10 @@ export class ProductsService {
     }
 
     const subtotal = this.roundCzk(bundleProducts.reduce((sum, product) => sum + Number(product.price || 0), 0));
+    if (subtotal < FREE_SHIPPING_THRESHOLD_CZK) {
+      return null;
+    }
+
     const merchandiseSavings = Math.max(1, this.roundCzk(subtotal * 0.05));
     const shippingSavings = subtotal >= FREE_SHIPPING_THRESHOLD_CZK ? DEFAULT_SHIPPING_COST_CZK : 0;
     const bundlePrice = Math.max(0, this.roundCzk(subtotal - merchandiseSavings));

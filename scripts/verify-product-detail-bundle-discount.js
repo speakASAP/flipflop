@@ -23,6 +23,7 @@ assert(plan.includes('Order-service must ignore browser bundle savings'), 'execu
 assert(orderService.includes('type BundleDiscountIntent'), 'order-service defines bundle intent type');
 assert(orderService.includes("source: 'product_detail_buy_together'"), 'bundle source is explicit');
 assert(orderService.includes('normalizeBundleIntent'), 'bundle intent is normalized server-side');
+assert(orderService.includes('productIds.length > BUNDLE_ELIGIBILITY_LIMIT'), 'bundle intent accepts the same product count that recommendation selection can display');
 assert(orderService.includes('getEligibleBundleTargetIds'), 'eligible products are recomputed server-side');
 assert(orderService.includes('calculateBundleDiscount'), 'bundle discount is calculated server-side');
 assert(orderService.includes('calculateCheckoutDiscount'), 'checkout discount calculation is centralized');

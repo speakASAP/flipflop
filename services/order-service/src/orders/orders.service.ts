@@ -1500,7 +1500,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     const sourceProductId = this.normalizeGuestText(row.sourceProductId);
     const rawProductIds = Array.isArray(row.productIds) ? row.productIds : [];
     const productIds = Array.from(new Set(rawProductIds.map((value) => this.normalizeGuestText(value)).filter(Boolean)));
-    if (!sourceProductId || productIds.length < 2 || productIds.length > 3) {
+    if (!sourceProductId || productIds.length < 2 || productIds.length > BUNDLE_ELIGIBILITY_LIMIT) {
       throw new BadRequestException('Invalid bundle discount request');
     }
     if (!productIds.includes(sourceProductId)) {

@@ -15,6 +15,7 @@ const productPage = read('services/frontend/app/products/[id]/page.tsx');
 const bundleButton = read('services/frontend/components/AddBundleToCartButton.tsx');
 const checkoutPage = read('services/frontend/app/checkout/page.tsx');
 const orderService = read('services/order-service/src/orders/orders.service.ts');
+const productServicePackage = read('services/product-service/package.json');
 
 assert(productController.includes("@Get(':id/recommendations')"), 'product-service exposes public recommendations route');
 assert(productService.includes('getProductRecommendations'), 'product-service implements recommendation method');
@@ -28,8 +29,13 @@ assert(productService.includes('getFrequentlyBoughtTogetherProducts'), 'product-
 assert(productService.includes("status: 'confirmed'"), 'purchase-history source is limited to confirmed orders');
 assert(productService.includes('getFallbackRelatedProducts'), 'product-service has deterministic fallback recommendations');
 assert(productService.includes('getCatalogBundleCandidateProducts'), 'product-service consumes Catalog bundle candidates before fallback bundles');
+assert(productServicePackage.includes('npm --prefix ../../shared run build'), 'product-service build refreshes shared before compiling');
 assert(productService.includes('FREE_SHIPPING_THRESHOLD_CZK = 1000'), 'bundle savings uses owner-requested free-shipping threshold');
 assert(productService.includes('DEFAULT_SHIPPING_COST_CZK = 89'), 'bundle savings includes current default delivery cost assumption');
+assert(productService.includes('BUNDLE_DISPLAY_PRODUCT_LIMIT = 8'), 'bundle selection can include enough products to reach free shipping threshold');
+assert(productService.includes('selectBundleProductsForShippingThreshold'), 'bundle selection targets free-shipping threshold when candidates allow it');
+assert(productService.includes('subtotal >= FREE_SHIPPING_THRESHOLD_CZK'), 'bundle selection stops after reaching the free-shipping threshold');
+assert(productService.includes('if (subtotal < FREE_SHIPPING_THRESHOLD_CZK)'), 'bundle builder fails closed below the free-shipping threshold');
 assert(productService.includes('usesAi: false'), 'recommendation policy states AI is not used');
 assert(productService.includes('exposesCustomerData: false'), 'recommendation policy states customer data is not exposed');
 assert(!productService.includes('customerEmail') && !productService.includes('deliveryAddress'), 'public recommendation code does not select obvious customer PII fields');
