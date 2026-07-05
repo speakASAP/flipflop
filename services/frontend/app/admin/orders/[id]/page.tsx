@@ -11,6 +11,7 @@ import {
   formatOrderMoney,
   getOrderDisplayData,
   getOrderLifecycleColor,
+  isCentralAuthorityOrder,
   getOrderLifecycleLabel,
   Order,
   OrderStatus,
@@ -46,6 +47,13 @@ function getCentralNotice(order: Order) {
 function addressName(address: DeliveryAddress | null | undefined) {
   if (!address) return '';
   return address.name || [address.firstName, address.lastName].filter(Boolean).join(' ');
+}
+
+function isCentralStatusLocked(order: Order) {
+  return (
+    isCentralAuthorityOrder(order) &&
+    Boolean(order.centralOrder?.id || order.centralOrder?.externalOrderId)
+  );
 }
 
 export default function AdminOrderDetailPage() {
@@ -102,14 +110,20 @@ export default function AdminOrderDetailPage() {
     void loadOrder({ background: true, syncForm: false });
   }, 30000, Boolean(orderId) && !updating);
 
+  const centralStatusLocked = order ? isCentralStatusLocked(order) : false;
+
   const handleStatusUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setUpdating(true);
 
     try {
       const response = await ordersApi.updateAdminOrderStatus(orderId, {
-        status: statusForm.status || undefined,
-        paymentStatus: statusForm.paymentStatus || undefined,
+        ...(centralStatusLocked
+          ? {}
+          : {
+              status: statusForm.status || undefined,
+              paymentStatus: statusForm.paymentStatus || undefined,
+            }),
         notes: statusForm.notes || undefined,
       });
       if (response.success) {
@@ -296,6 +310,11 @@ export default function AdminOrderDetailPage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Aktualizovat status
             </h2>
+            {centralStatusLocked && (
+              <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+                Centrální Orders vlastní životní cyklus této objednávky. Lokální změny statusu objednávky a platby jsou vypnuté; uložit lze pouze poznámky.
+              </div>
+            )}
             <form onSubmit={handleStatusUpdate} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -309,7 +328,8 @@ export default function AdminOrderDetailPage() {
                       status: e.target.value,
                     })
                   }
-                  className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  disabled={centralStatusLocked}
+                  className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
                 >
                   <option value={OrderStatus.PENDING}>Čeká na potvrzení</option>
                   <option value={OrderStatus.CONFIRMED}>Potvrzeno</option>
@@ -332,7 +352,8 @@ export default function AdminOrderDetailPage() {
                       paymentStatus: e.target.value,
                     })
                   }
-                  className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  disabled={centralStatusLocked}
+                  className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
                 >
                   <option value={PaymentStatus.PENDING}>Čeká na platbu</option>
                   <option value={PaymentStatus.PAID}>Zaplaceno</option>
@@ -358,7 +379,7 @@ export default function AdminOrderDetailPage() {
                 disabled={updating}
                 className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium"
               >
-                {updating ? 'Ukládání...' : 'Uložit změny'}
+                {updating ? 'Ukládání...' : centralStatusLocked ? 'Uložit poznámky' : 'Uložit změny'}
               </button>
             </form>
           </div>

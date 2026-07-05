@@ -274,6 +274,10 @@ export function isCentralLifecycleAvailable(order: Order): boolean {
   return order.centralOrder?.readStatus === 'available';
 }
 
+export function isCentralAuthorityOrder(order: Order): boolean {
+  return order.centralOrder?.readStatus === 'available';
+}
+
 export function getOrderDisplayData(order: Order) {
   const centralAvailable = isCentralLifecycleAvailable(order);
   const central = order.centralOrder;

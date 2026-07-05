@@ -35,7 +35,8 @@
     "verify:goal24-selected-channel-correlation-lookup": "node scripts/verify-goal24-selected-channel-correlation-lookup.js",
     "verify:paid-provider-bundle-checkout-gate": "node scripts/verify-paid-provider-bundle-checkout-gate.js",
     "verify:auth-wallet-order-snapshot-gate": "node scripts/verify-auth-wallet-order-snapshot-gate.js",
-    "verify:catalog-bundleid-checkout-migration": "node scripts/verify-catalog-bundleid-checkout-migration.js"
+    "verify:catalog-bundleid-checkout-migration": "node scripts/verify-catalog-bundleid-checkout-migration.js",
+    "verify:admin-status-central-authority": "node scripts/verify-admin-status-central-authority.js"
   },
   "dependencies": {
     "@nestjs-modules/ioredis": "^2.2.1",

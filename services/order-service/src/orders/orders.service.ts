@@ -969,6 +969,14 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     if (!order) {
       throw new NotFoundException('Order not found');
     }
+    const centralOrdersOwned = this.isCentralOrdersOwnedOrder(order);
+    const localLifecycleMutationRequested =
+      dto.status !== undefined || dto.paymentStatus !== undefined;
+    if (centralOrdersOwned && localLifecycleMutationRequested) {
+      throw new BadRequestException(
+        '[MISSING: central Orders admin lifecycle mutation/correction contract] Central Orders owns this order lifecycle; local admin status or payment status changes are disabled. Notes-only updates remain allowed.',
+      );
+    }
     const nextStatus = dto.status !== undefined ? dto.status : order.status;
     const setFulfilledAt =
       !order.fulfilledAt &&
