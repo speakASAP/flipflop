@@ -28,7 +28,7 @@ assertContains(service, 'const localLifecycleMutationRequested =', 'backend life
 assertContains(service, 'dto.status !== undefined || dto.paymentStatus !== undefined', 'backend lifecycle mutation fields');
 assertContains(service, 'centralOrdersOwned && localLifecycleMutationRequested', 'backend fail-closed condition');
 assertContains(service, 'Central Orders owns this order lifecycle', 'backend owner-facing error');
-assertContains(service, '[MISSING: central Orders admin lifecycle mutation/correction contract]', 'backend missing contract marker');
+assertContains(service, '[MISSING: FlipFlop route-to-Orders admin action implementation]', 'backend missing contract marker');
 assertContains(service, '...(dto.notes !== undefined ? { notes: dto.notes } : {})', 'backend notes-only update remains allowed');
 
 assertContains(adminPage, 'isCentralAuthorityOrder', 'frontend central authority helper import');

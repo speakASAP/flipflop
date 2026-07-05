@@ -58,5 +58,5 @@ Implement a fail-closed FlipFlop admin status authority contract for central Ord
 
 ## Remaining Blockers
 
-- `[MISSING: central Orders admin lifecycle mutation/correction contract]` No approved command contract exists for FlipFlop admin to request central Orders lifecycle corrections. This implementation therefore fails closed instead of inventing mutation routing.
+- `[MISSING: FlipFlop route-to-Orders admin action implementation]` No approved command contract exists for FlipFlop admin to request central Orders lifecycle corrections. This implementation therefore fails closed instead of inventing mutation routing.
 - `[MISSING: live admin session]` UI behavior is source-verified but not browser-smoked with an authenticated admin session.
