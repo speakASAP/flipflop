@@ -12,39 +12,36 @@ function assertContains(source, needle, label) {
   }
 }
 
-function assertAtLeast(source, needle, count, label) {
-  const actual = source.split(needle).length - 1;
-  if (actual < count) {
-    throw new Error(`${label}: expected at least ${count} occurrences of ${needle}, found ${actual}`);
-  }
-}
-
 const service = read('services/order-service/src/orders/orders.service.ts');
+const client = read('shared/clients/order-client.service.ts');
 const adminPage = read('services/frontend/app/admin/orders/[id]/page.tsx');
 
-assertContains(service, 'async updateAdminOrderStatus(orderId: string, dto: UpdateAdminOrderStatusDto)', 'backend admin mutation');
-assertContains(service, 'const centralOrdersOwned = this.isCentralOrdersOwnedOrder(order);', 'backend central ownership guard');
-assertContains(service, 'const localLifecycleMutationRequested =', 'backend lifecycle mutation detector');
-assertContains(service, 'dto.status !== undefined || dto.paymentStatus !== undefined', 'backend lifecycle mutation fields');
-assertContains(service, 'centralOrdersOwned && localLifecycleMutationRequested', 'backend fail-closed condition');
-assertContains(service, 'Central Orders owns this order lifecycle', 'backend owner-facing error');
-assertContains(service, '[MISSING: FlipFlop route-to-Orders admin action implementation]', 'backend missing contract marker');
-assertContains(service, '...(dto.notes !== undefined ? { notes: dto.notes } : {})', 'backend notes-only update remains allowed');
-
-assertContains(adminPage, 'isCentralAuthorityOrder', 'frontend central authority helper import');
-assertContains(adminPage, 'function isCentralStatusLocked(order: Order)', 'frontend central lock helper');
-assertContains(adminPage, 'const centralStatusLocked = order ? isCentralStatusLocked(order) : false;', 'frontend lock state');
-assertContains(adminPage, '...(centralStatusLocked', 'frontend status payload suppression');
-assertAtLeast(adminPage, 'disabled={centralStatusLocked}', 2, 'frontend disabled status controls');
-assertContains(adminPage, 'uložit lze pouze poznámky', 'frontend central ownership notice');
-assertContains(adminPage, "centralStatusLocked ? 'Uložit poznámky' : 'Uložit změny'", 'frontend notes-only button label');
+assertContains(client, 'applyAdminOrderStatusAction(action: AdminOrderStatusActionRequest)', 'central Orders admin action client');
+assertContains(client, "/api/admin/operations/actions/order-status", 'central Orders admin action route');
+assertContains(client, 'process.env.ORDERS_STATUS_SERVICE_TOKEN', 'dedicated action-admin token env');
+assertContains(client, '[MISSING: approved live action-admin session packet]', 'missing action-admin packet gate');
+assertContains(service, 'const centralOrderId = this.getAcceptedCentralOrderId(order);', 'backend central ownership id');
+assertContains(service, 'await this.orderClient.applyAdminOrderStatusAction({', 'backend routes central status to Orders');
+assertContains(service, 'orderId: centralOrderId!', 'backend uses central Orders id');
+assertContains(service, 'approval: dto.approval', 'backend forwards approval packet');
+assertContains(service, '[MISSING: payment/refund/provider correction workflow]', 'backend blocks central payment correction');
+assertContains(service, 'data: { notes: dto.notes }', 'backend notes-only update remains local');
+assertContains(adminPage, 'const display = getOrderDisplayData(response.data);', 'frontend initializes form from central display');
+assertContains(adminPage, 'centralStatusChanged', 'frontend avoids accidental notes-only status submission');
+assertContains(adminPage, 'status: centralStatusLocked', 'frontend can submit central status changes');
+assertContains(adminPage, 'paymentStatus: statusForm.paymentStatus || undefined', 'frontend preserves local payment update for non-central orders');
+assertContains(adminPage, 'disabled={updating}', 'frontend central status control is not locked by central authority');
+assertContains(adminPage, 'Odeslat do Orders / uložit poznámky', 'frontend central action label');
 
 console.log(JSON.stringify({
   ok: true,
   checks: [
-    'backend blocks local status/paymentStatus mutation for central Orders-owned orders',
+    'backend routes central-owned status mutation to Orders admin action route',
+    'backend keeps central-owned payment mutation fail-closed',
     'backend leaves notes-only update path available',
-    'frontend disables status/paymentStatus controls for central lifecycle orders',
-    'frontend omits status/paymentStatus from central locked update payload',
+    'frontend sends changed central status while avoiding notes-only accidental status submit',
+    'frontend keeps payment changes local-only for non-central orders',
   ],
+  runtimeMutation: false,
+  sensitiveOutput: 'redacted-source-only',
 }, null, 2));

@@ -84,6 +84,21 @@ export interface CentralOrderLineItem {
   totalPrice?: number;
 }
 
+export interface OrderStatusApprovalInput {
+  approved?: boolean;
+  approvalType?: string;
+  approvedBy?: string;
+  reasonCode?: string;
+  sideEffectsHandled?: Partial<Record<'payment' | 'warehouse' | 'notification' | 'crm' | 'channel', boolean>>;
+  idempotencyKey?: string;
+}
+
+export interface AdminOrderStatusActionRequest {
+  orderId: string;
+  status: string;
+  approval?: OrderStatusApprovalInput;
+}
+
 export interface CentralOrderLifecycleRead {
   id?: string;
   externalOrderId?: string;
@@ -166,6 +181,40 @@ export class OrderClientService {
       const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error('Failed to update order status: ' + errorMessage, errorStack, 'OrderClient');
       throw new HttpException('Failed to update order status: ' + errorMessage, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async applyAdminOrderStatusAction(action: AdminOrderStatusActionRequest): Promise<any> {
+    const orderId = action.orderId?.trim();
+    const status = action.status?.trim();
+    if (!orderId || !status) {
+      throw new HttpException('orderId and status are required for central Orders admin action', HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(
+          this.baseUrl + '/api/admin/operations/actions/order-status',
+          {
+            orderId,
+            status,
+            ...(action.approval ? { approval: action.approval } : {}),
+          },
+          {
+            headers: this.getStatusActionHeaders(),
+          },
+        ),
+      );
+      return response.data.data ?? response.data;
+    } catch (error: any) {
+      const statusCode = error?.response?.status || HttpStatus.BAD_REQUEST;
+      const message =
+        error?.response?.data?.error?.message ||
+        error?.response?.data?.message ||
+        (error instanceof Error ? error.message : 'Unknown error');
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error('Central Orders admin lifecycle action failed: ' + message, stack, 'OrderClient');
+      throw new HttpException('Central Orders admin lifecycle action failed: ' + message, statusCode);
     }
   }
 
@@ -373,6 +422,20 @@ export class OrderClientService {
     }
     return {
       'x-internal-service-token': token,
+      'x-service-name': 'flipflop-service',
+    };
+  }
+
+  private getStatusActionHeaders(): Record<string, string> {
+    const token = process.env.ORDERS_STATUS_SERVICE_TOKEN?.trim();
+    if (!token) {
+      throw new HttpException(
+        '[MISSING: approved live action-admin session packet] ORDERS_STATUS_SERVICE_TOKEN is required for central Orders admin lifecycle actions',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    return {
+      authorization: token.startsWith('Bearer ') ? token : 'Bearer ' + token,
       'x-service-name': 'flipflop-service',
     };
   }

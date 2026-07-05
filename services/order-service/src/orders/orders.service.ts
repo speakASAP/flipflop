@@ -969,13 +969,38 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     if (!order) {
       throw new NotFoundException('Order not found');
     }
-    const centralOrdersOwned = this.isCentralOrdersOwnedOrder(order);
-    const localLifecycleMutationRequested =
-      dto.status !== undefined || dto.paymentStatus !== undefined;
-    if (centralOrdersOwned && localLifecycleMutationRequested) {
-      throw new BadRequestException(
-        '[MISSING: FlipFlop route-to-Orders admin action implementation] Central Orders owns this order lifecycle; local admin status or payment status changes are disabled. Notes-only updates remain allowed.',
-      );
+    const centralOrderId = this.getAcceptedCentralOrderId(order);
+    const centralOrdersOwned = Boolean(centralOrderId);
+    if (centralOrdersOwned) {
+      if (dto.paymentStatus !== undefined) {
+        throw new BadRequestException(
+          '[MISSING: payment/refund/provider correction workflow] Central Orders owns this order lifecycle; local payment status changes are disabled.',
+        );
+      }
+      if (dto.status !== undefined) {
+        await this.orderClient.applyAdminOrderStatusAction({
+          orderId: centralOrderId!,
+          status: dto.status,
+          approval: dto.approval,
+        });
+      }
+      if (dto.notes === undefined) {
+        return this.mapOrderWithCentralLifecycle(order);
+      }
+      const updatedNotes = await this.prisma.order.update({
+        where: { id: orderId },
+        data: { notes: dto.notes },
+        include: {
+          order_items: {
+            include: {
+              products: true,
+              product_variants: true,
+            },
+          },
+          delivery_addresses: true,
+        },
+      });
+      return this.mapOrderWithCentralLifecycle(updatedNotes);
     }
     const nextStatus = dto.status !== undefined ? dto.status : order.status;
     const setFulfilledAt =

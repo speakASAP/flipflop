@@ -166,10 +166,20 @@ export interface CreateOrderData {
   bundleIntent?: BundleIntentData;
 }
 
+export interface OrderStatusApprovalInput {
+  approved?: boolean;
+  approvalType?: string;
+  approvedBy?: string;
+  reasonCode?: string;
+  sideEffectsHandled?: Partial<Record<'payment' | 'warehouse' | 'notification' | 'crm' | 'channel', boolean>>;
+  idempotencyKey?: string;
+}
+
 export interface UpdateOrderStatusData {
   status?: OrderStatus | string;
   paymentStatus?: PaymentStatus | string;
   notes?: string;
+  approval?: OrderStatusApprovalInput;
 }
 
 export interface PaymentResponse {

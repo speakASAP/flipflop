@@ -82,9 +82,10 @@ export default function AdminOrderDetailPage() {
         setOrder(response.data);
         setLastRefreshedAt(new Date());
         if (options.syncForm !== false) {
+          const display = getOrderDisplayData(response.data);
           setStatusForm({
-            status: String(response.data.status || ""),
-            paymentStatus: String(response.data.paymentStatus || ""),
+            status: String(display.status || response.data.status || ""),
+            paymentStatus: String(display.paymentStatus || response.data.paymentStatus || ""),
             notes: "",
           });
         }
@@ -117,13 +118,19 @@ export default function AdminOrderDetailPage() {
     setUpdating(true);
 
     try {
+      const currentDisplay = order ? getOrderDisplayData(order) : null;
+      const selectedStatus = statusForm.status || undefined;
+      const currentStatus = currentDisplay?.status ? String(currentDisplay.status) : '';
+      const centralStatusChanged =
+        Boolean(selectedStatus) &&
+        selectedStatus!.toLowerCase() !== currentStatus.toLowerCase();
       const response = await ordersApi.updateAdminOrderStatus(orderId, {
+        status: centralStatusLocked
+          ? (centralStatusChanged ? selectedStatus : undefined)
+          : selectedStatus,
         ...(centralStatusLocked
           ? {}
-          : {
-              status: statusForm.status || undefined,
-              paymentStatus: statusForm.paymentStatus || undefined,
-            }),
+          : { paymentStatus: statusForm.paymentStatus || undefined }),
         notes: statusForm.notes || undefined,
       });
       if (response.success) {
@@ -312,7 +319,7 @@ export default function AdminOrderDetailPage() {
             </h2>
             {centralStatusLocked && (
               <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
-                Centrální Orders vlastní životní cyklus této objednávky. Lokální změny statusu objednávky a platby jsou vypnuté; uložit lze pouze poznámky.
+                Centrální Orders vlastní životní cyklus této objednávky. Změna statusu se odesílá do Orders; lokální změny platby jsou vypnuté a poznámky zůstávají lokální.
               </div>
             )}
             <form onSubmit={handleStatusUpdate} className="space-y-4">
@@ -328,7 +335,7 @@ export default function AdminOrderDetailPage() {
                       status: e.target.value,
                     })
                   }
-                  disabled={centralStatusLocked}
+                  disabled={updating}
                   className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
                 >
                   <option value={OrderStatus.PENDING}>Čeká na potvrzení</option>
@@ -379,7 +386,7 @@ export default function AdminOrderDetailPage() {
                 disabled={updating}
                 className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium"
               >
-                {updating ? 'Ukládání...' : centralStatusLocked ? 'Uložit poznámky' : 'Uložit změny'}
+                {updating ? 'Ukládání...' : centralStatusLocked ? 'Odeslat do Orders / uložit poznámky' : 'Uložit změny'}
               </button>
             </form>
           </div>

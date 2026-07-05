@@ -12,7 +12,7 @@ sensitive_output: redacted-source-only
 
 Vision -> Every sellable order is error-free and every customer/admin cabinet reflects canonical Orders lifecycle without channel-local lifecycle drift.
 
-Goal Impact -> FlipFlop admins can no longer change local `status` or `paymentStatus` for central-owned orders while the FlipFlop route-to-Orders admin action implementation remains dependency-gated.
+Goal Impact -> FlipFlop admins can no longer change local `status` or `paymentStatus` for central-owned orders; central-owned status changes now route to the Orders admin action contract when the action-admin token/session is projected, while payment corrections remain blocked.
 
 System -> Orders owns order lifecycle/status, payment-status side effects, cancellation approval, lifecycle events, and Warehouse handoff. Warehouse owns stock/reservation/fulfillment state. FlipFlop owns storefront UI, local checkout adapter metadata, local notes, and bounded channel evidence.
 
@@ -24,7 +24,7 @@ Execution Plan -> Use source-only inspection, preserve route-to-Orders implement
 
 Coding Prompt -> Remote-only Alfares workflow; allowed files are docs/reports/verifier scripts plus a small fail-closed FlipFlop guard; no production order/payment/warehouse mutation, deploy, raw customer/payment/token output, or invented lifecycle mutation semantics.
 
-Code -> `services/order-service/src/orders/orders.service.ts`, `services/frontend/lib/api/orders.ts`, `services/frontend/app/admin/orders/[id]/page.tsx`, `scripts/verify-w6b-admin-status-authority-contract.js`, `package.json`, and this report.
+Code -> `shared/clients/order-client.service.ts`, `services/order-service/src/orders/orders.service.ts`, `services/order-service/src/orders/dto/update-admin-order-status.dto.ts`, `services/frontend/lib/api/orders.ts`, `services/frontend/app/admin/orders/[id]/page.tsx`, `scripts/verify-admin-status-central-authority.js`, `scripts/verify-w6b-admin-status-authority-contract.js`, and this report.
 
 Validation -> `npm run verify:w6b-admin-status-authority-contract`; `git diff --check`.
 
@@ -54,8 +54,8 @@ For central-owned FlipFlop orders, defined as local orders whose `metadata.centr
 - `[MISSING: Orders response/readback contract for FlipFlop admin UI after a central correction command]`
 - `[MISSING: approved live customer/admin bearer/session packet for deployed FlipFlop smoke]`
 
-- `[MISSING: FlipFlop route-to-Orders admin action implementation]`
-- `[MISSING: approved live action-admin session packet]`
+- `[RESOLVED/NARROWED: FlipFlop route-to-Orders admin action implementation source-wired]`
+- `[MISSING: approved live action-admin session packet / ORDERS_STATUS_SERVICE_TOKEN projection for runtime action proof]`
 - `[MISSING: payment/refund/provider correction workflow]`
 
 ## Parallel Execution
@@ -64,7 +64,7 @@ For central-owned FlipFlop orders, defined as local orders whose `metadata.centr
 |---|---|---|---|---|---|
 | W6-B1 FlipFlop fail-closed guard | complete | FlipFlop order-service owner | Block local `status`/`paymentStatus` writes for central-owned orders; keep notes local | none | `verify:w6b-admin-status-authority-contract` | Safe source guard; deploy remains separate |
 | W6-B2 Orders command contract | blocked | Orders lifecycle owner | Define admin correction/cancellation command for channel admins | `[RESOLVED/NARROWED: Orders admin lifecycle action contract source-validated in orders-microservice 333b131]` | new Orders contract verifier | Must preserve cancellation approval and side-effect gates |
-| W6-B3 FlipFlop route-to-Orders implementation | ready-design-gated-by-session | Orders/FlipFlop integration owner | Replace disabled controls with central Orders action flow only after approved UX/session packet | `[MISSING: approved live action-admin session packet]` | focused service tests + UI verifier | Do not invent status mappings or local Prisma lifecycle writes |
+| W6-B3 FlipFlop route-to-Orders implementation | source-complete-runtime-gated | Orders/FlipFlop integration owner | Source wire central status actions to Orders action route; runtime proof waits for action-admin packet | `[MISSING: approved live action-admin session packet / ORDERS_STATUS_SERVICE_TOKEN projection for runtime action proof]` | focused service tests + UI verifier | Do not run live mutation without exact packet |
 | W6-C Live deployed smoke | blocked | Validation owner | Prove deployed admin/customer pages and fail-closed behavior with safe session | `[MISSING: approved live customer/admin bearer/session packet]` | sanitized smoke report | No deploy/run in this lane |
 
 Shared contracts: Orders lifecycle read model, Orders status transition approval gate, Orders payment status boundary, Warehouse handoff contract, FlipFlop `centralOrdersForwarding` metadata.
