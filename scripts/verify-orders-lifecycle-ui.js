@@ -27,6 +27,49 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+function extractRecentOrdersMapBlock(source, file) {
+  const marker = 'recentOrders.map((order) => {';
+  const start = source.indexOf(marker);
+  assert(start !== -1, `${file} must render recent orders through an order map`);
+
+  const bodyStart = source.indexOf('{', start);
+  let depth = 0;
+  for (let index = bodyStart; index < source.length; index += 1) {
+    const char = source[index];
+    if (char === '{') depth += 1;
+    if (char === '}') {
+      depth -= 1;
+      if (depth === 0) {
+        return source.slice(bodyStart + 1, index);
+      }
+    }
+  }
+  throw new Error(`${file} recent orders map block is not closed`);
+}
+
+function assertDashboardRecentOrdersUseCentralDisplay(file) {
+  const source = read(file);
+  const block = extractRecentOrdersMapBlock(source, file);
+
+  assert(source.includes('getCentralNotice'), `${file} must expose stale/missing central lifecycle notices`);
+  assert(source.includes('central.stale'), `${file} must flag stale central Orders lifecycle`);
+  assert(block.includes('const display = getOrderDisplayData(order)'), `${file} recent orders must derive display data from getOrderDisplayData(order)`);
+  assert(block.includes('const centralNotice = getCentralNotice(order)'), `${file} recent orders must derive central lifecycle notice from getCentralNotice(order)`);
+  assert(block.includes('formatOrderMoney(display.total, display.currency)'), `${file} recent orders must render central-aware totals/currency`);
+  assert(block.includes('getStatusText(display.status)'), `${file} recent orders must render lifecycle text from display.status`);
+  assert(
+    block.includes('getStatusColor(\n                              display.status') ||
+      block.includes('getStatusColor(\n                            display.status') ||
+      block.includes('getStatusColor(display.status'),
+    `${file} recent orders must color lifecycle from display.status`,
+  );
+  assert(!block.includes('getStatusText(order.status)'), `${file} must not render local order.status text directly in recent orders`);
+  assert(!block.includes('getStatusColor(order.status)'), `${file} must not color local order.status directly in recent orders`);
+  assert(!/getStatusColor\(\s*order\.status/.test(block), `${file} must not color local order.status directly in recent orders`);
+  assert(!/getOrderLifecycleLabel\(\s*order\.status/.test(block), `${file} must not label local order.status directly in recent orders`);
+  assert(!/getOrderLifecycleColor\(\s*order\.status/.test(block), `${file} must not color local order.status directly in recent orders`);
+}
+
 const orderApi = read('services/frontend/lib/api/orders.ts');
 for (const stage of requiredStages) {
   assert(orderApi.includes(`'${stage}'`) || orderApi.includes(`${stage}:`), `missing lifecycle label coverage: ${stage}`);
@@ -59,11 +102,7 @@ for (const file of uiFiles) {
 
 for (const file of dashboardFiles) {
   const source = read(file);
-  assert(source.includes('getOrderDisplayData'), `${file} must render recent orders through central display data`);
-  assert(source.includes('getCentralNotice'), `${file} must expose stale/missing central lifecycle notices`);
-  assert(source.includes('central.stale'), `${file} must flag stale central Orders lifecycle`);
-  assert(!source.includes('getStatusText(order.status)'), `${file} must not render local order.status text directly`);
-  assert(!source.includes(`getStatusColor(\n                            order.status`) && !source.includes(`getStatusColor(\n                          order.status`), `${file} must not color local order.status directly`);
+  assertDashboardRecentOrdersUseCentralDisplay(file);
   assert(!source.includes('providerPayload'), `${file} must not render provider payloads`);
   assert(!source.includes('trackingNumber'), `${file} must not render tracking values`);
   assert(!source.includes('accessToken'), `${file} must not render access tokens`);
