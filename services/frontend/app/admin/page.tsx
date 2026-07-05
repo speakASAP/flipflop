@@ -20,7 +20,14 @@ import type {
   RepeatBuyer,
   PriceSuggestion,
 } from '@/lib/admin';
-import { ordersApi, Order } from '@/lib/api/orders';
+import {
+  formatOrderMoney,
+  getOrderDisplayData,
+  getOrderLifecycleColor,
+  getOrderLifecycleLabel,
+  ordersApi,
+  Order,
+} from '@/lib/api/orders';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { RevenueMomBarChart } from '@/components/admin/RevenueMomBarChart';
 
@@ -272,35 +279,22 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'CONFIRMED':
-        return 'bg-blue-100 text-blue-800';
-      case 'PROCESSING':
-        return 'bg-purple-100 text-purple-800';
-      case 'SHIPPED':
-        return 'bg-indigo-100 text-indigo-800';
-      case 'DELIVERED':
-        return 'bg-green-100 text-green-800';
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  const getStatusColor = (status?: string) => getOrderLifecycleColor(status);
 
-  const getStatusText = (status: string) => {
-    const statusMap: Record<string, string> = {
-      PENDING: 'Čeká na potvrzení',
-      CONFIRMED: 'Potvrzeno',
-      PROCESSING: 'Zpracovává se',
-      SHIPPED: 'Odesláno',
-      DELIVERED: 'Doručeno',
-      CANCELLED: 'Zrušeno',
-    };
-    return statusMap[status] || status;
+  const getStatusText = (status?: string) => getOrderLifecycleLabel(status, 'Nedostupné');
+
+  const getCentralNotice = (order: Order) => {
+    const central = order.centralOrder;
+    if (!central) return 'Objednávka nemá centrální Orders metadata.';
+    if (central.stale) return 'Centrální Orders stav může být zastaralý.';
+    if (central.readStatus === 'available') return null;
+    if (central.readStatus === 'forward_failed') {
+      return central.error || 'Centrální Orders objednávku nepřijaly.';
+    }
+    if (central.readStatus === 'not_forwarded') {
+      return 'Objednávka nemá centrální Orders metadata.';
+    }
+    return central.error || '[MISSING: Orders lifecycle read endpoint]';
   };
 
   if (loading) {
@@ -962,7 +956,10 @@ export default function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {recentOrders.map((order) => (
+                {recentOrders.map((order) => {
+                  const display = getOrderDisplayData(order);
+                  const centralNotice = getCentralNotice(order);
+                  return (
                   <tr key={order.id} className="hover:bg-blue-50/50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Link
@@ -976,25 +973,30 @@ export default function AdminDashboardPage() {
                       {order.deliveryAddress ? `${order.deliveryAddress.firstName} ${order.deliveryAddress.lastName}` : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
-                      {new Intl.NumberFormat('cs-CZ', {
-                        style: 'currency',
-                        currency: 'CZK',
-                      }).format(order.total)}
+                      {formatOrderMoney(display.total, display.currency)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-3 py-1.5 text-xs font-bold rounded-full shadow-sm ${getStatusColor(
-                          order.status
-                        )}`}
-                      >
-                        {getStatusText(order.status)}
-                      </span>
+                      <div className="space-y-1">
+                        <span
+                          className={`px-3 py-1.5 text-xs font-bold rounded-full shadow-sm ${getStatusColor(
+                            display.status
+                          )}`}
+                        >
+                          {getStatusText(display.status)}
+                        </span>
+                        {centralNotice && (
+                          <p className="max-w-xs text-xs font-semibold text-amber-700">
+                            {centralNotice}
+                          </p>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {new Date(order.createdAt).toLocaleDateString('cs-CZ')}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

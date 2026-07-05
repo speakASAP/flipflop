@@ -41,6 +41,11 @@ const uiFiles = [
   'services/frontend/app/admin/orders/page.tsx',
   'services/frontend/app/admin/orders/[id]/page.tsx',
 ];
+
+const dashboardFiles = [
+  'services/frontend/app/dashboard/page.tsx',
+  'services/frontend/app/admin/page.tsx',
+];
 for (const file of uiFiles) {
   const source = read(file);
   assert(source.includes('useVisiblePolling'), `${file} must keep visible polling refresh`);
@@ -52,11 +57,23 @@ for (const file of uiFiles) {
   assert(!source.includes('accessToken'), `${file} must not render access tokens`);
 }
 
+for (const file of dashboardFiles) {
+  const source = read(file);
+  assert(source.includes('getOrderDisplayData'), `${file} must render recent orders through central display data`);
+  assert(source.includes('getCentralNotice'), `${file} must expose stale/missing central lifecycle notices`);
+  assert(source.includes('central.stale'), `${file} must flag stale central Orders lifecycle`);
+  assert(!source.includes('getStatusText(order.status)'), `${file} must not render local order.status text directly`);
+  assert(!source.includes(`getStatusColor(\n                            order.status`) && !source.includes(`getStatusColor(\n                          order.status`), `${file} must not color local order.status directly`);
+  assert(!source.includes('providerPayload'), `${file} must not render provider payloads`);
+  assert(!source.includes('trackingNumber'), `${file} must not render tracking values`);
+  assert(!source.includes('accessToken'), `${file} must not render access tokens`);
+}
+
 console.log(JSON.stringify({
   ok: true,
   verifier: 'flipflop-orders-lifecycle-ui.v1',
   coveredStages: requiredStages.length,
-  surfaces: ['customer-orders', 'customer-order-detail', 'admin-orders', 'admin-order-detail'],
+  surfaces: ['customer-orders', 'customer-order-detail', 'admin-orders', 'admin-order-detail', 'customer-dashboard-recent-orders', 'admin-dashboard-recent-orders'],
   refresh: 'useVisiblePolling(30000)',
   sensitiveOutput: 'redacted-source-only',
 }));
