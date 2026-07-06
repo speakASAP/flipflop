@@ -133,7 +133,7 @@ The full sandbox runner remains blocked until every item below is resolved.
 | Checkout mutation mode | `[RESOLVED/NARROWED: CHECKOUT_MUTATION_MODE=test-only for source-only packet preparation; future runner must enforce this before any order mutation]` | verifier checks source contract and invoice no-provider branch; runtime runner remains blocked until product/customer/cleanup/evidence facts exist |
 | Email assertion source | `[RESOLVED/NARROWED: approved source contract is SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl with SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid; notification code captures matching synthetic email assertions as sanitized JSONL and returns captured_not_sent]` | synthetic email sink/queue/log readback that does not send to real customers |
 | Event trace assertion source | `[RESOLVED/NARROWED: approved source contract is SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl; customer journey publisher records sanitized JSONL trace rows after broker publish, queryable by journey_id/correlation_id]` | query path for `flipflop.customer_journey.events.v1` by `journey_id`/`correlation_id` |
-| Cleanup/retention contract | `[MISSING: order/payment cleanup or retention contract]` | decision to clean up, cancel, retain, or mark synthetic order/payment, with idempotency and side-effect acknowledgements |
+| Cleanup/retention contract | `[RESOLVED/NARROWED: SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.cleanup.invoice_pending.stale_unpaid_retention.v1; retain invoice/pending synthetic order evidence and let existing stale unpaid order lifecycle handle cancellation after STALE_UNPAID_ORDER_HOURS default 24h; runner must not invoke manual cleanup mutation]` | stale unpaid retention contract, idempotency namespace, side-effect acknowledgement limits, and final redacted evidence path |
 
 ## Environment Variables Expected by Monitor
 
@@ -149,7 +149,8 @@ CHECKOUT_MUTATION_MODE=test-only
 SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl
 SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid
 SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl
-SYNTHETIC_ORDER_CLEANUP_CONTRACT
+SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.cleanup.invoice_pending.stale_unpaid_retention.v1
+FINAL_REDACTED_EVIDENCE_PATH=reports/validation/VAL-W5-customer-journey-sandbox-final-redacted-evidence-2026-07-06.md
 ```
 
 Do not set these in production runtime until their packet values are owner-approved and non-secret handling is documented.
@@ -215,14 +216,14 @@ Integrated findings:
 - W5C: customer-journey AMQP publisher/schema exists, and an approved disabled-by-default event trace source contract now exists as `SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl`.
 - W5C: notification/email implementation exists, and an approved disabled-by-default synthetic email assertion source contract now exists as `SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl` with `SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid`.
 
-W5C is now source-resolved by disabled-by-default assertion capture contracts. The packet remains blocked for runtime execution by the remaining product/customer/payment/checkout/cleanup/final-evidence facts. The owner approval intake below authorizes packet preparation and W5C source contracts only; it does not authorize full sandbox execution.
+W5C is now source-resolved by disabled-by-default assertion capture contracts. Cleanup/retention is source-resolved by stale unpaid invoice retention. The packet remains blocked for runtime execution by the remaining synthetic customer/contact, approval-id, execution-window, and final evidence-content facts. The owner approval intake below authorizes packet preparation and source contracts only; it does not authorize full sandbox execution.
 
 ## Proposed Owner Approval Statement
 
 This section is intentionally not executable until every `[MISSING: ...]` marker is replaced.
 
 ```text
-I approve exactly one FlipFlop customer journey sandbox run for process flipflop.successful_customer_journey.v1 using approval id [MISSING: approval id], execution window [MISSING: start/end Europe/Prague], synthetic product/SKU ffb4883f-ec48-4745-8147-b836f3fb2b88 / ALLEGRO-OFFER-18106037370, synthetic customer/contact [MISSING], delivery contract flipflop.delivery.store_pickup.no_external_carrier.v1, sandbox/test-mode payment provider invoice under flipflop.payment.invoice.bank_transfer.no_provider_call.v1, checkout mutation mode test-only, email assertion source synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl, event trace source synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl, cleanup/retention contract [MISSING], and redacted evidence path [MISSING].
+I approve exactly one FlipFlop customer journey sandbox run for process flipflop.successful_customer_journey.v1 using approval id [MISSING: approval id], execution window [MISSING: start/end Europe/Prague], synthetic product/SKU ffb4883f-ec48-4745-8147-b836f3fb2b88 / ALLEGRO-OFFER-18106037370, synthetic customer/contact [MISSING], delivery contract flipflop.delivery.store_pickup.no_external_carrier.v1, sandbox/test-mode payment provider invoice under flipflop.payment.invoice.bank_transfer.no_provider_call.v1, checkout mutation mode test-only, email assertion source synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl, event trace source synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl, cleanup/retention contract flipflop.cleanup.invoice_pending.stale_unpaid_retention.v1, and redacted evidence path reports/validation/VAL-W5-customer-journey-sandbox-final-redacted-evidence-2026-07-06.md.
 
 I understand this authorizes only the named sandbox/test-mode attempt. The executor must stop at the first hard stop and must not print secrets, tokens, raw customer/contact/address data, raw provider payloads, raw DB rows, raw order ids, raw payment ids, or full event payloads containing sensitive data.
 ```
@@ -249,8 +250,8 @@ Still missing for execution:
 - `[RESOLVED/NARROWED: CHECKOUT_MUTATION_MODE=test-only source contract selected; future runner must enforce it before any checkout/order mutation]`
 - `[RESOLVED/NARROWED: SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl with SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid]`
 - `[RESOLVED/NARROWED: SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl]`
-- `[MISSING: order/payment cleanup or retention contract]`
-- `[MISSING: final redacted evidence path]`
+- `[RESOLVED/NARROWED: SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.cleanup.invoice_pending.stale_unpaid_retention.v1; cleanup_mode=retain_then_platform_stale_unpaid_cancel; manual_cleanup_mutation=false; orders_route_invocation=false; db_write_by_runner=false]`
+- `[RESOLVED/NARROWED: FINAL_REDACTED_EVIDENCE_PATH=reports/validation/VAL-W5-customer-journey-sandbox-final-redacted-evidence-2026-07-06.md; evidence content remains missing until an approved runtime run exists]`
 
 
 
@@ -312,9 +313,45 @@ Validation command:
 npm run verify:customer-journey-assertion-sources
 ```
 
+
+
+## Workstream 5 Cleanup And Evidence Path Contract
+
+User approval `Да, я опрувлю` is consumed only for source/docs/verifier edits that narrow cleanup/retention and final evidence path. It does not authorize checkout submission, order creation, payment creation, provider calls, webhook replay, email sending, event publishing, Warehouse mutation, Orders mutation, deploy, DB reads/writes, secret output, token output, raw customer/contact/address output, raw order/payment ids, or raw provider payload output.
+
+Contract values:
+
+```text
+SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.cleanup.invoice_pending.stale_unpaid_retention.v1
+cleanup_mode=retain_then_platform_stale_unpaid_cancel
+payment_method=invoice
+payment_status_expected=pending
+provider_call=false
+external_provider_call=false
+manual_cleanup_mutation=false
+orders_route_invocation=false
+db_write_by_runner=false
+retention_ttl_source=STALE_UNPAID_ORDER_HOURS default 24h
+idempotency_key_namespace=w5:customer-journey:<approvalId>:<journeyHash>:<orderHash>
+sideEffectsHandled.payment=true_no_provider_call
+sideEffectsHandled.warehouse=false_until_owner_packet
+sideEffectsHandled.notification=false_until_synthetic_email_jsonl_readback
+sideEffectsHandled.crm=false_not_in_scope
+sideEffectsHandled.channel=false_until_redacted_channel_evidence
+FINAL_REDACTED_EVIDENCE_PATH=reports/validation/VAL-W5-customer-journey-sandbox-final-redacted-evidence-2026-07-06.md
+```
+
+Source proof: `services/order-service/src/orders/orders.service.ts` defines `cancelStaleUnpaidOrders`, defaults `STALE_UNPAID_ORDER_HOURS` to 24, selects orders with `paymentStatus: PaymentStatus.pending` and `status: OrderStatus.pending`, skips local warehouse release for central-owned orders, and then marks stale unpaid rows `paymentStatus: PaymentStatus.failed` and `status: OrderStatus.cancelled`. The W5 runner must not call this job directly and must not call any cleanup or Orders status route. It may only record the retention contract and sanitized evidence path.
+
+Validation command:
+
+```bash
+npm run verify:customer-journey-cleanup-contract
+```
+
 ## Current Decision
 
-Status: `owner-approved-packet-prep-delivery-and-w5c-source-narrowed-runtime-side-effects-blocked`.
+Status: `owner-approved-packet-prep-delivery-payment-w5c-cleanup-source-narrowed-runtime-side-effects-blocked`.
 
 The packet is ready for fact discovery and owner review, not for execution. The current safe state remains:
 
@@ -378,7 +415,7 @@ paid-provider bundle checkout gate: ok=true, mutation=false, providerCall=false,
 orders lifecycle UI verifier: ok=true, coveredStages=13, sensitiveOutput=redacted-source-only
 ```
 
-Validation decision: packet preparation is source-valid; runtime execution remains blocked by missing synthetic customer/contact, sandbox/test-mode provider, checkout mutation mode enforcement proof, cleanup/retention contract, and final redacted evidence path.
+Validation decision: packet preparation is source-valid; runtime execution remains blocked by missing synthetic customer/contact, approval id, execution window, and final redacted evidence content. Sandbox/test-mode provider, checkout mutation mode, cleanup/retention contract, and final redacted evidence path are source-narrowed only.
 
 
 
