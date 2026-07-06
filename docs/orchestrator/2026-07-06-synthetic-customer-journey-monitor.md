@@ -119,7 +119,7 @@ The monitor writes `reports/validation/synthetic-journey-monitor/report-latest.j
 
 ## Required test data
 
-- `[MISSING: approved synthetic product/SKU]` as `SYNTHETIC_TEST_PRODUCT_ID`.
+- `[RESOLVED/NARROWED: owner-approved W5 sandbox product target]` as `SYNTHETIC_TEST_PRODUCT_ID=ffb4883f-ec48-4745-8147-b836f3fb2b88` with SKU `ALLEGRO-OFFER-18106037370`.
 - `[MISSING: synthetic customer/contact]` as `SYNTHETIC_CUSTOMER_EMAIL` or approved token-bound synthetic identity.
 - `[MISSING: approved delivery test contract]` as `SYNTHETIC_DELIVERY_CONTRACT_ID`.
 - `[MISSING: sandbox/test-mode payment provider contract]` with `PAYMENT_SANDBOX_CONTRACT_APPROVED=1`, `TEST_MODE_PAYMENT_PROVIDER`, and `CHECKOUT_MUTATION_MODE=sandbox|test-only`.

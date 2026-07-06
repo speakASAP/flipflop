@@ -125,7 +125,7 @@ The full sandbox runner remains blocked until every item below is resolved.
 
 | Required fact | Current status | Required evidence |
 | --- | --- | --- |
-| Synthetic product/SKU | `[MISSING: approved synthetic product/SKU]`; `[RESOLVED/NARROWED: historical GOAL-09 precedent used dedicated SKU CODEX-STOCK-TRACE-011, but current public product API lookup did not find that SKU; first-sellable public product is not reclassified as synthetic]` | product id/SKU or approved deterministic selector, with stock/price/delivery suitability and no raw DB row output |
+| Synthetic product/SKU | `[RESOLVED/NARROWED: owner-approved W5 sandbox product target is productId ffb4883f-ec48-4745-8147-b836f3fb2b88, sku ALLEGRO-OFFER-18106037370, catalogProductId ce4a51aa-2d12-4ab7-a965-7a36609d01fc, current public API price 999 CZK and stock 119; this reuses an existing live sellable product as a bounded sandbox target and does not create/modify product rows]` | public API list/detail readback, source packet approval, no raw DB row output |
 | Synthetic customer/contact | `[MISSING: synthetic customer/contact]` | approved synthetic identity or token-bound test actor; no raw email/customer data in logs |
 | Delivery test contract | `[RESOLVED/NARROWED: packet-prep delivery test contract is flipflop.delivery.store_pickup.no_external_carrier.v1 using deliveryMethod=store, shippingCost=0, and no external-carrier handoff; runtime still blocked until product/customer/payment/email/event/cleanup facts exist]` | source references for `store` delivery method and server-side cost calculation; any checkout execution still requires full sandbox packet approval |
 | Payment sandbox approval flag | `[MISSING: sandbox/test-mode payment approval flag]` | explicit owner-approved `PAYMENT_SANDBOX_CONTRACT_APPROVED=1` or equivalent non-secret packet |
@@ -140,7 +140,7 @@ The full sandbox runner remains blocked until every item below is resolved.
 The existing monitor already gates full-flow readiness through these variables:
 
 ```text
-SYNTHETIC_TEST_PRODUCT_ID
+SYNTHETIC_TEST_PRODUCT_ID=ffb4883f-ec48-4745-8147-b836f3fb2b88
 SYNTHETIC_CUSTOMER_EMAIL
 SYNTHETIC_DELIVERY_CONTRACT_ID=flipflop.delivery.store_pickup.no_external_carrier.v1
 PAYMENT_SANDBOX_CONTRACT_APPROVED
@@ -221,7 +221,7 @@ W5C is now source-resolved by disabled-by-default assertion capture contracts. T
 This section is intentionally not executable until every `[MISSING: ...]` marker is replaced.
 
 ```text
-I approve exactly one FlipFlop customer journey sandbox run for process flipflop.successful_customer_journey.v1 using approval id [MISSING: approval id], execution window [MISSING: start/end Europe/Prague], synthetic product/SKU [MISSING], synthetic customer/contact [MISSING], delivery contract flipflop.delivery.store_pickup.no_external_carrier.v1, sandbox/test-mode payment provider [MISSING], checkout mutation mode [MISSING], email assertion source synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl, event trace source synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl, cleanup/retention contract [MISSING], and redacted evidence path [MISSING].
+I approve exactly one FlipFlop customer journey sandbox run for process flipflop.successful_customer_journey.v1 using approval id [MISSING: approval id], execution window [MISSING: start/end Europe/Prague], synthetic product/SKU ffb4883f-ec48-4745-8147-b836f3fb2b88 / ALLEGRO-OFFER-18106037370, synthetic customer/contact [MISSING], delivery contract flipflop.delivery.store_pickup.no_external_carrier.v1, sandbox/test-mode payment provider [MISSING], checkout mutation mode [MISSING], email assertion source synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl, event trace source synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl, cleanup/retention contract [MISSING], and redacted evidence path [MISSING].
 
 I understand this authorizes only the named sandbox/test-mode attempt. The executor must stop at the first hard stop and must not print secrets, tokens, raw customer/contact/address data, raw provider payloads, raw DB rows, raw order ids, raw payment ids, or full event payloads containing sensitive data.
 ```
@@ -241,7 +241,7 @@ Scope of this approval:
 
 Still missing for execution:
 
-- `[MISSING: approved synthetic product/SKU]`
+- `[RESOLVED/NARROWED: owner-approved W5 sandbox product target ffb4883f-ec48-4745-8147-b836f3fb2b88 / ALLEGRO-OFFER-18106037370 selected from current public API; no product row created or modified]`
 - `[MISSING: synthetic customer/contact]`
 - `[RESOLVED/NARROWED: delivery test contract candidate flipflop.delivery.store_pickup.no_external_carrier.v1 selected for packet preparation only; no runtime checkout allowed until the remaining missing facts are resolved]`
 - `[MISSING: documented sandbox/test-mode payment provider with environment proof]`
@@ -347,3 +347,61 @@ orders lifecycle UI verifier: ok=true, coveredStages=13, sensitiveOutput=redacte
 ```
 
 Validation decision: packet preparation is source-valid; runtime execution remains blocked by missing synthetic product/SKU, synthetic customer/contact, sandbox/test-mode provider, checkout mutation mode enforcement proof, email assertion source, event trace assertion source, cleanup/retention contract, and final redacted evidence path.
+
+
+
+
+## 2026-07-06 W5A Owner-Approved Product Target
+
+Owner reply: `да, разрешаю`.
+
+Decision: `[RESOLVED/NARROWED: owner approved the current first-sellable public product as the W5 sandbox product target for packet preparation]`.
+
+Approved product target:
+
+```text
+SYNTHETIC_TEST_PRODUCT_ID=ffb4883f-ec48-4745-8147-b836f3fb2b88
+productSku=ALLEGRO-OFFER-18106037370
+catalogProductId=ce4a51aa-2d12-4ab7-a965-7a36609d01fc
+priceClass=positive
+currentReadOnlyPrice=999 CZK
+currentReadOnlyStock=119
+source=GET https://flipflop.alfares.cz/api/products?limit=20 and /api/products/:id?includeWarehouse=true
+```
+
+Scope: this approval selects a product target only. It does not create or mutate a product row, does not reserve stock, does not create a cart/order/payment, and does not waive the remaining customer/contact, sandbox payment, checkout mutation mode, cleanup/retention, and final evidence blockers.
+
+Risk boundary: this is an existing live sellable product, not a dedicated synthetic inventory row. The sandbox runner must use `deliveryMethod=store`, a sandbox/test-only payment mode, and an approved cleanup/retention contract before any checkout mutation is allowed.
+
+
+
+## 2026-07-06 W5A Product Target Validation
+
+Configured read-only monitor command:
+
+```bash
+SYNTHETIC_TEST_PRODUCT_ID=ffb4883f-ec48-4745-8147-b836f3fb2b88 \
+SYNTHETIC_DELIVERY_CONTRACT_ID=flipflop.delivery.store_pickup.no_external_carrier.v1 \
+FLIPFLOP_SYNTHETIC_EVIDENCE_DIR=/tmp/flipflop-w5-product-target-monitor \
+npm run verify:synthetic-journey-monitor --silent
+```
+
+Observed result:
+
+```text
+ok=true
+status=read_only_passed_full_flow_blocked_missing_contract
+syntheticProductSource=configured
+selectedProduct.idHash=6d12775ab8f5bcaa
+selectedProduct.skuHash=1c80588fa6523352
+mutation=false
+liveCheckoutExecuted=false
+providerCall=false
+ordersMutation=false
+warehouseMutation=false
+secretOutput=false
+rawCustomerOrPaymentEvidence=false
+missing=[synthetic customer/contact, sandbox/test-mode payment approval flag, documented sandbox/test-mode payment provider, sandbox or test-only checkout mutation mode, email queue/inbox assertion source, event trace assertion source, order/payment cleanup or retention contract]
+```
+
+Validation decision: product and delivery are accepted by the read-only monitor when explicitly configured. Runtime execution remains blocked until the remaining missing facts are resolved and the full sandbox runner is separately enabled.
