@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { cartApi, Cart } from '@/lib/api/cart';
 import { CreateGuestOrderData, ordersApi } from '@/lib/api/orders';
 import { productsApi } from '@/lib/api/products';
-import { clearGuestBundleIntent, clearGuestCart, getGuestBundleIntentForProductIds, getGuestCart, GuestCart, GuestCartItem, recordJourneyEvent, removeGuestCartItem } from '@/lib/guest-cart';
+import { clearGuestBundleIntent, clearGuestCart, getGuestBundleIntentForProductIds, getCustomerJourneyContext, getGuestCart, GuestCart, GuestCartItem, recordJourneyEvent, removeGuestCartItem } from '@/lib/guest-cart';
 import { useAuth } from '@/contexts/AuthContext';
 import { authApi, AuthDeliveryAddress, AuthInvoiceProfile } from '@/lib/api/auth';
 import { buildHostedPasswordResetUrl } from '@/lib/auth/hosted-auth';
@@ -500,11 +500,14 @@ export default function CheckoutPage() {
     try {
       const billingAddress = { firstName: form.firstName, lastName: form.lastName, street: form.street, city: form.city, postalCode: form.postalCode, country: form.country, phone: form.phone, companyName: form.companyName, companyId: form.companyId, taxId: form.taxId, vatId: form.vatId, email: form.invoiceEmail || form.email };
       const deliveryAddress = { firstName: form.firstName, lastName: form.lastName, street: form.street, city: form.city, postalCode: form.postalCode, country: form.country, phone: form.phone };
+      const journeyContext = getCustomerJourneyContext();
+      if (!journeyContext?.journeyId || !journeyContext.correlationId) { setError('Chybí kontext nákupní cesty. Obnovte stránku a zkuste objednávku znovu.'); return; }
       const payload: CreateGuestOrderData = {
         email: form.email, phone: form.phone, wantsAccount: showAccountCreationPrompt && form.createAccount, marketingConsent: form.marketingConsent, billingAddress,
         deliveryAddress: form.differentDelivery ? { ...deliveryAddress, street: form.deliveryStreet, city: form.deliveryCity, postalCode: form.deliveryPostalCode } : deliveryAddress,
         items: orderItems, paymentMethod, deliveryMethod, expeditionMethod: 'standard-one-shipment', wantsDifferentDeliveryDay: differentDay,
         requestedDeliveryDate: differentDay ? requestedDate : undefined, operatorTip, notes: form.note,
+        journeyId: journeyContext.journeyId, correlationId: journeyContext.correlationId, sessionId: journeyContext.sessionId,
         bundleIntent: bundleIntent ? {
           source: bundleIntent.source,
           sourceProductId: bundleIntent.sourceProductId,

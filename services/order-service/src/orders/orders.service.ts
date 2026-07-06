@@ -2118,10 +2118,26 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
   }
 
 
+  private assertCustomerJourneyId(value: string, field: 'journeyId' | 'correlationId' | 'sessionId'): void {
+    const patterns: Record<'journeyId' | 'correlationId' | 'sessionId', RegExp> = {
+      journeyId: /^journey_[a-z0-9][a-z0-9_-]{8,127}$/,
+      correlationId: /^corr_[a-z0-9][a-z0-9_-]{8,127}$/,
+      sessionId: /^[a-zA-Z0-9._:-]{8,180}$/,
+    };
+    if (!patterns[field].test(value)) {
+      throw new BadRequestException(`[MISSING: valid ${field}] Customer journey context is required before checkout side effects`);
+    }
+  }
+
   private createCustomerJourneyContext(dto: any): Record<string, unknown> {
-    const journeyId = this.normalizeGuestText(dto?.journeyId || dto?.journey_id, '') || `journey_${randomUUID()}`;
-    const correlationId = this.normalizeGuestText(dto?.correlationId || dto?.correlation_id, '') || journeyId;
+    const journeyId = this.normalizeGuestText(dto?.journeyId || dto?.journey_id, '');
+    const correlationId = this.normalizeGuestText(dto?.correlationId || dto?.correlation_id, '');
     const sessionId = this.normalizeGuestText(dto?.sessionId || dto?.session_id, '');
+    this.assertCustomerJourneyId(journeyId, 'journeyId');
+    this.assertCustomerJourneyId(correlationId, 'correlationId');
+    if (sessionId) {
+      this.assertCustomerJourneyId(sessionId, 'sessionId');
+    }
     return {
       version: '1.0.0',
       journeyId,
@@ -2137,15 +2153,16 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     const raw = metadata.customerJourney && typeof metadata.customerJourney === 'object' && !Array.isArray(metadata.customerJourney)
       ? metadata.customerJourney as Record<string, unknown>
       : {};
-    const journeyId = typeof raw.journeyId === 'string' && raw.journeyId.trim()
-      ? raw.journeyId.trim()
-      : `journey_${order?.id || 'unknown'}`;
-    const correlationId = typeof raw.correlationId === 'string' && raw.correlationId.trim()
-      ? raw.correlationId.trim()
-      : journeyId;
+    const journeyId = typeof raw.journeyId === 'string' ? raw.journeyId.trim() : '';
+    const correlationId = typeof raw.correlationId === 'string' ? raw.correlationId.trim() : '';
     const sessionId = typeof raw.sessionId === 'string' && raw.sessionId.trim()
       ? raw.sessionId.trim()
       : undefined;
+    this.assertCustomerJourneyId(journeyId, 'journeyId');
+    this.assertCustomerJourneyId(correlationId, 'correlationId');
+    if (sessionId) {
+      this.assertCustomerJourneyId(sessionId, 'sessionId');
+    }
     return { journeyId, correlationId, sessionId };
   }
 
@@ -2300,11 +2317,18 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
   }
 
   private buildPaymentMetadata(order: any, centralOrderId: string): Record<string, unknown> {
+    const journey = this.getCustomerJourneyContext(order);
     return {
       centralOrderId,
       flipflopOrderId: order.id,
       flipflopOrderNumber: order.orderNumber,
       centralOrdersSource: 'orders-microservice',
+      customerJourney: {
+        version: '1.0.0',
+        journeyId: journey.journeyId,
+        correlationId: journey.correlationId,
+        ...(journey.sessionId ? { sessionId: journey.sessionId } : {}),
+      },
     };
   }
 
@@ -2535,7 +2559,8 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     const total = this.roundMoney(orderTotalBeforeDiscount - discount);
     const catalogBundleEvidence = this.buildCatalogBundleEvidence(dto.bundleIntent, orderItems);
 
-    const metadataValue: Record<string, unknown> = {};
+    const customerJourney = this.createCustomerJourneyContext(dto);
+    const metadataValue: Record<string, unknown> = { customerJourney };
     if (discountApplication.pendingDiscountCode) {
       metadataValue.pendingDiscountCode = discountApplication.pendingDiscountCode;
     }

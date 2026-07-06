@@ -4,6 +4,8 @@ const STORAGE_KEY = 'flipflop_guest_cart_v1';
 const BUNDLE_INTENT_KEY = 'flipflop_bundle_intent_v1';
 const JOURNEY_EVENTS_KEY = 'flipflop_journey_events_v1';
 const JOURNEY_SESSION_ID_KEY = 'flipflop_journey_session_id_v1';
+const JOURNEY_ID_KEY = 'flipflop_journey_id_v1';
+const JOURNEY_CORRELATION_ID_KEY = 'flipflop_journey_correlation_id_v1';
 const JOURNEY_SESSION_STARTED_KEY = 'flipflop_journey_session_started_v1';
 const MAX_JOURNEY_EVENTS = 100;
 export const GUEST_CART_UPDATED_EVENT = 'flipflop:guest-cart-updated';
@@ -92,22 +94,39 @@ const createJourneyId = () => {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 };
 
-const getJourneySessionId = () => {
-  if (!isBrowser()) return '';
+const createContractId = (prefix: 'journey' | 'corr') => (
+  `${prefix}_${createJourneyId().replace(/[^a-zA-Z0-9_-]/g, '-').toLowerCase()}`
+);
 
+const getStoredOrCreateId = (key: string, create: () => string) => {
   try {
-    const existing = window.sessionStorage.getItem(JOURNEY_SESSION_ID_KEY);
+    const existing = window.sessionStorage.getItem(key);
     if (existing) return existing;
-    const next = createJourneyId();
-    window.sessionStorage.setItem(JOURNEY_SESSION_ID_KEY, next);
+    const next = create();
+    window.sessionStorage.setItem(key, next);
     return next;
   } catch {
-    const existing = window.localStorage.getItem(JOURNEY_SESSION_ID_KEY);
+    const existing = window.localStorage.getItem(key);
     if (existing) return existing;
-    const next = createJourneyId();
-    window.localStorage.setItem(JOURNEY_SESSION_ID_KEY, next);
+    const next = create();
+    window.localStorage.setItem(key, next);
     return next;
   }
+};
+
+const getJourneySessionId = () => {
+  if (!isBrowser()) return '';
+  return getStoredOrCreateId(JOURNEY_SESSION_ID_KEY, createJourneyId);
+};
+
+export const getCustomerJourneyContext = () => {
+  if (!isBrowser()) return null;
+  const sessionId = getJourneySessionId();
+  return {
+    journeyId: getStoredOrCreateId(JOURNEY_ID_KEY, () => createContractId('journey')),
+    correlationId: getStoredOrCreateId(JOURNEY_CORRELATION_ID_KEY, () => createContractId('corr')),
+    sessionId,
+  };
 };
 
 const readJourneyEvents = (): JourneyEvent[] => {
@@ -155,7 +174,8 @@ const hasJourneySessionStarted = (sessionId: string) => {
 export const recordJourneyEvent = (type: JourneyEventType, payload: Record<string, unknown> = {}) => {
   if (!isBrowser()) return;
 
-  const sessionId = getJourneySessionId();
+  const context = getCustomerJourneyContext();
+  const sessionId = context?.sessionId || '';
   if (!sessionId) return;
 
   if (type !== 'session_started' && !hasJourneySessionStarted(sessionId)) {
@@ -174,7 +194,7 @@ export const recordJourneyEvent = (type: JourneyEventType, payload: Record<strin
     id: createJourneyId(),
     sessionId,
     type,
-    payload,
+    payload: { ...payload, journeyId: context?.journeyId, correlationId: context?.correlationId },
     url: `${window.location.pathname}${window.location.search}`,
     createdAt: new Date().toISOString(),
   });

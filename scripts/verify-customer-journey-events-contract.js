@@ -47,12 +47,35 @@ const fixture = readJson(fixturePath);
 const doc = read(contractDocPath);
 const pkg = readJson('package.json');
 const source = read('scripts/verify-customer-journey-events-contract.js');
+const ordersService = read('services/order-service/src/orders/orders.service.ts');
+const guestOrderDto = read('services/order-service/src/orders/dto/create-guest-order.dto.ts');
+const authOrderDto = read('services/order-service/src/orders/dto/create-order.dto.ts');
+const frontendOrdersApi = read('services/frontend/lib/api/orders.ts');
+const frontendCheckout = read('services/frontend/app/checkout/page.tsx');
+const guestCart = read('services/frontend/lib/guest-cart.ts');
 assert(schema.title === 'flipflop.customer_journey.events.v1', 'schema title must match contract name');
 assert(schema.properties.version.const === '1.0.0', 'schema version const missing');
 assert(pkg.scripts['verify:customer-journey-events-contract'] === 'node scripts/verify-customer-journey-events-contract.js', 'package script missing');
 assert(doc.includes('Intent Preservation Chain'), 'contract doc must preserve Intent Preservation chain');
 assert(doc.includes('[MISSING: no durable ingestion API inspected or implemented in this lane]'), 'contract doc must mark ingestion gap missing');
 assert(source.includes('forbidden_raw_sensitive_fields'), 'verifier must enforce sensitive field denylist');
+assert(ordersService.includes("correlationId: /^corr_[a-z0-9][a-z0-9_-]{8,127}$/"), 'order-service must validate corr_ correlation ids');
+assert(!ordersService.includes("|| journeyId;"), 'order-service must not fall back from correlation_id to journey_id');
+assert(ordersService.includes('const metadataValue: Record<string, unknown> = { customerJourney };'), 'authenticated checkout must persist customerJourney metadata');
+assert(ordersService.includes('customerJourney: {') && ordersService.includes('centralOrdersSource'), 'payment metadata must include customerJourney context');
+for (const dtoSource of [guestOrderDto, authOrderDto]) {
+  for (const field of ['journeyId?: string', 'correlationId?: string', 'sessionId?: string']) {
+    assert(dtoSource.includes(field), 'order DTOs must allow ' + field + ' under strict ValidationPipe');
+  }
+}
+for (const field of ['journeyId?: string', 'correlationId?: string', 'sessionId?: string']) {
+  assert(frontendOrdersApi.includes(field), 'frontend orders API type must include ' + field);
+}
+assert(guestCart.includes('getCustomerJourneyContext'), 'frontend must expose customer journey context helper');
+assert(guestCart.includes('JOURNEY_CORRELATION_ID_KEY'), 'frontend must persist stable correlation id');
+assert(frontendCheckout.includes('getCustomerJourneyContext()'), 'checkout submit must read customer journey context');
+assert(frontendCheckout.includes('journeyId: journeyContext.journeyId'), 'checkout payload must send journeyId');
+assert(frontendCheckout.includes('correlationId: journeyContext.correlationId'), 'checkout payload must send correlationId');
 assert(Array.isArray(fixture), 'fixture must be an array of events');
 const contractRules = schema['x-contract-rules'];
 const forbidden = new Set(contractRules.forbidden_raw_sensitive_fields.map((f) => f.toLowerCase()));

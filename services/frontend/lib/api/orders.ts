@@ -149,6 +149,9 @@ export interface CreateGuestOrderData {
   shippingCost?: number;
   discount?: number;
   discountCode?: string;
+  journeyId?: string;
+  correlationId?: string;
+  sessionId?: string;
   bundleIntent?: BundleIntentData;
 }
 
@@ -163,6 +166,9 @@ export interface CreateOrderData {
   notes?: string;
   shippingCost?: number;
   discount?: number;
+  journeyId?: string;
+  correlationId?: string;
+  sessionId?: string;
   bundleIntent?: BundleIntentData;
 }
 

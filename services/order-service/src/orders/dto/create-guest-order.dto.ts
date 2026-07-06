@@ -128,6 +128,18 @@ export class CreateGuestOrderDto {
   discountCode?: string;
 
   @IsOptional()
+  @IsString()
+  journeyId?: string;
+
+  @IsOptional()
+  @IsString()
+  correlationId?: string;
+
+  @IsOptional()
+  @IsString()
+  sessionId?: string;
+
+  @IsOptional()
   @IsObject()
   bundleIntent?: {
     source?: string;
