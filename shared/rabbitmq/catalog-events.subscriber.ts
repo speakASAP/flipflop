@@ -41,6 +41,14 @@ type CatalogProductEvent = {
   [key: string]: unknown;
 };
 
+type CatalogProductRow = {
+  id: string;
+  sku?: string | null;
+  catalogProductId?: string | null;
+  isActive?: boolean | null;
+  updatedAt?: Date | string | null;
+};
+
 type CatalogAttemptRow = {
   id: string;
   status: string;
