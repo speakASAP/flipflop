@@ -537,6 +537,8 @@ Source follow-up after 22:00 readback: CustomerJourneyEventsPublisher now record
 
 Deploy follow-up at 2026-07-06T22:13:08+02:00: commit `92c51f9` is on `main`/`origin/main`. `./scripts/deploy.sh` built and pushed images; the script timed out during slow local-registry image pulls, then all six FlipFlop deployments reported successful rollout on recheck. HTTP checks passed for `https://flipflop.alfares.cz/` and `/api/products?limit=1`. Live order-service pod env readback confirmed the W5 assertion source env values. No additional checkout/order mutation was run after this source fix.
 
+Event JSONL follow-up at 2026-07-06T22:17:24+02:00: after commit `92c51f9`, a bounded owner-approved invoice/no-provider pass created one additional pending invoice order with providerCall=false, externalProviderCall=false, realMoneyMovement=false, and paymentCreated=false. Synthetic event trace JSONL was observed with 10 matching rows covering cart_validated, customer_identity_resolved, shipping_option_selected, order_created, and payment_attempt_started. Evidence: `reports/validation/VAL-W5-customer-journey-sandbox-event-jsonl-after-92c51f9-2026-07-06.md` and `reports/validation/customer-journey-sandbox-runtime/w5-owner-approved-invoice-runtime-20260706-event-jsonl-after-92c51f9.json`. Remaining blockers: [MISSING: sandbox/test-mode payment success evidence; invoice remains pending/no-provider] and [MISSING: synthetic email JSONL assertion row for payment-success confirmation path; invoice pending/no-provider does not send payment-success confirmation].
+
 ## Current Decision
 
 Status: `owner-approved-packet-prep-product-customer-delivery-payment-w5c-cleanup-source-narrowed-runtime-side-effects-blocked`.

@@ -113,6 +113,35 @@ for (const marker of [
   assert(packet.includes(marker) || status.includes(marker) || state.includes(marker) || freshEvidence.includes(marker), `fresh evidence marker missing ${marker}`);
 }
 
+const eventJsonlRuntimeJsonPath = 'reports/validation/customer-journey-sandbox-runtime/w5-owner-approved-invoice-runtime-20260706-event-jsonl-after-92c51f9.json';
+const eventJsonlEvidencePath = 'reports/validation/VAL-W5-customer-journey-sandbox-event-jsonl-after-92c51f9-2026-07-06.md';
+const eventJsonlRuntime = readJson(eventJsonlRuntimeJsonPath);
+const eventJsonlEvidence = read(eventJsonlEvidencePath);
+
+assert(eventJsonlRuntime.ok === true, 'event JSONL runtime evidence must pass');
+assert(eventJsonlRuntime.afterCommit === '92c51f9', 'event JSONL runtime evidence must be after 92c51f9');
+assert(eventJsonlRuntime.orderCreated === true, 'event JSONL runtime evidence must record order creation');
+assert(eventJsonlRuntime.paymentMethod === 'invoice', 'event JSONL runtime evidence must be invoice-only');
+assert(eventJsonlRuntime.paymentStatus === 'pending', 'event JSONL runtime evidence must keep invoice pending');
+assert(eventJsonlRuntime.providerCall === false, 'event JSONL runtime evidence must not call provider');
+assert(eventJsonlRuntime.externalProviderCall === false, 'event JSONL runtime evidence must not call external provider');
+assert(eventJsonlRuntime.realMoneyMovement === false, 'event JSONL runtime evidence must not move real money');
+assert(eventJsonlRuntime.paymentCreated === false, 'event JSONL runtime evidence must not create provider payment');
+assert(eventJsonlRuntime.eventTraceSource === 'synthetic_event_trace_jsonl_observed_after_92c51f9_invoice_order', 'event JSONL runtime evidence must observe synthetic event trace JSONL');
+assert(eventJsonlRuntime.eventJsonlObserved === true, 'event JSONL runtime evidence must observe JSONL rows');
+assert(eventJsonlRuntime.eventJsonlMatchedRows >= 5, 'event JSONL runtime evidence must include expected matching rows');
+for (const eventName of ['cart_validated', 'customer_identity_resolved', 'shipping_option_selected', 'order_created', 'payment_attempt_started']) {
+  assert(eventJsonlRuntime.eventNames.includes(eventName), `event JSONL runtime evidence missing ${eventName}`);
+  assert(eventJsonlEvidence.includes(eventName), `event JSONL evidence missing ${eventName}`);
+}
+assert(eventJsonlRuntime.rawCustomerOutput === false, 'event JSONL runtime evidence must not output raw customer data');
+assert(eventJsonlRuntime.rawOrderOutput === false, 'event JSONL runtime evidence must not output raw order data');
+assert(eventJsonlRuntime.rawPaymentOutput === false, 'event JSONL runtime evidence must not output raw payment data');
+assert(eventJsonlRuntime.secretOutput === false, 'event JSONL runtime evidence must not output secrets');
+assert(eventJsonlRuntime.remainingBlockers.includes('[MISSING: sandbox/test-mode payment success evidence; invoice remains pending/no-provider]'), 'event JSONL runtime evidence must preserve payment success blocker');
+assert(eventJsonlRuntime.remainingBlockers.includes('[MISSING: synthetic email JSONL assertion row for payment-success confirmation path; invoice pending/no-provider does not send payment-success confirmation]'), 'event JSONL runtime evidence must preserve email JSONL blocker');
+
+
 console.log(JSON.stringify({
   ok: true,
   sourceOnlyVerifier: true,
@@ -132,5 +161,7 @@ console.log(JSON.stringify({
   crmLeadsAcknowledgement: runtime.crmLeadsAcknowledgement,
   remainingBlockers: runtime.remainingBlockers.length,
   freshRuntimeEvidence: freshRuntimeJsonPath,
-  freshRuntimeRemainingBlockers: freshRuntime.remainingBlockers.length
+  freshRuntimeRemainingBlockers: freshRuntime.remainingBlockers.length,
+  eventJsonlRuntimeEvidence: eventJsonlRuntimeJsonPath,
+  eventJsonlMatchedRows: eventJsonlRuntime.eventJsonlMatchedRows
 }, null, 2));
