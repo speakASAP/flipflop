@@ -6,7 +6,18 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../database/prisma.service';
-import { AdminSettings, Prisma } from '@prisma/client';
+type AdminSettings = {
+  id: string;
+  envOverrides?: unknown;
+  features?: unknown;
+  business?: unknown;
+  integrations?: unknown;
+  system?: unknown;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
+
+type AdminSettingsUpdateInput = Record<string, unknown>;
 
 export interface MergedSettings {
   [key: string]: string | number | boolean | undefined;
@@ -44,7 +55,7 @@ export class SettingsService implements OnModuleInit {
     }
 
     try {
-      const settings = await this.prisma.adminSettings.findFirst({
+      const settings = await (this.prisma as any).adminSettings.findFirst({
         orderBy: { createdAt: 'asc' },
       });
 
@@ -110,13 +121,13 @@ export class SettingsService implements OnModuleInit {
    * Get admin settings
    */
   async getAdminSettings(): Promise<AdminSettings> {
-    let settings = await this.prisma.adminSettings.findFirst({
+    let settings = await (this.prisma as any).adminSettings.findFirst({
       orderBy: { createdAt: 'asc' },
     });
 
     if (!settings) {
       // Create default admin settings
-      settings = await this.prisma.adminSettings.create({
+      settings = await (this.prisma as any).adminSettings.create({
         data: {
           envOverrides: {},
           features: {},
@@ -134,13 +145,13 @@ export class SettingsService implements OnModuleInit {
   /**
    * Update admin settings
    */
-  async updateAdminSettings(updates: Prisma.AdminSettingsUpdateInput): Promise<AdminSettings> {
+  async updateAdminSettings(updates: AdminSettingsUpdateInput): Promise<AdminSettings> {
     let settings = await this.getAdminSettings();
 
     // Use Prisma update with merge
-    const updated = await this.prisma.adminSettings.update({
+    const updated = await (this.prisma as any).adminSettings.update({
       where: { id: settings.id },
-      data: updates,
+      data: updates as any,
     });
 
     await this.invalidateCache();

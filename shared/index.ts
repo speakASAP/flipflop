@@ -7,7 +7,24 @@
 export * from './database/prisma.module';
 export * from './database/prisma.service';
 // Export Prisma types
-export { OrderStatus, PaymentStatus, Prisma } from '@prisma/client';
+export { Prisma } from '@prisma/client';
+
+export enum OrderStatus {
+  pending = 'pending',
+  confirmed = 'confirmed',
+  processing = 'processing',
+  shipped = 'shipped',
+  delivered = 'delivered',
+  cancelled = 'cancelled',
+  refunded = 'refunded',
+}
+
+export enum PaymentStatus {
+  pending = 'pending',
+  paid = 'paid',
+  failed = 'failed',
+  refunded = 'refunded',
+}
 
 // Redis
 export * from './redis/redis.config';
