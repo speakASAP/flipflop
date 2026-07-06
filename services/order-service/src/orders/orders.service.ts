@@ -2960,6 +2960,19 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
 
     let redirectUrl: string | null = null;
     if (paymentMethod === 'invoice') {
+      const paymentAttemptId = `invoice-payment-attempt:${order.id}:${centralAcceptance.centralOrderId}`;
+      this.publishCustomerJourneyEvent('payment_attempt_started', order, {
+        idempotencySuffix: paymentAttemptId,
+        customerId: guestUser.id,
+        paymentId: paymentAttemptId,
+        causationId: orderCreatedEventId,
+        metadata: {
+          payment_status: 'pending',
+          payment_method: paymentMethod,
+          external_payment_call: false,
+          central_order_ref: this.hashJourneyReference(centralAcceptance.centralOrderId),
+        },
+      });
       redirectUrl = this.buildBankTransferRedirect(order, total);
     } else {
       const callbackUrlBase =

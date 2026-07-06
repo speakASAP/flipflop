@@ -239,12 +239,13 @@ export class CustomerJourneyEventsPublisher implements OnModuleDestroy {
   }
 
   async publish(event: CustomerJourneyEventEnvelope): Promise<boolean> {
+    const routingKey = `customer_journey.${event.event_name}`;
+    this.recordSyntheticEventTrace(event, routingKey);
     try {
       const ch = await this.ensureConnected();
       if (!ch) {
         return false;
       }
-      const routingKey = `customer_journey.${event.event_name}`;
       const body = Buffer.from(JSON.stringify(event));
       ch.publish(this.exchangeName, routingKey, body, {
         persistent: true,

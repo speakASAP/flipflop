@@ -13,6 +13,7 @@ function assert(condition, message) {
 
 const notificationService = read('shared/notifications/notification.service.ts');
 const journeyPublisher = read('shared/rabbitmq/customer-journey-events.publisher.ts');
+const ordersService = read('services/order-service/src/orders/orders.service.ts');
 const packet = read('docs/orchestrator/2026-07-06-customer-journey-sandbox-runtime-packet.md');
 const monitorDoc = read('docs/orchestrator/2026-07-06-synthetic-customer-journey-monitor.md');
 const packageJson = JSON.parse(read('package.json'));
@@ -27,9 +28,18 @@ assert(notificationService.includes('secret_output: false'), 'synthetic email as
 
 assert(journeyPublisher.includes('SYNTHETIC_EVENT_TRACE_SOURCE'), 'journey publisher must read SYNTHETIC_EVENT_TRACE_SOURCE');
 assert(journeyPublisher.includes('synthetic-event-trace-jsonl:'), 'journey publisher must require the synthetic-event-trace-jsonl source prefix');
-assert(journeyPublisher.includes('recordSyntheticEventTrace(event, routingKey)'), 'journey publisher must record trace after broker publish');
+assert(journeyPublisher.includes('recordSyntheticEventTrace(event, routingKey)'), 'journey publisher must record trace through the synthetic assertion source');
+assert(
+  journeyPublisher.indexOf('this.recordSyntheticEventTrace(event, routingKey)') <
+    journeyPublisher.indexOf('const ch = await this.ensureConnected()'),
+  'journey publisher must record synthetic JSONL before broker connectivity so local assertion readback works when publish is unavailable',
+);
 assert(journeyPublisher.includes('raw_payload_output: false'), 'event trace assertion must document raw payload suppression');
 assert(journeyPublisher.includes('raw_customer_or_payment_evidence: false'), 'event trace assertion must document customer/payment redaction');
+
+assert(ordersService.includes("if (paymentMethod === 'invoice')"), 'guest invoice checkout branch must be explicit');
+assert(ordersService.includes("payment_method: paymentMethod"), 'guest invoice event metadata must include payment method');
+assert(ordersService.includes("external_payment_call: false"), 'guest invoice event metadata must preserve no-external-call boundary');
 
 for (const marker of [
   'SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl',
