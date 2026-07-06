@@ -290,3 +290,30 @@ source: services/frontend/app/checkout/page.tsx DELIVERY_OPTIONS and services/or
 ```
 
 Decision: `[RESOLVED/NARROWED: delivery test contract candidate selected for packet preparation]`. This narrows only the delivery fact. It does not authorize checkout/order/payment/email/event execution and does not replace the remaining missing product, customer, payment, email, event, cleanup, or evidence-path facts.
+
+
+## 2026-07-06 Validation Refresh
+
+Commands run after packet narrowing:
+
+```bash
+git diff --check
+npm run verify:customer-journey-events-contract --silent
+npm run verify:synthetic-journey-monitor --silent
+node --check scripts/synthetic-customer-journey-monitor.js
+npm run verify:paid-provider-bundle-checkout-gate --silent
+npm run verify:orders-lifecycle-ui --silent
+```
+
+Observed result:
+
+```text
+git diff --check: pass
+customer journey event contract: ok=true, eventsValidated=14, runtimeMutation=false
+synthetic journey monitor: ok=true, status=read_only_passed_full_flow_blocked_missing_contract, mutation=false, liveCheckoutExecuted=false, providerCall=false, ordersMutation=false, warehouseMutation=false, rawCustomerOrPaymentEvidence=false
+synthetic monitor syntax: pass
+paid-provider bundle checkout gate: ok=true, mutation=false, providerCall=false, liveCheckoutExecuted=false, runtime paid/provider still blocked
+orders lifecycle UI verifier: ok=true, coveredStages=13, sensitiveOutput=redacted-source-only
+```
+
+Validation decision: packet preparation is source-valid; runtime execution remains blocked by missing synthetic product/SKU, synthetic customer/contact, sandbox/test-mode provider, checkout mutation mode enforcement proof, email assertion source, event trace assertion source, cleanup/retention contract, and final redacted evidence path.
