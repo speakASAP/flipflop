@@ -37,15 +37,18 @@ for (const marker of [
 }
 
 assert(orderService.includes("const allowed = new Set(['invoice', 'webpay', 'stripe', 'paypal', 'payu', 'fiobanka'])"), 'invoice must remain an allowed guest payment method');
-assert(orderService.includes("if (paymentMethod === 'invoice')"), 'invoice branch missing');
-assert(orderService.includes('redirectUrl = this.buildBankTransferRedirect(order, total)'), 'invoice branch must build local bank-transfer redirect');
-assert(orderService.includes('paymentResult = await this.paymentService.createPayment'), 'non-invoice provider branch marker missing');
-const invoiceBranchStart = orderService.indexOf("if (paymentMethod === 'invoice')");
-const providerCreateAfterInvoice = orderService.indexOf('paymentResult = await this.paymentService.createPayment', invoiceBranchStart);
+const guestOrderStart = orderService.indexOf('async createGuestOrder(dto: any)');
+assert(guestOrderStart >= 0, 'guest order function missing');
+const guestOrder = orderService.slice(guestOrderStart);
+assert(guestOrder.includes("if (paymentMethod === 'invoice')"), 'guest invoice branch missing');
+assert(guestOrder.includes('redirectUrl = this.buildBankTransferRedirect(order, total)'), 'guest invoice branch must build local bank-transfer redirect');
+assert(guestOrder.includes('paymentResult = await this.paymentService.createPayment'), 'guest non-invoice provider branch marker missing');
+const invoiceBranchStart = guestOrder.indexOf("if (paymentMethod === 'invoice')");
+const providerCreateAfterInvoice = guestOrder.indexOf('paymentResult = await this.paymentService.createPayment', invoiceBranchStart);
 assert(providerCreateAfterInvoice > invoiceBranchStart, 'guest non-invoice provider createPayment branch missing after invoice branch');
 
-const elseBranchStart = orderService.indexOf('} else {', invoiceBranchStart);
-const invoiceBranch = orderService.slice(invoiceBranchStart, elseBranchStart);
+const elseBranchStart = guestOrder.indexOf('} else {', invoiceBranchStart);
+const invoiceBranch = guestOrder.slice(invoiceBranchStart, elseBranchStart);
 assert(!invoiceBranch.includes('paymentService.createPayment'), 'invoice branch must not call paymentService.createPayment');
 assert(!invoiceBranch.includes('provider'), 'invoice branch must not introduce provider handling');
 
