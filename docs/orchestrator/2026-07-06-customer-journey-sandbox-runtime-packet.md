@@ -142,7 +142,7 @@ The existing monitor already gates full-flow readiness through these variables:
 ```text
 SYNTHETIC_TEST_PRODUCT_ID
 SYNTHETIC_CUSTOMER_EMAIL
-SYNTHETIC_DELIVERY_CONTRACT_ID
+SYNTHETIC_DELIVERY_CONTRACT_ID=flipflop.delivery.store_pickup.no_external_carrier.v1
 PAYMENT_SANDBOX_CONTRACT_APPROVED
 TEST_MODE_PAYMENT_PROVIDER
 CHECKOUT_MUTATION_MODE
@@ -152,6 +152,8 @@ SYNTHETIC_ORDER_CLEANUP_CONTRACT
 ```
 
 Do not set these in production runtime until their packet values are owner-approved and non-secret handling is documented.
+
+Packet-prepared delivery value: `SYNTHETIC_DELIVERY_CONTRACT_ID=flipflop.delivery.store_pickup.no_external_carrier.v1`. The monitor may still report `[MISSING: approved delivery test contract]` until the full sandbox runner environment is assembled; do not enable the runner while product/customer/payment/email/event/cleanup facts remain missing.
 
 ## Explicit Non-Reuse Boundaries
 
@@ -218,7 +220,7 @@ These final W5A/W5B/W5C findings kept the packet blocked for runtime execution. 
 This section is intentionally not executable until every `[MISSING: ...]` marker is replaced.
 
 ```text
-I approve exactly one FlipFlop customer journey sandbox run for process flipflop.successful_customer_journey.v1 using approval id [MISSING: approval id], execution window [MISSING: start/end Europe/Prague], synthetic product/SKU [MISSING], synthetic customer/contact [MISSING], delivery contract [MISSING], sandbox/test-mode payment provider [MISSING], checkout mutation mode [MISSING], email assertion source [MISSING], event trace source [MISSING], cleanup/retention contract [MISSING], and redacted evidence path [MISSING].
+I approve exactly one FlipFlop customer journey sandbox run for process flipflop.successful_customer_journey.v1 using approval id [MISSING: approval id], execution window [MISSING: start/end Europe/Prague], synthetic product/SKU [MISSING], synthetic customer/contact [MISSING], delivery contract flipflop.delivery.store_pickup.no_external_carrier.v1, sandbox/test-mode payment provider [MISSING], checkout mutation mode [MISSING], email assertion source [MISSING], event trace source [MISSING], cleanup/retention contract [MISSING], and redacted evidence path [MISSING].
 
 I understand this authorizes only the named sandbox/test-mode attempt. The executor must stop at the first hard stop and must not print secrets, tokens, raw customer/contact/address data, raw provider payloads, raw DB rows, raw order ids, raw payment ids, or full event payloads containing sensitive data.
 ```
