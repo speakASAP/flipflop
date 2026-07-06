@@ -28,6 +28,15 @@ It is intended to be moved into the eventual target repository or service bounda
 - Draft storage/access model.
 - Fail-closed runtime lookup rules.
 
+## Assigned Routing Owners
+
+| Boundary | Assigned owner | Status |
+| --- | --- | --- |
+| Draft registry contract and package stewardship | `Codex P1 process-registry lane` / thread `019f37de-ed64-7e91-8810-886c8810e4e4` | assigned for draft only |
+| Integration handoff | Parent/orchestrator thread `019f3784-f26a-7e50-b479-abffbd457076` | assigned for handoff only |
+| Runtime integration implementation | `P2-runtime-integration owner` role | role assigned; concrete identity remains `[MISSING: integration owner]` |
+| Target validation harness | `P3-target-validation owner` role | role assigned; concrete identity remains `[MISSING: validation owner]` |
+
 ## What This Package Does Not Own
 
 - FlipFlop application code.
