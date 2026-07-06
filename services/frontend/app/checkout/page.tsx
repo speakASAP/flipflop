@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { cartApi, Cart } from '@/lib/api/cart';
 import { CreateGuestOrderData, ordersApi } from '@/lib/api/orders';
 import { productsApi } from '@/lib/api/products';
-import { clearGuestBundleIntent, clearGuestCart, getGuestBundleIntentForProductIds, getCustomerJourneyContext, getGuestCart, GuestCart, GuestCartItem, recordJourneyEvent, removeGuestCartItem } from '@/lib/guest-cart';
+import { clearGuestBundleIntent, clearGuestCart, getGuestBundleIntentForProductIds, getCustomerJourneyContext, getGuestCart, GuestCart, GuestCartItem, isValidCustomerJourneyContext, recordJourneyEvent, removeGuestCartItem } from '@/lib/guest-cart';
 import { useAuth } from '@/contexts/AuthContext';
 import { authApi, AuthDeliveryAddress, AuthInvoiceProfile } from '@/lib/api/auth';
 import { buildHostedPasswordResetUrl } from '@/lib/auth/hosted-auth';
@@ -478,6 +478,11 @@ export default function CheckoutPage() {
     if (!validAddress) { setError('Doplňte prosím fakturační adresu.'); return; }
     if (form.differentDelivery && !validDeliveryAddress) { setError('Doplňte prosím dodací adresu, nebo vypněte volbu jiných dodacích údajů.'); return; }
     if (user && profileEditing) { setError('Nejprve uložte upravené údaje do profilu.'); return; }
+    const journeyContext = getCustomerJourneyContext();
+    if (!isValidCustomerJourneyContext(journeyContext)) {
+      setError('Chybí kontext nákupní cesty. Obnovte stránku a zkuste objednávku znovu.');
+      return;
+    }
     setProcessing(true);
     const unavailableItems = await getLiveUnavailableItems(cart.items as Array<GuestCartItem>);
     recordJourneyEvent('cart_validated', {
@@ -500,8 +505,6 @@ export default function CheckoutPage() {
     try {
       const billingAddress = { firstName: form.firstName, lastName: form.lastName, street: form.street, city: form.city, postalCode: form.postalCode, country: form.country, phone: form.phone, companyName: form.companyName, companyId: form.companyId, taxId: form.taxId, vatId: form.vatId, email: form.invoiceEmail || form.email };
       const deliveryAddress = { firstName: form.firstName, lastName: form.lastName, street: form.street, city: form.city, postalCode: form.postalCode, country: form.country, phone: form.phone };
-      const journeyContext = getCustomerJourneyContext();
-      if (!journeyContext?.journeyId || !journeyContext.correlationId) { setError('Chybí kontext nákupní cesty. Obnovte stránku a zkuste objednávku znovu.'); return; }
       const payload: CreateGuestOrderData = {
         email: form.email, phone: form.phone, wantsAccount: showAccountCreationPrompt && form.createAccount, marketingConsent: form.marketingConsent, billingAddress,
         deliveryAddress: form.differentDelivery ? { ...deliveryAddress, street: form.deliveryStreet, city: form.deliveryCity, postalCode: form.deliveryPostalCode } : deliveryAddress,

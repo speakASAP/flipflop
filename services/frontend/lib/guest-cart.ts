@@ -62,8 +62,16 @@ export type JourneyEventType =
   | 'shipping_option_selected'
   | 'cart_validated';
 
+export interface CustomerJourneyContext {
+  journeyId: string;
+  correlationId: string;
+  sessionId: string;
+}
+
 export interface JourneyEvent {
   id: string;
+  journeyId: string;
+  correlationId: string;
   sessionId: string;
   type: JourneyEventType;
   payload: Record<string, unknown>;
@@ -94,20 +102,30 @@ const createJourneyId = () => {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 };
 
-const createContractId = (prefix: 'journey' | 'corr') => (
+const createContractId = (prefix: 'journey' | 'corr' | 'session') => (
   `${prefix}_${createJourneyId().replace(/[^a-zA-Z0-9_-]/g, '-').toLowerCase()}`
 );
 
-const getStoredOrCreateId = (key: string, create: () => string) => {
+const CONTRACT_ID_PATTERNS = {
+  journey: /^journey_[a-z0-9][a-z0-9_-]{8,127}$/,
+  corr: /^corr_[a-z0-9][a-z0-9_-]{8,127}$/,
+  session: /^session_[a-z0-9][a-z0-9_-]{8,127}$/,
+};
+
+const isValidContractId = (value: string, prefix: keyof typeof CONTRACT_ID_PATTERNS) => (
+  CONTRACT_ID_PATTERNS[prefix].test(value)
+);
+
+const getStoredOrCreateId = (key: string, create: () => string, validate?: (value: string) => boolean) => {
   try {
     const existing = window.sessionStorage.getItem(key);
-    if (existing) return existing;
+    if (existing && (!validate || validate(existing))) return existing;
     const next = create();
     window.sessionStorage.setItem(key, next);
     return next;
   } catch {
     const existing = window.localStorage.getItem(key);
-    if (existing) return existing;
+    if (existing && (!validate || validate(existing))) return existing;
     const next = create();
     window.localStorage.setItem(key, next);
     return next;
@@ -116,15 +134,38 @@ const getStoredOrCreateId = (key: string, create: () => string) => {
 
 const getJourneySessionId = () => {
   if (!isBrowser()) return '';
-  return getStoredOrCreateId(JOURNEY_SESSION_ID_KEY, createJourneyId);
+  return getStoredOrCreateId(
+    JOURNEY_SESSION_ID_KEY,
+    () => createContractId('session'),
+    (value) => isValidContractId(value, 'session'),
+  );
 };
 
-export const getCustomerJourneyContext = () => {
+export const isValidCustomerJourneyContext = (
+  context: CustomerJourneyContext | null | undefined,
+): context is CustomerJourneyContext => (
+  Boolean(
+    context &&
+    isValidContractId(context.journeyId, 'journey') &&
+    isValidContractId(context.correlationId, 'corr') &&
+    isValidContractId(context.sessionId, 'session')
+  )
+);
+
+export const getCustomerJourneyContext = (): CustomerJourneyContext | null => {
   if (!isBrowser()) return null;
   const sessionId = getJourneySessionId();
   return {
-    journeyId: getStoredOrCreateId(JOURNEY_ID_KEY, () => createContractId('journey')),
-    correlationId: getStoredOrCreateId(JOURNEY_CORRELATION_ID_KEY, () => createContractId('corr')),
+    journeyId: getStoredOrCreateId(
+      JOURNEY_ID_KEY,
+      () => createContractId('journey'),
+      (value) => isValidContractId(value, 'journey'),
+    ),
+    correlationId: getStoredOrCreateId(
+      JOURNEY_CORRELATION_ID_KEY,
+      () => createContractId('corr'),
+      (value) => isValidContractId(value, 'corr'),
+    ),
     sessionId,
   };
 };
@@ -140,6 +181,8 @@ const readJourneyEvents = (): JourneyEvent[] => {
       event &&
       typeof event === 'object' &&
       typeof event.id === 'string' &&
+      typeof event.journeyId === 'string' &&
+      typeof event.correlationId === 'string' &&
       typeof event.sessionId === 'string' &&
       typeof event.type === 'string' &&
       typeof event.createdAt === 'string'
@@ -148,6 +191,26 @@ const readJourneyEvents = (): JourneyEvent[] => {
     return [];
   }
 };
+
+const forbiddenJourneyPayloadKeys = new Set([
+  'email',
+  'phone',
+  'firstName',
+  'lastName',
+  'name',
+  'street',
+  'city',
+  'postalCode',
+  'address',
+  'password',
+  'token',
+  'cookie',
+  'card',
+].map((key) => key.toLowerCase()));
+
+const sanitizeJourneyPayload = (payload: Record<string, unknown>) => (
+  Object.fromEntries(Object.entries(payload).filter(([key]) => !forbiddenJourneyPayloadKeys.has(key.toLowerCase())))
+);
 
 const appendJourneyEvent = (event: JourneyEvent) => {
   const events = [...readJourneyEvents(), event].slice(-MAX_JOURNEY_EVENTS);
@@ -175,15 +238,17 @@ export const recordJourneyEvent = (type: JourneyEventType, payload: Record<strin
   if (!isBrowser()) return;
 
   const context = getCustomerJourneyContext();
-  const sessionId = context?.sessionId || '';
-  if (!sessionId) return;
+  if (!isValidCustomerJourneyContext(context)) return;
+  const sessionId = context.sessionId;
 
   if (type !== 'session_started' && !hasJourneySessionStarted(sessionId)) {
     appendJourneyEvent({
       id: createJourneyId(),
+      journeyId: context.journeyId,
+      correlationId: context.correlationId,
       sessionId,
       type: 'session_started',
-      payload: {},
+      payload: { journeyId: context.journeyId, correlationId: context.correlationId, sessionId },
       url: `${window.location.pathname}${window.location.search}`,
       createdAt: new Date().toISOString(),
     });
@@ -192,9 +257,11 @@ export const recordJourneyEvent = (type: JourneyEventType, payload: Record<strin
 
   appendJourneyEvent({
     id: createJourneyId(),
+    journeyId: context.journeyId,
+    correlationId: context.correlationId,
     sessionId,
     type,
-    payload: { ...payload, journeyId: context?.journeyId, correlationId: context?.correlationId },
+    payload: sanitizeJourneyPayload({ ...payload, journeyId: context.journeyId, correlationId: context.correlationId, sessionId }),
     url: `${window.location.pathname}${window.location.search}`,
     createdAt: new Date().toISOString(),
   });
@@ -334,7 +401,6 @@ export const addGuestCartItem = ({
   const cart = getGuestCart();
   recordJourneyEvent('cart_item_added', {
     productId: product.id,
-    productName: product.name,
     variantId,
     quantity: safeQuantity,
     price,
