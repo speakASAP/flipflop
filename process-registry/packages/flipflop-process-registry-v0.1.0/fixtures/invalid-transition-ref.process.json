@@ -1,0 +1,78 @@
+{
+  "schema_version": "process-definition.v1",
+  "process_key": "flipflop.successful_customer_journey.v1",
+  "version": "1.0.0",
+  "status": "draft",
+  "title": "Invalid Transition Reference",
+  "owner": { "type": "team", "id": "fixture", "display_name": "Fixture" },
+  "approver": null,
+  "approval_evidence": null,
+  "approval_timestamp": null,
+  "effective_from": null,
+  "effective_to": null,
+  "rollback_to": null,
+  "ips_trace": {
+    "vision": { "ref": "fixture://vision", "status": "linked", "notes": "" },
+    "goal_impact": { "ref": "fixture://goal", "status": "linked", "notes": "" },
+    "system": { "ref": "fixture://system", "status": "linked", "notes": "" },
+    "feature": { "ref": "fixture://feature", "status": "linked", "notes": "" },
+    "task": { "ref": "fixture://task", "status": "linked", "notes": "" },
+    "execution_plan": { "ref": "fixture://plan", "status": "linked", "notes": "" },
+    "coding_prompt": { "ref": "fixture://prompt", "status": "linked", "notes": "" },
+    "code": { "ref": "fixture://code", "status": "linked", "notes": "" },
+    "validation": { "ref": "fixture://validation", "status": "linked", "notes": "" }
+  },
+  "steps": [
+    {
+      "id": "start",
+      "name": "Start",
+      "type": "start",
+      "owner": { "type": "system", "id": "fixture", "display_name": "Fixture" },
+      "entry_criteria": ["Start."],
+      "exit_criteria": ["Done."],
+      "emits_events": ["done"]
+    },
+    {
+      "id": "done",
+      "name": "Done",
+      "type": "end",
+      "owner": { "type": "system", "id": "fixture", "display_name": "Fixture" },
+      "entry_criteria": ["Done."],
+      "exit_criteria": ["End."],
+      "emits_events": []
+    }
+  ],
+  "events": [
+    {
+      "key": "done",
+      "name": "Done",
+      "source": "fixture",
+      "payload_contract": "contract://done",
+      "required_for_validation": true
+    }
+  ],
+  "guards": [
+    {
+      "id": "always",
+      "type": "unconditional",
+      "expression": "true",
+      "reason": "Fixture transition."
+    }
+  ],
+  "allowed_transitions": [
+    {
+      "from_step": "start",
+      "to_step": "missing_done",
+      "event": "done",
+      "guard_ref": "always",
+      "guard": {
+        "type": "unconditional",
+        "expression": "true",
+        "reason": "Fixture transition."
+      }
+    }
+  ],
+  "runtime_invariants": ["Transition references must resolve."],
+  "validation_evidence": [],
+  "metadata": { "fixture": true }
+}

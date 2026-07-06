@@ -122,7 +122,7 @@ The monitor writes `reports/validation/synthetic-journey-monitor/report-latest.j
 - `[RESOLVED/NARROWED: owner-approved W5 sandbox product target]` as `SYNTHETIC_TEST_PRODUCT_ID=ffb4883f-ec48-4745-8147-b836f3fb2b88` with SKU `ALLEGRO-OFFER-18106037370`.
 - `[MISSING: synthetic customer/contact]` as `SYNTHETIC_CUSTOMER_EMAIL` or approved token-bound synthetic identity.
 - `[MISSING: approved delivery test contract]` as `SYNTHETIC_DELIVERY_CONTRACT_ID`.
-- `[MISSING: sandbox/test-mode payment provider contract]` with `PAYMENT_SANDBOX_CONTRACT_APPROVED=1`, `TEST_MODE_PAYMENT_PROVIDER`, and `CHECKOUT_MUTATION_MODE=sandbox|test-only`.
+- `[RESOLVED/NARROWED: source-only no-external-provider payment contract]` with `PAYMENT_SANDBOX_CONTRACT_APPROVED=1`, `TEST_MODE_PAYMENT_PROVIDER=invoice`, and `CHECKOUT_MUTATION_MODE=test-only`; this does not prove payment success and does not authorize checkout execution while product/customer/cleanup facts remain missing.
 - `[RESOLVED/NARROWED: synthetic email assertion source]` as `SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl` plus `SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid`.
 - `[RESOLVED/NARROWED: event trace assertion source]` as `SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl`.
 - `[MISSING: order/payment cleanup or retention contract]` as `SYNTHETIC_ORDER_CLEANUP_CONTRACT`.
@@ -138,6 +138,8 @@ Product detail: product page and detail API are reachable; product id/SKU/name/p
 Add-to-cart and cart: source contract supports guest cart; monitor opens cart without mutating server state.
 
 Cart/checkout/order boundary: not entered by default. Optional invalid guest-order route probing is disabled unless `FLIPFLOP_SYNTHETIC_VALIDATE_ORDER_ROUTE=1`; final submit is never clicked by this monitor.
+
+Payment provider contract: `flipflop.payment.invoice.bank_transfer.no_provider_call.v1` uses `paymentMethod=invoice`, expects `paymentStatus=pending`, and must not call external providers. Payment success remains `[MISSING: sandbox/test-mode payment success evidence]` until a separate approved assertion exists.
 
 Payment success: `[MISSING: sandbox/test-mode payment success evidence]` until approved sandbox runner exists.
 

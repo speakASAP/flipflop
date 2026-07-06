@@ -1,0 +1,357 @@
+{
+  "schema_version": "process-definition.v1",
+  "process_key": "flipflop.successful_customer_journey.v1",
+  "version": "1.0.0",
+  "status": "draft",
+  "title": "Successful Customer Journey",
+  "description": "Draft registry definition for the first FlipFlop customer journey. This is not active and must not be used as runtime authority until all missing ownership, architecture, and validation items are resolved.",
+  "owner": {
+    "type": "missing",
+    "id": "[MISSING: approved FlipFlop process-owner role]",
+    "display_name": "[MISSING: approved FlipFlop process-owner role]"
+  },
+  "approver": null,
+  "approval_evidence": null,
+  "approval_timestamp": null,
+  "effective_from": null,
+  "effective_to": null,
+  "rollback_to": null,
+  "ips_trace": {
+    "vision": {
+      "ref": "[MISSING: FlipFlop Vision reference]",
+      "status": "missing",
+      "notes": "Required before approval or activation."
+    },
+    "goal_impact": {
+      "ref": "[MISSING: Goal Impact record for successful customer journey]",
+      "status": "missing",
+      "notes": "Required before approval or activation."
+    },
+    "system": {
+      "ref": "[MISSING: System record for process registry/customer journey]",
+      "status": "missing",
+      "notes": "Required before approval or activation."
+    },
+    "feature": {
+      "ref": "[MISSING: Feature record for successful customer journey]",
+      "status": "missing",
+      "notes": "Required before approval or activation."
+    },
+    "task": {
+      "ref": "[MISSING: Task record for process registry schema and runtime resolver]",
+      "status": "missing",
+      "notes": "Required before approval or activation."
+    },
+    "execution_plan": {
+      "ref": "[MISSING: Execution Plan for process registry implementation]",
+      "status": "missing",
+      "notes": "Required before coding."
+    },
+    "coding_prompt": {
+      "ref": "[MISSING: Coding Prompt generated from approved execution plan]",
+      "status": "missing",
+      "notes": "Required before code generation."
+    },
+    "code": {
+      "ref": "[MISSING: Code reference after implementation]",
+      "status": "missing",
+      "notes": "Expected after implementation."
+    },
+    "validation": {
+      "ref": "[MISSING: Validation report for registry schema and runtime behavior]",
+      "status": "missing",
+      "notes": "Required before activation."
+    }
+  },
+  "steps": [
+    {
+      "id": "journey_started",
+      "name": "Journey started",
+      "type": "start",
+      "owner": {
+        "type": "system",
+        "id": "flipflop.checkout",
+        "display_name": "FlipFlop checkout"
+      },
+      "description": "Customer begins a purchase journey.",
+      "entry_criteria": ["Customer has entered a shopping or checkout flow."],
+      "exit_criteria": ["Journey start event is recorded."],
+      "emits_events": ["journey_started"],
+      "task_refs": [],
+      "bpmn_ref": null
+    },
+    {
+      "id": "cart_ready",
+      "name": "Cart ready",
+      "type": "task",
+      "owner": {
+        "type": "missing",
+        "id": "[MISSING: cart/order service owner]",
+        "display_name": "[MISSING: cart/order service owner]"
+      },
+      "description": "Customer has a cart that can enter checkout.",
+      "entry_criteria": ["Cart exists and contains at least one purchasable item."],
+      "exit_criteria": ["Cart is accepted for checkout."],
+      "emits_events": ["cart_ready"],
+      "task_refs": [],
+      "bpmn_ref": null
+    },
+    {
+      "id": "customer_identified",
+      "name": "Customer identified",
+      "type": "task",
+      "owner": {
+        "type": "missing",
+        "id": "[MISSING: identity/auth service owner]",
+        "display_name": "[MISSING: identity/auth service owner]"
+      },
+      "description": "Customer identity is known enough to continue checkout.",
+      "entry_criteria": ["Cart has been accepted for checkout."],
+      "exit_criteria": ["Customer session or account reference is available."],
+      "emits_events": ["customer_identified"],
+      "task_refs": [],
+      "bpmn_ref": null
+    },
+    {
+      "id": "delivery_selected",
+      "name": "Delivery selected",
+      "type": "task",
+      "owner": {
+        "type": "missing",
+        "id": "[MISSING: delivery/logistics service owner]",
+        "display_name": "[MISSING: delivery/logistics service owner]"
+      },
+      "description": "Customer selects an available delivery method.",
+      "entry_criteria": ["Customer identity or checkout session is available."],
+      "exit_criteria": ["Delivery method and address are accepted."],
+      "emits_events": ["delivery_selected"],
+      "task_refs": [],
+      "bpmn_ref": null
+    },
+    {
+      "id": "payment_authorized",
+      "name": "Payment authorized",
+      "type": "service_task",
+      "owner": {
+        "type": "missing",
+        "id": "[MISSING: payment service owner]",
+        "display_name": "[MISSING: payment service owner]"
+      },
+      "description": "Payment is authorized but no unsupported live-money assumption is made by this draft.",
+      "entry_criteria": ["Delivery selection is accepted.", "[MISSING: approved payment authorization contract]"],
+      "exit_criteria": ["Payment authorization event is recorded."],
+      "emits_events": ["payment_authorized"],
+      "task_refs": [],
+      "bpmn_ref": null
+    },
+    {
+      "id": "order_confirmed",
+      "name": "Order confirmed",
+      "type": "service_task",
+      "owner": {
+        "type": "missing",
+        "id": "[MISSING: order service owner]",
+        "display_name": "[MISSING: order service owner]"
+      },
+      "description": "Order is confirmed according to approved order/payment/inventory contracts.",
+      "entry_criteria": ["Payment is authorized.", "[MISSING: approved inventory reservation contract]"],
+      "exit_criteria": ["Order confirmation is recorded and visible to customer."],
+      "emits_events": ["order_confirmed"],
+      "task_refs": [],
+      "bpmn_ref": null
+    },
+    {
+      "id": "handoff_complete",
+      "name": "Handoff complete",
+      "type": "end",
+      "owner": {
+        "type": "missing",
+        "id": "[MISSING: fulfillment/logistics owner]",
+        "display_name": "[MISSING: fulfillment/logistics owner]"
+      },
+      "description": "Successful customer journey is handed off to fulfillment or post-purchase operations.",
+      "entry_criteria": ["Order is confirmed."],
+      "exit_criteria": ["Fulfillment handoff event is recorded."],
+      "emits_events": ["handoff_complete"],
+      "task_refs": [],
+      "bpmn_ref": null
+    }
+  ],
+  "events": [
+    {
+      "key": "journey_started",
+      "name": "Journey started",
+      "source": "flipflop.checkout",
+      "payload_contract": "[MISSING: journey_started payload contract]",
+      "required_for_validation": true
+    },
+    {
+      "key": "cart_ready",
+      "name": "Cart ready",
+      "source": "[MISSING: cart/order service]",
+      "payload_contract": "[MISSING: cart_ready payload contract]",
+      "required_for_validation": true
+    },
+    {
+      "key": "customer_identified",
+      "name": "Customer identified",
+      "source": "[MISSING: identity/auth service]",
+      "payload_contract": "[MISSING: customer_identified payload contract]",
+      "required_for_validation": true
+    },
+    {
+      "key": "delivery_selected",
+      "name": "Delivery selected",
+      "source": "[MISSING: delivery/logistics service]",
+      "payload_contract": "[MISSING: delivery_selected payload contract]",
+      "required_for_validation": true
+    },
+    {
+      "key": "payment_authorized",
+      "name": "Payment authorized",
+      "source": "[MISSING: payment service]",
+      "payload_contract": "[MISSING: payment_authorized payload contract]",
+      "required_for_validation": true
+    },
+    {
+      "key": "order_confirmed",
+      "name": "Order confirmed",
+      "source": "[MISSING: order service]",
+      "payload_contract": "[MISSING: order_confirmed payload contract]",
+      "required_for_validation": true
+    },
+    {
+      "key": "handoff_complete",
+      "name": "Handoff complete",
+      "source": "[MISSING: fulfillment/logistics service]",
+      "payload_contract": "[MISSING: handoff_complete payload contract]",
+      "required_for_validation": true
+    }
+  ],
+  "guards": [
+    {
+      "id": "cart_has_purchasable_items",
+      "type": "condition",
+      "expression": "cart.item_count > 0",
+      "reason": "A successful customer journey cannot continue without purchasable items."
+    },
+    {
+      "id": "identity_session_rule",
+      "type": "missing",
+      "expression": "[MISSING: identity/session rule]",
+      "reason": "[MISSING: approved identity requirement for checkout]"
+    },
+    {
+      "id": "delivery_availability_rule",
+      "type": "missing",
+      "expression": "[MISSING: delivery availability rule]",
+      "reason": "[MISSING: approved delivery selection requirement]"
+    },
+    {
+      "id": "payment_authorization_rule",
+      "type": "missing",
+      "expression": "[MISSING: payment authorization rule]",
+      "reason": "[MISSING: approved payment authorization requirement]"
+    },
+    {
+      "id": "order_confirmation_rule",
+      "type": "missing",
+      "expression": "[MISSING: order confirmation rule]",
+      "reason": "[MISSING: approved order/inventory confirmation requirement]"
+    },
+    {
+      "id": "fulfillment_handoff_rule",
+      "type": "missing",
+      "expression": "[MISSING: fulfillment handoff rule]",
+      "reason": "[MISSING: approved fulfillment handoff requirement]"
+    }
+  ],
+  "allowed_transitions": [
+    {
+      "from_step": "journey_started",
+      "to_step": "cart_ready",
+      "event": "cart_ready",
+      "guard_ref": "cart_has_purchasable_items",
+      "guard": {
+        "type": "condition",
+        "expression": "cart.item_count > 0",
+        "reason": "A successful customer journey cannot continue without purchasable items."
+      }
+    },
+    {
+      "from_step": "cart_ready",
+      "to_step": "customer_identified",
+      "event": "customer_identified",
+      "guard_ref": "identity_session_rule",
+      "guard": {
+        "type": "missing",
+        "expression": "[MISSING: identity/session rule]",
+        "reason": "[MISSING: approved identity requirement for checkout]"
+      }
+    },
+    {
+      "from_step": "customer_identified",
+      "to_step": "delivery_selected",
+      "event": "delivery_selected",
+      "guard_ref": "delivery_availability_rule",
+      "guard": {
+        "type": "missing",
+        "expression": "[MISSING: delivery availability rule]",
+        "reason": "[MISSING: approved delivery selection requirement]"
+      }
+    },
+    {
+      "from_step": "delivery_selected",
+      "to_step": "payment_authorized",
+      "event": "payment_authorized",
+      "guard_ref": "payment_authorization_rule",
+      "guard": {
+        "type": "missing",
+        "expression": "[MISSING: payment authorization rule]",
+        "reason": "[MISSING: approved payment authorization requirement]"
+      }
+    },
+    {
+      "from_step": "payment_authorized",
+      "to_step": "order_confirmed",
+      "event": "order_confirmed",
+      "guard_ref": "order_confirmation_rule",
+      "guard": {
+        "type": "missing",
+        "expression": "[MISSING: order confirmation rule]",
+        "reason": "[MISSING: approved order/inventory confirmation requirement]"
+      }
+    },
+    {
+      "from_step": "order_confirmed",
+      "to_step": "handoff_complete",
+      "event": "handoff_complete",
+      "guard_ref": "fulfillment_handoff_rule",
+      "guard": {
+        "type": "missing",
+        "expression": "[MISSING: fulfillment handoff rule]",
+        "reason": "[MISSING: approved fulfillment handoff requirement]"
+      }
+    }
+  ],
+  "runtime_invariants": [
+    "Runtime must only consume process definitions with status=active.",
+    "Runtime must reject definitions with unresolved [MISSING: ...] or [UNKNOWN: ...] markers.",
+    "Runtime must reject definitions without owner, approver, approval_evidence, approval_timestamp, effective_from, and validation_evidence.",
+    "Runtime must reject transitions not listed in allowed_transitions.",
+    "Runtime events must include process_key, process_version, transition, source_entity, actor, occurred_at, validation_result, and payload."
+  ],
+  "validation_evidence": [
+    {
+      "kind": "missing",
+      "ref": "[MISSING: CI validation report]",
+      "result": "missing",
+      "recorded_at": "2026-07-06T00:00:00Z",
+      "notes": "Draft only. Must be replaced by actual validation evidence before approval or activation."
+    }
+  ],
+  "metadata": {
+    "adr": "ADR-001",
+    "non_runtime_authority": true
+  }
+}

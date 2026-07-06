@@ -1,0 +1,44 @@
+{
+  "schema_version": "process-registry-collection.v1",
+  "registry_key": "flipflop.process_registry",
+  "storage_model": {
+    "source_of_truth": "git",
+    "runtime_projection": "none",
+    "immutability": "semantic_version_required"
+  },
+  "access_control": {
+    "roles": [
+      { "role": "runtime_reader", "can_read": true, "can_write": true, "can_approve": false, "can_activate": false },
+      { "role": "publisher", "can_read": true, "can_write": false, "can_approve": false, "can_activate": true }
+    ],
+    "lifecycle_permissions": [
+      { "from": "approved", "to": "active", "role": "publisher" }
+    ]
+  },
+  "definitions": [
+    {
+      "artifact_id": "flipflop.successful_customer_journey.v1@1.0.0",
+      "process_key": "flipflop.successful_customer_journey.v1",
+      "version": "1.0.0",
+      "status": "active",
+      "definition_ref": "valid-active.process.json",
+      "validation_report_ref": "valid-active.report.json",
+      "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "environment": "production",
+      "namespace": "flipflop",
+      "effective_from": "2026-07-06T00:00:00Z",
+      "effective_to": null,
+      "created_by": { "type": "team", "id": "flipflop-process-owners" },
+      "created_at": "2026-07-06T00:00:00Z",
+      "updated_by": { "type": "team", "id": "flipflop-process-owners" },
+      "updated_at": "2026-07-06T00:00:00Z",
+      "activated_by": { "type": "person", "id": "publisher-fixture" },
+      "activated_at": "2026-07-06T00:00:00Z",
+      "retired_by": null,
+      "retired_at": null,
+      "supersedes": null,
+      "superseded_by": null,
+      "source_commit": null
+    }
+  ]
+}

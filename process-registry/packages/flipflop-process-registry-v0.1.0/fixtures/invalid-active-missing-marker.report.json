@@ -1,0 +1,102 @@
+{
+  "validator": "process-definition-validator.v1",
+  "generated_at": "2026-07-06T16:28:37.292Z",
+  "file": "/Users/Sergej.Stasok/Documents/Codex/2026-07-06/flipflop-process-runtime-adr/outputs/fixtures/invalid-active-missing-marker.process.json",
+  "expected": "fail",
+  "require_runtime_ready": false,
+  "actual": "fail",
+  "valid": false,
+  "errors": [
+    {
+      "code": "active.markers",
+      "path": "$",
+      "message": "active definitions must contain no unresolved markers"
+    },
+    {
+      "code": "active.owner",
+      "path": "$.owner",
+      "message": "active definition owner must not be missing"
+    },
+    {
+      "code": "active.approver",
+      "path": "$.approver",
+      "message": "active definition approver is required"
+    },
+    {
+      "code": "active.approval_evidence",
+      "path": "$.approval_evidence",
+      "message": "active definition requires passing approval evidence"
+    },
+    {
+      "code": "active.approval_timestamp",
+      "path": "$.approval_timestamp",
+      "message": "active definition requires approval_timestamp"
+    },
+    {
+      "code": "active.effective_from",
+      "path": "$.effective_from",
+      "message": "active definition requires effective_from"
+    },
+    {
+      "code": "active.validation_evidence",
+      "path": "$.validation_evidence",
+      "message": "active definition requires at least one passing validation evidence record"
+    },
+    {
+      "code": "active.ips_trace",
+      "path": "$.ips_trace.vision",
+      "message": "active definition trace vision must be linked"
+    },
+    {
+      "code": "active.ips_trace",
+      "path": "$.ips_trace.goal_impact",
+      "message": "active definition trace goal_impact must be linked"
+    },
+    {
+      "code": "active.ips_trace",
+      "path": "$.ips_trace.system",
+      "message": "active definition trace system must be linked"
+    },
+    {
+      "code": "active.ips_trace",
+      "path": "$.ips_trace.feature",
+      "message": "active definition trace feature must be linked"
+    },
+    {
+      "code": "active.ips_trace",
+      "path": "$.ips_trace.task",
+      "message": "active definition trace task must be linked"
+    },
+    {
+      "code": "active.ips_trace",
+      "path": "$.ips_trace.execution_plan",
+      "message": "active definition trace execution_plan must be linked"
+    },
+    {
+      "code": "active.ips_trace",
+      "path": "$.ips_trace.coding_prompt",
+      "message": "active definition trace coding_prompt must be linked"
+    },
+    {
+      "code": "active.ips_trace",
+      "path": "$.ips_trace.code",
+      "message": "active definition trace code must be linked"
+    },
+    {
+      "code": "active.ips_trace",
+      "path": "$.ips_trace.validation",
+      "message": "active definition trace validation must be linked"
+    }
+  ],
+  "warnings": [],
+  "summary": {
+    "process_key": "flipflop.successful_customer_journey.v1",
+    "version": "1.0.0",
+    "status": "active",
+    "steps": 2,
+    "events": 1,
+    "guards": 1,
+    "transitions": 1,
+    "unresolved_marker_count": 11
+  }
+}

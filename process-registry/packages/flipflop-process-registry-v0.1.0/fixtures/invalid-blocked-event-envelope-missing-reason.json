@@ -1,0 +1,26 @@
+{
+  "event_id": "evt-fixture-blocked-002",
+  "occurred_at": "2026-07-06T00:00:00Z",
+  "process_key": "flipflop.successful_customer_journey.v1",
+  "process_version": "1.0.0",
+  "transition": {
+    "from_step": "cart_ready",
+    "to_step": "order_confirmed",
+    "event": "order_confirmed"
+  },
+  "source_entity": {
+    "type": "order",
+    "id": "order-fixture-002"
+  },
+  "actor": {
+    "type": "system",
+    "id": "process-registry-validator"
+  },
+  "validation_result": {
+    "decision": "blocked",
+    "rule_refs": ["runtime_ready.status"]
+  },
+  "payload": {
+    "fixture": true
+  }
+}

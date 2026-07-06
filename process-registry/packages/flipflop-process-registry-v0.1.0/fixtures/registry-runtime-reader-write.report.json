@@ -1,0 +1,26 @@
+{
+  "validator": "process-registry-collection-validator.v1",
+  "generated_at": "2026-07-06T16:36:35.955Z",
+  "file": "/Users/Sergej.Stasok/Documents/Codex/2026-07-06/flipflop-process-runtime-adr/outputs/fixtures/registry-runtime-reader-write.collection.json",
+  "expected": "fail",
+  "process_key": "flipflop.successful_customer_journey.v1",
+  "now": "2026-07-06T00:00:00Z",
+  "actual": "fail",
+  "valid": false,
+  "errors": [
+    {
+      "code": "role.runtime_reader_write",
+      "path": "$.access_control.roles[0]",
+      "message": "runtime_reader must not write, approve, or activate"
+    }
+  ],
+  "warnings": [],
+  "summary": {
+    "registry_key": "flipflop.process_registry",
+    "definitions": 1,
+    "active_status_process_keys": 1,
+    "currently_effective_active_process_keys": 1,
+    "roles": 2,
+    "lifecycle_permissions": 1
+  }
+}

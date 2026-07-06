@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://flipflop.local/schemas/process-registry-collection.schema.json",
+  "title": "FlipFlop Process Registry Collection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "registry_key", "storage_model", "access_control", "definitions"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "process-registry-collection.v1"
+    },
+    "registry_key": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9_]*)+$"
+    },
+    "storage_model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_of_truth", "runtime_projection", "immutability"],
+      "properties": {
+        "source_of_truth": {
+          "type": "string",
+          "enum": ["git"]
+        },
+        "runtime_projection": {
+          "type": "string",
+          "enum": ["none", "database", "object_store", "service_read_model"]
+        },
+        "immutability": {
+          "type": "string",
+          "enum": ["semantic_version_required"]
+        }
+      }
+    },
+    "access_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["roles", "lifecycle_permissions"],
+      "properties": {
+        "roles": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/role" },
+          "minItems": 1
+        },
+        "lifecycle_permissions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/lifecycle_permission" },
+          "minItems": 1
+        }
+      }
+    },
+    "definitions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/definition_record" },
+      "minItems": 1
+    }
+  },
+  "$defs": {
+    "role": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "can_read", "can_write", "can_approve", "can_activate"],
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": ["viewer", "modeler", "reviewer", "approver", "publisher", "runtime_reader", "auditor", "admin"]
+        },
+        "can_read": { "type": "boolean" },
+        "can_write": { "type": "boolean" },
+        "can_approve": { "type": "boolean" },
+        "can_activate": { "type": "boolean" }
+      }
+    },
+    "lifecycle_permission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "role"],
+      "properties": {
+        "from": {
+          "type": "string",
+          "enum": ["none", "draft", "review", "approved", "active", "retired", "rejected"]
+        },
+        "to": {
+          "type": "string",
+          "enum": ["draft", "review", "approved", "active", "retired", "rejected"]
+        },
+        "role": {
+          "type": "string",
+          "enum": ["modeler", "reviewer", "approver", "publisher", "admin"]
+        }
+      }
+    },
+    "actor_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["person", "team", "system", "missing"]
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "definition_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "process_key",
+        "version",
+        "status",
+        "definition_ref",
+        "validation_report_ref",
+        "content_hash",
+        "environment",
+        "namespace",
+        "effective_from",
+        "effective_to",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at",
+        "activated_by",
+        "activated_at",
+        "retired_by",
+        "retired_at",
+        "supersedes",
+        "superseded_by"
+      ],
+      "properties": {
+        "artifact_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "process_key": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9_]*)+$"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["draft", "review", "approved", "active", "retired", "rejected"]
+        },
+        "definition_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "validation_report_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "content_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "environment": {
+          "type": "string",
+          "enum": ["draft", "staging", "production"]
+        },
+        "namespace": {
+          "type": "string",
+          "minLength": 1
+        },
+        "effective_from": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "effective_to": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "created_by": { "$ref": "#/$defs/actor_ref" },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_by": { "$ref": "#/$defs/actor_ref" },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "activated_by": {
+          "oneOf": [{ "$ref": "#/$defs/actor_ref" }, { "type": "null" }]
+        },
+        "activated_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "retired_by": {
+          "oneOf": [{ "$ref": "#/$defs/actor_ref" }, { "type": "null" }]
+        },
+        "retired_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "supersedes": {
+          "type": ["string", "null"]
+        },
+        "superseded_by": {
+          "type": ["string", "null"]
+        },
+        "source_commit": {
+          "type": ["string", "null"],
+          "default": null
+        }
+      }
+    }
+  }
+}

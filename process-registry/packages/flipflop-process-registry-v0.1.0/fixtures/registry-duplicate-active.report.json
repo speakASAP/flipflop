@@ -1,0 +1,31 @@
+{
+  "validator": "process-registry-collection-validator.v1",
+  "generated_at": "2026-07-06T16:36:35.823Z",
+  "file": "/Users/Sergej.Stasok/Documents/Codex/2026-07-06/flipflop-process-runtime-adr/outputs/fixtures/registry-duplicate-active.collection.json",
+  "expected": "fail",
+  "process_key": "flipflop.successful_customer_journey.v1",
+  "now": "2026-07-06T00:00:00Z",
+  "actual": "fail",
+  "valid": false,
+  "errors": [
+    {
+      "code": "active.duplicate",
+      "path": "$.definitions",
+      "message": "more than one currently effective active version for flipflop.successful_customer_journey.v1: 1.0.0, 1.0.1"
+    },
+    {
+      "code": "active.process_key_duplicate",
+      "path": "$.definitions",
+      "message": "multiple currently effective active versions for flipflop.successful_customer_journey.v1: 1.0.0, 1.0.1"
+    }
+  ],
+  "warnings": [],
+  "summary": {
+    "registry_key": "flipflop.process_registry",
+    "definitions": 2,
+    "active_status_process_keys": 1,
+    "currently_effective_active_process_keys": 1,
+    "roles": 3,
+    "lifecycle_permissions": 1
+  }
+}

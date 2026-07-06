@@ -1,0 +1,20 @@
+{
+  "validator": "process-registry-collection-validator.v1",
+  "generated_at": "2026-07-06T16:36:35.839Z",
+  "file": "/Users/Sergej.Stasok/Documents/Codex/2026-07-06/flipflop-process-runtime-adr/outputs/fixtures/registry-valid.collection.json",
+  "expected": "pass",
+  "process_key": "flipflop.successful_customer_journey.v1",
+  "now": "2026-07-06T00:00:00Z",
+  "actual": "pass",
+  "valid": true,
+  "errors": [],
+  "warnings": [],
+  "summary": {
+    "registry_key": "flipflop.process_registry",
+    "definitions": 2,
+    "active_status_process_keys": 1,
+    "currently_effective_active_process_keys": 1,
+    "roles": 8,
+    "lifecycle_permissions": 6
+  }
+}

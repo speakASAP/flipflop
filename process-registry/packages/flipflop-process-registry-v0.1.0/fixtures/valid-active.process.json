@@ -1,0 +1,148 @@
+{
+  "schema_version": "process-definition.v1",
+  "process_key": "flipflop.successful_customer_journey.v1",
+  "version": "1.0.0",
+  "status": "active",
+  "title": "Successful Customer Journey",
+  "description": "Minimal active fixture proving the process-registry validator pass path.",
+  "owner": {
+    "type": "team",
+    "id": "flipflop-process-owners",
+    "display_name": "FlipFlop Process Owners"
+  },
+  "approver": {
+    "type": "person",
+    "id": "process-approver-fixture",
+    "display_name": "Process Approver Fixture"
+  },
+  "approval_evidence": {
+    "kind": "approval",
+    "ref": "fixture://approval/successful-customer-journey-v1",
+    "result": "pass",
+    "recorded_at": "2026-07-06T00:00:00Z",
+    "notes": "Fixture approval only."
+  },
+  "approval_timestamp": "2026-07-06T00:00:00Z",
+  "effective_from": "2026-07-06T00:00:00Z",
+  "effective_to": null,
+  "rollback_to": null,
+  "ips_trace": {
+    "vision": { "ref": "ips://vision/flipflop", "status": "linked", "notes": "Fixture link." },
+    "goal_impact": { "ref": "ips://goal-impact/successful-customer-journey", "status": "linked", "notes": "Fixture link." },
+    "system": { "ref": "ips://system/process-registry", "status": "linked", "notes": "Fixture link." },
+    "feature": { "ref": "ips://feature/customer-journey-registry", "status": "linked", "notes": "Fixture link." },
+    "task": { "ref": "ips://task/process-definition-validator", "status": "linked", "notes": "Fixture link." },
+    "execution_plan": { "ref": "ips://execution-plan/process-definition-validator", "status": "linked", "notes": "Fixture link." },
+    "coding_prompt": { "ref": "ips://coding-prompt/process-definition-validator", "status": "linked", "notes": "Fixture link." },
+    "code": { "ref": "file://outputs/validate-process-definition.mjs", "status": "linked", "notes": "Fixture link." },
+    "validation": { "ref": "file://outputs/PROCESS-REGISTRY-VALIDATION-REPORT.json", "status": "linked", "notes": "Fixture link." }
+  },
+  "steps": [
+    {
+      "id": "journey_started",
+      "name": "Journey started",
+      "type": "start",
+      "owner": { "type": "system", "id": "flipflop.checkout", "display_name": "FlipFlop checkout" },
+      "description": "Customer begins the journey.",
+      "entry_criteria": ["Customer is present in checkout."],
+      "exit_criteria": ["Cart is ready."],
+      "emits_events": ["cart_ready"],
+      "task_refs": [],
+      "bpmn_ref": null
+    },
+    {
+      "id": "cart_ready",
+      "name": "Cart ready",
+      "type": "task",
+      "owner": { "type": "team", "id": "checkout-team", "display_name": "Checkout Team" },
+      "description": "Cart is ready for order confirmation.",
+      "entry_criteria": ["Cart contains purchasable items."],
+      "exit_criteria": ["Order is confirmed."],
+      "emits_events": ["order_confirmed"],
+      "task_refs": [],
+      "bpmn_ref": null
+    },
+    {
+      "id": "order_confirmed",
+      "name": "Order confirmed",
+      "type": "end",
+      "owner": { "type": "team", "id": "checkout-team", "display_name": "Checkout Team" },
+      "description": "Successful journey ends with a confirmed order.",
+      "entry_criteria": ["Order confirmation is accepted."],
+      "exit_criteria": ["Customer sees confirmation."],
+      "emits_events": [],
+      "task_refs": [],
+      "bpmn_ref": null
+    }
+  ],
+  "events": [
+    {
+      "key": "cart_ready",
+      "name": "Cart ready",
+      "source": "flipflop.checkout",
+      "payload_contract": "contract://events/cart-ready-v1",
+      "required_for_validation": true
+    },
+    {
+      "key": "order_confirmed",
+      "name": "Order confirmed",
+      "source": "flipflop.checkout",
+      "payload_contract": "contract://events/order-confirmed-v1",
+      "required_for_validation": true
+    }
+  ],
+  "guards": [
+    {
+      "id": "cart_has_items",
+      "type": "condition",
+      "expression": "cart.item_count > 0",
+      "reason": "Checkout needs purchasable items."
+    },
+    {
+      "id": "order_confirmation_allowed",
+      "type": "condition",
+      "expression": "order.payment_state == authorized",
+      "reason": "Order can only be confirmed after payment authorization."
+    }
+  ],
+  "allowed_transitions": [
+    {
+      "from_step": "journey_started",
+      "to_step": "cart_ready",
+      "event": "cart_ready",
+      "guard_ref": "cart_has_items",
+      "guard": {
+        "type": "condition",
+        "expression": "cart.item_count > 0",
+        "reason": "Checkout needs purchasable items."
+      }
+    },
+    {
+      "from_step": "cart_ready",
+      "to_step": "order_confirmed",
+      "event": "order_confirmed",
+      "guard_ref": "order_confirmation_allowed",
+      "guard": {
+        "type": "condition",
+        "expression": "order.payment_state == authorized",
+        "reason": "Order can only be confirmed after payment authorization."
+      }
+    }
+  ],
+  "runtime_invariants": [
+    "Runtime must only consume process definitions with status=active.",
+    "Runtime must reject transitions not listed in allowed_transitions."
+  ],
+  "validation_evidence": [
+    {
+      "kind": "ci",
+      "ref": "fixture://ci/process-definition-validator",
+      "result": "pass",
+      "recorded_at": "2026-07-06T00:00:00Z",
+      "notes": "Fixture validation evidence."
+    }
+  ],
+  "metadata": {
+    "fixture": true
+  }
+}

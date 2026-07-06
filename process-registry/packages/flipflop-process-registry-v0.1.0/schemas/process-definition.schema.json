@@ -1,0 +1,388 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://flipflop.local/schemas/process-definition.schema.json",
+  "title": "FlipFlop Process Definition",
+  "description": "Registry artifact for governed FlipFlop business process definitions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "process_key",
+    "version",
+    "status",
+    "title",
+    "owner",
+    "approver",
+    "approval_evidence",
+    "approval_timestamp",
+    "effective_from",
+    "effective_to",
+    "rollback_to",
+    "ips_trace",
+    "steps",
+    "events",
+    "guards",
+    "allowed_transitions",
+    "validation_evidence",
+    "runtime_invariants"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "process-definition.v1"
+    },
+    "process_key": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9_]*)+$",
+      "description": "Stable registry process key. For the first FlipFlop journey this intentionally includes the user-facing major-version suffix: flipflop.successful_customer_journey.v1.",
+      "examples": ["flipflop.successful_customer_journey.v1"]
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Semantic version of this registry definition."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "review", "approved", "active", "retired", "rejected"]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "default": ""
+    },
+    "owner": {
+      "$ref": "#/$defs/actor_ref"
+    },
+    "approver": {
+      "oneOf": [
+        { "$ref": "#/$defs/actor_ref" },
+        { "type": "null" }
+      ],
+      "default": null
+    },
+    "approval_evidence": {
+      "oneOf": [
+        { "$ref": "#/$defs/evidence_ref" },
+        { "type": "null" }
+      ],
+      "default": null
+    },
+    "approval_timestamp": {
+      "oneOf": [
+        { "type": "string", "format": "date-time" },
+        { "type": "null" }
+      ],
+      "default": null
+    },
+    "effective_from": {
+      "oneOf": [
+        { "type": "string", "format": "date-time" },
+        { "type": "null" }
+      ],
+      "default": null
+    },
+    "effective_to": {
+      "oneOf": [
+        { "type": "string", "format": "date-time" },
+        { "type": "null" }
+      ],
+      "default": null
+    },
+    "rollback_to": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9_]*)+@[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        { "type": "null" }
+      ],
+      "default": null
+    },
+    "ips_trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vision",
+        "goal_impact",
+        "system",
+        "feature",
+        "task",
+        "execution_plan",
+        "coding_prompt",
+        "code",
+        "validation"
+      ],
+      "properties": {
+        "vision": { "$ref": "#/$defs/trace_ref" },
+        "goal_impact": { "$ref": "#/$defs/trace_ref" },
+        "system": { "$ref": "#/$defs/trace_ref" },
+        "feature": { "$ref": "#/$defs/trace_ref" },
+        "task": { "$ref": "#/$defs/trace_ref" },
+        "execution_plan": { "$ref": "#/$defs/trace_ref" },
+        "coding_prompt": { "$ref": "#/$defs/trace_ref" },
+        "code": { "$ref": "#/$defs/trace_ref" },
+        "validation": { "$ref": "#/$defs/trace_ref" }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/step" }
+    },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/event" }
+    },
+    "guards": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/guard" }
+    },
+    "allowed_transitions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/transition" }
+    },
+    "runtime_invariants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "validation_evidence": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/evidence_ref" },
+      "default": []
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": ["string", "number", "boolean", "null"]
+      },
+      "default": {}
+    }
+  },
+  "$defs": {
+    "actor_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id", "display_name"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["person", "team", "system", "missing"]
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "trace_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "status"],
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": ["linked", "missing", "unknown"]
+        },
+        "notes": {
+          "type": "string",
+          "default": ""
+        }
+      }
+    },
+    "evidence_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "ref", "result", "recorded_at"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["approval", "ci", "scheduled_validation", "manual_review", "runtime_probe", "missing"]
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "result": {
+          "type": "string",
+          "enum": ["pass", "fail", "blocked", "missing", "unknown"]
+        },
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "notes": {
+          "type": "string",
+          "default": ""
+        }
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "type", "owner", "entry_criteria", "exit_criteria"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "enum": ["start", "task", "service_task", "human_task", "gateway", "event", "end"]
+        },
+        "owner": {
+          "$ref": "#/$defs/actor_ref"
+        },
+        "description": {
+          "type": "string",
+          "default": ""
+        },
+        "entry_criteria": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "default": []
+        },
+        "exit_criteria": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "default": []
+        },
+        "emits_events": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "default": []
+        },
+        "task_refs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/trace_ref" },
+          "default": []
+        },
+        "bpmn_ref": {
+          "type": ["string", "null"],
+          "default": null
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "name", "source", "payload_contract"],
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "payload_contract": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required_for_validation": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from_step", "to_step", "event", "guard_ref", "guard"],
+      "properties": {
+        "from_step": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "to_step": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "event": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "guard_ref": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "guard": {
+          "description": "Embedded copy of the referenced guard. Validator must require equality with guards[guard_ref] so transition review remains self-contained without creating a second source of truth.",
+          "$ref": "#/$defs/guard_body"
+        }
+      }
+    },
+    "guard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "expression", "reason"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["condition", "approval", "unconditional", "missing"]
+        },
+        "expression": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "guard_body": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "expression", "reason"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["condition", "approval", "unconditional", "missing"]
+        },
+        "expression": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

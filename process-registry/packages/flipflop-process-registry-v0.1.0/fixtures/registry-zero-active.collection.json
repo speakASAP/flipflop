@@ -1,0 +1,45 @@
+{
+  "schema_version": "process-registry-collection.v1",
+  "registry_key": "flipflop.process_registry",
+  "storage_model": {
+    "source_of_truth": "git",
+    "runtime_projection": "none",
+    "immutability": "semantic_version_required"
+  },
+  "access_control": {
+    "roles": [
+      { "role": "modeler", "can_read": true, "can_write": true, "can_approve": false, "can_activate": false },
+      { "role": "publisher", "can_read": true, "can_write": false, "can_approve": false, "can_activate": true },
+      { "role": "runtime_reader", "can_read": true, "can_write": false, "can_approve": false, "can_activate": false }
+    ],
+    "lifecycle_permissions": [
+      { "from": "approved", "to": "active", "role": "publisher" }
+    ]
+  },
+  "definitions": [
+    {
+      "artifact_id": "flipflop.successful_customer_journey.v1@1.1.0",
+      "process_key": "flipflop.successful_customer_journey.v1",
+      "version": "1.1.0",
+      "status": "draft",
+      "definition_ref": "../definitions/flipflop.successful_customer_journey.v1/1.0.0-draft.json",
+      "validation_report_ref": "../reports/PROCESS-REGISTRY-VALIDATION-REPORT.md",
+      "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "environment": "draft",
+      "namespace": "flipflop",
+      "effective_from": null,
+      "effective_to": null,
+      "created_by": { "type": "team", "id": "flipflop-process-owners" },
+      "created_at": "2026-07-06T00:00:00Z",
+      "updated_by": { "type": "team", "id": "flipflop-process-owners" },
+      "updated_at": "2026-07-06T00:00:00Z",
+      "activated_by": null,
+      "activated_at": null,
+      "retired_by": null,
+      "retired_at": null,
+      "supersedes": null,
+      "superseded_by": null,
+      "source_commit": null
+    }
+  ]
+}

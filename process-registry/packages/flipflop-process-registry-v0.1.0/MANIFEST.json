@@ -1,0 +1,29 @@
+{
+  "package": "flipflop-process-registry",
+  "version": "0.1.0",
+  "date": "2026-07-06",
+  "status": "draft-package",
+  "process_key": "flipflop.successful_customer_journey.v1",
+  "runtime_ready": false,
+  "source_decision": "docs/ADR-001-flipflop-process-runtime-path.md",
+  "p1_target_boundary": "docs/P1-TARGET-BOUNDARY.md",
+  "entrypoints": {
+    "registry": "registry.collection.json",
+    "definition_validator": "validators/validate-process-definition.mjs",
+    "event_envelope_validator": "validators/validate-process-event-envelope.mjs",
+    "collection_validator": "validators/validate-process-registry-collection.mjs"
+  },
+  "reports": {
+    "validation": "reports/PROCESS-REGISTRY-VALIDATION-REPORT.md",
+    "package_smoke": "reports/PACKAGE-SMOKE-REPORT.md"
+  },
+  "blockers": [
+    "[MISSING: repository path or service boundary for process-registry source of truth]",
+    "[MISSING: approved FlipFlop process-owner role and approval authority]",
+    "[MISSING: current FlipFlop checkout/service architecture and runtime language boundaries]",
+    "[MISSING: production persistence, queue, and scheduler contracts for FlipFlop]",
+    "[MISSING: event payload contracts for customer journey steps]",
+    "[MISSING: runtime projection storage decision]",
+    "[UNKNOWN: whether first release needs durable long-running orchestration or only governed process-state lookup]"
+  ]
+}

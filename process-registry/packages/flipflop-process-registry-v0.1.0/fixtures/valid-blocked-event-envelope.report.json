@@ -1,0 +1,16 @@
+{
+  "validator": "process-event-envelope-validator.v1",
+  "generated_at": "2026-07-06T16:29:37.573Z",
+  "file": "/Users/Sergej.Stasok/Documents/Codex/2026-07-06/flipflop-process-runtime-adr/outputs/fixtures/valid-blocked-event-envelope.json",
+  "expected": "pass",
+  "actual": "pass",
+  "valid": true,
+  "errors": [],
+  "warnings": [],
+  "summary": {
+    "event_id": "evt-fixture-blocked-001",
+    "process_key": "flipflop.successful_customer_journey.v1",
+    "process_version": "1.0.0",
+    "decision": "blocked"
+  }
+}

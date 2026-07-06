@@ -1,0 +1,21 @@
+{
+  "validator": "process-definition-validator.v1",
+  "generated_at": "2026-07-06T16:28:37.292Z",
+  "file": "/Users/Sergej.Stasok/Documents/Codex/2026-07-06/flipflop-process-runtime-adr/outputs/fixtures/valid-active.process.json",
+  "expected": "pass",
+  "require_runtime_ready": false,
+  "actual": "pass",
+  "valid": true,
+  "errors": [],
+  "warnings": [],
+  "summary": {
+    "process_key": "flipflop.successful_customer_journey.v1",
+    "version": "1.0.0",
+    "status": "active",
+    "steps": 3,
+    "events": 2,
+    "guards": 2,
+    "transitions": 2,
+    "unresolved_marker_count": 0
+  }
+}

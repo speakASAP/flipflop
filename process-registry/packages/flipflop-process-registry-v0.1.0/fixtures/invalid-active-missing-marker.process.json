@@ -1,0 +1,82 @@
+{
+  "schema_version": "process-definition.v1",
+  "process_key": "flipflop.successful_customer_journey.v1",
+  "version": "1.0.0",
+  "status": "active",
+  "title": "Invalid Active Missing Marker",
+  "owner": {
+    "type": "missing",
+    "id": "[MISSING: process owner]",
+    "display_name": "[MISSING: process owner]"
+  },
+  "approver": null,
+  "approval_evidence": null,
+  "approval_timestamp": null,
+  "effective_from": null,
+  "effective_to": null,
+  "rollback_to": null,
+  "ips_trace": {
+    "vision": { "ref": "[MISSING: vision]", "status": "missing", "notes": "" },
+    "goal_impact": { "ref": "[MISSING: goal impact]", "status": "missing", "notes": "" },
+    "system": { "ref": "[MISSING: system]", "status": "missing", "notes": "" },
+    "feature": { "ref": "[MISSING: feature]", "status": "missing", "notes": "" },
+    "task": { "ref": "[MISSING: task]", "status": "missing", "notes": "" },
+    "execution_plan": { "ref": "[MISSING: execution plan]", "status": "missing", "notes": "" },
+    "coding_prompt": { "ref": "[MISSING: coding prompt]", "status": "missing", "notes": "" },
+    "code": { "ref": "[MISSING: code]", "status": "missing", "notes": "" },
+    "validation": { "ref": "[MISSING: validation]", "status": "missing", "notes": "" }
+  },
+  "steps": [
+    {
+      "id": "start",
+      "name": "Start",
+      "type": "start",
+      "owner": { "type": "system", "id": "fixture", "display_name": "Fixture" },
+      "entry_criteria": ["Start."],
+      "exit_criteria": ["Done."],
+      "emits_events": ["done"]
+    },
+    {
+      "id": "done",
+      "name": "Done",
+      "type": "end",
+      "owner": { "type": "system", "id": "fixture", "display_name": "Fixture" },
+      "entry_criteria": ["Done."],
+      "exit_criteria": ["End."],
+      "emits_events": []
+    }
+  ],
+  "events": [
+    {
+      "key": "done",
+      "name": "Done",
+      "source": "fixture",
+      "payload_contract": "contract://done",
+      "required_for_validation": true
+    }
+  ],
+  "guards": [
+    {
+      "id": "always",
+      "type": "unconditional",
+      "expression": "true",
+      "reason": "Fixture transition."
+    }
+  ],
+  "allowed_transitions": [
+    {
+      "from_step": "start",
+      "to_step": "done",
+      "event": "done",
+      "guard_ref": "always",
+      "guard": {
+        "type": "unconditional",
+        "expression": "true",
+        "reason": "Fixture transition."
+      }
+    }
+  ],
+  "runtime_invariants": ["Active definitions cannot contain missing markers."],
+  "validation_evidence": [],
+  "metadata": { "fixture": true }
+}

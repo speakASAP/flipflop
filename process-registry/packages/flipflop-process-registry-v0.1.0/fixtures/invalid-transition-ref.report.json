@@ -1,0 +1,37 @@
+{
+  "validator": "process-definition-validator.v1",
+  "generated_at": "2026-07-06T16:28:37.292Z",
+  "file": "/Users/Sergej.Stasok/Documents/Codex/2026-07-06/flipflop-process-runtime-adr/outputs/fixtures/invalid-transition-ref.process.json",
+  "expected": "fail",
+  "require_runtime_ready": false,
+  "actual": "fail",
+  "valid": false,
+  "errors": [
+    {
+      "code": "transition.to_step",
+      "path": "$.allowed_transitions[0].to_step",
+      "message": "missing to_step missing_done"
+    },
+    {
+      "code": "graph.incoming",
+      "path": "$.allowed_transitions",
+      "message": "non-start step done has no incoming transition"
+    },
+    {
+      "code": "graph.reachable",
+      "path": "$.steps",
+      "message": "step done is not reachable from a start step"
+    }
+  ],
+  "warnings": [],
+  "summary": {
+    "process_key": "flipflop.successful_customer_journey.v1",
+    "version": "1.0.0",
+    "status": "draft",
+    "steps": 2,
+    "events": 1,
+    "guards": 1,
+    "transitions": 1,
+    "unresolved_marker_count": 0
+  }
+}
