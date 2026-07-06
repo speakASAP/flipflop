@@ -21,6 +21,7 @@ import {
   ClientsModule,
   InventoryEventsPublisher,
   CustomerEventsPublisher,
+  CustomerJourneyEventsPublisher,
 } from '@flipflop/shared';
 import { MarketingModule } from '../marketing/marketing.module';
 import { PricingModule } from '../pricing/pricing.module';
@@ -51,6 +52,7 @@ import { PricingModule } from '../pricing/pricing.module';
     EventsConsumerService,
     InventoryEventsPublisher,
     CustomerEventsPublisher,
+    CustomerJourneyEventsPublisher,
     ReviewSolicitationScheduler,
   ],
   exports: [OrdersService],

@@ -1,0 +1,201 @@
+{
+  "schemaVersion": "bpcp.process.v1",
+  "processId": "flipflop.successful_customer_journey.v1",
+  "version": 1,
+  "status": "draft",
+  "owner": "[MISSING: process owner]",
+  "approver": "[MISSING: approval authority]",
+  "approval_evidence": "[MISSING: approval evidence]",
+  "activeFrom": "[MISSING: effective window]",
+  "activeTo": null,
+  "rollbackTo": "[MISSING: rollback process version]",
+  "ips_trace": {
+    "vision": "FlipFlop operates with visible, versioned, testable business processes that can evolve outside the application codebase.",
+    "goal_impact": "Reliable proof that customers can move from landing/product discovery to successful_payment, order creation, confirmation notification, and marketing handoff.",
+    "system": "Process registry plus event contract plus scheduled synthetic monitor plus existing FlipFlop services.",
+    "feature": "flipflop.successful_customer_journey.v1",
+    "task": "register_process_definition",
+    "execution_plan": "flipflop-integrated-rollout-plan-v1",
+    "coding_prompt": "Workstream 2 - Process Registry Schema for FlipFlop successful customer journey.",
+    "code": "process-registry/process-definition.schema.json; process-registry/validate-process-definitions.js; processes/flipflop/customer-journey/successful-customer-journey.v1.process.json",
+    "validation": "[MISSING: full active-version validation evidence]"
+  },
+  "lifecycle": {
+    "states": ["draft", "validated", "scheduled", "active", "paused", "retired"],
+    "promotion_rules": [
+      "draft may include explicit missing and unknown blocker markers",
+      "validated requires every blocker to be resolved or explicitly scoped out by the integration owner",
+      "scheduled requires validation_evidence, activation window, rollback target, and no unresolved blockers",
+      "active requires scheduled status inputs, effective window, rollback target, no unresolved markers, and exactly one active definition per processId",
+      "paused is the fail-closed kill-switch state for active processes",
+      "retired requires rollback or successor evidence"
+    ]
+  },
+  "steps": [
+    {
+      "id": "landing_rendered",
+      "name": "Landing page rendered",
+      "capability": "storefront.landing.render",
+      "owner_service": "flipflop frontend",
+      "type": "view"
+    },
+    {
+      "id": "product_viewed",
+      "name": "Product detail opened",
+      "capability": "catalog.product_detail.render",
+      "owner_service": "flipflop frontend / product-service",
+      "type": "view"
+    },
+    {
+      "id": "cart_item_added",
+      "name": "Offer added to cart",
+      "capability": "cart.line_item.add",
+      "owner_service": "flipflop frontend",
+      "type": "side_effect"
+    },
+    {
+      "id": "checkout_validated",
+      "name": "Checkout cart, customer, and fulfillment data validated",
+      "capability": "checkout.validation.validate_cart_customer_fulfillment",
+      "owner_service": "flipflop checkout",
+      "type": "validation"
+    },
+    {
+      "id": "payment_succeeded",
+      "name": "Payment succeeded",
+      "capability": "payment.reconciliation.apply_result",
+      "owner_service": "payments-microservice",
+      "type": "event"
+    },
+    {
+      "id": "order_created",
+      "name": "Order created or confirmed",
+      "capability": "orders.order_lifecycle.create_or_confirm",
+      "owner_service": "orders-microservice / flipflop order-service boundary",
+      "type": "handoff"
+    },
+    {
+      "id": "confirmation_queued",
+      "name": "Customer confirmation notification queued",
+      "capability": "orders.customer_confirmation.publish",
+      "owner_service": "orders-microservice",
+      "type": "handoff"
+    },
+    {
+      "id": "marketing_handoff_requested",
+      "name": "Marketing conversion handoff requested",
+      "capability": "marketing.conversion_handoff.publish",
+      "owner_service": "marketing-microservice",
+      "type": "handoff"
+    }
+  ],
+  "allowedTransitions": [
+    { "from": "START", "to": "landing_rendered", "on": "session_started" },
+    { "from": "landing_rendered", "to": "product_viewed", "on": "product_viewed" },
+    { "from": "product_viewed", "to": "cart_item_added", "on": "cart_item_added", "guard": "catalog_offer_available" },
+    { "from": "cart_item_added", "to": "checkout_validated", "on": "cart_validated", "guard": "checkout_side_effects_allowed" },
+    { "from": "checkout_validated", "to": "payment_succeeded", "on": "payment_succeeded", "guard": "paid_provider_gate_satisfied" },
+    { "from": "payment_succeeded", "to": "order_created", "on": "order_created", "guard": "central_order_handoff_ready" },
+    { "from": "order_created", "to": "confirmation_queued", "on": "order_confirmation_email_queued" },
+    { "from": "confirmation_queued", "to": "marketing_handoff_requested", "on": "marketing_handoff_requested", "guard": "marketing_consent_policy_known" },
+    { "from": "marketing_handoff_requested", "to": "END", "on": "analytics_conversion_recorded" }
+  ],
+  "events": [
+    {
+      "name": "session_started",
+      "version": 1,
+      "producer": "flipflop frontend",
+      "required_fields": ["event_id", "event_name", "version", "occurred_at", "journey_id", "correlation_id", "causation_id", "idempotency_key", "source.service", "source.component", "environment.name", "metadata.channel", "identifiers.session_id"],
+      "forbidden_fields": ["raw card data", "raw JWT/access tokens", "passwords", "provider secrets", "raw payment credentials", "unapproved raw PII"]
+    },
+    {
+      "name": "product_viewed",
+      "version": 1,
+      "producer": "flipflop frontend",
+      "required_fields": ["event_id", "event_name", "version", "occurred_at", "journey_id", "correlation_id", "causation_id", "idempotency_key", "source.service", "source.component", "environment.name", "metadata.channel", "identifiers.session_id"],
+      "forbidden_fields": ["raw card data", "raw JWT/access tokens", "passwords", "provider secrets", "raw payment credentials", "unapproved raw PII"]
+    },
+    {
+      "name": "cart_item_added",
+      "version": 1,
+      "producer": "flipflop frontend",
+      "required_fields": ["event_id", "event_name", "version", "occurred_at", "journey_id", "correlation_id", "causation_id", "idempotency_key", "source.service", "source.component", "environment.name", "metadata.channel", "identifiers.session_id"],
+      "forbidden_fields": ["raw card data", "raw JWT/access tokens", "passwords", "provider secrets", "raw payment credentials", "unapproved raw PII"]
+    },
+    {
+      "name": "checkout_started",
+      "version": 1,
+      "producer": "flipflop checkout",
+      "required_fields": ["event_id", "event_name", "version", "occurred_at", "journey_id", "correlation_id", "causation_id", "idempotency_key", "source.service", "source.component", "environment.name", "metadata.channel", "identifiers.session_id"],
+      "forbidden_fields": ["raw card data", "raw JWT/access tokens", "passwords", "provider secrets", "raw payment credentials", "unapproved raw PII"]
+    },
+    {
+      "name": "payment_succeeded",
+      "version": 1,
+      "producer": "payments-microservice",
+      "required_fields": ["event_id", "event_name", "version", "occurred_at", "journey_id", "correlation_id", "causation_id", "idempotency_key", "source.service", "source.component", "environment.name", "metadata.channel", "identifiers.customer_id"],
+      "forbidden_fields": ["raw card data", "raw JWT/access tokens", "passwords", "provider secrets", "raw payment credentials", "unapproved raw PII"]
+    },
+    {
+      "name": "order_created",
+      "version": 1,
+      "producer": "orders-microservice",
+      "required_fields": ["event_id", "event_name", "version", "occurred_at", "journey_id", "correlation_id", "causation_id", "idempotency_key", "source.service", "source.component", "environment.name", "metadata.channel", "identifiers.customer_id"],
+      "forbidden_fields": ["raw card data", "raw JWT/access tokens", "passwords", "provider secrets", "raw payment credentials", "unapproved raw PII"]
+    },
+    {
+      "name": "order_confirmation_email_queued",
+      "version": 1,
+      "producer": "orders-microservice",
+      "required_fields": ["event_id", "event_name", "version", "occurred_at", "journey_id", "correlation_id", "causation_id", "idempotency_key", "source.service", "source.component", "environment.name", "metadata.channel", "identifiers.customer_id"],
+      "forbidden_fields": ["raw card data", "raw JWT/access tokens", "passwords", "provider secrets", "raw payment credentials", "unapproved raw PII"]
+    },
+    {
+      "name": "marketing_handoff_requested",
+      "version": 1,
+      "producer": "marketing-microservice",
+      "required_fields": ["event_id", "event_name", "version", "occurred_at", "journey_id", "correlation_id", "causation_id", "idempotency_key", "source.service", "source.component", "environment.name", "metadata.channel", "identifiers.customer_id"],
+      "forbidden_fields": ["raw card data", "raw JWT/access tokens", "passwords", "provider secrets", "raw payment credentials", "unapproved raw PII"]
+    }
+  ],
+  "guards": [
+    {
+      "id": "process_runtime_fail_closed_control",
+      "description": "Customer-journey orchestration must stop before checkout, payment, order, provider, or marketing side effects when active process definition lookup is missing, invalid, incompatible, unapproved, expired, or contains unresolved blockers.",
+      "mode": "fail_closed"
+    },
+    {
+      "id": "paid_provider_gate_satisfied",
+      "description": "[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]",
+      "mode": "fail_closed"
+    },
+    {
+      "id": "marketing_consent_policy_known",
+      "description": "[MISSING: capability marketing_consent_suppression]",
+      "mode": "fail_closed"
+    }
+  ],
+  "validation_evidence": [
+    "[MISSING: schema validation command evidence for active promotion]",
+    "[MISSING: event emission state evidence]",
+    "[MISSING: synthetic monitor evidence]"
+  ],
+  "blockers": [
+    "[MISSING: process owner]",
+    "[MISSING: approval authority]",
+    "[MISSING: approval evidence]",
+    "[MISSING: effective window]",
+    "[MISSING: rollback process version]",
+    "[MISSING: capability shipping_tax_estimation]",
+    "[MISSING: capability inventory_reservation_commit]",
+    "[MISSING: capability consent_policy_filter]",
+    "[MISSING: capability attribution_failure_degraded_mode]",
+    "[MISSING: capability cart_checkout_abandonment_policy]",
+    "[MISSING: capability post_payment_inventory_compensation]",
+    "[MISSING: capability marketing_consent_suppression]",
+    "[MISSING: capability checkout_auth_session_recovery]",
+    "[MISSING: capability checkout_quote_mismatch_recovery]",
+    "[MISSING: capability process_runtime_fail_closed_control]",
+    "[UNKNOWN: current FlipFlop repository/event emission state]"
+  ]
+}

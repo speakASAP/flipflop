@@ -1,0 +1,119 @@
+{
+  "ok": true,
+  "status": "read_only_passed_full_flow_blocked_missing_contract",
+  "runId": "synthetic-2026-07-06T14-52-29-771Z",
+  "generatedAt": "2026-07-06T14:52:29.771Z",
+  "timezone": "Europe/Prague",
+  "baseUrl": "https://flipflop.alfares.cz",
+  "apiBaseUrl": "https://flipflop.alfares.cz/api",
+  "nonMutating": true,
+  "mutation": false,
+  "liveCheckoutExecuted": false,
+  "providerCall": false,
+  "ordersMutation": false,
+  "warehouseMutation": false,
+  "channelCleanupMutation": false,
+  "secretOutput": false,
+  "rawCustomerOrPaymentEvidence": false,
+  "intentChain": "Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding Prompt -> Code -> Validation",
+  "scenario": [
+    "Open landing page and assert HTTP 2xx/3xx plus storefront availability.",
+    "Open product discovery page and public products API.",
+    "Select the approved synthetic product when configured, otherwise first sellable public product for read-only discovery only.",
+    "Open product detail page and product detail API; assert id/SKU/name/price/availability fields.",
+    "Open cart and checkout pages without submitting an order.",
+    "Assert frontend journey-event source markers for product view, cart add, checkout start, shipping selection, and cart validation.",
+    "POST empty body to /api/orders/guest and assert 4xx validation, proving the route is mounted without creating an order.",
+    "Hard-stop before checkout/payment/order mutation unless every sandbox/test-mode fact is present.",
+    "When sandbox facts exist, a separate owner-approved runner may assert payment success, order created, email queued/delivered, and event trace by correlation id."
+  ],
+  "failureClasses": {
+    "P0_MUTATION_GUARD": "Unapproved production checkout/payment/order/provider mutation attempted or implied.",
+    "P1_LANDING_DISCOVERY_DOWN": "Landing, product discovery, product detail, cart, or checkout page is unavailable.",
+    "P1_PRODUCT_DETAIL_DOWN": "Product detail page or product detail API is unavailable.",
+    "P1_CHECKOUT_BLOCKED": "Cart, quote, checkout, or submit preflight fails before payment/provider mutation.",
+    "P1_PAYMENT_CONTRACT_BLOCKED": "Payment/provider/order/email/event path lacks sandbox/test contract or cleanup evidence.",
+    "P2_ORDER_EMAIL_EVENT_DRIFT": "Approved sandbox order, email, or event trace readback mismatches expected data.",
+    "P3_OBSERVABILITY_DEBT": "Evidence, redaction, timestamps, or result JSON is incomplete."
+  },
+  "steps": [
+    {
+      "name": "landing",
+      "url": "/",
+      "status": 200
+    },
+    {
+      "name": "productDiscovery",
+      "url": "/products",
+      "status": 200
+    },
+    {
+      "name": "cart",
+      "url": "/cart",
+      "status": 200
+    },
+    {
+      "name": "checkout",
+      "url": "/checkout",
+      "status": 200
+    },
+    {
+      "name": "productApiList",
+      "path": "/api/products?limit=20",
+      "status": 200
+    },
+    {
+      "name": "productDetailPage",
+      "path": "/products/6d12775ab8f5bcaa",
+      "status": 200
+    },
+    {
+      "name": "productDetailApi",
+      "path": "/api/products/6d12775ab8f5bcaa",
+      "status": 200
+    },
+    {
+      "name": "invalidGuestOrderRejected",
+      "path": "/api/orders/guest",
+      "status": 400
+    }
+  ],
+  "assertions": {
+    "sourceContractsPreserveFailClosedMonitor": true,
+    "frontendJourneyEventTraceSourceContract": true,
+    "landingProductDiscoveryProductDetailCartCheckoutReachable": true,
+    "productApiHasSyntheticCandidate": true,
+    "guestOrderRouteMountedAndValidationRejectsEmptyBody": true,
+    "checkoutSubmitNotClickedToAvoidProductionOrderMutation": true
+  },
+  "selectedProduct": {
+    "idHash": "6d12775ab8f5bcaa",
+    "skuHash": "1c80588fa6523352",
+    "hasName": true,
+    "priceClass": "positive",
+    "stockClass": "available"
+  },
+  "syntheticProductSource": "read-only-first-sellable",
+  "paymentOrderEmailEventGate": {
+    "status": "blocked_missing_contract",
+    "missing": [
+      "[MISSING: approved synthetic product/SKU]",
+      "[MISSING: synthetic customer/contact]",
+      "[MISSING: approved delivery test contract]",
+      "[MISSING: sandbox/test-mode payment approval flag]",
+      "[MISSING: documented sandbox/test-mode payment provider]",
+      "[MISSING: sandbox or test-only checkout mutation mode]",
+      "[MISSING: email queue/inbox assertion source]",
+      "[MISSING: event trace assertion source]",
+      "[MISSING: order/payment cleanup or retention contract]"
+    ],
+    "assertions": {
+      "paymentSuccess": "[MISSING: sandbox/test-mode payment success evidence]",
+      "orderCreated": "[MISSING: sandbox central Orders create/read evidence]",
+      "emailQueuedOrDelivered": "[MISSING: synthetic email queue/delivery evidence]",
+      "eventTrace": "[MISSING: journey correlation event trace evidence]"
+    }
+  },
+  "classification": "P1_PAYMENT_CONTRACT_BLOCKED",
+  "severity": "medium"
+}

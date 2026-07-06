@@ -1,8 +1,13 @@
-import type { Product, ProductVariant } from './api/products';
+import type { ProductVariant } from './api/products';
 
 const STORAGE_KEY = 'flipflop_guest_cart_v1';
 const BUNDLE_INTENT_KEY = 'flipflop_bundle_intent_v1';
+const JOURNEY_EVENTS_KEY = 'flipflop_journey_events_v1';
+const JOURNEY_SESSION_ID_KEY = 'flipflop_journey_session_id_v1';
+const JOURNEY_SESSION_STARTED_KEY = 'flipflop_journey_session_started_v1';
+const MAX_JOURNEY_EVENTS = 100;
 export const GUEST_CART_UPDATED_EVENT = 'flipflop:guest-cart-updated';
+export const JOURNEY_EVENT_RECORDED_EVENT = 'flipflop:journey-event-recorded';
 
 export interface GuestCartProduct {
   id: string;
@@ -47,6 +52,23 @@ export interface GuestBundleIntent {
   createdAt: string;
 }
 
+export type JourneyEventType =
+  | 'session_started'
+  | 'product_viewed'
+  | 'cart_item_added'
+  | 'checkout_started'
+  | 'shipping_option_selected'
+  | 'cart_validated';
+
+export interface JourneyEvent {
+  id: string;
+  sessionId: string;
+  type: JourneyEventType;
+  payload: Record<string, unknown>;
+  url: string;
+  createdAt: string;
+}
+
 export type GuestCartAddStatus = 'added' | 'already-in-cart' | 'insufficient-stock';
 
 export interface GuestCartAddResult {
@@ -62,6 +84,107 @@ interface AddGuestCartItemInput {
 }
 
 const isBrowser = () => typeof window !== 'undefined';
+
+const createJourneyId = () => {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+};
+
+const getJourneySessionId = () => {
+  if (!isBrowser()) return '';
+
+  try {
+    const existing = window.sessionStorage.getItem(JOURNEY_SESSION_ID_KEY);
+    if (existing) return existing;
+    const next = createJourneyId();
+    window.sessionStorage.setItem(JOURNEY_SESSION_ID_KEY, next);
+    return next;
+  } catch {
+    const existing = window.localStorage.getItem(JOURNEY_SESSION_ID_KEY);
+    if (existing) return existing;
+    const next = createJourneyId();
+    window.localStorage.setItem(JOURNEY_SESSION_ID_KEY, next);
+    return next;
+  }
+};
+
+const readJourneyEvents = (): JourneyEvent[] => {
+  if (!isBrowser()) return [];
+
+  try {
+    const raw = window.localStorage.getItem(JOURNEY_EVENTS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((event): event is JourneyEvent => (
+      event &&
+      typeof event === 'object' &&
+      typeof event.id === 'string' &&
+      typeof event.sessionId === 'string' &&
+      typeof event.type === 'string' &&
+      typeof event.createdAt === 'string'
+    )) : [];
+  } catch {
+    return [];
+  }
+};
+
+const appendJourneyEvent = (event: JourneyEvent) => {
+  const events = [...readJourneyEvents(), event].slice(-MAX_JOURNEY_EVENTS);
+  window.localStorage.setItem(JOURNEY_EVENTS_KEY, JSON.stringify(events));
+  window.dispatchEvent(new CustomEvent(JOURNEY_EVENT_RECORDED_EVENT, { detail: event }));
+};
+
+const markJourneySessionStarted = (sessionId: string) => {
+  try {
+    window.sessionStorage.setItem(JOURNEY_SESSION_STARTED_KEY, sessionId);
+  } catch {
+    window.localStorage.setItem(JOURNEY_SESSION_STARTED_KEY, sessionId);
+  }
+};
+
+const hasJourneySessionStarted = (sessionId: string) => {
+  try {
+    return window.sessionStorage.getItem(JOURNEY_SESSION_STARTED_KEY) === sessionId;
+  } catch {
+    return window.localStorage.getItem(JOURNEY_SESSION_STARTED_KEY) === sessionId;
+  }
+};
+
+export const recordJourneyEvent = (type: JourneyEventType, payload: Record<string, unknown> = {}) => {
+  if (!isBrowser()) return;
+
+  const sessionId = getJourneySessionId();
+  if (!sessionId) return;
+
+  if (type !== 'session_started' && !hasJourneySessionStarted(sessionId)) {
+    appendJourneyEvent({
+      id: createJourneyId(),
+      sessionId,
+      type: 'session_started',
+      payload: {},
+      url: `${window.location.pathname}${window.location.search}`,
+      createdAt: new Date().toISOString(),
+    });
+    markJourneySessionStarted(sessionId);
+  }
+
+  appendJourneyEvent({
+    id: createJourneyId(),
+    sessionId,
+    type,
+    payload,
+    url: `${window.location.pathname}${window.location.search}`,
+    createdAt: new Date().toISOString(),
+  });
+
+  if (type === 'session_started') {
+    markJourneySessionStarted(sessionId);
+  }
+};
+
+export const getStoredJourneyEvents = () => readJourneyEvents();
 
 const getItemId = (productId: string, variantId?: string) => (
   `${productId}:${variantId || 'default'}`
@@ -188,7 +311,17 @@ export const addGuestCartItem = ({
   });
 
   writeStoredItems(items);
-  return { cart: getGuestCart(), status: 'added', availableStock };
+  const cart = getGuestCart();
+  recordJourneyEvent('cart_item_added', {
+    productId: product.id,
+    productName: product.name,
+    variantId,
+    quantity: safeQuantity,
+    price,
+    cartItemCount: cart.itemCount,
+    cartTotal: cart.total,
+  });
+  return { cart, status: 'added', availableStock };
 };
 
 export const updateGuestCartQuantity = (itemId: string, quantity: number): GuestCart => {

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { cartApi, Cart } from '@/lib/api/cart';
 import { CreateGuestOrderData, ordersApi } from '@/lib/api/orders';
 import { productsApi } from '@/lib/api/products';
-import { clearGuestBundleIntent, clearGuestCart, getGuestBundleIntentForProductIds, getGuestCart, GuestCart, GuestCartItem, removeGuestCartItem } from '@/lib/guest-cart';
+import { clearGuestBundleIntent, clearGuestCart, getGuestBundleIntentForProductIds, getGuestCart, GuestCart, GuestCartItem, recordJourneyEvent, removeGuestCartItem } from '@/lib/guest-cart';
 import { useAuth } from '@/contexts/AuthContext';
 import { authApi, AuthDeliveryAddress, AuthInvoiceProfile } from '@/lib/api/auth';
 import { buildHostedPasswordResetUrl } from '@/lib/auth/hosted-auth';
@@ -219,6 +219,7 @@ export default function CheckoutPage() {
   const [selectedWalletDeliveryAddressId, setSelectedWalletDeliveryAddressId] = useState('');
   const [selectedWalletInvoiceProfileId, setSelectedWalletInvoiceProfileId] = useState('');
   const walletAutofillBlockedRef = useRef(false);
+  const checkoutStartedRecordedRef = useRef(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -250,6 +251,18 @@ export default function CheckoutPage() {
       setSelectedWalletInvoiceProfileId('');
     }
   }, [authLoading, user]);
+
+  useEffect(() => {
+    if (!cart || cart.items.length === 0 || checkoutStartedRecordedRef.current) return;
+    checkoutStartedRecordedRef.current = true;
+    recordJourneyEvent('checkout_started', {
+      itemCount: cart.itemCount,
+      subtotal: cart.total,
+      deliveryMethod,
+      paymentMethod,
+      customerType: user ? 'authenticated' : 'guest',
+    });
+  }, [cart, deliveryMethod, paymentMethod, user]);
 
   useEffect(() => {
     if (authLoading || !user) return;
@@ -316,6 +329,16 @@ export default function CheckoutPage() {
 
   const markWalletAutofillSensitiveEdit = () => {
     walletAutofillBlockedRef.current = true;
+  };
+
+  const selectDeliveryMethod = (id: string) => {
+    setDeliveryMethod(id);
+    const option = DELIVERY_OPTIONS.find((item) => item.id === id);
+    recordJourneyEvent('shipping_option_selected', {
+      deliveryMethod: id,
+      label: option?.label || id,
+      price: option?.price ?? null,
+    });
   };
 
   const updateForm = (key: keyof FormState, value: string | boolean) => {
@@ -457,6 +480,12 @@ export default function CheckoutPage() {
     if (user && profileEditing) { setError('Nejprve uložte upravené údaje do profilu.'); return; }
     setProcessing(true);
     const unavailableItems = await getLiveUnavailableItems(cart.items as Array<GuestCartItem>);
+    recordJourneyEvent('cart_validated', {
+      status: unavailableItems.length > 0 ? 'failed' : 'passed',
+      itemCount: cart.itemCount,
+      unavailableCount: unavailableItems.length,
+      unavailableProductIds: unavailableItems.map(({ item }) => item.productId),
+    });
     if (unavailableItems.length > 0) {
       unavailableItems.forEach(({ item }) => removeGuestCartItem(item.id));
       setCart(getGuestCart());
@@ -512,7 +541,7 @@ export default function CheckoutPage() {
           <section>
             {step === 'delivery' ? (
               <div className="space-y-10">
-                <section className={'border p-6 ' + (error?.includes('dopravy') ? 'border-red-500' : 'border-neutral-200')}><h1 className="mb-6 text-4xl font-black">Doprava</h1>{error?.includes('dopravy') && <p className="mb-4 font-semibold text-red-600">{error}</p>}<div className="divide-y divide-neutral-200">{DELIVERY_OPTIONS.map((option) => <ChoiceRow key={option.id} checked={deliveryMethod === option.id} onChange={() => setDeliveryMethod(option.id)} label={option.label} meta={option.meta} price={option.price === 0 ? 'ZDARMA' : money(option.price)} />)}</div></section>
+                <section className={'border p-6 ' + (error?.includes('dopravy') ? 'border-red-500' : 'border-neutral-200')}><h1 className="mb-6 text-4xl font-black">Doprava</h1>{error?.includes('dopravy') && <p className="mb-4 font-semibold text-red-600">{error}</p>}<div className="divide-y divide-neutral-200">{DELIVERY_OPTIONS.map((option) => <ChoiceRow key={option.id} checked={deliveryMethod === option.id} onChange={() => selectDeliveryMethod(option.id)} label={option.label} meta={option.meta} price={option.price === 0 ? 'ZDARMA' : money(option.price)} />)}</div></section>
                 <section className="border border-neutral-200 p-6"><h2 className="mb-5 text-3xl font-black">Platba</h2><div className="divide-y divide-neutral-200">{PAYMENT_OPTIONS.map((option) => <ChoiceRow key={option.id} checked={paymentMethod === option.id} onChange={() => setPaymentMethod(option.id)} label={option.label} meta={option.meta} price={option.price === 0 ? 'ZDARMA' : money(option.price)} />)}</div></section>
                 <section className="space-y-5"><label className="flex items-center gap-3 font-semibold"><input type="checkbox" checked={differentDay} onChange={(event) => setDifferentDay(event.target.checked)} className="h-5 w-5 accent-pink-600" />Chci zboží doručit v jiný den</label>{differentDay && <input type="date" value={requestedDate} onChange={(event) => setRequestedDate(event.target.value)} className="border border-neutral-300 px-4 py-3" />}<div className="grid gap-3 sm:grid-cols-2"><button type="button" onClick={() => router.push('/cart')} className="border border-neutral-300 px-8 py-5 text-xl font-black text-neutral-800 hover:border-pink-600 hover:text-pink-700">← Vrátit se na předchozí krok</button><button onClick={goToDetails} className="bg-green-600 px-8 py-5 text-xl font-black text-white hover:bg-green-700">Pokračovat na osobní údaje →</button></div></section>
               </div>

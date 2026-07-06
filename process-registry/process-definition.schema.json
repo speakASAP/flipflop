@@ -1,0 +1,199 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://flipflop.alfares.cz/schemas/process-definition.v1.json",
+  "title": "FlipFlop Process Definition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "processId",
+    "version",
+    "status",
+    "owner",
+    "approver",
+    "approval_evidence",
+    "activeFrom",
+    "activeTo",
+    "rollbackTo",
+    "ips_trace",
+    "lifecycle",
+    "steps",
+    "allowedTransitions",
+    "events",
+    "guards",
+    "validation_evidence"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "bpcp.process.v1"
+    },
+    "processId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*)*$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "validated", "scheduled", "active", "paused", "retired"]
+    },
+    "owner": {
+      "type": "string",
+      "minLength": 1
+    },
+    "approver": {
+      "type": "string",
+      "minLength": 1
+    },
+    "approval_evidence": {
+      "type": "string",
+      "minLength": 1
+    },
+    "activeFrom": {
+      "type": "string",
+      "minLength": 1
+    },
+    "activeTo": {
+      "type": ["string", "null"]
+    },
+    "rollbackTo": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ips_trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vision",
+        "goal_impact",
+        "system",
+        "feature",
+        "task",
+        "execution_plan",
+        "coding_prompt",
+        "code",
+        "validation"
+      ],
+      "properties": {
+        "vision": { "type": "string", "minLength": 1 },
+        "goal_impact": { "type": "string", "minLength": 1 },
+        "system": { "type": "string", "minLength": 1 },
+        "feature": { "type": "string", "minLength": 1 },
+        "task": { "type": "string", "minLength": 1 },
+        "execution_plan": { "type": "string", "minLength": 1 },
+        "coding_prompt": { "type": "string", "minLength": 1 },
+        "code": { "type": "string", "minLength": 1 },
+        "validation": { "type": "string", "minLength": 1 }
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["states", "promotion_rules"],
+      "properties": {
+        "states": {
+          "type": "array",
+          "items": {
+            "type": "string",
+          "enum": ["draft", "validated", "scheduled", "active", "paused", "retired"]
+          },
+          "minItems": 6,
+          "uniqueItems": true
+        },
+        "promotion_rules": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/step" },
+      "minItems": 1
+    },
+    "allowedTransitions": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/transition" },
+      "minItems": 1
+    },
+    "events": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/event" },
+      "minItems": 1
+    },
+    "guards": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/guard" }
+    },
+    "validation_evidence": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "blockers": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "definitions": {
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "capability", "owner_service", "type"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "name": { "type": "string", "minLength": 1 },
+        "capability": { "type": "string", "minLength": 1 },
+        "owner_service": { "type": "string", "minLength": 1 },
+        "type": {
+          "type": "string",
+          "enum": ["view", "event", "decision", "side_effect", "handoff", "validation"]
+        }
+      }
+    },
+    "transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "on"],
+      "properties": {
+        "from": { "type": "string", "minLength": 1 },
+        "to": { "type": "string", "minLength": 1 },
+        "on": { "type": "string", "minLength": 1 },
+        "guard": { "type": "string" }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "producer", "required_fields", "forbidden_fields"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "version": { "type": "integer", "minimum": 1 },
+        "producer": { "type": "string", "minLength": 1 },
+        "required_fields": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "forbidden_fields": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
+      }
+    },
+    "guard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "description", "mode"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "description": { "type": "string", "minLength": 1 },
+        "mode": { "type": "string", "enum": ["fail_closed", "warn", "observe"] }
+      }
+    }
+  }
+}

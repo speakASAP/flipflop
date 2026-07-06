@@ -66,6 +66,43 @@ const getProductGalleryImages = (product: Product) => {
 
 const formatMoney = (value: number) => `${Math.round(value).toLocaleString('cs-CZ')} Kč`;
 
+const buildProductViewedPayload = (product: Product) => JSON.stringify({
+  productId: product.id,
+  productName: product.name,
+  price: product.price,
+  brand: product.brand || null,
+}).replace(/</g, String.fromCharCode(92) + "u003c");
+
+const buildProductViewedScript = (product: Product) => ({
+  __html: `(() => {
+    const eventsKey = 'flipflop_journey_events_v1';
+    const sessionKey = 'flipflop_journey_session_id_v1';
+    const startedKey = 'flipflop_journey_session_started_v1';
+    const maxEvents = 100;
+    const makeId = () => crypto?.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+    const sessionId = sessionStorage.getItem(sessionKey) || makeId();
+    sessionStorage.setItem(sessionKey, sessionId);
+    const readEvents = () => {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(eventsKey) || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    };
+    const append = (type, payload) => {
+      const event = { id: makeId(), sessionId, type, payload, url: location.pathname + location.search, createdAt: new Date().toISOString() };
+      localStorage.setItem(eventsKey, JSON.stringify([...readEvents(), event].slice(-maxEvents)));
+      window.dispatchEvent(new CustomEvent('flipflop:journey-event-recorded', { detail: event }));
+    };
+    if (sessionStorage.getItem(startedKey) !== sessionId) {
+      append('session_started', {});
+      sessionStorage.setItem(startedKey, sessionId);
+    }
+    append('product_viewed', ${buildProductViewedPayload(product)});
+  })();`,
+});
+
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { id } = await params;
   const response = await productsApi.getProduct(id);
@@ -121,6 +158,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <script dangerouslySetInnerHTML={buildProductViewedScript(product)} />
       <div className="container mx-auto px-4 py-8">
         <Link 
           href="/products" 

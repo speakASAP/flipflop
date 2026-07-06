@@ -76,4 +76,5 @@ export * from './rabbitmq/stock-events.subscriber';
 export * from './rabbitmq/catalog-events.subscriber';
 export * from './rabbitmq/inventory-events.publisher';
 export * from './rabbitmq/customer-events.publisher';
+export * from './rabbitmq/customer-journey-events.publisher';
 export * from './rabbitmq/pricing-events.publisher';
