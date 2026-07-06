@@ -40,9 +40,10 @@ assert(orderService.includes("const allowed = new Set(['invoice', 'webpay', 'str
 assert(orderService.includes("if (paymentMethod === 'invoice')"), 'invoice branch missing');
 assert(orderService.includes('redirectUrl = this.buildBankTransferRedirect(order, total)'), 'invoice branch must build local bank-transfer redirect');
 assert(orderService.includes('paymentResult = await this.paymentService.createPayment'), 'non-invoice provider branch marker missing');
-assert(orderService.indexOf("if (paymentMethod === 'invoice')") < orderService.indexOf('paymentResult = await this.paymentService.createPayment'), 'invoice branch must be checked before provider createPayment call');
-
 const invoiceBranchStart = orderService.indexOf("if (paymentMethod === 'invoice')");
+const providerCreateAfterInvoice = orderService.indexOf('paymentResult = await this.paymentService.createPayment', invoiceBranchStart);
+assert(providerCreateAfterInvoice > invoiceBranchStart, 'guest non-invoice provider createPayment branch missing after invoice branch');
+
 const elseBranchStart = orderService.indexOf('} else {', invoiceBranchStart);
 const invoiceBranch = orderService.slice(invoiceBranchStart, elseBranchStart);
 assert(!invoiceBranch.includes('paymentService.createPayment'), 'invoice branch must not call paymentService.createPayment');
