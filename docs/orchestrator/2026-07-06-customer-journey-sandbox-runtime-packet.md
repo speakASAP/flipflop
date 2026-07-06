@@ -128,9 +128,9 @@ The full sandbox runner remains blocked until every item below is resolved.
 | Synthetic product/SKU | `[RESOLVED/NARROWED: owner-approved W5 sandbox product target is productId ffb4883f-ec48-4745-8147-b836f3fb2b88, sku ALLEGRO-OFFER-18106037370, catalogProductId ce4a51aa-2d12-4ab7-a965-7a36609d01fc, current public API price 999 CZK and stock 119; this reuses an existing live sellable product as a bounded sandbox target and does not create/modify product rows]` | public API list/detail readback, source packet approval, no raw DB row output |
 | Synthetic customer/contact | `[MISSING: synthetic customer/contact]` | approved synthetic identity or token-bound test actor; no raw email/customer data in logs |
 | Delivery test contract | `[RESOLVED/NARROWED: packet-prep delivery test contract is flipflop.delivery.store_pickup.no_external_carrier.v1 using deliveryMethod=store, shippingCost=0, and no external-carrier handoff; runtime still blocked until product/customer/payment/email/event/cleanup facts exist]` | source references for `store` delivery method and server-side cost calculation; any checkout execution still requires full sandbox packet approval |
-| Payment sandbox approval flag | `[MISSING: sandbox/test-mode payment approval flag]` | explicit owner-approved `PAYMENT_SANDBOX_CONTRACT_APPROVED=1` or equivalent non-secret packet |
-| Test-mode provider | `[MISSING: documented sandbox/test-mode payment provider]`; `[RESOLVED/NARROWED: Goal 24 Fiobanka QR material is policy/checklist evidence only and is not a reusable sandbox/test-mode approval packet]` | provider/method/environment and proof that no real money movement occurs |
-| Checkout mutation mode | `[MISSING: sandbox or test-only checkout mutation mode]` | `CHECKOUT_MUTATION_MODE=sandbox|test-only` and service-side enforcement proof |
+| Payment sandbox approval flag | `[RESOLVED/NARROWED: source-only no-external-provider contract approved as PAYMENT_SANDBOX_CONTRACT_APPROVED=1 for packet preparation]` | owner approval intake plus verifier-enforced no-provider invoice contract; no runtime checkout execution |
+| Test-mode provider | `[RESOLVED/NARROWED: TEST_MODE_PAYMENT_PROVIDER=invoice under contract flipflop.payment.invoice.bank_transfer.no_provider_call.v1; source branch builds local bank-transfer redirect and does not call paymentService.createPayment]`; `[RESOLVED/NARROWED: Goal 24 Fiobanka QR material is policy/checklist evidence only and is not reused]` | verifier proof that `paymentMethod=invoice` avoids external provider calls; payment success evidence remains unavailable until a separate approved assertion exists |
+| Checkout mutation mode | `[RESOLVED/NARROWED: CHECKOUT_MUTATION_MODE=test-only for source-only packet preparation; future runner must enforce this before any order mutation]` | verifier checks source contract and invoice no-provider branch; runtime runner remains blocked until product/customer/cleanup/evidence facts exist |
 | Email assertion source | `[RESOLVED/NARROWED: approved source contract is SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl with SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid; notification code captures matching synthetic email assertions as sanitized JSONL and returns captured_not_sent]` | synthetic email sink/queue/log readback that does not send to real customers |
 | Event trace assertion source | `[RESOLVED/NARROWED: approved source contract is SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl; customer journey publisher records sanitized JSONL trace rows after broker publish, queryable by journey_id/correlation_id]` | query path for `flipflop.customer_journey.events.v1` by `journey_id`/`correlation_id` |
 | Cleanup/retention contract | `[MISSING: order/payment cleanup or retention contract]` | decision to clean up, cancel, retain, or mark synthetic order/payment, with idempotency and side-effect acknowledgements |
@@ -143,9 +143,9 @@ The existing monitor already gates full-flow readiness through these variables:
 SYNTHETIC_TEST_PRODUCT_ID=ffb4883f-ec48-4745-8147-b836f3fb2b88
 SYNTHETIC_CUSTOMER_EMAIL
 SYNTHETIC_DELIVERY_CONTRACT_ID=flipflop.delivery.store_pickup.no_external_carrier.v1
-PAYMENT_SANDBOX_CONTRACT_APPROVED
-TEST_MODE_PAYMENT_PROVIDER
-CHECKOUT_MUTATION_MODE
+PAYMENT_SANDBOX_CONTRACT_APPROVED=1
+TEST_MODE_PAYMENT_PROVIDER=invoice
+CHECKOUT_MUTATION_MODE=test-only
 SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl
 SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid
 SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl
@@ -209,8 +209,9 @@ Integrated findings:
 - W5A: checkout source and prior evidence show delivery method candidates, but no approved delivery test contract for this full sandbox run.
 - W5A current public product lookup: `CODEX-STOCK-TRACE-011` was not returned by `GET /api/products?limit=200`; the first sellable public product remains a real catalog candidate and must not be reclassified as synthetic without explicit product/catalog approval.
 - W5A delivery narrowing: owner-approved packet preparation may use `flipflop.delivery.store_pickup.no_external_carrier.v1` as the delivery test contract candidate because checkout source exposes `deliveryMethod=store` and order-service calculates `shippingCost=0`, avoiding external carrier/shipment obligations during future sandbox planning.
-- W5B: FlipFlop source has provider/method candidates such as `fiobanka`, `invoice`, `webpay`, `stripe`, `paypal`, and `payu`; none is currently documented as a reusable sandbox/test-mode provider for this packet.
+- W5B: FlipFlop source has provider/method candidates such as `fiobanka`, `invoice`, `webpay`, `stripe`, `paypal`, and `payu`; only `invoice` is source-defensible for test-only no-external-provider packet preparation because non-invoice methods call Payments/provider creation.
 - W5B: Goal 24 Fiobanka QR material can inform hard-stop policy only. It is not current approval for this customer-journey sandbox run.
+- W5B: source-only payment contract is now `flipflop.payment.invoice.bank_transfer.no_provider_call.v1` with `PAYMENT_SANDBOX_CONTRACT_APPROVED=1`, `TEST_MODE_PAYMENT_PROVIDER=invoice`, `CHECKOUT_MUTATION_MODE=test-only`, `paymentMethod=invoice`, `provider_call=false`, `external_provider_call=false`, `real_money_movement=false`, and expected `paymentStatus=pending`; this does not provide `payment_succeeded` evidence.
 - W5C: customer-journey AMQP publisher/schema exists, and an approved disabled-by-default event trace source contract now exists as `SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl`.
 - W5C: notification/email implementation exists, and an approved disabled-by-default synthetic email assertion source contract now exists as `SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl` with `SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid`.
 
@@ -221,7 +222,7 @@ W5C is now source-resolved by disabled-by-default assertion capture contracts. T
 This section is intentionally not executable until every `[MISSING: ...]` marker is replaced.
 
 ```text
-I approve exactly one FlipFlop customer journey sandbox run for process flipflop.successful_customer_journey.v1 using approval id [MISSING: approval id], execution window [MISSING: start/end Europe/Prague], synthetic product/SKU ffb4883f-ec48-4745-8147-b836f3fb2b88 / ALLEGRO-OFFER-18106037370, synthetic customer/contact [MISSING], delivery contract flipflop.delivery.store_pickup.no_external_carrier.v1, sandbox/test-mode payment provider [MISSING], checkout mutation mode [MISSING], email assertion source synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl, event trace source synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl, cleanup/retention contract [MISSING], and redacted evidence path [MISSING].
+I approve exactly one FlipFlop customer journey sandbox run for process flipflop.successful_customer_journey.v1 using approval id [MISSING: approval id], execution window [MISSING: start/end Europe/Prague], synthetic product/SKU ffb4883f-ec48-4745-8147-b836f3fb2b88 / ALLEGRO-OFFER-18106037370, synthetic customer/contact [MISSING], delivery contract flipflop.delivery.store_pickup.no_external_carrier.v1, sandbox/test-mode payment provider invoice under flipflop.payment.invoice.bank_transfer.no_provider_call.v1, checkout mutation mode test-only, email assertion source synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl, event trace source synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl, cleanup/retention contract [MISSING], and redacted evidence path [MISSING].
 
 I understand this authorizes only the named sandbox/test-mode attempt. The executor must stop at the first hard stop and must not print secrets, tokens, raw customer/contact/address data, raw provider payloads, raw DB rows, raw order ids, raw payment ids, or full event payloads containing sensitive data.
 ```
@@ -244,14 +245,45 @@ Still missing for execution:
 - `[RESOLVED/NARROWED: owner-approved W5 sandbox product target ffb4883f-ec48-4745-8147-b836f3fb2b88 / ALLEGRO-OFFER-18106037370 selected from current public API; no product row created or modified]`
 - `[MISSING: synthetic customer/contact]`
 - `[RESOLVED/NARROWED: delivery test contract candidate flipflop.delivery.store_pickup.no_external_carrier.v1 selected for packet preparation only; no runtime checkout allowed until the remaining missing facts are resolved]`
-- `[MISSING: documented sandbox/test-mode payment provider with environment proof]`
-- `[MISSING: CHECKOUT_MUTATION_MODE=sandbox|test-only service-side enforcement proof]`
+- `[RESOLVED/NARROWED: TEST_MODE_PAYMENT_PROVIDER=invoice under flipflop.payment.invoice.bank_transfer.no_provider_call.v1 for packet preparation only; no external provider call or real money movement is approved]`
+- `[RESOLVED/NARROWED: CHECKOUT_MUTATION_MODE=test-only source contract selected; future runner must enforce it before any checkout/order mutation]`
 - `[RESOLVED/NARROWED: SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl with SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid]`
 - `[RESOLVED/NARROWED: SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl]`
 - `[MISSING: order/payment cleanup or retention contract]`
 - `[MISSING: final redacted evidence path]`
 
 
+
+
+
+## Workstream 5B Sandbox Payment Contract
+
+User instruction `do it yourself` is consumed as approval for Codex to resolve the non-secret source-level payment contract. It is not consumed as approval for live checkout, payment creation, provider calls, webhook replay, Orders mutation, Warehouse mutation, email sending, deploy, DB writes, secret output, raw customer/contact/address output, raw order/payment ids, or raw provider payload output.
+
+Contract values:
+
+```text
+contract_id: flipflop.payment.invoice.bank_transfer.no_provider_call.v1
+PAYMENT_SANDBOX_CONTRACT_APPROVED=1
+TEST_MODE_PAYMENT_PROVIDER=invoice
+CHECKOUT_MUTATION_MODE=test-only
+paymentMethod=invoice
+paymentStatus=pending
+provider_call=false
+external_provider_call=false
+real_money_movement=false
+payment_success_evidence=false
+```
+
+Source proof: `services/order-service/src/orders/orders.service.ts` accepts `invoice` in `normalizeGuestPaymentMethod`. In the guest order path, `paymentMethod === 'invoice'` builds a local bank-transfer redirect through `buildBankTransferRedirect(order, total)` and does not call `this.paymentService.createPayment(...)`; non-invoice methods remain the provider branch.
+
+Boundary: this contract is suitable only for no-external-provider sandbox planning and verifier gating. It does not prove a successful paid journey, does not mark payment as succeeded, and does not permit a full sandbox runner until product, customer, cleanup/retention, and final evidence-path facts are resolved.
+
+Validation command:
+
+```bash
+npm run verify:customer-journey-sandbox-payment-contract
+```
 
 ## Workstream 5C Approved Assertion Source Contracts
 
@@ -346,8 +378,7 @@ paid-provider bundle checkout gate: ok=true, mutation=false, providerCall=false,
 orders lifecycle UI verifier: ok=true, coveredStages=13, sensitiveOutput=redacted-source-only
 ```
 
-Validation decision: packet preparation is source-valid; runtime execution remains blocked by missing synthetic product/SKU, synthetic customer/contact, sandbox/test-mode provider, checkout mutation mode enforcement proof, email assertion source, event trace assertion source, cleanup/retention contract, and final redacted evidence path.
-
+Validation decision: packet preparation is source-valid; runtime execution remains blocked by missing synthetic customer/contact, sandbox/test-mode provider, checkout mutation mode enforcement proof, cleanup/retention contract, and final redacted evidence path.
 
 
 
@@ -372,8 +403,6 @@ source=GET https://flipflop.alfares.cz/api/products?limit=20 and /api/products/:
 Scope: this approval selects a product target only. It does not create or mutate a product row, does not reserve stock, does not create a cart/order/payment, and does not waive the remaining customer/contact, sandbox payment, checkout mutation mode, cleanup/retention, and final evidence blockers.
 
 Risk boundary: this is an existing live sellable product, not a dedicated synthetic inventory row. The sandbox runner must use `deliveryMethod=store`, a sandbox/test-only payment mode, and an approved cleanup/retention contract before any checkout mutation is allowed.
-
-
 
 ## 2026-07-06 W5A Product Target Validation
 
