@@ -221,9 +221,34 @@ I approve exactly one FlipFlop customer journey sandbox run for process flipflop
 I understand this authorizes only the named sandbox/test-mode attempt. The executor must stop at the first hard stop and must not print secrets, tokens, raw customer/contact/address data, raw provider payloads, raw DB rows, raw order ids, raw payment ids, or full event payloads containing sensitive data.
 ```
 
+
+## 2026-07-06 Owner Approval Intake
+
+Owner reply: `Yes, I approve it. Go ahead.`
+
+Decision: `[RESOLVED/NARROWED: owner approved Codex to prepare and maintain the Workstream 5 customer-journey sandbox runtime packet and to continue source/read-only integration work]`.
+
+Scope of this approval:
+
+- It authorizes packet preparation, source documentation, verifier alignment, and read-only validation.
+- It does not authorize checkout submission, order creation, payment creation, provider calls, webhook replay, email sending, Warehouse mutation, Orders mutation, deploy, DB writes, secret output, token output, raw customer/contact/address output, raw order/payment ids, or raw provider payload output.
+- It does not supply the missing runtime values below. The full sandbox runner remains blocked until every required fact is replaced with explicit non-secret values and validated.
+
+Still missing for execution:
+
+- `[MISSING: approved synthetic product/SKU]`
+- `[MISSING: synthetic customer/contact]`
+- `[MISSING: approved delivery test contract]`
+- `[MISSING: documented sandbox/test-mode payment provider with environment proof]`
+- `[MISSING: CHECKOUT_MUTATION_MODE=sandbox|test-only service-side enforcement proof]`
+- `[MISSING: synthetic email assertion source]`
+- `[MISSING: event trace assertion source]`
+- `[MISSING: order/payment cleanup or retention contract]`
+- `[MISSING: final redacted evidence path]`
+
 ## Current Decision
 
-Status: `draft-runtime-side-effects-blocked`.
+Status: `owner-approved-packet-prep-runtime-side-effects-blocked`.
 
 The packet is ready for fact discovery and owner review, not for execution. The current safe state remains:
 
@@ -234,4 +259,4 @@ full_sandbox_runner: blocked_missing_contract
 runtime_side_effects: forbidden
 ```
 
-Next safe action: owner must supply the missing runtime facts or keep the full sandbox runner blocked.
+Next safe action: integration owner must supply the missing runtime facts, then run verifier/read-only gates before any sandbox runner is enabled.
