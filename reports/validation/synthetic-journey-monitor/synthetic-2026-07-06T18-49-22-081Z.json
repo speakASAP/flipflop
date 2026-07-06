@@ -1,8 +1,8 @@
 {
   "ok": true,
   "status": "read_only_passed_full_flow_blocked_missing_contract",
-  "runId": "synthetic-2026-07-06T18-50-43-630Z",
-  "generatedAt": "2026-07-06T18:50:43.631Z",
+  "runId": "synthetic-2026-07-06T18-49-22-081Z",
+  "generatedAt": "2026-07-06T18:49:22.082Z",
   "timezone": "Europe/Prague",
   "baseUrl": "https://flipflop.alfares.cz",
   "apiBaseUrl": "https://flipflop.alfares.cz/api",
