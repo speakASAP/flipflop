@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-07-02T21:03:15Z",
+  "created_at": "2026-07-06T15:15:21Z",
   "gate": "deployment_readiness",
   "next_step": "ready_for_deployment_review",
   "pre_coding_gate": {
@@ -22,6 +22,46 @@
   "target": null,
   "unresolved_markers": [
     {
+      "line": 66,
+      "marker": "[MISSING: FlipFlop protected replay endpoint or owner-run CLI export for marketplace.order_affinity_replay_candidates.v1]",
+      "path": "12_validation/VAL-TASK-005-flipflop-affinity-replay-eligibility.md"
+    },
+    {
+      "line": 67,
+      "marker": "[MISSING: Marketing parser support for marketplace-owned replay source envelopes]",
+      "path": "12_validation/VAL-TASK-005-flipflop-affinity-replay-eligibility.md"
+    },
+    {
+      "line": 68,
+      "marker": "[MISSING: durable Marketing backfill run ledger and idempotency key registry]",
+      "path": "12_validation/VAL-TASK-005-flipflop-affinity-replay-eligibility.md"
+    },
+    {
+      "line": 69,
+      "marker": "[MISSING: owner-approved dry-run window before live FlipFlop replay execution]",
+      "path": "12_validation/VAL-TASK-005-flipflop-affinity-replay-eligibility.md"
+    },
+    {
+      "line": 70,
+      "marker": "[MISSING: Marketing parser support for marketplace-owned replay source envelopes]",
+      "path": "12_validation/VAL-TASK-006-flipflop-affinity-replay-export.md"
+    },
+    {
+      "line": 71,
+      "marker": "[MISSING: durable Marketing backfill run ledger and idempotency key registry]",
+      "path": "12_validation/VAL-TASK-006-flipflop-affinity-replay-export.md"
+    },
+    {
+      "line": 72,
+      "marker": "[MISSING: owner-approved dry-run window before live FlipFlop replay execution]",
+      "path": "12_validation/VAL-TASK-006-flipflop-affinity-replay-export.md"
+    },
+    {
+      "line": 74,
+      "marker": "[MISSING: owner-approved FlipFlop recurring marketplace publish/replace-window schedule activation]",
+      "path": "12_validation/VAL-TASK-006-flipflop-affinity-replay-export.md"
+    },
+    {
       "line": 43,
       "marker": "[MISSING: ...]",
       "path": "23_documentation_contracts/DOCUMENTATION_COMPLETENESS_STANDARD.md"
@@ -52,129 +92,949 @@
       "path": "docs/IMPLEMENTATION_ORCHESTRATOR.md"
     },
     {
-      "line": 41,
-      "marker": "[MISSING: Orders lifecycle read endpoint]",
+      "line": 1,
+      "marker": "[MISSING: Orders actor/approvedBy and unused-key preflight for centralOrderHash 04d7d08c82a07853]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 1,
+      "marker": "[MISSING: sideEffectsHandled.notification and sideEffectsHandled.crm acknowledgements for centralOrderHash 04d7d08c82a07853]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 1,
+      "marker": "[MISSING: final redacted evidence content for Orders, Warehouse, channel cleanup, idempotency, and validation sections]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 2,
+      "marker": "[MISSING: owner-approved channel side-effect acknowledgement for centralOrderHash 04d7d08c82a07853]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 2,
+      "marker": "[MISSING: redacted channel cleanup/no-cleanup evidence for cart/session/payment-result/local projection state for centralOrderHash 04d7d08c82a07853]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 2,
+      "marker": "[MISSING: Orders sideEffectsHandled.channel acknowledgement packet]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 2,
+      "marker": "[MISSING: final redacted evidence content for Orders, Warehouse, channel cleanup, idempotency, and validation sections]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: owner bank transfer completion evidence for the selected Fiobanka QR payment, or owner-approved unpaid no-provider-cancel acknowledgement]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: provider-side completed-transfer refund/reversal/correction proof hash for this selected payment if it is paid]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys derived from this selected payment hash]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled payment|warehouse|notification|crm|channel acknowledgements for centralOrderHash 04d7d08c82a07853]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: exact selected Warehouse reservation lookup state for this central order/component set]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: owner-approved channel side-effect acknowledgement for centralOrderHash 04d7d08c82a07853]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: complete runtime evidence content at reports/validation/VAL-GOAL-24-final-redacted-cleanup-evidence-2026-07-04.md for provider, Orders, Warehouse, channel cleanup, idempotency, and validation sections]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 4,
+      "marker": "[MISSING: owner-approved channel side-effect acknowledgement for the selected central order hash]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 4,
+      "marker": "[MISSING: selected central order hash and FlipFlop local order/session correlation for channel cleanup acknowledgement]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 4,
+      "marker": "[MISSING: redacted channel cleanup evidence proving synthetic cart/session/payment-result/local projection cleanup for the selected central order hash]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 4,
+      "marker": "[MISSING: channel cleanup idempotency key derived from approval id and sanitized payment/order hash]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 4,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 5,
+      "marker": "[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 5,
+      "marker": "[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 5,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 5,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 5,
+      "marker": "[MISSING: exact selected Orders cleanup packet runtime values and sideEffectsHandled acknowledgements]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 5,
+      "marker": "[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 5,
+      "marker": "[MISSING: exact selected Warehouse reservation lookup state for cleanup]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 5,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 6,
+      "marker": "[MISSING: current side-effect execution window owned by a separate newer integration owner thread]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 6,
+      "marker": "[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 6,
+      "marker": "[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 6,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 6,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 6,
+      "marker": "[MISSING: exact selected Orders cleanup packet runtime values and sideEffectsHandled acknowledgements]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 6,
+      "marker": "[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 6,
+      "marker": "[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 6,
+      "marker": "[MISSING: exact selected Warehouse reservation lookup state for cleanup]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 6,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 7,
+      "marker": "[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 7,
+      "marker": "[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 7,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 7,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 7,
+      "marker": "[MISSING: exact selected Orders cleanup packet runtime values and sideEffectsHandled acknowledgements]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 7,
+      "marker": "[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 7,
+      "marker": "[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 7,
+      "marker": "[MISSING: exact selected Warehouse reservation lookup state for cleanup]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 7,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 10,
+      "marker": "[MISSING: exact selected Orders cleanup packet runtime values and sideEffectsHandled acknowledgements]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 10,
+      "marker": "[MISSING: exact selected Warehouse reservation lookup state for cleanup]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 10,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 10,
+      "marker": "[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 10,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 11,
+      "marker": "[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 11,
+      "marker": "[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 11,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 11,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 11,
+      "marker": "[MISSING: deterministic Warehouse component reservation state for cleanup]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 11,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 14,
+      "marker": "[MISSING: fresh Auth actor-bound token generated through the Auth c389c1e no-print/no-decode/no-persist pattern for the exact guarded discount-fixture step]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 14,
+      "marker": "[MISSING: sanitized auth/admin evidence path for guarded discount-code generation using the fresh selected actor-bound token]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 16,
+      "marker": "[MISSING: approved token source path bound to actor hash 4215870ba488de17, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 16,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 16,
+      "marker": "[MISSING: sanitized auth/admin evidence path for guarded discount-code generation using the selected actor-bound token]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 17,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 17,
+      "marker": "[MISSING: deterministic Warehouse component reservation state for cleanup]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 17,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 18,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 18,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 18,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 18,
+      "marker": "[MISSING: deterministic Warehouse component reservation state for cleanup]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 18,
+      "marker": "[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 18,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: live current target row readback at execution time]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: Warehouse hold/release duration]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 20,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 20,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 20,
+      "marker": "[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 20,
+      "marker": "[MISSING: live current target row readback at execution time]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 20,
+      "marker": "[MISSING: Warehouse hold/release duration]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 20,
+      "marker": "[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 20,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 21,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 21,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 21,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 21,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 21,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 21,
+      "marker": "[MISSING: Warehouse hold/release duration]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 21,
+      "marker": "[MISSING: live current target row readback at execution time]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 21,
+      "marker": "[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 21,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 22,
+      "marker": "[MISSING: deterministic Warehouse component reservation state for cleanup]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 23,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 23,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 23,
+      "marker": "[MISSING: sanitized auth/admin evidence path for guarded discount-code generation]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 24,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 24,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 24,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 24,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 24,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 24,
+      "marker": "[MISSING: deterministic Warehouse component reservation state for cleanup]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 24,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 34,
+      "marker": "[MISSING: owner-approved channel/customer checkout owner for initiating and cleaning up paid catalog.bundle.v1 runtime smoke]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 34,
+      "marker": "[MISSING: named executor/rollback owner for future Fiobanka paid/provider smoke]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 35,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 35,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 37,
+      "marker": "[MISSING: Orders cleanup actor/idempotency/side-effect acknowledgements]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 37,
+      "marker": "[MISSING: deterministic Warehouse component reservation cleanup evidence]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 37,
+      "marker": "[MISSING: sanitized cleanup evidence path]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 39,
+      "marker": "[MISSING: owner-approved server-side bundle-preserving fixture or different active <=300 CZK target]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 43,
+      "marker": "[MISSING: renewed owner-approved execution window for Europe/Prague after 2026-07-03T23:59:59+02:00]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 43,
+      "marker": "[MISSING: named admin/actor or approved token-handling path for guarded discount-code generation]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 49,
+      "marker": "[MISSING: sanitized exact-order linkage between the manual refund confirmation and a completed Goal 24 paid-smoke FlipFlop order]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 49,
+      "marker": "[MISSING: FlipFlop runtime readback showing an exact linked smoke order acknowledged as status=refunded and paymentStatus=refunded after manual refund]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 49,
+      "marker": "[MISSING: owner-approved post-paid Orders/Warehouse correction packet for an exact linked completed payment state]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 51,
+      "marker": "[MISSING: named runtime validation owner for the exact side-effectful full paid/refund smoke]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 51,
+      "marker": "[MISSING: named FlipFlop channel cleanup executor for exact-order refunded acknowledgement]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 51,
+      "marker": "[MISSING: sanitized exact-order linkage between the manual refund confirmation and the Goal 24 completed Fiobanka smoke order]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 51,
+      "marker": "[MISSING: FlipFlop runtime readback showing the exact smoke order acknowledged as status=refunded and paymentStatus=refunded after manual refund]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 51,
+      "marker": "[MISSING: owner-approved post-paid Orders/Warehouse correction packet for the exact completed payment state]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 53,
+      "marker": "[MISSING: sanitized exact-order linkage between the manual refund confirmation and the Goal 24 completed Fiobanka smoke order]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 53,
+      "marker": "[MISSING: FlipFlop runtime readback showing the exact smoke order acknowledged as status=refunded and paymentStatus=refunded after manual refund]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 53,
+      "marker": "[MISSING: owner-approved post-paid Orders/Warehouse correction packet for the exact completed payment state]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 59,
+      "marker": "[MISSING: owner-approved paid/provider checkout smoke packet with provider, Orders, Warehouse, and redacted evidence facts]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 59,
+      "marker": "[MISSING: provider rollback proof from Payments before customer-visible success or completed cleanup]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 59,
+      "marker": "[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 59,
+      "marker": "[MISSING: deterministic Warehouse component reservation state and approved cleanup operation before customer-visible stock/restored messaging]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 59,
+      "marker": "[MISSING: sanitized evidence path for required channel cleanup proof]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
       "line": 75,
-      "marker": "[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with AUTH_SUBJECT_SMOKE_APPROVAL_ID, fixture product/warehouse ids, and persisted customer.authSubject evidence]",
+      "marker": "[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 76,
-      "marker": "[MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]",
+      "line": 85,
+      "marker": "[MISSING: ...]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 110,
-      "marker": "[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with AUTH_SUBJECT_SMOKE_APPROVAL_ID, fixture product/warehouse ids, and persisted customer.authSubject evidence]",
+      "line": 104,
+      "marker": "[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 149,
-      "marker": "[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with AUTH_SUBJECT_SMOKE_APPROVAL_ID, fixture product/warehouse ids, and persisted customer.authSubject evidence]",
+      "line": 106,
+      "marker": "[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 176,
+      "line": 107,
+      "marker": "[MISSING: Warehouse stock decrement/reservation-release evidence for every bundle component line]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 108,
+      "marker": "[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 138,
+      "marker": "[MISSING: ...]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 158,
+      "marker": "[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with non-secret AUTH_SUBJECT_SMOKE_APPROVAL_ID, fixture product/warehouse ids, and persisted central Orders customer.authSubject/billingAddress evidence]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 162,
+      "marker": "[MISSING: FlipFlop adoption contract for catalog.bundle.v1 read/display before ecosystem checkout]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 179,
+      "marker": "[MISSING: owner-approved Catalog bundle aggregate runtime read for FlipFlop]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 179,
+      "marker": "[MISSING: owner-approved Rung 1 non-mutating real checkout smoke credentials and target products]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 183,
+      "marker": "[MISSING: FlipFlop protected replay endpoint or owner-run CLI export for marketplace.order_affinity_replay_candidates.v1]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 209,
+      "marker": "[MISSING: owner-approved FlipFlop recurring marketplace publish/replace-window schedule activation]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 214,
+      "marker": "[MISSING: Marketing parser support for marketplace-owned replay source envelopes]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 215,
+      "marker": "[MISSING: durable Marketing backfill run ledger and idempotency key registry]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 220,
+      "marker": "[MISSING: FlipFlop paid multi-product replay eligibility mapping]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 238,
+      "marker": "[MISSING: FlipFlop protected replay endpoint or owner-run CLI export for marketplace.order_affinity_replay_candidates.v1]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 238,
+      "marker": "[MISSING: Marketing parser support for marketplace-owned replay source envelopes]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 238,
+      "marker": "[MISSING: durable Marketing backfill run ledger and idempotency key registry]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 238,
+      "marker": "[MISSING: owner-approved dry-run window before live FlipFlop replay execution]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 299,
       "marker": "[MISSING: Orders lifecycle read endpoint]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 422,
+      "line": 333,
+      "marker": "[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with AUTH_SUBJECT_SMOKE_APPROVAL_ID, fixture product/warehouse ids, and persisted customer.authSubject evidence]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 334,
+      "marker": "[MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 368,
+      "marker": "[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with AUTH_SUBJECT_SMOKE_APPROVAL_ID, fixture product/warehouse ids, and persisted customer.authSubject evidence]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 407,
+      "marker": "[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with AUTH_SUBJECT_SMOKE_APPROVAL_ID, fixture product/warehouse ids, and persisted customer.authSubject evidence]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 434,
+      "marker": "[MISSING: Orders lifecycle read endpoint]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 680,
       "marker": "[MISSING: flipflop-service entry in payments-microservice PAYMENT_CALLBACK_API_KEYS]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 473,
+      "line": 731,
       "marker": "[MISSING: production ruian_address_points import until migration is applied and scripts/import-ruian-addresses.js is run with DATABASE_URL]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 510,
+      "line": 768,
       "marker": "[MISSING: warehouseId]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 511,
+      "line": 769,
       "marker": "[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 512,
+      "line": 770,
       "marker": "[UNKNOWN: approved Auth/Vault runtime path for a FlipFlop-to-Warehouse service principal token with the Warehouse-required role]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 530,
+      "line": 788,
       "marker": "[MISSING: warehouseId]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 530,
+      "line": 788,
       "marker": "[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 620,
+      "line": 878,
       "marker": "[UNKNOWN: whether Warehouse getTotalAvailable includes reservations or only physical available stock]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 796,
+      "line": 1054,
       "marker": "[MISSING: catalogProductId]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 998,
+      "line": 1256,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 1020,
+      "line": 1278,
       "marker": "[MISSING: auth-microservice magic-link or passwordless account API]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 1021,
+      "line": 1279,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 1038,
+      "line": 1296,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 1038,
+      "line": 1296,
       "marker": "[MISSING: production IBAN]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 1060,
+      "line": 1318,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 1060,
+      "line": 1318,
       "marker": "[MISSING: production IBAN]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 1141,
+      "line": 1399,
       "marker": "[MISSING: production bank account]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
-      "line": 1141,
+      "line": 1399,
       "marker": "[MISSING: production IBAN]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 1452,
+      "marker": "[MISSING: k3s/containerd sandbox recovery]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 1457,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 1461,
+      "marker": "[MISSING: owner-approved channel side-effect acknowledgement for the selected central order hash]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 1461,
+      "marker": "[MISSING: selected central order hash and FlipFlop local order/session correlation for channel cleanup acknowledgement]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 1461,
+      "marker": "[MISSING: redacted channel cleanup evidence proving synthetic cart/session/payment-result/local projection cleanup for the selected central order hash]",
+      "path": "docs/IMPLEMENTATION_STATE.md"
+    },
+    {
+      "line": 1461,
+      "marker": "[MISSING: channel cleanup idempotency key derived from approval id and sanitized payment/order hash]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
       "line": 114,
       "marker": "[MISSING: ...]",
       "path": "docs/INTENT_MEMORY.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: ...]",
+      "path": "docs/adr/ADR-001-flipflop-process-runtime-path.md"
+    },
+    {
+      "line": 19,
+      "marker": "[UNKNOWN: ...]",
+      "path": "docs/adr/ADR-001-flipflop-process-runtime-path.md"
     },
     {
       "line": 43,
@@ -185,6 +1045,41 @@
       "line": 44,
       "marker": "[MISSING: current dirty checkout files must be reconciled before implementation]",
       "path": "docs/business-process-control-plane/HOLIDAY_DISCOUNT_ADOPTION.md"
+    },
+    {
+      "line": 51,
+      "marker": "[UNKNOWN: previous causation event_id]",
+      "path": "docs/contracts/flipflop.customer_journey.events.v1.md"
+    },
+    {
+      "line": 72,
+      "marker": "[MISSING: no durable ingestion API inspected or implemented in this lane]",
+      "path": "docs/contracts/flipflop.customer_journey.events.v1.md"
+    },
+    {
+      "line": 73,
+      "marker": "[UNKNOWN: authenticated journey emission coverage requires separate inspection]",
+      "path": "docs/contracts/flipflop.customer_journey.events.v1.md"
+    },
+    {
+      "line": 74,
+      "marker": "[UNKNOWN: no customer journey event consumer/storage implementation inspected in this lane]",
+      "path": "docs/contracts/flipflop.customer_journey.events.v1.md"
+    },
+    {
+      "line": 75,
+      "marker": "[UNKNOWN: provider-specific message ID availability]",
+      "path": "docs/contracts/flipflop.customer_journey.events.v1.md"
+    },
+    {
+      "line": 76,
+      "marker": "[UNKNOWN: Leads response identifier availability]",
+      "path": "docs/contracts/flipflop.customer_journey.events.v1.md"
+    },
+    {
+      "line": 77,
+      "marker": "[MISSING: intentionally not introduced before complete event validation]",
+      "path": "docs/contracts/flipflop.customer_journey.events.v1.md"
     },
     {
       "line": 110,
@@ -222,18 +1117,1533 @@
       "path": "docs/orchestrator/2026-07-02-local-resale-toggle-and-flipflop-seller-plan.md"
     },
     {
-      "line": 15,
-      "marker": "[MISSING: Orders lifecycle read endpoint]",
-      "path": "docs/orchestrator/STATUS.md"
+      "line": 45,
+      "marker": "[MISSING: owner-approved synthetic Auth token]",
+      "path": "docs/orchestrator/2026-07-03-flipflop-auth-wallet-smoke-approval.md"
+    },
+    {
+      "line": 47,
+      "marker": "[MISSING: FLIPFLOP_AUTH_WALLET_SMOKE_APPROVAL_ID]",
+      "path": "docs/orchestrator/2026-07-03-flipflop-auth-wallet-smoke-approval.md"
+    },
+    {
+      "line": 118,
+      "marker": "[MISSING: owner-approved synthetic Auth token for FlipFlop gateway wallet smoke]",
+      "path": "docs/orchestrator/2026-07-03-flipflop-auth-wallet-smoke-approval.md"
+    },
+    {
+      "line": 119,
+      "marker": "[MISSING: owner-approved authenticated browser/session smoke for delayed wallet response and selector interaction]",
+      "path": "docs/orchestrator/2026-07-03-flipflop-auth-wallet-smoke-approval.md"
     },
     {
       "line": 29,
+      "marker": "[MISSING: channel/FlipFlop checkout cleanup owner for customer-visible session/cart/local projection state]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 34,
+      "marker": "[MISSING: ...]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 107,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 122,
+      "marker": "[MISSING: owner-approved channel/customer checkout owner for initiating and cleaning up paid catalog.bundle.v1 runtime smoke]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 123,
+      "marker": "[MISSING: named executor/rollback owner for future Fiobanka paid/provider smoke]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 141,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 142,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 143,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 144,
+      "marker": "[MISSING: deterministic Warehouse component reservation state for cleanup]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 145,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 146,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 147,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 172,
+      "marker": "[MISSING: owner-approved channel side-effect acknowledgement for the selected central order hash]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 173,
+      "marker": "[MISSING: selected central order hash and FlipFlop local order/session correlation for channel cleanup acknowledgement]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 174,
+      "marker": "[MISSING: redacted channel cleanup evidence proving synthetic cart/session/payment-result/local projection cleanup for the selected central order hash]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 175,
+      "marker": "[MISSING: channel cleanup idempotency key derived from approval id and sanitized payment/order hash]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 176,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 183,
+      "marker": "[MISSING: named executor/rollback owner for future Fiobanka paid/provider smoke]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 184,
+      "marker": "[MISSING: owner-approved channel/customer checkout owner for initiating and cleaning up paid catalog.bundle.v1 runtime smoke]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 185,
+      "marker": "[MISSING: owner-approved paid/provider checkout smoke packet naming a live-run executor and preserving Codex source-controlled validation/stop authority]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 186,
+      "marker": "[MISSING: provider rollback proof from Payments before customer-visible success or completed cleanup]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 187,
+      "marker": "[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 188,
+      "marker": "[MISSING: deterministic Warehouse component reservation state and approved cleanup operation before customer-visible stock/restored messaging]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 189,
+      "marker": "[MISSING: sanitized evidence path for required channel cleanup proof]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 197,
+      "marker": "[MISSING: runtime validation evidence]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 200,
+      "marker": "[MISSING: named live-run executor for the exact side-effectful smoke]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 206,
+      "marker": "[MISSING: named live-run executor for the exact side-effectful smoke]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 228,
+      "marker": "[MISSING: sanitized exact-order linkage between the manual refund confirmation and the Goal 24 completed Fiobanka smoke order]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 229,
+      "marker": "[MISSING: FlipFlop runtime readback showing the exact smoke order acknowledged as status=refunded and paymentStatus=refunded after manual refund]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 230,
+      "marker": "[MISSING: owner-approved post-paid Orders/Warehouse correction packet for the exact completed payment state]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 269,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 276,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 276,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 276,
+      "marker": "[MISSING: sanitized auth/admin evidence path for guarded discount-code generation]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 286,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 286,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 286,
+      "marker": "[MISSING: sanitized auth/admin evidence path for guarded discount-code generation]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 298,
+      "marker": "[MISSING: owner-approved channel side-effect acknowledgement for the selected central order hash]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 298,
+      "marker": "[MISSING: selected central order hash and FlipFlop local order/session correlation for channel cleanup acknowledgement]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 298,
+      "marker": "[MISSING: redacted channel cleanup evidence proving synthetic cart/session/payment-result/local projection cleanup for the selected central order hash]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 298,
+      "marker": "[MISSING: channel cleanup idempotency key derived from approval id and sanitized payment/order hash]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 298,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 310,
+      "marker": "[MISSING: owner bank transfer completion evidence for the selected Fiobanka QR payment, or owner-approved unpaid no-provider-cancel acknowledgement]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 311,
+      "marker": "[MISSING: provider-side completed-transfer refund/reversal/correction proof hash for this selected payment if it is paid]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 312,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys derived from this selected payment hash]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 313,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled payment|warehouse|notification|crm|channel acknowledgements for centralOrderHash 04d7d08c82a07853]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 314,
+      "marker": "[MISSING: exact selected Warehouse reservation lookup state for this central order/component set]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 315,
+      "marker": "[MISSING: owner-approved channel side-effect acknowledgement for centralOrderHash 04d7d08c82a07853]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 317,
+      "marker": "[MISSING: complete runtime evidence content at reports/validation/VAL-GOAL-24-final-redacted-cleanup-evidence-2026-07-04.md for provider, Orders, Warehouse, channel cleanup, idempotency, and validation sections]",
+      "path": "docs/orchestrator/2026-07-03-goal24-channel-cleanup-contract.md"
+    },
+    {
+      "line": 21,
+      "marker": "[MISSING: ...]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 33,
+      "marker": "[MISSING: ...]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 55,
+      "marker": "[MISSING: renewed owner-approved execution window for Europe/Prague after 2026-07-03T23:59:59+02:00]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 58,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 59,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 60,
+      "marker": "[MISSING: named FlipFlop channel cleanup executor]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 62,
+      "marker": "[MISSING: owner confirmation that target bundle 919be990-1c76-4f9c-b100-829281c6a709 and component products remain valid for live smoke]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 63,
+      "marker": "[MISSING: deterministic Warehouse component reservation state for cleanup]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 64,
+      "marker": "[MISSING: deterministic Warehouse component reservation lookup and cleanup operation for every component line]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 65,
+      "marker": "[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 66,
+      "marker": "[MISSING: owner decision whether native/official Fiobanka callback signature proof is required or a one-run fixture/reconciliation proof is accepted]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 67,
+      "marker": "[MISSING: Orders cancellation actor/approvedBy, reasonCode, cleanup idempotency key, and payment/warehouse/notification/crm/channel side-effect acknowledgements]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 68,
+      "marker": "[MISSING: notification/CRM/customer-message handling decision for the synthetic smoke cleanup]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 69,
+      "marker": "[MISSING: final owner acceptance of redacted evidence policy and forbidden evidence list]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 70,
+      "marker": "[MISSING: abort criteria and stop owner if any provider, Orders, Warehouse, or channel proof fails]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 96,
+      "marker": "[MISSING: named FlipFlop channel cleanup executor for exact-order refunded acknowledgement]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 97,
+      "marker": "[MISSING: sanitized exact-order linkage between the manual refund confirmation and the Goal 24 completed Fiobanka smoke order]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 98,
+      "marker": "[MISSING: FlipFlop runtime readback showing the exact smoke order acknowledged as status=refunded and paymentStatus=refunded after manual refund]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 99,
+      "marker": "[MISSING: owner-approved post-paid Orders/Warehouse correction packet for the exact completed payment state]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 103,
+      "marker": "[MISSING: named Orders cancellation actor/approvedBy for Goal 24 paid/provider cleanup]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 105,
+      "marker": "[MISSING: approved Orders cleanup idempotency execution path and exact sanitized key for the run]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 106,
+      "marker": "[MISSING: deterministic Warehouse component reservation state for cleanup]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 107,
+      "marker": "[MISSING: deterministic Warehouse component reservation state for the exact paid/refund cleanup]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 108,
+      "marker": "[MISSING: runtime FIO_BANKA_API_KEY read-token configuration and owner-approved polling run evidence]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 109,
+      "marker": "[MISSING: official/native Fio Banka callback signature contract]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 158,
+      "marker": "[MISSING: renewed owner-approved execution window for Europe/Prague after 2026-07-03T23:59:59+02:00]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 158,
+      "marker": "[MISSING: named admin/actor or approved token-handling path for guarded discount-code generation]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 191,
+      "marker": "[MISSING: owner-approved server-side bundle-preserving fixture or different active <=300 CZK target]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 206,
+      "marker": "[MISSING: approval id]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 206,
+      "marker": "[MISSING: start/end with timezone]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 206,
+      "marker": "[MISSING: provider/method/environment]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 206,
+      "marker": "[MISSING: amount/currency]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 206,
+      "marker": "[MISSING: catalog.bundle.v1 id]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 206,
+      "marker": "[MISSING: product ids and qty]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 206,
+      "marker": "[MISSING: warehouse id/hold window/max qty]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 206,
+      "marker": "[MISSING: executor]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 206,
+      "marker": "[MISSING: owner]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 206,
+      "marker": "[MISSING: values]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 206,
+      "marker": "[MISSING: path]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 206,
+      "marker": "[MISSING: accepted policy]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 217,
+      "marker": "[MISSING: owner-approved channel/customer checkout owner for initiating and cleaning up paid catalog.bundle.v1 runtime smoke]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 217,
+      "marker": "[MISSING: named executor/rollback owner for future Fiobanka paid/provider smoke]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 224,
+      "marker": "[MISSING: named executor/rollback owner for future Fiobanka paid/provider smoke]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 225,
+      "marker": "[MISSING: owner-approved channel/customer checkout owner for initiating and cleaning up paid catalog.bundle.v1 runtime smoke]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 227,
+      "marker": "[MISSING: ...]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 245,
+      "marker": "[MISSING: named live-run executor for the exact side-effectful smoke]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 245,
+      "marker": "[MISSING: final runtime evidence]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 291,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 298,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 298,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 298,
+      "marker": "[MISSING: sanitized auth/admin evidence path for guarded discount-code generation]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 308,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 308,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 308,
+      "marker": "[MISSING: sanitized auth/admin evidence path for guarded discount-code generation]",
+      "path": "docs/orchestrator/2026-07-03-goal24-paid-provider-smoke-approval-draft.md"
+    },
+    {
+      "line": 36,
+      "marker": "[MISSING: browser smoke]",
+      "path": "docs/orchestrator/2026-07-03-orders-lifecycle-ui-reliability-report.md"
+    },
+    {
+      "line": 37,
+      "marker": "[MISSING: deploy]",
+      "path": "docs/orchestrator/2026-07-03-orders-lifecycle-ui-reliability-report.md"
+    },
+    {
+      "line": 13,
+      "marker": "[MISSING: ...]",
+      "path": "docs/orchestrator/2026-07-05-error-free-orders-lifecycle-handoff.md"
+    },
+    {
+      "line": 22,
+      "marker": "[MISSING: ...]",
+      "path": "docs/orchestrator/2026-07-05-runtime-gate-packet-handoff.md"
+    },
+    {
+      "line": 22,
+      "marker": "[UNKNOWN: ...]",
+      "path": "docs/orchestrator/2026-07-05-runtime-gate-packet-handoff.md"
+    },
+    {
+      "line": 36,
+      "marker": "[MISSING: approved live action-admin session packet]",
+      "path": "docs/orchestrator/2026-07-05-runtime-gate-packet-handoff.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: dashboard recent-order central lifecycle rendering]",
+      "path": "docs/orchestrator/2026-07-05-w6-a-dashboard-read-model-cleanup-handoff.md"
+    },
+    {
+      "line": 47,
+      "marker": "[MISSING: dashboard recent-order central lifecycle rendering]",
+      "path": "docs/orchestrator/2026-07-05-w6-a-dashboard-read-model-cleanup-handoff.md"
+    },
+    {
+      "line": 106,
+      "marker": "[MISSING: central-authority admin status mutation contract]",
+      "path": "docs/orchestrator/2026-07-05-w6-a-dashboard-read-model-cleanup-handoff.md"
+    },
+    {
+      "line": 107,
+      "marker": "[MISSING: live customer/admin auth session smoke]",
+      "path": "docs/orchestrator/2026-07-05-w6-a-dashboard-read-model-cleanup-handoff.md"
+    },
+    {
+      "line": 108,
+      "marker": "[MISSING: deployed W6-specific proof gate]",
+      "path": "docs/orchestrator/2026-07-05-w6-a-dashboard-read-model-cleanup-handoff.md"
+    },
+    {
+      "line": 109,
+      "marker": "[MISSING: repo-wide frontend lint cleanup]",
+      "path": "docs/orchestrator/2026-07-05-w6-a-dashboard-read-model-cleanup-handoff.md"
+    },
+    {
+      "line": 164,
+      "marker": "[MISSING: payment/refund/provider correction workflow]",
+      "path": "docs/orchestrator/2026-07-05-w6-flipflop-centralization-gap-report.md"
+    },
+    {
+      "line": 179,
+      "marker": "[MISSING: payment/refund/provider correction workflow]",
+      "path": "docs/orchestrator/2026-07-05-w6-flipflop-centralization-gap-report.md"
+    },
+    {
+      "line": 181,
+      "marker": "[MISSING: live customer/admin browser session smoke]",
+      "path": "docs/orchestrator/2026-07-05-w6-flipflop-centralization-gap-report.md"
+    },
+    {
+      "line": 62,
+      "marker": "[MISSING: explicit monitor selectors]",
+      "path": "docs/orchestrator/2026-07-06-synthetic-customer-journey-monitor.md"
+    },
+    {
+      "line": 106,
+      "marker": "[MISSING: ...]",
+      "path": "docs/orchestrator/2026-07-06-synthetic-customer-journey-monitor.md"
+    },
+    {
+      "line": 122,
+      "marker": "[MISSING: approved synthetic product/SKU]",
+      "path": "docs/orchestrator/2026-07-06-synthetic-customer-journey-monitor.md"
+    },
+    {
+      "line": 123,
+      "marker": "[MISSING: synthetic customer/contact]",
+      "path": "docs/orchestrator/2026-07-06-synthetic-customer-journey-monitor.md"
+    },
+    {
+      "line": 124,
+      "marker": "[MISSING: approved delivery test contract]",
+      "path": "docs/orchestrator/2026-07-06-synthetic-customer-journey-monitor.md"
+    },
+    {
+      "line": 125,
+      "marker": "[MISSING: sandbox/test-mode payment provider contract]",
+      "path": "docs/orchestrator/2026-07-06-synthetic-customer-journey-monitor.md"
+    },
+    {
+      "line": 126,
+      "marker": "[MISSING: synthetic email assertion source]",
+      "path": "docs/orchestrator/2026-07-06-synthetic-customer-journey-monitor.md"
+    },
+    {
+      "line": 127,
+      "marker": "[MISSING: event trace assertion source]",
+      "path": "docs/orchestrator/2026-07-06-synthetic-customer-journey-monitor.md"
+    },
+    {
+      "line": 128,
+      "marker": "[MISSING: order/payment cleanup or retention contract]",
+      "path": "docs/orchestrator/2026-07-06-synthetic-customer-journey-monitor.md"
+    },
+    {
+      "line": 142,
+      "marker": "[MISSING: sandbox/test-mode payment success evidence]",
+      "path": "docs/orchestrator/2026-07-06-synthetic-customer-journey-monitor.md"
+    },
+    {
+      "line": 144,
+      "marker": "[MISSING: central Orders create/read evidence for synthetic order]",
+      "path": "docs/orchestrator/2026-07-06-synthetic-customer-journey-monitor.md"
+    },
+    {
+      "line": 146,
+      "marker": "[MISSING: email queue/inbox/log readback contract]",
+      "path": "docs/orchestrator/2026-07-06-synthetic-customer-journey-monitor.md"
+    },
+    {
+      "line": 148,
+      "marker": "[MISSING: journey correlation id and event/log query contract]",
+      "path": "docs/orchestrator/2026-07-06-synthetic-customer-journey-monitor.md"
+    },
+    {
+      "line": 1,
+      "marker": "[MISSING: Orders actor/approvedBy and unused-key preflight for centralOrderHash 04d7d08c82a07853]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 1,
+      "marker": "[MISSING: sideEffectsHandled.notification and sideEffectsHandled.crm acknowledgements for centralOrderHash 04d7d08c82a07853]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 1,
+      "marker": "[MISSING: final redacted evidence content for Orders, Warehouse, channel cleanup, idempotency, and validation sections]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 2,
+      "marker": "[MISSING: owner-approved channel side-effect acknowledgement for centralOrderHash 04d7d08c82a07853]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 2,
+      "marker": "[MISSING: redacted channel cleanup/no-cleanup evidence for cart/session/payment-result/local projection state for centralOrderHash 04d7d08c82a07853]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 2,
+      "marker": "[MISSING: Orders sideEffectsHandled.channel acknowledgement packet]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 2,
+      "marker": "[MISSING: final redacted evidence content for Orders, Warehouse, channel cleanup, idempotency, and validation sections]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: exact selected Orders cleanup packet runtime values and sideEffectsHandled acknowledgements]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: exact selected Warehouse reservation lookup state for cleanup]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 4,
+      "marker": "[MISSING: current side-effect execution window owned by a separate newer integration owner thread]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 4,
+      "marker": "[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 4,
+      "marker": "[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 4,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 4,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 4,
+      "marker": "[MISSING: exact selected Orders cleanup packet runtime values and sideEffectsHandled acknowledgements]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 4,
+      "marker": "[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 4,
+      "marker": "[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 4,
+      "marker": "[MISSING: exact selected Warehouse reservation lookup state for cleanup]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 4,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 5,
+      "marker": "[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 5,
+      "marker": "[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 5,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 5,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 5,
+      "marker": "[MISSING: exact selected Orders cleanup packet runtime values and sideEffectsHandled acknowledgements]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 5,
+      "marker": "[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 5,
+      "marker": "[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 5,
+      "marker": "[MISSING: exact selected Warehouse reservation lookup state for cleanup]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 5,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 8,
+      "marker": "[MISSING: exact selected Orders cleanup packet runtime values and sideEffectsHandled acknowledgements]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 8,
+      "marker": "[MISSING: exact selected Warehouse reservation lookup state for cleanup]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 8,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 8,
+      "marker": "[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 8,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 9,
+      "marker": "[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 9,
+      "marker": "[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 9,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 9,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 9,
+      "marker": "[MISSING: deterministic Warehouse component reservation state for cleanup]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 9,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 12,
+      "marker": "[MISSING: fresh Auth actor-bound token generated through the Auth c389c1e no-print/no-decode/no-persist pattern for the exact guarded discount-fixture step]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 12,
+      "marker": "[MISSING: sanitized auth/admin evidence path for guarded discount-code generation using the fresh selected actor-bound token]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 14,
+      "marker": "[MISSING: approved token source path bound to actor hash 4215870ba488de17, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 14,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 14,
+      "marker": "[MISSING: sanitized auth/admin evidence path for guarded discount-code generation using the selected actor-bound token]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 15,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 15,
+      "marker": "[MISSING: deterministic Warehouse component reservation state for cleanup]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 15,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 16,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 16,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 16,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 16,
+      "marker": "[MISSING: deterministic Warehouse component reservation state for cleanup]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 16,
+      "marker": "[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 16,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 17,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 17,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 17,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 17,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 17,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 17,
+      "marker": "[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 17,
+      "marker": "[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 17,
+      "marker": "[MISSING: live current target row readback at execution time]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 17,
+      "marker": "[MISSING: Warehouse hold/release duration]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 17,
+      "marker": "[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 17,
+      "marker": "[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 17,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 18,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 18,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 18,
+      "marker": "[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 18,
+      "marker": "[MISSING: live current target row readback at execution time]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 18,
+      "marker": "[MISSING: Warehouse hold/release duration]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 18,
+      "marker": "[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 18,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: Warehouse hold/release duration]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: live current target row readback at execution time]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 20,
+      "marker": "[MISSING: deterministic Warehouse component reservation state for cleanup]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 21,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 21,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 21,
+      "marker": "[MISSING: sanitized auth/admin evidence path for guarded discount-code generation]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 22,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 22,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 22,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 22,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 22,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 22,
+      "marker": "[MISSING: deterministic Warehouse component reservation state for cleanup]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 22,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 32,
+      "marker": "[MISSING: owner-approved channel/customer checkout owner for initiating and cleaning up paid catalog.bundle.v1 runtime smoke]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 32,
+      "marker": "[MISSING: named executor/rollback owner for future Fiobanka paid/provider smoke]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 33,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 33,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 35,
+      "marker": "[MISSING: Orders cleanup actor/idempotency/side-effect acknowledgements]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 35,
+      "marker": "[MISSING: deterministic Warehouse component reservation cleanup evidence]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 35,
+      "marker": "[MISSING: sanitized cleanup evidence path]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 37,
+      "marker": "[MISSING: owner-approved server-side bundle-preserving fixture or different active <=300 CZK target]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 41,
+      "marker": "[MISSING: renewed owner-approved execution window for Europe/Prague after 2026-07-03T23:59:59+02:00]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 41,
+      "marker": "[MISSING: named admin/actor or approved token-handling path for guarded discount-code generation]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 47,
+      "marker": "[MISSING: sanitized exact-order linkage between the manual refund confirmation and a completed Goal 24 paid-smoke FlipFlop order]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 47,
+      "marker": "[MISSING: FlipFlop runtime readback showing an exact linked smoke order acknowledged as status=refunded and paymentStatus=refunded after manual refund]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 47,
+      "marker": "[MISSING: owner-approved post-paid Orders/Warehouse correction packet for an exact linked completed payment state]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 72,
+      "marker": "[MISSING: sanitized exact-order linkage between the manual refund confirmation and the Goal 24 completed Fiobanka smoke order]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 73,
+      "marker": "[MISSING: FlipFlop runtime readback showing the exact smoke order acknowledged as status=refunded and paymentStatus=refunded after manual refund]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 74,
+      "marker": "[MISSING: owner-approved post-paid Orders/Warehouse correction packet for the exact completed payment state]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 78,
+      "marker": "[MISSING: sanitized exact-order linkage between the manual refund confirmation and the Goal 24 completed Fiobanka smoke order]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 78,
+      "marker": "[MISSING: FlipFlop runtime readback showing the exact smoke order acknowledged as status=refunded and paymentStatus=refunded after manual refund]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 78,
+      "marker": "[MISSING: owner-approved post-paid Orders/Warehouse correction packet for the exact completed payment state]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 90,
+      "marker": "[MISSING: ...]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 99,
+      "marker": "[MISSING: renewed owner-approved execution window for Europe/Prague after 2026-07-03T23:59:59+02:00]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 102,
+      "marker": "[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 103,
+      "marker": "[MISSING: Orders cancellation actor/approvedBy, reasonCode, cleanup idempotency key, and payment/warehouse/notification/crm/channel side-effect acknowledgements]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 104,
+      "marker": "[MISSING: final owner acceptance of redacted evidence policy and forbidden evidence list]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 122,
+      "marker": "[MISSING: ...]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 133,
+      "marker": "[MISSING: owner-approved paid/provider checkout smoke packet with provider, Orders, Warehouse, and redacted evidence facts]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 134,
+      "marker": "[MISSING: provider rollback proof from Payments before customer-visible success or completed cleanup]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 135,
+      "marker": "[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 136,
+      "marker": "[MISSING: deterministic Warehouse component reservation state and approved cleanup operation before customer-visible stock/restored messaging]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 137,
+      "marker": "[MISSING: sanitized evidence path for required channel cleanup proof]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 158,
+      "marker": "[MISSING: proof that active checkout paths pass central Orders UUIDs to Payments]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 163,
+      "marker": "[MISSING: ...]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 176,
+      "marker": "[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 177,
+      "marker": "[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 178,
+      "marker": "[MISSING: Warehouse stock decrement/reservation-release evidence for every bundle component line]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 179,
+      "marker": "[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 187,
+      "marker": "[MISSING: owner-approved paid/provider checkout smoke packet]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 188,
+      "marker": "[MISSING: provider/Warehouse/Orders rollback evidence]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 189,
+      "marker": "[MISSING: sanitized live runtime evidence]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 240,
+      "marker": "[MISSING: owner-approved synthetic Auth token for FlipFlop gateway wallet smoke]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 241,
+      "marker": "[MISSING: owner-approved authenticated browser/session smoke for delayed wallet response and selector interaction]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 283,
+      "marker": "[MISSING: owner-approved FlipFlop auth-subject create/read smoke proving persisted customer.authSubject.]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 299,
       "marker": "[MISSING: Orders lifecycle read endpoint]",
       "path": "docs/orchestrator/STATUS.md"
     },
     {
-      "line": 56,
+      "line": 313,
       "marker": "[MISSING: Orders lifecycle read endpoint]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 340,
+      "marker": "[MISSING: Orders lifecycle read endpoint]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 377,
+      "marker": "[MISSING: active FlipFlop products mapped to Catalog products that currently have order_affinity bundle candidates]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 378,
+      "marker": "[MISSING: sufficient order_affinity backfill volume for live storefront products]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 379,
+      "marker": "[MISSING: approved bundle checkout contract owned by FlipFlop/Orders/Payments]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 411,
+      "marker": "[MISSING: automated order-affinity backfill/replay over historical Orders events]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 412,
+      "marker": "[MISSING: broad order_affinity coverage for more live storefront products]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 413,
+      "marker": "[MISSING: approved bundle checkout contract owned by FlipFlop/Orders/Payments]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 427,
+      "marker": "[MISSING: ...]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 457,
+      "marker": "[MISSING: owner-approved FlipFlop recurring marketplace publish/replace-window schedule activation]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 461,
+      "marker": "[MISSING: final paid checkout rollout decision for applying Holiday Discount to all eligible order creation traffic beyond the bounded owner-approved smoke]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 462,
+      "marker": "[MISSING: final orders.applied-discounts.v1 snapshot field contract in orders.create.v1]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 463,
+      "marker": "[MISSING: notification template provider contract for Holiday Discount post-purchase messages]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 468,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 472,
+      "marker": "[MISSING: owner-approved channel side-effect acknowledgement for the selected central order hash]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 472,
+      "marker": "[MISSING: selected central order hash and FlipFlop local order/session correlation for channel cleanup acknowledgement]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 472,
+      "marker": "[MISSING: redacted channel cleanup evidence proving synthetic cart/session/payment-result/local projection cleanup for the selected central order hash]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 472,
+      "marker": "[MISSING: channel cleanup idempotency key derived from approval id and sanitized payment/order hash]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 474,
+      "marker": "[MISSING: owner-approved channel side-effect acknowledgement for the selected central order hash]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 474,
+      "marker": "[MISSING: selected central order hash and FlipFlop local order/session correlation for channel cleanup acknowledgement]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 474,
+      "marker": "[MISSING: redacted channel cleanup evidence proving synthetic cart/session/payment-result/local projection cleanup for the selected central order hash]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 474,
+      "marker": "[MISSING: channel cleanup idempotency key derived from approval id and sanitized payment/order hash]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 474,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 476,
+      "marker": "[MISSING: owner bank transfer completion evidence for the selected Fiobanka QR payment, or owner-approved unpaid no-provider-cancel acknowledgement]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 476,
+      "marker": "[MISSING: provider-side completed-transfer refund/reversal/correction proof hash for this selected payment if it is paid]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 476,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys derived from this selected payment hash]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 476,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled payment|warehouse|notification|crm|channel acknowledgements for centralOrderHash 04d7d08c82a07853]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 476,
+      "marker": "[MISSING: exact selected Warehouse reservation lookup state for this central order/component set]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 476,
+      "marker": "[MISSING: owner-approved channel side-effect acknowledgement for centralOrderHash 04d7d08c82a07853]",
+      "path": "docs/orchestrator/STATUS.md"
+    },
+    {
+      "line": 476,
+      "marker": "[MISSING: complete runtime evidence content at reports/validation/VAL-GOAL-24-final-redacted-cleanup-evidence-2026-07-04.md for provider, Orders, Warehouse, channel cleanup, idempotency, and validation sections]",
       "path": "docs/orchestrator/STATUS.md"
     },
     {
@@ -470,13 +2880,586 @@
       "line": 73,
       "marker": "[UNKNOWN: whether local product prices are gross CZK prices or net prices requiring VAT]",
       "path": "implementation-goals/GOAL-13-product-detail-bundle-discount-contract.md"
+    },
+    {
+      "line": 46,
+      "marker": "[MISSING: owner-approved Catalog bundle aggregate runtime read for FlipFlop]",
+      "path": "implementation-goals/GOAL-24-catalog-bundle-adoption.md"
+    },
+    {
+      "line": 47,
+      "marker": "[MISSING: active catalog.bundle.v1 aggregate visible to flipflop for this product]",
+      "path": "implementation-goals/GOAL-24-catalog-bundle-adoption.md"
+    },
+    {
+      "line": 48,
+      "marker": "[MISSING: owner-approved Rung 1 non-mutating real checkout smoke credentials and target products]",
+      "path": "implementation-goals/GOAL-24-catalog-bundle-adoption.md"
+    },
+    {
+      "line": 51,
+      "marker": "[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]",
+      "path": "implementation-goals/GOAL-24-catalog-bundle-adoption.md"
+    },
+    {
+      "line": 90,
+      "marker": "[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]",
+      "path": "implementation-goals/GOAL-24-catalog-bundle-adoption.md"
+    },
+    {
+      "line": 91,
+      "marker": "[MISSING: Warehouse stock decrement/reservation-release evidence for every bundle component line]",
+      "path": "implementation-goals/GOAL-24-catalog-bundle-adoption.md"
+    },
+    {
+      "line": 92,
+      "marker": "[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]",
+      "path": "implementation-goals/GOAL-24-catalog-bundle-adoption.md"
+    },
+    {
+      "line": 70,
+      "marker": "[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]",
+      "path": "implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md"
+    },
+    {
+      "line": 72,
+      "marker": "[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]",
+      "path": "implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md"
+    },
+    {
+      "line": 73,
+      "marker": "[MISSING: Warehouse stock decrement/reservation-release evidence for every bundle component line]",
+      "path": "implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md"
+    },
+    {
+      "line": 74,
+      "marker": "[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]",
+      "path": "implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md"
+    },
+    {
+      "line": 81,
+      "marker": "[MISSING: approved FlipFlop source rollout file list]",
+      "path": "implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md"
+    },
+    {
+      "line": 81,
+      "marker": "[MISSING: source verifier/build evidence]",
+      "path": "implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md"
+    },
+    {
+      "line": 82,
+      "marker": "[MISSING: approved smoke packet]",
+      "path": "implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md"
+    },
+    {
+      "line": 82,
+      "marker": "[MISSING: sanitized live runtime evidence]",
+      "path": "implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md"
+    },
+    {
+      "line": 83,
+      "marker": "[UNKNOWN: future rollout timing]",
+      "path": "implementation-goals/GOAL-24-durable-bundleid-checkout-migration-readiness.md"
+    },
+    {
+      "line": 1,
+      "marker": "[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 1,
+      "marker": "[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 1,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 1,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 1,
+      "marker": "[MISSING: exact selected Orders cleanup packet runtime values and sideEffectsHandled acknowledgements]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 1,
+      "marker": "[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 1,
+      "marker": "[MISSING: exact selected Warehouse reservation lookup state for cleanup]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 1,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 2,
+      "marker": "[MISSING: current side-effect execution window owned by a separate newer integration owner thread]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 2,
+      "marker": "[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 2,
+      "marker": "[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 2,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 2,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 2,
+      "marker": "[MISSING: exact selected Orders cleanup packet runtime values and sideEffectsHandled acknowledgements]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 2,
+      "marker": "[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 2,
+      "marker": "[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 2,
+      "marker": "[MISSING: exact selected Warehouse reservation lookup state for cleanup]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 2,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: exact selected Orders cleanup packet runtime values and sideEffectsHandled acknowledgements]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: exact selected Warehouse reservation lookup state for cleanup]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 3,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 11,
+      "marker": "[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 12,
+      "marker": "[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 14,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 15,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 16,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 17,
+      "marker": "[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 18,
+      "marker": "[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 19,
+      "marker": "[MISSING: deterministic Warehouse component reservation state for cleanup]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 20,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 40,
+      "marker": "[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 108,
+      "marker": "[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 110,
+      "marker": "[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 111,
+      "marker": "[MISSING: Warehouse stock decrement/reservation-release evidence for every bundle component line]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 112,
+      "marker": "[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 115,
+      "marker": "[MISSING: owner-approved paid/provider checkout smoke packet naming a live-run executor and preserving Codex source-controlled validation/stop authority]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 116,
+      "marker": "[MISSING: provider rollback proof from Payments before customer-visible success or completed cleanup]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 117,
+      "marker": "[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 118,
+      "marker": "[MISSING: deterministic Warehouse component reservation state and approved cleanup operation before customer-visible stock/restored messaging]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 119,
+      "marker": "[MISSING: sanitized evidence path for required channel cleanup proof]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 121,
+      "marker": "[MISSING: named executor/rollback owner for future Fiobanka paid/provider smoke]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 122,
+      "marker": "[MISSING: owner-approved channel/customer checkout owner for initiating and cleaning up paid catalog.bundle.v1 runtime smoke]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 144,
+      "marker": "[MISSING: owner-approved paid/provider checkout smoke packet]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 145,
+      "marker": "[MISSING: approved smoke packet]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 145,
+      "marker": "[MISSING: live runtime evidence]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 184,
+      "marker": "[MISSING: owner-approved channel side-effect acknowledgement for the selected central order hash]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 185,
+      "marker": "[MISSING: selected central order hash and FlipFlop local order/session correlation for channel cleanup acknowledgement]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 186,
+      "marker": "[MISSING: redacted channel cleanup evidence proving synthetic cart/session/payment-result/local projection cleanup for the selected central order hash]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 187,
+      "marker": "[MISSING: channel cleanup idempotency key derived from approval id and sanitized payment/order hash]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 188,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 199,
+      "marker": "[MISSING: Warehouse hold/release duration]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 199,
+      "marker": "[MISSING: live current target row readback at execution time]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 199,
+      "marker": "[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 210,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 217,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 217,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 217,
+      "marker": "[MISSING: sanitized auth/admin evidence path for guarded discount-code generation]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 227,
+      "marker": "[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 227,
+      "marker": "[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 227,
+      "marker": "[MISSING: sanitized auth/admin evidence path for guarded discount-code generation]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 237,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 237,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 237,
+      "marker": "[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 237,
+      "marker": "[MISSING: live current target row readback at execution time]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 237,
+      "marker": "[MISSING: Warehouse hold/release duration]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 237,
+      "marker": "[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 237,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 243,
+      "marker": "[MISSING: fresh Auth actor-bound token generated through the Auth c389c1e no-print/no-decode/no-persist pattern for the exact guarded discount-fixture step]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 244,
+      "marker": "[MISSING: sanitized auth/admin evidence path for guarded discount-code generation using the fresh selected actor-bound token]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 245,
+      "marker": "[MISSING: provider completion evidence from accepted Fiobanka callback or authenticated transaction-polling reconciliation that marks the selected paid order complete without manual payment-state bypass]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 246,
+      "marker": "[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof path with redacted evidence]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 248,
+      "marker": "[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 249,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 250,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 251,
+      "marker": "[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 252,
+      "marker": "[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 253,
+      "marker": "[MISSING: live current target row readback at execution time]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 254,
+      "marker": "[MISSING: Warehouse hold/release duration]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 255,
+      "marker": "[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 256,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 277,
+      "marker": "[MISSING: owner-approved channel side-effect acknowledgement for the selected central order hash]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 277,
+      "marker": "[MISSING: selected central order hash and FlipFlop local order/session correlation for channel cleanup acknowledgement]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 277,
+      "marker": "[MISSING: redacted channel cleanup evidence proving synthetic cart/session/payment-result/local projection cleanup for the selected central order hash]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 277,
+      "marker": "[MISSING: channel cleanup idempotency key derived from approval id and sanitized payment/order hash]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 277,
+      "marker": "[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 285,
+      "marker": "[MISSING: owner bank transfer completion evidence for the selected Fiobanka QR payment, or owner-approved unpaid no-provider-cancel acknowledgement]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 286,
+      "marker": "[MISSING: provider-side completed-transfer refund/reversal/correction proof hash for this selected payment if it is paid]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 287,
+      "marker": "[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys derived from this selected payment hash]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 288,
+      "marker": "[MISSING: exact Orders cleanup packet and sideEffectsHandled payment|warehouse|notification|crm|channel acknowledgements for centralOrderHash 04d7d08c82a07853]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 289,
+      "marker": "[MISSING: exact selected Warehouse reservation lookup state for this central order/component set]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 290,
+      "marker": "[MISSING: owner-approved channel side-effect acknowledgement for centralOrderHash 04d7d08c82a07853]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
+    },
+    {
+      "line": 292,
+      "marker": "[MISSING: complete runtime evidence content at reports/validation/VAL-GOAL-24-final-redacted-cleanup-evidence-2026-07-04.md for provider, Orders, Warehouse, channel cleanup, idempotency, and validation sections]",
+      "path": "implementation-goals/GOAL-24-paid-provider-bundle-checkout-gate.md"
     }
   ],
   "validation_reports": {
     "reports": [
       "12_validation/VAL-TASK-001-flipflop-ips-baseline.md",
       "12_validation/VAL-TASK-002-smarty-checkout-reference-ux.md",
-      "12_validation/VAL-TASK-003-catalog-connector-content-preview.md"
+      "12_validation/VAL-TASK-003-catalog-connector-content-preview.md",
+      "12_validation/VAL-TASK-004-catalog-product-quality-review-consumer.md",
+      "12_validation/VAL-TASK-005-flipflop-affinity-replay-eligibility.md",
+      "12_validation/VAL-TASK-006-flipflop-affinity-replay-export.md"
     ],
     "status": "pass",
     "target": null
