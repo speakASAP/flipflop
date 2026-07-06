@@ -906,7 +906,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         } catch (err: unknown) {
           this.logger.error('Order confirmation email failed after payment', {
             orderId: order.id,
-            email: recipient,
+            email: 'redacted',
             error: err instanceof Error ? err.message : String(err),
           });
         }
@@ -2048,15 +2048,16 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       }
     }
 
+    let marketingRequestedEventId: string | null = null;
     if (dto.marketingConsent === true) {
-      this.publishCustomerJourneyEvent('marketing_handoff_requested', order, {
+      marketingRequestedEventId = this.publishCustomerJourneyEvent('marketing_handoff_requested', order, {
         idempotencySuffix: 'leads-checkout-sync',
         customerId: guestUser.id,
         marketingHandoffId: `lead-sync:${order.id}`,
         metadata: {
           consent_marketing: true,
           consent_source: 'flipflop:checkout:v1',
-          handoff_destination: 'leads-microservice',
+          handoff_target: 'leads-microservice',
         },
       });
     }
@@ -2085,9 +2086,10 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
           idempotencySuffix: lead.leadId,
           customerId: guestUser.id,
           marketingHandoffId: lead.leadId,
+          causationId: marketingRequestedEventId,
           metadata: {
             consent_marketing: true,
-            handoff_destination: 'leads-microservice',
+            handoff_target: 'leads-microservice',
             handoff_status: 'accepted',
             lead_status: lead.status,
             confirmation_sent: lead.confirmationSent ?? null,
@@ -2129,12 +2131,21 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  private assertStableJourneyCorrelation(journeyId: string, correlationId: string): void {
+    const journeySuffix = journeyId.replace(/^journey_/, '');
+    const correlationSuffix = correlationId.replace(/^corr_/, '');
+    if (journeyId === correlationId || journeySuffix === correlationSuffix) {
+      throw new BadRequestException('[MISSING: independent correlationId] Customer journey correlationId must not fall back to journeyId');
+    }
+  }
+
   private createCustomerJourneyContext(dto: any): Record<string, unknown> {
     const journeyId = this.normalizeGuestText(dto?.journeyId || dto?.journey_id, '');
     const correlationId = this.normalizeGuestText(dto?.correlationId || dto?.correlation_id, '');
     const sessionId = this.normalizeGuestText(dto?.sessionId || dto?.session_id, '');
     this.assertCustomerJourneyId(journeyId, 'journeyId');
     this.assertCustomerJourneyId(correlationId, 'correlationId');
+    this.assertStableJourneyCorrelation(journeyId, correlationId);
     if (sessionId) {
       this.assertCustomerJourneyId(sessionId, 'sessionId');
     }
@@ -2160,6 +2171,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       : undefined;
     this.assertCustomerJourneyId(journeyId, 'journeyId');
     this.assertCustomerJourneyId(correlationId, 'correlationId');
+    this.assertStableJourneyCorrelation(journeyId, correlationId);
     if (sessionId) {
       this.assertCustomerJourneyId(sessionId, 'sessionId');
     }
@@ -2178,7 +2190,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       metadata?: Record<string, unknown>;
       causationId?: string | null;
     },
-  ): void {
+  ): string {
     const journey = this.getCustomerJourneyContext(order);
     const eventId = `evt_${randomUUID()}`;
     const paymentId = options.paymentId || order?.paymentTransactionId || undefined;
@@ -2250,6 +2262,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         ...options.metadata,
       },
     });
+    return eventId;
   }
 
   private hashJourneyReference(value: unknown): string | undefined {
@@ -2613,6 +2626,23 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       },
     });
 
+    const customerIdentityEventId = this.publishCustomerJourneyEvent('customer_identity_resolved', order, {
+      idempotencySuffix: 'auth-customer-linked',
+      customerId: userId,
+      metadata: { customer_type: 'authenticated', checkout_mode: 'authenticated' },
+    });
+    const shippingSelectedEventId = this.publishCustomerJourneyEvent('shipping_option_selected', order, {
+      idempotencySuffix: dto.deliveryAddressId,
+      customerId: userId,
+      causationId: customerIdentityEventId,
+      metadata: { shipping_method: 'delivery-address', delivery_address_ref: this.hashJourneyReference(dto.deliveryAddressId) },
+    });
+    const cartValidatedEventId = this.publishCustomerJourneyEvent('cart_validated', order, {
+      idempotencySuffix: 'server-cart-validation',
+      customerId: userId,
+      causationId: shippingSelectedEventId,
+      metadata: { cart_valid: true, validation_status: 'passed', validation_source: 'order-service' },
+    });
 
     let reservationWarehouseId: string;
     try {
@@ -2641,6 +2671,29 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       await this.unreserveOrderLines(order.orderNumber, order.order_items);
       throw error;
     }
+
+    const orderCreatedEventId = this.publishCustomerJourneyEvent('order_created', order, {
+      idempotencySuffix: centralAcceptance.centralOrderId,
+      customerId: userId,
+      causationId: cartValidatedEventId,
+      metadata: {
+        central_order_ref: this.hashJourneyReference(centralAcceptance.centralOrderId),
+        central_order_status: centralAcceptance.status,
+        order_status: OrderStatus.pending,
+      },
+    });
+    const paymentAttemptId = `payment-attempt:${order.id}:${centralAcceptance.centralOrderId}`;
+    this.publishCustomerJourneyEvent('payment_attempt_started', order, {
+      idempotencySuffix: paymentAttemptId,
+      customerId: userId,
+      paymentId: paymentAttemptId,
+      causationId: orderCreatedEventId,
+      metadata: {
+        payment_status: 'started',
+        payment_method: dto.paymentMethod || 'webpay',
+        central_order_ref: this.hashJourneyReference(centralAcceptance.centralOrderId),
+      },
+    });
 
     let paymentResult;
     try {
@@ -2764,6 +2817,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
    * provider/webhook evidence or manual bank transfer reconciliation remains required.
    */
   async createGuestOrder(dto: any) {
+    const customerJourney = this.createCustomerJourneyContext(dto);
     const guestEmail = this.normalizeGuestEmail(dto.email);
     const guestUser = await this.createOrUpdateCheckoutCustomer(dto, guestEmail);
     const deliveryAddress = await this.createCheckoutAddress(
@@ -2791,7 +2845,6 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     const discount = discountApplication.discount;
     const total = this.roundMoney(orderTotalBeforeDiscount - discount);
     const catalogBundleEvidence = this.buildCatalogBundleEvidence(dto.bundleIntent, orderItems);
-    const customerJourney = this.createCustomerJourneyContext(dto);
     const metadataValue: Record<string, unknown> = {
       checkoutMode: 'guest',
       customerJourney,
@@ -2852,20 +2905,22 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       },
     });
 
-    this.publishCustomerJourneyEvent('customer_identity_resolved', order, {
+    const customerIdentityEventId = this.publishCustomerJourneyEvent('customer_identity_resolved', order, {
       idempotencySuffix: 'guest-customer-linked',
       customerId: guestUser.id,
       metadata: { customer_type: 'guest', checkout_mode: 'guest' },
     });
-    this.publishCustomerJourneyEvent('shipping_option_selected', order, {
+    const shippingSelectedEventId = this.publishCustomerJourneyEvent('shipping_option_selected', order, {
       idempotencySuffix: deliveryMethod,
       customerId: guestUser.id,
-      metadata: { shipping_option_id: deliveryMethod, delivery_method: deliveryMethod },
+      causationId: customerIdentityEventId,
+      metadata: { shipping_method: deliveryMethod, shipping_option_id: deliveryMethod },
     });
-    this.publishCustomerJourneyEvent('cart_validated', order, {
+    const cartValidatedEventId = this.publishCustomerJourneyEvent('cart_validated', order, {
       idempotencySuffix: 'server-price-stock-validation',
       customerId: guestUser.id,
-      metadata: { validation_status: 'passed', validation_source: 'order-service' },
+      causationId: shippingSelectedEventId,
+      metadata: { cart_valid: true, validation_status: 'passed', validation_source: 'order-service' },
     });
 
     let reservationWarehouseId: string;
@@ -2892,11 +2947,12 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       throw error;
     }
 
-    this.publishCustomerJourneyEvent('order_created', order, {
+    const orderCreatedEventId = this.publishCustomerJourneyEvent('order_created', order, {
       idempotencySuffix: centralAcceptance.centralOrderId,
       customerId: guestUser.id,
+      causationId: cartValidatedEventId,
       metadata: {
-        central_order_id: centralAcceptance.centralOrderId,
+        central_order_ref: this.hashJourneyReference(centralAcceptance.centralOrderId),
         central_order_status: centralAcceptance.status,
         order_status: OrderStatus.pending,
       },
@@ -2909,6 +2965,18 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       const callbackUrlBase =
         this.configService.get<string>('API_GATEWAY_URL') || 'https://flipflop.alfares.cz';
       const callbackUrl = `${callbackUrlBase.replace(/\/$/, '')}/api/webhooks/payment-result`;
+      const paymentAttemptId = `payment-attempt:${order.id}:${centralAcceptance.centralOrderId}`;
+      this.publishCustomerJourneyEvent('payment_attempt_started', order, {
+        idempotencySuffix: paymentAttemptId,
+        customerId: guestUser.id,
+        paymentId: paymentAttemptId,
+        causationId: orderCreatedEventId,
+        metadata: {
+          payment_status: 'started',
+          payment_method: paymentMethod,
+          central_order_ref: this.hashJourneyReference(centralAcceptance.centralOrderId),
+        },
+      });
       let paymentResult;
       try {
         paymentResult = await this.paymentService.createPayment({
@@ -2955,16 +3023,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         centralOrderId: centralAcceptance.centralOrderId,
         paymentId: paymentResult.data.id,
       });
-      this.publishCustomerJourneyEvent('payment_attempt_started', order, {
-        idempotencySuffix: paymentResult.data.id,
-        customerId: guestUser.id,
-        paymentId: paymentResult.data.id,
-        metadata: {
-          payment_status: 'created',
-          payment_method_type: paymentMethod,
-          central_order_id: centralAcceptance.centralOrderId,
-        },
-      });
+
       redirectUrl = paymentResult.data.redirectUri || null;
     }
 
@@ -3254,6 +3313,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     if (order.paymentStatus === PaymentStatus.paid) {
       throw new BadRequestException('Order is already paid');
     }
+    this.getCustomerJourneyContext(order);
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     let centralOrderId = this.getAcceptedCentralOrderId(order);
@@ -3285,6 +3345,18 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     const callbackUrlBase =
       this.configService.get<string>('API_GATEWAY_URL') || 'https://flipflop.alfares.cz';
     const callbackUrl = `${callbackUrlBase.replace(/\/$/, '')}/api/webhooks/payment-result`;
+
+    const paymentAttemptId = `payment-attempt:${order.id}:${centralOrderId}`;
+    this.publishCustomerJourneyEvent('payment_attempt_started', order, {
+      idempotencySuffix: paymentAttemptId,
+      customerId: userId,
+      paymentId: paymentAttemptId,
+      metadata: {
+        payment_status: 'started',
+        payment_method: order.paymentMethod || 'webpay',
+        central_order_ref: this.hashJourneyReference(centralOrderId),
+      },
+    });
 
     const paymentResponse = await this.paymentService.createPayment({
       orderId: centralOrderId,
