@@ -517,6 +517,22 @@ Validation command:
 npm run verify:customer-journey-deployed-assertion-env-source
 ```
 
+
+## 2026-07-06 W5 Live Env Readback And Invoice Rerun
+
+After applying `k8s/configmap.yaml` and restarting only `flipflop-order-service`, sanitized pod readback confirmed the expected non-secret W5 gate/assertion env classes. A single additional owner-approved pre-prod invoice/no-provider order was submitted with `paymentMethod=invoice`, `paymentStatus=pending`, `providerCall=false`, `externalProviderCall=false`, `realMoneyMovement=false`, and `paymentCreated=false`.
+
+Sanitized DB readback for the 22:00 run: `centralOrdersForwardingStatus=accepted`, `crmLeadsAcknowledgement=accepted`, `crmLeadIdPresent=true`, `crmRawOutput=false`, raw customer/order/payment output false, secret output false.
+
+No synthetic email JSONL row or synthetic event JSONL file was observed in the order-service pod after the run. This means the env contract is deployed, but assertion readback remains missing for the invoice pending/no-payment-success path.
+
+Evidence:
+
+- `reports/validation/VAL-W5-customer-journey-sandbox-env-readback-2026-07-06.md`
+- `reports/validation/customer-journey-sandbox-runtime/w5-owner-approved-invoice-runtime-20260706-2200-env-readback.json`
+
+Remaining blockers: [MISSING: sandbox/test-mode payment success evidence; invoice remains pending/no-provider], [MISSING: synthetic email JSONL assertion row for invoice pending/no-payment-success path], and [MISSING: synthetic event JSONL assertion row; deployed env present but no JSONL file observed after 22:00 invoice run].
+
 ## Current Decision
 
 Status: `owner-approved-packet-prep-product-customer-delivery-payment-w5c-cleanup-source-narrowed-runtime-side-effects-blocked`.

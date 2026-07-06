@@ -79,6 +79,40 @@ for (const marker of [
 assert(status.includes('verify:customer-journey-runtime-evidence-contract'), 'STATUS missing verifier marker');
 assert(state.includes('W5 owner-approved pre-prod invoice/no-provider runtime attempt completed'), 'IMPLEMENTATION_STATE missing runtime evidence marker');
 
+const freshRuntimeJsonPath = 'reports/validation/customer-journey-sandbox-runtime/w5-owner-approved-invoice-runtime-20260706-2200-env-readback.json';
+const freshEvidencePath = 'reports/validation/VAL-W5-customer-journey-sandbox-env-readback-2026-07-06.md';
+const freshRuntime = readJson(freshRuntimeJsonPath);
+const freshEvidence = read(freshEvidencePath);
+
+assert(freshRuntime.ok === true, 'fresh runtime evidence must be successful for invoice/no-provider order creation');
+assert(freshRuntime.orderCreated === true, 'fresh runtime evidence must record order creation');
+assert(freshRuntime.paymentMethod === 'invoice', 'fresh runtime evidence must be invoice-only');
+assert(freshRuntime.paymentStatus === 'pending', 'fresh runtime evidence must keep invoice pending');
+assert(freshRuntime.providerCall === false, 'fresh runtime evidence must not call provider');
+assert(freshRuntime.externalProviderCall === false, 'fresh runtime evidence must not call external provider');
+assert(freshRuntime.realMoneyMovement === false, 'fresh runtime evidence must not move real money');
+assert(freshRuntime.paymentSuccessEvidence === false, 'fresh runtime evidence must not claim payment success');
+assert(freshRuntime.centralOrdersForwardingStatus === 'accepted', 'fresh runtime evidence must record central forwarding acceptance');
+assert(freshRuntime.crmLeadsAcknowledgement === 'accepted', 'fresh runtime evidence must record CRM/Leads acceptance');
+assert(freshRuntime.crmRawOutput === false, 'fresh runtime evidence must not output raw CRM data');
+assert(freshRuntime.emailAssertionSource === 'runtime_env_present_no_jsonl_row_observed_for_invoice_pending', 'fresh runtime evidence must preserve missing email JSONL row');
+assert(freshRuntime.eventTraceSource === 'runtime_env_present_no_jsonl_file_observed_after_invoice_order', 'fresh runtime evidence must preserve missing event JSONL row');
+assert(freshRuntime.rawCustomerOutput === false, 'fresh runtime evidence must not output raw customer data');
+assert(freshRuntime.rawOrderOutput === false, 'fresh runtime evidence must not output raw order data');
+assert(freshRuntime.rawPaymentOutput === false, 'fresh runtime evidence must not output raw payment data');
+assert(freshRuntime.secretOutput === false, 'fresh runtime evidence must not output secrets');
+
+for (const marker of [
+  freshRuntimeJsonPath,
+  freshEvidencePath,
+  'runtimeEnvReadback: passed',
+  'centralOrdersForwardingStatus: accepted',
+  'crmLeadsAcknowledgement: accepted',
+  'eventTraceSource: runtime_env_present_no_jsonl_file_observed_after_invoice_order',
+]) {
+  assert(packet.includes(marker) || status.includes(marker) || state.includes(marker) || freshEvidence.includes(marker), `fresh evidence marker missing ${marker}`);
+}
+
 console.log(JSON.stringify({
   ok: true,
   sourceOnlyVerifier: true,
@@ -96,5 +130,7 @@ console.log(JSON.stringify({
   rawPaymentOutput: runtime.rawPaymentOutput,
   secretOutput: runtime.secretOutput,
   crmLeadsAcknowledgement: runtime.crmLeadsAcknowledgement,
-  remainingBlockers: runtime.remainingBlockers.length
+  remainingBlockers: runtime.remainingBlockers.length,
+  freshRuntimeEvidence: freshRuntimeJsonPath,
+  freshRuntimeRemainingBlockers: freshRuntime.remainingBlockers.length
 }, null, 2));
