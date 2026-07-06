@@ -266,6 +266,27 @@ Still missing for execution:
 
 
 
+## 2026-07-06 Additional Approval Signal
+
+Owner reply: I approve
+
+Decision: [RESOLVED/NARROWED: owner provided an additional approval signal for W5 continuation, but the message does not supply the exact runtime approval id, execution window, sandbox runner implementation, CRM no-op/retention acknowledgement, invoice payment-success decision, or final redacted evidence content.]
+
+Scope of this approval:
+
+- It authorizes continued source documentation, verifier alignment, and read-only validation.
+- It does not authorize checkout submission, guest customer mutation, order creation, payment creation, provider calls, webhook replay, email sending, event publishing, Warehouse mutation, Orders mutation, deploy, DB writes, secret output, token output, raw customer/contact/address output, raw order/payment ids, or raw provider payload output.
+- Runtime remains blocked until the missing fields below are supplied as explicit non-secret values and validated.
+
+Still missing for runtime execution:
+
+- [MISSING: approval id]
+- [MISSING: execution window]
+- [MISSING: sandbox runner implementation]
+- [MISSING: crm no-op/retention acknowledgement]
+- [MISSING: sandbox/test-mode payment success evidence for invoice pending/no-provider]
+- [MISSING: final redacted evidence content]
+
 ## Workstream 5B Sandbox Payment Contract
 
 User instruction `do it yourself` is consumed as approval for Codex to resolve the non-secret source-level payment contract. It is not consumed as approval for live checkout, payment creation, provider calls, webhook replay, Orders mutation, Warehouse mutation, email sending, deploy, DB writes, secret output, raw customer/contact/address output, raw order/payment ids, or raw provider payload output.
