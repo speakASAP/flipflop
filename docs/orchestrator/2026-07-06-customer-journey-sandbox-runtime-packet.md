@@ -285,7 +285,56 @@ Still missing for runtime execution:
 - [MISSING: sandbox runner implementation]
 - [MISSING: crm no-op/retention acknowledgement]
 - [MISSING: sandbox/test-mode payment success evidence for invoice pending/no-provider]
-- [MISSING: final redacted evidence content]
+- [RESOLVED/NARROWED: final redacted evidence content exists for partial invoice/no-provider runtime; successful paid journey evidence remains missing]
+
+
+## 2026-07-06 W5 Runtime Evidence Partial Success
+
+Evidence paths:
+
+```text
+reports/validation/customer-journey-sandbox-runtime/w5-owner-approved-invoice-runtime-20260706-2130.json
+reports/validation/VAL-W5-customer-journey-sandbox-final-redacted-evidence-2026-07-06.md
+```
+
+Decision: `[RESOLVED/NARROWED: redacted W5 runtime evidence exists for a partial invoice/no-provider order-created path; it is not successful paid customer journey evidence]`.
+
+Sanitized evidence summary:
+
+```text
+ok=true
+checkoutSubmitted=true
+orderCreated=true
+paymentMethod=invoice
+paymentCreated=false
+providerCall=false
+externalProviderCall=false
+realMoneyMovement=false
+paymentSuccessEvidence=false
+centralReadStatus=available
+centralLifecycleStage=ordered_unpaid
+emailAssertionSource=unavailable_deployed_env_missing
+eventTraceSource=unavailable_deployed_env_missing
+rawCustomerOutput=false
+rawOrderOutput=false
+rawPaymentOutput=false
+secretOutput=false
+```
+
+Remaining blockers:
+
+- `[MISSING: CRM no-op/retention acknowledgement]`
+- `[MISSING: sandbox/test-mode payment success evidence; invoice remains pending/no-provider]`
+- `[MISSING: deployed synthetic email JSONL assertion source]`
+- `[MISSING: deployed synthetic event JSONL assertion source]`
+
+Boundary: this packet update records the approved runtime attempt. It created one pre-prod invoice/no-provider guest order and central ordered_unpaid record, but did not create provider payment, call a provider, move real money, replay webhooks, send email, run manual cleanup, deploy, print secrets, or print raw customer/order/payment data.
+
+Validation command:
+
+```bash
+npm run verify:customer-journey-runtime-evidence-contract
+```
 
 ## Workstream 5B Sandbox Payment Contract
 
@@ -408,6 +457,12 @@ Validation command:
 ```bash
 npm run verify:customer-journey-cleanup-contract
 ```
+
+## 2026-07-06 Owner-Approved Runtime Evidence
+
+At 2026-07-06T21:30:00+02:00 the owner approved a pre-prod W5 run. The executed safe path used paymentMethod=invoice only. One guest checkout submission succeeded with orderStatus=pending, paymentStatus=pending, central lifecycle ordered_unpaid, providerCall=false, externalProviderCall=false, realMoneyMovement=false, and paymentCreated=false. Sanitized evidence is recorded at reports/validation/VAL-W5-customer-journey-sandbox-final-redacted-evidence-2026-07-06.md and reports/validation/customer-journey-sandbox-runtime/w5-owner-approved-invoice-runtime-20260706-2130.json.
+
+Remaining blockers after the runtime attempt: [MISSING: CRM no-op/retention acknowledgement], [MISSING: sandbox/test-mode payment success evidence; invoice remains pending/no-provider], [MISSING: synthetic email JSONL assertion because deployed env lacks SYNTHETIC_EMAIL_ASSERTION_SOURCE], and [MISSING: synthetic event JSONL assertion because deployed env lacks SYNTHETIC_EVENT_TRACE_SOURCE].
 
 ## Current Decision
 
