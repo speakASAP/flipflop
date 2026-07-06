@@ -30,6 +30,7 @@ for (const marker of [
 assert(monitorDoc.includes('SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.cleanup.invoice_pending.stale_unpaid_retention.v1'), 'monitor doc missing cleanup contract env value');
 assert(status.includes('SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.cleanup.invoice_pending.stale_unpaid_retention.v1'), 'STATUS missing cleanup contract update');
 assert(status.includes('FINAL_REDACTED_EVIDENCE_PATH=reports/validation/VAL-W5-customer-journey-sandbox-final-redacted-evidence-2026-07-06.md'), 'STATUS missing final evidence path update');
+assert(packet.includes('SYNTHETIC_CUSTOMER_EMAIL=synthetic.customer-journey.w5@example.invalid'), 'packet missing synthetic customer contact contract');
 
 for (const marker of [
   'async cancelStaleUnpaidOrders()',
@@ -53,5 +54,5 @@ console.log(JSON.stringify({
   dbWriteByRunner: false,
   finalRedactedEvidencePath: 'reports/validation/VAL-W5-customer-journey-sandbox-final-redacted-evidence-2026-07-06.md',
   runtimeMutation: false,
-  syntheticCustomerContact: '[MISSING]'
+  syntheticCustomerContact: 'synthetic.customer-journey.w5@example.invalid'
 }, null, 2));

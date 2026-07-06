@@ -120,7 +120,7 @@ The monitor writes `reports/validation/synthetic-journey-monitor/report-latest.j
 ## Required test data
 
 - `[RESOLVED/NARROWED: owner-approved W5 sandbox product target]` as `SYNTHETIC_TEST_PRODUCT_ID=ffb4883f-ec48-4745-8147-b836f3fb2b88` with SKU `ALLEGRO-OFFER-18106037370`.
-- `[MISSING: synthetic customer/contact]` as `SYNTHETIC_CUSTOMER_EMAIL` or approved token-bound synthetic identity.
+- `[RESOLVED/NARROWED: synthetic customer/contact]` as `SYNTHETIC_CUSTOMER_EMAIL=synthetic.customer-journey.w5@example.invalid` with synthetic non-secret phone/name/billing-address values and `SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid` capture-only email handling.
 - `[MISSING: approved delivery test contract]` as `SYNTHETIC_DELIVERY_CONTRACT_ID`.
 - `[RESOLVED/NARROWED: source-only no-external-provider payment contract]` with `PAYMENT_SANDBOX_CONTRACT_APPROVED=1`, `TEST_MODE_PAYMENT_PROVIDER=invoice`, and `CHECKOUT_MUTATION_MODE=test-only`; this does not prove payment success and does not authorize checkout execution while product/customer/cleanup facts remain missing.
 - `[RESOLVED/NARROWED: synthetic email assertion source]` as `SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl` plus `SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid`.
@@ -162,7 +162,7 @@ Event trace: use `SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:repor
 
 - Read-only journey monitor: every 15 minutes.
 - Evidence-rich browser run with screenshots/HAR: hourly after a Playwright runner is installed in the target runtime.
-- Full sandbox checkout/payment/order/email/event run: disabled until all required test data, approval id, execution window, synthetic customer/contact, and final evidence-content requirements are resolved.
+- Full sandbox checkout/payment/order/email/event run: disabled until approval id, execution window, runner implementation, and final evidence-content requirements are resolved.
 - Nightly summary: aggregate first failure, last pass, classifications, blockers, and artifact paths.
 
 ## Evidence artifacts
@@ -181,6 +181,6 @@ Current report path: `reports/validation/synthetic-journey-monitor/report-latest
 
 Ready now: browser/API read-only journey monitor. Owner role: FlipFlop monitor worker. Allowed files: monitor script, package script, monitor docs, sanitized validation reports. Validation owner: integration thread.
 
-Dependency-gated: sandbox checkout/payment/order/email/event runner. Owner role: payment/orders runtime worker. Blockers: approved synthetic product, synthetic customer/contact, delivery contract, sandbox/test provider, cleanup/retention contract, email assertion source, event trace source, and final redacted evidence path.
+Dependency-gated: sandbox checkout/payment/order/email/event runner. Owner role: payment/orders runtime worker. Blockers: approval id, execution window, runner implementation, final redacted evidence content, and owner sign-off on any retained/cancelled synthetic order side effects.
 
 Final integration: scheduler/alerting. Owner role: monitor integration owner. Merge order: read-only monitor first, sandbox runner second after contracts, scheduler last.
