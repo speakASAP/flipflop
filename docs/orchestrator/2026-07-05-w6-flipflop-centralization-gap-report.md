@@ -23,7 +23,7 @@ Execution Plan -> Read repo handoff and master plan, inspect shared Orders clien
 
 Coding Prompt -> Remote-only workflow on `ssh alfares` and `/home/ssf/Documents/Github/flipflop`; allowed files are shared order client, frontend order/admin pages, verifiers/docs/reports; no unrelated checkout/payment/provider mutations, no deploy without gate, no raw customer/payment/token output.
 
-Code -> FlipFlop `main` includes central lifecycle read-model hardening, dashboard lifecycle verifier hardening, and central-owned admin status route-to-Orders source wiring. Auth `main` includes `2047a91 feat: seed orders action admin role`, enabling `internal:orders-microservice:action-admin` issuance.
+Code -> FlipFlop `main` includes central lifecycle read-model hardening, dashboard lifecycle verifier hardening, and central-owned admin status route-to-Orders source wiring. Auth `main` includes `2047a91 feat: seed orders action admin role` and `ddbde1c docs: record W6B action-admin runtime projection`, enabling and evidencing `internal:orders-microservice:action-admin` issuance.
 
 Validation -> Source verifiers passed. Vault was patched with a newly issued action-admin JWT without printing the token. ExternalSecret synced, `flipflop-order-service` restarted, the projected token validated with `hasActionAdmin=true`, and guarded live create/read/cancel smoke passed with create 201, read 200, cleanup 200.
 
@@ -180,14 +180,14 @@ The previous runtime blocker is closed: Auth can issue `internal:orders-microser
 
 2. `[MISSING: live customer/admin browser session smoke]` Source and API/runtime smoke passed. No raw customer/admin browser session smoke was run in this W6 pass.
 
-3. `[UNKNOWN: unrelated Auth untracked validation report owner]` `auth-microservice` has an untracked `reports/validation/VAL-W6B-orders-action-admin-runtime-projection-2026-07-06.md` owned outside this FlipFlop handoff. It was left untouched.
+3. `[RESOLVED: Auth runtime projection evidence committed]` `auth-microservice` committed `reports/validation/VAL-W6B-orders-action-admin-runtime-projection-2026-07-06.md` as `ddbde1c docs: record W6B action-admin runtime projection`.
 
 ## Parallel Execution Handoff
 
 | Workstream | Status | Owner role | Objective | Allowed files | Forbidden files | Dependencies/blockers | Validation evidence | Handoff notes |
 |---|---|---|---|---|---|---|---|---|
 | W6 FlipFlop source authority | complete | FlipFlop commerce owner | Prove UI central lifecycle reads and route central-owned status to Orders | shared Orders client, order-service admin status path, frontend order/admin pages, verifiers/docs/reports | checkout/payment/provider mutations | none | three FlipFlop verifiers pass | Source complete on `main` |
-| Auth action-admin seed | complete | Auth RBAC owner | Seed `internal:orders-microservice:action-admin` so Auth can issue a compliant action token | Auth role seed/verifier | direct Orders DB mutation | none | `verify:orders-action-admin-rbac-seed` pass; Auth commit `2047a91` | Complete |
+| Auth action-admin seed | complete | Auth RBAC owner | Seed `internal:orders-microservice:action-admin` so Auth can issue a compliant action token | Auth role seed/verifier | direct Orders DB mutation | none | `verify:orders-action-admin-rbac-seed` pass; Auth commits `2047a91`, `ddbde1c` | Complete |
 | Runtime action token rotation | complete | Auth/FlipFlop runtime owner | Emit action-admin JWT without printing it, patch Vault, refresh ExternalSecret, restart only `flipflop-order-service` | Vault secret path and FlipFlop deployment restart | raw token output, broad secret dumps | none | Auth validation booleans from pod | Complete |
 | Synthetic order cleanup proof | complete | Orders validation owner | Cancel synthetic central order through Orders status action path | redacted smoke/report only | direct DB updates, local FlipFlop status writes, payment/provider calls | none | cleanup HTTP 201 for prior row; fresh smoke cleanup HTTP 200 | Complete |
 | W7 final integration | ready | Orchestrator | Merge W6 runtime-complete evidence into lifecycle master status | docs/reports | code/schema changes | W6 report complete | completion audit/runtime-gate verifiers | Run after this commit |
