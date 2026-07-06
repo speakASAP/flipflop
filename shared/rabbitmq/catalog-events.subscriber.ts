@@ -271,7 +271,7 @@ export class CatalogEventsSubscriber implements OnModuleInit, OnModuleDestroy {
       resultSnapshot: this.redact({
         action: 'no_publish_no_refresh',
         eventType,
-        matchedProductIds: products.map((product: CatalogProductRow) => product.id),
+        matchedProductIds: products.map((product) => product.id),
         mutatesFlipFlopProductCache: false,
         mutatesCatalog: false,
         mutatesWarehouse: false,
@@ -362,16 +362,16 @@ export class CatalogEventsSubscriber implements OnModuleInit, OnModuleDestroy {
     eventType: string,
     catalogProductId: string,
     action: string,
-    products: CatalogProductRow[],
+    products: any[],
   ): Promise<CatalogAttemptRow> {
-    const idempotencyKey = this.buildIdempotencyKey(event, eventType, catalogProductId, action, products.map((product: CatalogProductRow) => product.id));
-    const existingRows = await (this.prisma.$queryRawUnsafe(
+    const idempotencyKey = this.buildIdempotencyKey(event, eventType, catalogProductId, action, products.map((product) => product.id));
+    const existingRows = await this.prisma.$queryRawUnsafe<CatalogAttemptRow[]>(
       'SELECT * FROM "flipflop_catalog_event_attempts" WHERE "idempotencyKey" = $1 LIMIT 1',
       idempotencyKey,
-    ) as Promise<CatalogAttemptRow[]>);
+    );
     if (existingRows[0]) return existingRows[0];
 
-    const rows = await (this.prisma.$queryRawUnsafe(
+    const rows = await this.prisma.$queryRawUnsafe<CatalogAttemptRow[]>(
       `INSERT INTO "flipflop_catalog_event_attempts" (
         "status", "idempotencyKey", "eventType", "eventId", "catalogProductId",
         "matchedProductCount", "requestPayload", "policySnapshot", "queuedAt", "updatedAt"
@@ -402,7 +402,7 @@ export class CatalogEventsSubscriber implements OnModuleInit, OnModuleDestroy {
           '[MISSING: safe FlipFlop catalog-event refresh policy]',
         ],
       }),
-    ) as Promise<CatalogAttemptRow[]>);
+    );
     return rows[0];
   }
 

@@ -123,8 +123,8 @@ The monitor writes `reports/validation/synthetic-journey-monitor/report-latest.j
 - `[MISSING: synthetic customer/contact]` as `SYNTHETIC_CUSTOMER_EMAIL` or approved token-bound synthetic identity.
 - `[MISSING: approved delivery test contract]` as `SYNTHETIC_DELIVERY_CONTRACT_ID`.
 - `[MISSING: sandbox/test-mode payment provider contract]` with `PAYMENT_SANDBOX_CONTRACT_APPROVED=1`, `TEST_MODE_PAYMENT_PROVIDER`, and `CHECKOUT_MUTATION_MODE=sandbox|test-only`.
-- `[MISSING: synthetic email assertion source]` as `SYNTHETIC_EMAIL_ASSERTION_SOURCE`.
-- `[MISSING: event trace assertion source]` as `SYNTHETIC_EVENT_TRACE_SOURCE`.
+- `[RESOLVED/NARROWED: synthetic email assertion source]` as `SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl` plus `SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid`.
+- `[RESOLVED/NARROWED: event trace assertion source]` as `SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl`.
 - `[MISSING: order/payment cleanup or retention contract]` as `SYNTHETIC_ORDER_CLEANUP_CONTRACT`.
 
 ## Assertions
@@ -143,9 +143,9 @@ Payment success: `[MISSING: sandbox/test-mode payment success evidence]` until a
 
 Order created: `[MISSING: central Orders create/read evidence for synthetic order]` until approved sandbox runner exists.
 
-Email queued/delivered: `[MISSING: email queue/inbox/log readback contract]` until an approved synthetic email sink exists.
+Email queued/delivered: use `SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl` with `SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid`; the sink captures sanitized JSONL and returns `captured_not_sent` for matching synthetic recipients.
 
-Event trace: `[MISSING: journey correlation id and event/log query contract]` until trace source exists.
+Event trace: use `SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl`; the trace file is queryable by `journey_id` and `correlation_id` and contains sanitized metadata only.
 
 ## Failure classification
 

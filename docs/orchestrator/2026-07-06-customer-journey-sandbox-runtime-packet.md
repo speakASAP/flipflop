@@ -131,8 +131,8 @@ The full sandbox runner remains blocked until every item below is resolved.
 | Payment sandbox approval flag | `[MISSING: sandbox/test-mode payment approval flag]` | explicit owner-approved `PAYMENT_SANDBOX_CONTRACT_APPROVED=1` or equivalent non-secret packet |
 | Test-mode provider | `[MISSING: documented sandbox/test-mode payment provider]`; `[RESOLVED/NARROWED: Goal 24 Fiobanka QR material is policy/checklist evidence only and is not a reusable sandbox/test-mode approval packet]` | provider/method/environment and proof that no real money movement occurs |
 | Checkout mutation mode | `[MISSING: sandbox or test-only checkout mutation mode]` | `CHECKOUT_MUTATION_MODE=sandbox|test-only` and service-side enforcement proof |
-| Email assertion source | `[MISSING: email queue/inbox assertion source]`; `[RESOLVED/NARROWED: notification code exists, but no approved synthetic email sink/readback source was found]` | synthetic email sink/queue/log readback that does not send to real customers |
-| Event trace assertion source | `[MISSING: event trace assertion source]`; `[RESOLVED/NARROWED: source-level AMQP publisher/schema exists for flipflop.customer_journey.events.v1, but no approved consumer/storage/query readback source was found]` | query path for `flipflop.customer_journey.events.v1` by `journey_id`/`correlation_id` |
+| Email assertion source | `[RESOLVED/NARROWED: approved source contract is SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl with SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid; notification code captures matching synthetic email assertions as sanitized JSONL and returns captured_not_sent]` | synthetic email sink/queue/log readback that does not send to real customers |
+| Event trace assertion source | `[RESOLVED/NARROWED: approved source contract is SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl; customer journey publisher records sanitized JSONL trace rows after broker publish, queryable by journey_id/correlation_id]` | query path for `flipflop.customer_journey.events.v1` by `journey_id`/`correlation_id` |
 | Cleanup/retention contract | `[MISSING: order/payment cleanup or retention contract]` | decision to clean up, cancel, retain, or mark synthetic order/payment, with idempotency and side-effect acknowledgements |
 
 ## Environment Variables Expected by Monitor
@@ -146,8 +146,9 @@ SYNTHETIC_DELIVERY_CONTRACT_ID=flipflop.delivery.store_pickup.no_external_carrie
 PAYMENT_SANDBOX_CONTRACT_APPROVED
 TEST_MODE_PAYMENT_PROVIDER
 CHECKOUT_MUTATION_MODE
-SYNTHETIC_EMAIL_ASSERTION_SOURCE
-SYNTHETIC_EVENT_TRACE_SOURCE
+SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl
+SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid
+SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl
 SYNTHETIC_ORDER_CLEANUP_CONTRACT
 ```
 
@@ -187,7 +188,7 @@ Stop before checkout/payment/order side effects if any condition is true:
 | --- | --- | --- | --- | --- | --- | --- |
 | W5A Synthetic product/delivery | complete: blocked missing approved contracts | product/catalog/delivery investigator | find approved synthetic product/SKU and delivery contract | docs/source/report/public API read-only inspection | cart/order/payment mutation, DB writes, raw customer/order data | `[MISSING: approved synthetic product/SKU]`; `[MISSING: approved delivery test contract]` |
 | W5B Payment sandbox | complete: blocked missing approved contract | payments/runtime investigator | find sandbox/test-mode payment provider contract | docs/source/report/config-shape inspection without secrets | payment initiation, provider call, webhook replay, token output | `[MISSING: safe sandbox/test-mode payment provider contract]` |
-| W5C Email/event trace | complete: blocked missing approved sources | observability/notification investigator | find synthetic email sink and event trace source | docs/source/report inspection | sending emails, publishing events, raw payload/token output | `[MISSING: synthetic email assertion source]`; `[MISSING: event trace assertion source]` |
+| W5C Email/event trace | complete: source-resolved, runtime disabled by default | observability/notification integrator | provide synthetic email sink and event trace source contracts | source/docs/verifier updates | sending emails, publishing events outside approved sandbox, raw payload/token output | `SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl`; `SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl` |
 | W5D Packet integration | current thread | integration owner | merge facts and keep hard stops visible | this packet and status docs | runtime side effects | final owner-ready packet |
 
 Spawned discovery threads:
@@ -210,17 +211,17 @@ Integrated findings:
 - W5A delivery narrowing: owner-approved packet preparation may use `flipflop.delivery.store_pickup.no_external_carrier.v1` as the delivery test contract candidate because checkout source exposes `deliveryMethod=store` and order-service calculates `shippingCost=0`, avoiding external carrier/shipment obligations during future sandbox planning.
 - W5B: FlipFlop source has provider/method candidates such as `fiobanka`, `invoice`, `webpay`, `stripe`, `paypal`, and `payu`; none is currently documented as a reusable sandbox/test-mode provider for this packet.
 - W5B: Goal 24 Fiobanka QR material can inform hard-stop policy only. It is not current approval for this customer-journey sandbox run.
-- W5C: customer-journey AMQP publisher/schema exists, but no approved event trace readback/query source exists.
-- W5C: notification/email implementation exists, but no approved synthetic email sink/readback source exists.
+- W5C: customer-journey AMQP publisher/schema exists, and an approved disabled-by-default event trace source contract now exists as `SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl`.
+- W5C: notification/email implementation exists, and an approved disabled-by-default synthetic email assertion source contract now exists as `SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl` with `SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid`.
 
-These final W5A/W5B/W5C findings kept the packet blocked for runtime execution. The owner approval intake below authorizes packet preparation only; it does not resolve the missing runtime facts.
+W5C is now source-resolved by disabled-by-default assertion capture contracts. The packet remains blocked for runtime execution by the remaining product/customer/payment/checkout/cleanup/final-evidence facts. The owner approval intake below authorizes packet preparation and W5C source contracts only; it does not authorize full sandbox execution.
 
 ## Proposed Owner Approval Statement
 
 This section is intentionally not executable until every `[MISSING: ...]` marker is replaced.
 
 ```text
-I approve exactly one FlipFlop customer journey sandbox run for process flipflop.successful_customer_journey.v1 using approval id [MISSING: approval id], execution window [MISSING: start/end Europe/Prague], synthetic product/SKU [MISSING], synthetic customer/contact [MISSING], delivery contract flipflop.delivery.store_pickup.no_external_carrier.v1, sandbox/test-mode payment provider [MISSING], checkout mutation mode [MISSING], email assertion source [MISSING], event trace source [MISSING], cleanup/retention contract [MISSING], and redacted evidence path [MISSING].
+I approve exactly one FlipFlop customer journey sandbox run for process flipflop.successful_customer_journey.v1 using approval id [MISSING: approval id], execution window [MISSING: start/end Europe/Prague], synthetic product/SKU [MISSING], synthetic customer/contact [MISSING], delivery contract flipflop.delivery.store_pickup.no_external_carrier.v1, sandbox/test-mode payment provider [MISSING], checkout mutation mode [MISSING], email assertion source synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl, event trace source synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl, cleanup/retention contract [MISSING], and redacted evidence path [MISSING].
 
 I understand this authorizes only the named sandbox/test-mode attempt. The executor must stop at the first hard stop and must not print secrets, tokens, raw customer/contact/address data, raw provider payloads, raw DB rows, raw order ids, raw payment ids, or full event payloads containing sensitive data.
 ```
@@ -245,14 +246,43 @@ Still missing for execution:
 - `[RESOLVED/NARROWED: delivery test contract candidate flipflop.delivery.store_pickup.no_external_carrier.v1 selected for packet preparation only; no runtime checkout allowed until the remaining missing facts are resolved]`
 - `[MISSING: documented sandbox/test-mode payment provider with environment proof]`
 - `[MISSING: CHECKOUT_MUTATION_MODE=sandbox|test-only service-side enforcement proof]`
-- `[MISSING: synthetic email assertion source]`
-- `[MISSING: event trace assertion source]`
+- `[RESOLVED/NARROWED: SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl with SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid]`
+- `[RESOLVED/NARROWED: SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl]`
 - `[MISSING: order/payment cleanup or retention contract]`
 - `[MISSING: final redacted evidence path]`
 
+
+
+## Workstream 5C Approved Assertion Source Contracts
+
+User approval captured in orchestration thread `019f387b-12f0-7de1-9cc4-f1b1683094d1` permits source-only resolution of the email/event assertion source contracts. It does not authorize checkout, payment, provider, Orders, Warehouse, delivery, deploy, DB write, or full sandbox execution.
+
+Email assertion source:
+
+```text
+SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl
+SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid
+```
+
+Behavior: when enabled and the recipient domain matches `SYNTHETIC_EMAIL_ASSERTION_DOMAIN`, `NotificationService` writes a sanitized JSONL assertion row and returns `captured_not_sent`; it does not call the notifications service for that synthetic recipient. The row contains hashes and metadata keys only, with `raw_recipient_output=false`, `raw_message_output=false`, and `secret_output=false`.
+
+Event trace assertion source:
+
+```text
+SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl
+```
+
+Behavior: when enabled, `CustomerJourneyEventsPublisher` appends a sanitized JSONL trace row after publishing to `flipflop.customer_journey.events.v1`. The row keeps `journey_id`, `correlation_id`, event name, routing key, hashed identifiers, metadata keys, and explicit `raw_payload_output=false`, `raw_customer_or_payment_evidence=false`, and `secret_output=false`.
+
+Validation command:
+
+```bash
+npm run verify:customer-journey-assertion-sources
+```
+
 ## Current Decision
 
-Status: `owner-approved-packet-prep-delivery-contract-narrowed-runtime-side-effects-blocked`.
+Status: `owner-approved-packet-prep-delivery-and-w5c-source-narrowed-runtime-side-effects-blocked`.
 
 The packet is ready for fact discovery and owner review, not for execution. The current safe state remains:
 
@@ -290,3 +320,30 @@ source: services/frontend/app/checkout/page.tsx DELIVERY_OPTIONS and services/or
 ```
 
 Decision: `[RESOLVED/NARROWED: delivery test contract candidate selected for packet preparation]`. This narrows only the delivery fact. It does not authorize checkout/order/payment/email/event execution and does not replace the remaining missing product, customer, payment, email, event, cleanup, or evidence-path facts.
+
+
+## 2026-07-06 Validation Refresh
+
+Commands run after packet narrowing:
+
+```bash
+git diff --check
+npm run verify:customer-journey-events-contract --silent
+npm run verify:synthetic-journey-monitor --silent
+node --check scripts/synthetic-customer-journey-monitor.js
+npm run verify:paid-provider-bundle-checkout-gate --silent
+npm run verify:orders-lifecycle-ui --silent
+```
+
+Observed result:
+
+```text
+git diff --check: pass
+customer journey event contract: ok=true, eventsValidated=14, runtimeMutation=false
+synthetic journey monitor: ok=true, status=read_only_passed_full_flow_blocked_missing_contract, mutation=false, liveCheckoutExecuted=false, providerCall=false, ordersMutation=false, warehouseMutation=false, rawCustomerOrPaymentEvidence=false
+synthetic monitor syntax: pass
+paid-provider bundle checkout gate: ok=true, mutation=false, providerCall=false, liveCheckoutExecuted=false, runtime paid/provider still blocked
+orders lifecycle UI verifier: ok=true, coveredStages=13, sensitiveOutput=redacted-source-only
+```
+
+Validation decision: packet preparation is source-valid; runtime execution remains blocked by missing synthetic product/SKU, synthetic customer/contact, sandbox/test-mode provider, checkout mutation mode enforcement proof, email assertion source, event trace assertion source, cleanup/retention contract, and final redacted evidence path.
