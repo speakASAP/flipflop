@@ -5,132 +5,337 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "contract",
-    "schema_version",
     "event_id",
-    "event_type",
+    "event_name",
+    "version",
     "occurred_at",
-    "producer",
     "journey_id",
     "correlation_id",
+    "causation_id",
     "idempotency_key",
-    "phase",
-    "subject",
-    "context",
-    "data"
+    "source",
+    "environment",
+    "identifiers",
+    "metadata"
   ],
   "properties": {
-    "contract": {
-      "const": "flipflop.customer_journey.events.v1"
-    },
-    "schema_version": {
-      "const": 1
-    },
     "event_id": {
       "type": "string",
       "pattern": "^evt_[a-z0-9][a-z0-9_-]{11,127}$"
     },
-    "event_type": {
+    "event_name": {
       "type": "string",
       "enum": [
-        "journey.started",
-        "catalog.product_viewed",
-        "cart.item_added",
-        "checkout.started",
-        "payment.intent_created",
-        "order.submitted",
-        "journey.completed",
-        "journey.abandoned"
+        "session_started",
+        "product_viewed",
+        "cart_item_added",
+        "checkout_started",
+        "customer_identity_resolved",
+        "shipping_option_selected",
+        "cart_validated",
+        "payment_attempt_started",
+        "payment_succeeded",
+        "order_created",
+        "order_confirmation_email_queued",
+        "order_confirmation_email_sent",
+        "marketing_handoff_requested",
+        "marketing_handoff_accepted"
       ]
+    },
+    "version": {
+      "const": "1.0.0"
     },
     "occurred_at": {
       "type": "string",
       "format": "date-time"
     },
-    "producer": {
+    "processed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "journey_id": {
+      "type": "string",
+      "pattern": "^journey_[a-z0-9][a-z0-9_-]{8,127}$"
+    },
+    "correlation_id": {
+      "type": "string",
+      "pattern": "^corr_[a-z0-9][a-z0-9_-]{8,127}$"
+    },
+    "causation_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "idempotency_key": {
+      "type": "string",
+      "pattern": "^flipflop:[a-z0-9_:-]{8,180}$"
+    },
+    "source": {
       "type": "object",
       "additionalProperties": false,
       "required": [
         "service",
-        "source",
-        "environment"
+        "component",
+        "producer"
       ],
       "properties": {
         "service": {
           "const": "flipflop"
         },
-        "source": {
-          "type": "string",
-          "enum": [
-            "frontend",
-            "order-service",
-            "product-service"
-          ]
+        "component": {
+          "type": "string"
         },
-        "environment": {
+        "producer": {
+          "type": "string"
+        },
+        "route": {
+          "type": "string"
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
           "type": "string",
           "enum": [
             "production",
             "staging",
             "test",
+            "development",
             "synthetic"
+          ]
+        },
+        "release": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "commit_sha": {
+          "type": [
+            "string",
+            "null"
           ]
         }
       }
     },
-    "journey_id": {
-      "type": "string",
-      "pattern": "^jrny_[a-z0-9][a-z0-9_-]{11,127}$"
-    },
-    "correlation_id": {
-      "type": "string",
-      "pattern": "^corr_[a-z0-9][a-z0-9_-]{11,127}$"
-    },
-    "idempotency_key": {
-      "type": "string",
-      "pattern": "^flipflop\\.customer_journey\\.events\\.v1:[a-z0-9._:-]{16,180}$"
-    },
-    "phase": {
-      "type": "string",
-      "enum": [
-        "landing",
-        "catalog",
-        "cart",
-        "checkout",
-        "payment",
-        "order",
-        "completion",
-        "abandonment"
-      ]
-    },
-    "subject": {
+    "identifiers": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "session_hash"
+        "storefront_id"
       ],
       "properties": {
-        "session_hash": {
-          "type": "string",
-          "pattern": "^sha256:[a-f0-9]{64}$"
+        "anonymous_id": {
+          "type": [
+            "string",
+            "null"
+          ]
         },
-        "auth_subject_hash": {
-          "type": "string",
-          "pattern": "^sha256:[a-f0-9]{64}$"
+        "session_id": {
+          "type": [
+            "string",
+            "null"
+          ]
         },
-        "customer_hash": {
-          "type": "string",
-          "pattern": "^sha256:[a-f0-9]{64}$"
+        "customer_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "auth_subject": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cart_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "checkout_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "payment_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "payment_provider_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "order_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "email_message_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "marketing_handoff_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "storefront_id": {
+          "const": "flipflop"
         }
       }
     },
-    "context": {
+    "commercial": {
       "type": "object",
       "additionalProperties": false,
       "required": [
+        "currency",
+        "precision"
+      ],
+      "properties": {
+        "currency": {
+          "type": "string",
+          "enum": [
+            "CZK"
+          ]
+        },
+        "subtotal_amount": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "discount_amount": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "shipping_amount": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "tax_amount": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "total_amount": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "precision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "item_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "coupon_ids": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "product_id"
+        ],
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "sku": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "variant_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "quantity": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "unit_price": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "amount": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "currency": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "precision": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 4
+              }
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
         "channel",
-        "locale",
-        "currency"
+        "synthetic"
       ],
       "properties": {
         "channel": {
@@ -142,169 +347,138 @@
             "synthetic"
           ]
         },
+        "synthetic": {
+          "type": "boolean"
+        },
         "locale": {
-          "type": "string",
-          "pattern": "^[a-z]{2}(-[A-Z]{2})?$"
+          "type": "string"
         },
-        "currency": {
-          "type": "string",
-          "enum": [
-            "CZK"
-          ]
+        "cart_valid": {
+          "type": "boolean"
         },
-        "campaign_id": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9._:-]{1,120}$"
+        "marketing_consent": {
+          "type": "boolean"
         },
-        "experiment_id": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9._:-]{1,120}$"
-        }
-      }
-    },
-    "data": {
-      "type": "object",
-      "additionalProperties": true,
-      "properties": {
-        "product_id": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 120
-        },
-        "catalog_product_id": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 120
-        },
-        "cart_id": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 120
-        },
-        "cart_line_id": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 120
-        },
-        "checkout_id": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 120
-        },
-        "payment_id_hash": {
-          "type": "string",
-          "pattern": "^sha256:[a-f0-9]{64}$"
+        "shipping_method": {
+          "type": "string"
         },
         "payment_method": {
-          "type": "string",
-          "enum": [
-            "fiobanka",
-            "stripe",
-            "payu",
-            "paypal",
-            "webpay",
-            "cod",
-            "synthetic"
-          ]
+          "type": "string"
         },
-        "order_id_hash": {
-          "type": "string",
-          "pattern": "^sha256:[a-f0-9]{64}$"
-        },
-        "central_order_id_hash": {
-          "type": "string",
-          "pattern": "^sha256:[a-f0-9]{64}$"
-        },
-        "total_czk_minor": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "quantity": {
-          "type": "integer",
-          "minimum": 1
+        "handoff_target": {
+          "type": "string"
         }
       }
     }
   },
   "x-contract-rules": {
-    "required_events": [
-      "journey.started",
-      "catalog.product_viewed",
-      "cart.item_added",
-      "checkout.started",
-      "payment.intent_created",
-      "order.submitted"
+    "contract_name": "flipflop.customer_journey.events.v1",
+    "exchange": "flipflop.customer_journey.events.v1",
+    "routing_key_pattern": "customer_journey.{event_name}",
+    "required_events_before_ai": [
+      "session_started",
+      "product_viewed",
+      "cart_item_added",
+      "checkout_started",
+      "customer_identity_resolved",
+      "shipping_option_selected",
+      "cart_validated",
+      "payment_attempt_started",
+      "payment_succeeded",
+      "order_created",
+      "order_confirmation_email_queued",
+      "order_confirmation_email_sent",
+      "marketing_handoff_requested",
+      "marketing_handoff_accepted"
     ],
-    "terminal_events": [
-      "journey.completed",
-      "journey.abandoned"
+    "minimum_event_set_required_before_ai_optimization": [
+      "session_started",
+      "product_viewed",
+      "cart_item_added",
+      "checkout_started",
+      "customer_identity_resolved",
+      "shipping_option_selected",
+      "cart_validated",
+      "payment_attempt_started",
+      "payment_succeeded",
+      "order_created",
+      "order_confirmation_email_queued",
+      "order_confirmation_email_sent",
+      "marketing_handoff_requested",
+      "marketing_handoff_accepted"
     ],
-    "event_phase": {
-      "journey.started": "landing",
-      "catalog.product_viewed": "catalog",
-      "cart.item_added": "cart",
-      "checkout.started": "checkout",
-      "payment.intent_created": "payment",
-      "order.submitted": "order",
-      "journey.completed": "completion",
-      "journey.abandoned": "abandonment"
-    },
-    "phase_required_data": {
-      "catalog": [
-        "product_id",
-        "catalog_product_id"
+    "event_required_identifiers": {
+      "session_started": [
+        "anonymous_id",
+        "session_id"
       ],
-      "cart": [
-        "cart_id",
-        "cart_line_id",
-        "product_id",
-        "catalog_product_id",
-        "quantity"
+      "product_viewed": [
+        "anonymous_id",
+        "session_id"
       ],
-      "checkout": [
+      "cart_item_added": [
+        "cart_id"
+      ],
+      "checkout_started": [
         "cart_id",
         "checkout_id"
       ],
-      "payment": [
+      "customer_identity_resolved": [
+        "customer_id"
+      ],
+      "shipping_option_selected": [
+        "checkout_id"
+      ],
+      "cart_validated": [
+        "cart_id",
+        "checkout_id"
+      ],
+      "payment_attempt_started": [
         "checkout_id",
-        "payment_id_hash",
-        "payment_method",
-        "total_czk_minor"
+        "payment_id"
       ],
-      "order": [
+      "payment_succeeded": [
         "checkout_id",
-        "order_id_hash",
-        "central_order_id_hash",
-        "total_czk_minor"
+        "payment_id",
+        "order_id"
       ],
-      "completion": [
-        "order_id_hash",
-        "central_order_id_hash"
+      "order_created": [
+        "order_id"
       ],
-      "abandonment": [
-        "cart_id"
+      "order_confirmation_email_queued": [
+        "order_id"
+      ],
+      "order_confirmation_email_sent": [
+        "order_id"
+      ],
+      "marketing_handoff_requested": [
+        "customer_id",
+        "order_id"
+      ],
+      "marketing_handoff_accepted": [
+        "customer_id",
+        "order_id",
+        "marketing_handoff_id"
       ]
+    },
+    "correlation_strategy": {
+      "journey_id": "Created at first observed session and propagated through cart, checkout, order, payment, email, and marketing handoff metadata.",
+      "correlation_id": "One stable customer journey correlation ID per successful funnel; AMQP correlationId equals envelope correlation_id.",
+      "causation_id": "Previous event_id when known, otherwise null for the first event or runtime boundaries without a reliable predecessor.",
+      "idempotency_key": "Deterministic key scoped as flipflop:{event_name}:{business_object_id}:{transition_or_sequence}."
     },
     "forbidden_raw_sensitive_fields": [
       "email",
       "phone",
       "firstName",
       "lastName",
-      "name",
-      "fullName",
       "address",
       "street",
       "city",
       "postalCode",
-      "zip",
-      "password",
       "token",
-      "cookie",
-      "authorization",
-      "cardNumber",
-      "iban",
-      "variableSymbol",
-      "providerPayload"
+      "password",
+      "cardNumber"
     ]
   }
 }

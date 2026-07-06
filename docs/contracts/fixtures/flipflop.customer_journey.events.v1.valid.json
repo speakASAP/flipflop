@@ -1,209 +1,947 @@
 [
   {
-    "contract": "flipflop.customer_journey.events.v1",
-    "schema_version": 1,
-    "producer": {
-      "service": "flipflop",
-      "source": "frontend",
-      "environment": "synthetic"
-    },
-    "journey_id": "jrny_contract_synthetic_20260706",
-    "correlation_id": "corr_contract_synthetic_20260706",
-    "subject": {
-      "session_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-      "auth_subject_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
-    },
-    "context": {
-      "channel": "synthetic",
-      "locale": "cs-CZ",
-      "currency": "CZK"
-    },
-    "event_id": "evt_contract_journey_started_001",
-    "event_type": "journey.started",
-    "occurred_at": "2026-07-06T08:00:00.000Z",
-    "idempotency_key": "flipflop.customer_journey.events.v1:synthetic:journey:started:001",
-    "phase": "landing",
-    "data": {}
-  },
-  {
-    "contract": "flipflop.customer_journey.events.v1",
-    "schema_version": 1,
-    "producer": {
-      "service": "flipflop",
-      "source": "frontend",
-      "environment": "synthetic"
-    },
-    "journey_id": "jrny_contract_synthetic_20260706",
-    "correlation_id": "corr_contract_synthetic_20260706",
-    "subject": {
-      "session_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-      "auth_subject_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
-    },
-    "context": {
-      "channel": "synthetic",
-      "locale": "cs-CZ",
-      "currency": "CZK"
-    },
-    "event_id": "evt_contract_product_viewed_001",
-    "event_type": "catalog.product_viewed",
+    "event_id": "evt_contract_session_started_001",
+    "event_name": "session_started",
+    "version": "1.0.0",
     "occurred_at": "2026-07-06T08:01:00.000Z",
-    "idempotency_key": "flipflop.customer_journey.events.v1:synthetic:catalog:viewed:001",
-    "phase": "catalog",
-    "data": {
-      "product_id": "local-product-001",
-      "catalog_product_id": "catalog-product-001"
+    "processed_at": "2026-07-06T08:01:01.000Z",
+    "journey_id": "journey_contract_20260706",
+    "correlation_id": "corr_contract_20260706",
+    "causation_id": null,
+    "idempotency_key": "flipflop:session_started:contract:001",
+    "source": {
+      "service": "flipflop",
+      "component": "frontend",
+      "producer": "frontend",
+      "route": "/synthetic/customer-journey"
+    },
+    "environment": {
+      "name": "synthetic",
+      "release": "contract-fixture",
+      "commit_sha": null
+    },
+    "identifiers": {
+      "anonymous_id": "anon_contract_20260706",
+      "session_id": "session_contract_20260706",
+      "customer_id": "cust_contract_20260706",
+      "auth_subject": "auth_contract_20260706",
+      "cart_id": "cart_contract_20260706",
+      "checkout_id": "checkout_contract_20260706",
+      "payment_id": "payment_contract_20260706",
+      "payment_provider_reference": "provider_ref_contract_20260706",
+      "order_id": "order_contract_20260706",
+      "email_message_id": "email_contract_20260706",
+      "marketing_handoff_id": "lead_contract_20260706",
+      "storefront_id": "flipflop"
+    },
+    "metadata": {
+      "channel": "synthetic",
+      "synthetic": true,
+      "locale": "cs-CZ",
+      "cart_valid": true,
+      "shipping_method": "home_delivery",
+      "payment_method": "card",
+      "marketing_consent": true,
+      "handoff_target": "leads"
     }
   },
   {
-    "contract": "flipflop.customer_journey.events.v1",
-    "schema_version": 1,
-    "producer": {
-      "service": "flipflop",
-      "source": "frontend",
-      "environment": "synthetic"
-    },
-    "journey_id": "jrny_contract_synthetic_20260706",
-    "correlation_id": "corr_contract_synthetic_20260706",
-    "subject": {
-      "session_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-      "auth_subject_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
-    },
-    "context": {
-      "channel": "synthetic",
-      "locale": "cs-CZ",
-      "currency": "CZK"
-    },
-    "event_id": "evt_contract_cart_item_added_001",
-    "event_type": "cart.item_added",
+    "event_id": "evt_contract_product_viewed_002",
+    "event_name": "product_viewed",
+    "version": "1.0.0",
     "occurred_at": "2026-07-06T08:02:00.000Z",
-    "idempotency_key": "flipflop.customer_journey.events.v1:synthetic:cart:item-added:001",
-    "phase": "cart",
-    "data": {
-      "cart_id": "cart-synthetic-001",
-      "cart_line_id": "cart-line-synthetic-001",
-      "product_id": "local-product-001",
-      "catalog_product_id": "catalog-product-001",
-      "quantity": 1
+    "processed_at": "2026-07-06T08:02:01.000Z",
+    "journey_id": "journey_contract_20260706",
+    "correlation_id": "corr_contract_20260706",
+    "causation_id": "evt_contract_session_started_001",
+    "idempotency_key": "flipflop:product_viewed:contract:002",
+    "source": {
+      "service": "flipflop",
+      "component": "frontend",
+      "producer": "frontend",
+      "route": "/synthetic/customer-journey"
+    },
+    "environment": {
+      "name": "synthetic",
+      "release": "contract-fixture",
+      "commit_sha": null
+    },
+    "identifiers": {
+      "anonymous_id": "anon_contract_20260706",
+      "session_id": "session_contract_20260706",
+      "customer_id": "cust_contract_20260706",
+      "auth_subject": "auth_contract_20260706",
+      "cart_id": "cart_contract_20260706",
+      "checkout_id": "checkout_contract_20260706",
+      "payment_id": "payment_contract_20260706",
+      "payment_provider_reference": "provider_ref_contract_20260706",
+      "order_id": "order_contract_20260706",
+      "email_message_id": "email_contract_20260706",
+      "marketing_handoff_id": "lead_contract_20260706",
+      "storefront_id": "flipflop"
+    },
+    "items": [
+      {
+        "product_id": "product_contract_sandal_001",
+        "sku": "FF-SANDAL-001",
+        "variant_id": null,
+        "quantity": 1,
+        "unit_price": {
+          "amount": 149900,
+          "currency": "CZK",
+          "precision": 2
+        }
+      }
+    ],
+    "metadata": {
+      "channel": "synthetic",
+      "synthetic": true,
+      "locale": "cs-CZ",
+      "cart_valid": true,
+      "shipping_method": "home_delivery",
+      "payment_method": "card",
+      "marketing_consent": true,
+      "handoff_target": "leads"
     }
   },
   {
-    "contract": "flipflop.customer_journey.events.v1",
-    "schema_version": 1,
-    "producer": {
-      "service": "flipflop",
-      "source": "frontend",
-      "environment": "synthetic"
-    },
-    "journey_id": "jrny_contract_synthetic_20260706",
-    "correlation_id": "corr_contract_synthetic_20260706",
-    "subject": {
-      "session_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-      "auth_subject_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
-    },
-    "context": {
-      "channel": "synthetic",
-      "locale": "cs-CZ",
-      "currency": "CZK"
-    },
-    "event_id": "evt_contract_checkout_started_001",
-    "event_type": "checkout.started",
+    "event_id": "evt_contract_cart_item_added_003",
+    "event_name": "cart_item_added",
+    "version": "1.0.0",
     "occurred_at": "2026-07-06T08:03:00.000Z",
-    "idempotency_key": "flipflop.customer_journey.events.v1:synthetic:checkout:started:001",
-    "phase": "checkout",
-    "data": {
-      "cart_id": "cart-synthetic-001",
-      "checkout_id": "checkout-synthetic-001"
+    "processed_at": "2026-07-06T08:03:01.000Z",
+    "journey_id": "journey_contract_20260706",
+    "correlation_id": "corr_contract_20260706",
+    "causation_id": "evt_contract_product_viewed_002",
+    "idempotency_key": "flipflop:cart_item_added:contract:003",
+    "source": {
+      "service": "flipflop",
+      "component": "frontend",
+      "producer": "frontend",
+      "route": "/synthetic/customer-journey"
+    },
+    "environment": {
+      "name": "synthetic",
+      "release": "contract-fixture",
+      "commit_sha": null
+    },
+    "identifiers": {
+      "anonymous_id": "anon_contract_20260706",
+      "session_id": "session_contract_20260706",
+      "customer_id": "cust_contract_20260706",
+      "auth_subject": "auth_contract_20260706",
+      "cart_id": "cart_contract_20260706",
+      "checkout_id": "checkout_contract_20260706",
+      "payment_id": "payment_contract_20260706",
+      "payment_provider_reference": "provider_ref_contract_20260706",
+      "order_id": "order_contract_20260706",
+      "email_message_id": "email_contract_20260706",
+      "marketing_handoff_id": "lead_contract_20260706",
+      "storefront_id": "flipflop"
+    },
+    "commercial": {
+      "currency": "CZK",
+      "subtotal_amount": 149900,
+      "discount_amount": 0,
+      "shipping_amount": 9900,
+      "tax_amount": 0,
+      "total_amount": 159800,
+      "precision": 2,
+      "item_count": 1,
+      "coupon_ids": []
+    },
+    "items": [
+      {
+        "product_id": "product_contract_sandal_001",
+        "sku": "FF-SANDAL-001",
+        "variant_id": null,
+        "quantity": 1,
+        "unit_price": {
+          "amount": 149900,
+          "currency": "CZK",
+          "precision": 2
+        }
+      }
+    ],
+    "metadata": {
+      "channel": "synthetic",
+      "synthetic": true,
+      "locale": "cs-CZ",
+      "cart_valid": true,
+      "shipping_method": "home_delivery",
+      "payment_method": "card",
+      "marketing_consent": true,
+      "handoff_target": "leads"
     }
   },
   {
-    "contract": "flipflop.customer_journey.events.v1",
-    "schema_version": 1,
-    "producer": {
-      "service": "flipflop",
-      "source": "frontend",
-      "environment": "synthetic"
-    },
-    "journey_id": "jrny_contract_synthetic_20260706",
-    "correlation_id": "corr_contract_synthetic_20260706",
-    "subject": {
-      "session_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-      "auth_subject_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
-    },
-    "context": {
-      "channel": "synthetic",
-      "locale": "cs-CZ",
-      "currency": "CZK"
-    },
-    "event_id": "evt_contract_payment_intent_001",
-    "event_type": "payment.intent_created",
+    "event_id": "evt_contract_checkout_started_004",
+    "event_name": "checkout_started",
+    "version": "1.0.0",
     "occurred_at": "2026-07-06T08:04:00.000Z",
-    "idempotency_key": "flipflop.customer_journey.events.v1:synthetic:payment:intent:001",
-    "phase": "payment",
-    "data": {
-      "checkout_id": "checkout-synthetic-001",
-      "payment_id_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-      "payment_method": "synthetic",
-      "total_czk_minor": 30000
+    "processed_at": "2026-07-06T08:04:01.000Z",
+    "journey_id": "journey_contract_20260706",
+    "correlation_id": "corr_contract_20260706",
+    "causation_id": "evt_contract_cart_item_added_003",
+    "idempotency_key": "flipflop:checkout_started:contract:004",
+    "source": {
+      "service": "flipflop",
+      "component": "frontend",
+      "producer": "frontend",
+      "route": "/synthetic/customer-journey"
+    },
+    "environment": {
+      "name": "synthetic",
+      "release": "contract-fixture",
+      "commit_sha": null
+    },
+    "identifiers": {
+      "anonymous_id": "anon_contract_20260706",
+      "session_id": "session_contract_20260706",
+      "customer_id": "cust_contract_20260706",
+      "auth_subject": "auth_contract_20260706",
+      "cart_id": "cart_contract_20260706",
+      "checkout_id": "checkout_contract_20260706",
+      "payment_id": "payment_contract_20260706",
+      "payment_provider_reference": "provider_ref_contract_20260706",
+      "order_id": "order_contract_20260706",
+      "email_message_id": "email_contract_20260706",
+      "marketing_handoff_id": "lead_contract_20260706",
+      "storefront_id": "flipflop"
+    },
+    "commercial": {
+      "currency": "CZK",
+      "subtotal_amount": 149900,
+      "discount_amount": 0,
+      "shipping_amount": 9900,
+      "tax_amount": 0,
+      "total_amount": 159800,
+      "precision": 2,
+      "item_count": 1,
+      "coupon_ids": []
+    },
+    "items": [
+      {
+        "product_id": "product_contract_sandal_001",
+        "sku": "FF-SANDAL-001",
+        "variant_id": null,
+        "quantity": 1,
+        "unit_price": {
+          "amount": 149900,
+          "currency": "CZK",
+          "precision": 2
+        }
+      }
+    ],
+    "metadata": {
+      "channel": "synthetic",
+      "synthetic": true,
+      "locale": "cs-CZ",
+      "cart_valid": true,
+      "shipping_method": "home_delivery",
+      "payment_method": "card",
+      "marketing_consent": true,
+      "handoff_target": "leads"
     }
   },
   {
-    "contract": "flipflop.customer_journey.events.v1",
-    "schema_version": 1,
-    "producer": {
-      "service": "flipflop",
-      "source": "order-service",
-      "environment": "synthetic"
-    },
-    "journey_id": "jrny_contract_synthetic_20260706",
-    "correlation_id": "corr_contract_synthetic_20260706",
-    "subject": {
-      "session_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-      "auth_subject_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
-    },
-    "context": {
-      "channel": "synthetic",
-      "locale": "cs-CZ",
-      "currency": "CZK"
-    },
-    "event_id": "evt_contract_order_submitted_001",
-    "event_type": "order.submitted",
+    "event_id": "evt_contract_customer_identity_resolved_005",
+    "event_name": "customer_identity_resolved",
+    "version": "1.0.0",
     "occurred_at": "2026-07-06T08:05:00.000Z",
-    "idempotency_key": "flipflop.customer_journey.events.v1:synthetic:order:submitted:001",
-    "phase": "order",
-    "data": {
-      "checkout_id": "checkout-synthetic-001",
-      "order_id_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-      "central_order_id_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
-      "total_czk_minor": 30000
+    "processed_at": "2026-07-06T08:05:01.000Z",
+    "journey_id": "journey_contract_20260706",
+    "correlation_id": "corr_contract_20260706",
+    "causation_id": "evt_contract_checkout_started_004",
+    "idempotency_key": "flipflop:customer_identity_resolved:contract:005",
+    "source": {
+      "service": "flipflop",
+      "component": "frontend",
+      "producer": "frontend",
+      "route": "/synthetic/customer-journey"
+    },
+    "environment": {
+      "name": "synthetic",
+      "release": "contract-fixture",
+      "commit_sha": null
+    },
+    "identifiers": {
+      "anonymous_id": "anon_contract_20260706",
+      "session_id": "session_contract_20260706",
+      "customer_id": "cust_contract_20260706",
+      "auth_subject": "auth_contract_20260706",
+      "cart_id": "cart_contract_20260706",
+      "checkout_id": "checkout_contract_20260706",
+      "payment_id": "payment_contract_20260706",
+      "payment_provider_reference": "provider_ref_contract_20260706",
+      "order_id": "order_contract_20260706",
+      "email_message_id": "email_contract_20260706",
+      "marketing_handoff_id": "lead_contract_20260706",
+      "storefront_id": "flipflop"
+    },
+    "commercial": {
+      "currency": "CZK",
+      "subtotal_amount": 149900,
+      "discount_amount": 0,
+      "shipping_amount": 9900,
+      "tax_amount": 0,
+      "total_amount": 159800,
+      "precision": 2,
+      "item_count": 1,
+      "coupon_ids": []
+    },
+    "items": [
+      {
+        "product_id": "product_contract_sandal_001",
+        "sku": "FF-SANDAL-001",
+        "variant_id": null,
+        "quantity": 1,
+        "unit_price": {
+          "amount": 149900,
+          "currency": "CZK",
+          "precision": 2
+        }
+      }
+    ],
+    "metadata": {
+      "channel": "synthetic",
+      "synthetic": true,
+      "locale": "cs-CZ",
+      "cart_valid": true,
+      "shipping_method": "home_delivery",
+      "payment_method": "card",
+      "marketing_consent": true,
+      "handoff_target": "leads"
     }
   },
   {
-    "contract": "flipflop.customer_journey.events.v1",
-    "schema_version": 1,
-    "producer": {
-      "service": "flipflop",
-      "source": "order-service",
-      "environment": "synthetic"
-    },
-    "journey_id": "jrny_contract_synthetic_20260706",
-    "correlation_id": "corr_contract_synthetic_20260706",
-    "subject": {
-      "session_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-      "auth_subject_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
-    },
-    "context": {
-      "channel": "synthetic",
-      "locale": "cs-CZ",
-      "currency": "CZK"
-    },
-    "event_id": "evt_contract_journey_completed_001",
-    "event_type": "journey.completed",
+    "event_id": "evt_contract_shipping_option_selected_006",
+    "event_name": "shipping_option_selected",
+    "version": "1.0.0",
     "occurred_at": "2026-07-06T08:06:00.000Z",
-    "idempotency_key": "flipflop.customer_journey.events.v1:synthetic:journey:completed:001",
-    "phase": "completion",
-    "data": {
-      "order_id_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-      "central_order_id_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+    "processed_at": "2026-07-06T08:06:01.000Z",
+    "journey_id": "journey_contract_20260706",
+    "correlation_id": "corr_contract_20260706",
+    "causation_id": "evt_contract_customer_identity_resolved_005",
+    "idempotency_key": "flipflop:shipping_option_selected:contract:006",
+    "source": {
+      "service": "flipflop",
+      "component": "frontend",
+      "producer": "frontend",
+      "route": "/synthetic/customer-journey"
+    },
+    "environment": {
+      "name": "synthetic",
+      "release": "contract-fixture",
+      "commit_sha": null
+    },
+    "identifiers": {
+      "anonymous_id": "anon_contract_20260706",
+      "session_id": "session_contract_20260706",
+      "customer_id": "cust_contract_20260706",
+      "auth_subject": "auth_contract_20260706",
+      "cart_id": "cart_contract_20260706",
+      "checkout_id": "checkout_contract_20260706",
+      "payment_id": "payment_contract_20260706",
+      "payment_provider_reference": "provider_ref_contract_20260706",
+      "order_id": "order_contract_20260706",
+      "email_message_id": "email_contract_20260706",
+      "marketing_handoff_id": "lead_contract_20260706",
+      "storefront_id": "flipflop"
+    },
+    "commercial": {
+      "currency": "CZK",
+      "subtotal_amount": 149900,
+      "discount_amount": 0,
+      "shipping_amount": 9900,
+      "tax_amount": 0,
+      "total_amount": 159800,
+      "precision": 2,
+      "item_count": 1,
+      "coupon_ids": []
+    },
+    "items": [
+      {
+        "product_id": "product_contract_sandal_001",
+        "sku": "FF-SANDAL-001",
+        "variant_id": null,
+        "quantity": 1,
+        "unit_price": {
+          "amount": 149900,
+          "currency": "CZK",
+          "precision": 2
+        }
+      }
+    ],
+    "metadata": {
+      "channel": "synthetic",
+      "synthetic": true,
+      "locale": "cs-CZ",
+      "cart_valid": true,
+      "shipping_method": "home_delivery",
+      "payment_method": "card",
+      "marketing_consent": true,
+      "handoff_target": "leads"
+    }
+  },
+  {
+    "event_id": "evt_contract_cart_validated_007",
+    "event_name": "cart_validated",
+    "version": "1.0.0",
+    "occurred_at": "2026-07-06T08:07:00.000Z",
+    "processed_at": "2026-07-06T08:07:01.000Z",
+    "journey_id": "journey_contract_20260706",
+    "correlation_id": "corr_contract_20260706",
+    "causation_id": "evt_contract_shipping_option_selected_006",
+    "idempotency_key": "flipflop:cart_validated:contract:007",
+    "source": {
+      "service": "flipflop",
+      "component": "frontend",
+      "producer": "frontend",
+      "route": "/synthetic/customer-journey"
+    },
+    "environment": {
+      "name": "synthetic",
+      "release": "contract-fixture",
+      "commit_sha": null
+    },
+    "identifiers": {
+      "anonymous_id": "anon_contract_20260706",
+      "session_id": "session_contract_20260706",
+      "customer_id": "cust_contract_20260706",
+      "auth_subject": "auth_contract_20260706",
+      "cart_id": "cart_contract_20260706",
+      "checkout_id": "checkout_contract_20260706",
+      "payment_id": "payment_contract_20260706",
+      "payment_provider_reference": "provider_ref_contract_20260706",
+      "order_id": "order_contract_20260706",
+      "email_message_id": "email_contract_20260706",
+      "marketing_handoff_id": "lead_contract_20260706",
+      "storefront_id": "flipflop"
+    },
+    "commercial": {
+      "currency": "CZK",
+      "subtotal_amount": 149900,
+      "discount_amount": 0,
+      "shipping_amount": 9900,
+      "tax_amount": 0,
+      "total_amount": 159800,
+      "precision": 2,
+      "item_count": 1,
+      "coupon_ids": []
+    },
+    "items": [
+      {
+        "product_id": "product_contract_sandal_001",
+        "sku": "FF-SANDAL-001",
+        "variant_id": null,
+        "quantity": 1,
+        "unit_price": {
+          "amount": 149900,
+          "currency": "CZK",
+          "precision": 2
+        }
+      }
+    ],
+    "metadata": {
+      "channel": "synthetic",
+      "synthetic": true,
+      "locale": "cs-CZ",
+      "cart_valid": true,
+      "shipping_method": "home_delivery",
+      "payment_method": "card",
+      "marketing_consent": true,
+      "handoff_target": "leads"
+    }
+  },
+  {
+    "event_id": "evt_contract_payment_attempt_started_008",
+    "event_name": "payment_attempt_started",
+    "version": "1.0.0",
+    "occurred_at": "2026-07-06T08:08:00.000Z",
+    "processed_at": "2026-07-06T08:08:01.000Z",
+    "journey_id": "journey_contract_20260706",
+    "correlation_id": "corr_contract_20260706",
+    "causation_id": "evt_contract_cart_validated_007",
+    "idempotency_key": "flipflop:payment_attempt_started:contract:008",
+    "source": {
+      "service": "flipflop",
+      "component": "order-service",
+      "producer": "order-service",
+      "route": "/synthetic/customer-journey"
+    },
+    "environment": {
+      "name": "synthetic",
+      "release": "contract-fixture",
+      "commit_sha": null
+    },
+    "identifiers": {
+      "anonymous_id": "anon_contract_20260706",
+      "session_id": "session_contract_20260706",
+      "customer_id": "cust_contract_20260706",
+      "auth_subject": "auth_contract_20260706",
+      "cart_id": "cart_contract_20260706",
+      "checkout_id": "checkout_contract_20260706",
+      "payment_id": "payment_contract_20260706",
+      "payment_provider_reference": "provider_ref_contract_20260706",
+      "order_id": "order_contract_20260706",
+      "email_message_id": "email_contract_20260706",
+      "marketing_handoff_id": "lead_contract_20260706",
+      "storefront_id": "flipflop"
+    },
+    "commercial": {
+      "currency": "CZK",
+      "subtotal_amount": 149900,
+      "discount_amount": 0,
+      "shipping_amount": 9900,
+      "tax_amount": 0,
+      "total_amount": 159800,
+      "precision": 2,
+      "item_count": 1,
+      "coupon_ids": []
+    },
+    "items": [
+      {
+        "product_id": "product_contract_sandal_001",
+        "sku": "FF-SANDAL-001",
+        "variant_id": null,
+        "quantity": 1,
+        "unit_price": {
+          "amount": 149900,
+          "currency": "CZK",
+          "precision": 2
+        }
+      }
+    ],
+    "metadata": {
+      "channel": "synthetic",
+      "synthetic": true,
+      "locale": "cs-CZ",
+      "cart_valid": true,
+      "shipping_method": "home_delivery",
+      "payment_method": "card",
+      "marketing_consent": true,
+      "handoff_target": "leads"
+    }
+  },
+  {
+    "event_id": "evt_contract_payment_succeeded_009",
+    "event_name": "payment_succeeded",
+    "version": "1.0.0",
+    "occurred_at": "2026-07-06T08:09:00.000Z",
+    "processed_at": "2026-07-06T08:09:01.000Z",
+    "journey_id": "journey_contract_20260706",
+    "correlation_id": "corr_contract_20260706",
+    "causation_id": "evt_contract_payment_attempt_started_008",
+    "idempotency_key": "flipflop:payment_succeeded:contract:009",
+    "source": {
+      "service": "flipflop",
+      "component": "order-service",
+      "producer": "order-service",
+      "route": "/synthetic/customer-journey"
+    },
+    "environment": {
+      "name": "synthetic",
+      "release": "contract-fixture",
+      "commit_sha": null
+    },
+    "identifiers": {
+      "anonymous_id": "anon_contract_20260706",
+      "session_id": "session_contract_20260706",
+      "customer_id": "cust_contract_20260706",
+      "auth_subject": "auth_contract_20260706",
+      "cart_id": "cart_contract_20260706",
+      "checkout_id": "checkout_contract_20260706",
+      "payment_id": "payment_contract_20260706",
+      "payment_provider_reference": "provider_ref_contract_20260706",
+      "order_id": "order_contract_20260706",
+      "email_message_id": "email_contract_20260706",
+      "marketing_handoff_id": "lead_contract_20260706",
+      "storefront_id": "flipflop"
+    },
+    "commercial": {
+      "currency": "CZK",
+      "subtotal_amount": 149900,
+      "discount_amount": 0,
+      "shipping_amount": 9900,
+      "tax_amount": 0,
+      "total_amount": 159800,
+      "precision": 2,
+      "item_count": 1,
+      "coupon_ids": []
+    },
+    "items": [
+      {
+        "product_id": "product_contract_sandal_001",
+        "sku": "FF-SANDAL-001",
+        "variant_id": null,
+        "quantity": 1,
+        "unit_price": {
+          "amount": 149900,
+          "currency": "CZK",
+          "precision": 2
+        }
+      }
+    ],
+    "metadata": {
+      "channel": "synthetic",
+      "synthetic": true,
+      "locale": "cs-CZ",
+      "cart_valid": true,
+      "shipping_method": "home_delivery",
+      "payment_method": "card",
+      "marketing_consent": true,
+      "handoff_target": "leads"
+    }
+  },
+  {
+    "event_id": "evt_contract_order_created_010",
+    "event_name": "order_created",
+    "version": "1.0.0",
+    "occurred_at": "2026-07-06T08:10:00.000Z",
+    "processed_at": "2026-07-06T08:10:01.000Z",
+    "journey_id": "journey_contract_20260706",
+    "correlation_id": "corr_contract_20260706",
+    "causation_id": "evt_contract_payment_succeeded_009",
+    "idempotency_key": "flipflop:order_created:contract:010",
+    "source": {
+      "service": "flipflop",
+      "component": "order-service",
+      "producer": "order-service",
+      "route": "/synthetic/customer-journey"
+    },
+    "environment": {
+      "name": "synthetic",
+      "release": "contract-fixture",
+      "commit_sha": null
+    },
+    "identifiers": {
+      "anonymous_id": "anon_contract_20260706",
+      "session_id": "session_contract_20260706",
+      "customer_id": "cust_contract_20260706",
+      "auth_subject": "auth_contract_20260706",
+      "cart_id": "cart_contract_20260706",
+      "checkout_id": "checkout_contract_20260706",
+      "payment_id": "payment_contract_20260706",
+      "payment_provider_reference": "provider_ref_contract_20260706",
+      "order_id": "order_contract_20260706",
+      "email_message_id": "email_contract_20260706",
+      "marketing_handoff_id": "lead_contract_20260706",
+      "storefront_id": "flipflop"
+    },
+    "commercial": {
+      "currency": "CZK",
+      "subtotal_amount": 149900,
+      "discount_amount": 0,
+      "shipping_amount": 9900,
+      "tax_amount": 0,
+      "total_amount": 159800,
+      "precision": 2,
+      "item_count": 1,
+      "coupon_ids": []
+    },
+    "items": [
+      {
+        "product_id": "product_contract_sandal_001",
+        "sku": "FF-SANDAL-001",
+        "variant_id": null,
+        "quantity": 1,
+        "unit_price": {
+          "amount": 149900,
+          "currency": "CZK",
+          "precision": 2
+        }
+      }
+    ],
+    "metadata": {
+      "channel": "synthetic",
+      "synthetic": true,
+      "locale": "cs-CZ",
+      "cart_valid": true,
+      "shipping_method": "home_delivery",
+      "payment_method": "card",
+      "marketing_consent": true,
+      "handoff_target": "leads"
+    }
+  },
+  {
+    "event_id": "evt_contract_order_confirmation_email_queued_011",
+    "event_name": "order_confirmation_email_queued",
+    "version": "1.0.0",
+    "occurred_at": "2026-07-06T08:11:00.000Z",
+    "processed_at": "2026-07-06T08:11:01.000Z",
+    "journey_id": "journey_contract_20260706",
+    "correlation_id": "corr_contract_20260706",
+    "causation_id": "evt_contract_order_created_010",
+    "idempotency_key": "flipflop:order_confirmation_email_queued:contract:011",
+    "source": {
+      "service": "flipflop",
+      "component": "order-service",
+      "producer": "order-service",
+      "route": "/synthetic/customer-journey"
+    },
+    "environment": {
+      "name": "synthetic",
+      "release": "contract-fixture",
+      "commit_sha": null
+    },
+    "identifiers": {
+      "anonymous_id": "anon_contract_20260706",
+      "session_id": "session_contract_20260706",
+      "customer_id": "cust_contract_20260706",
+      "auth_subject": "auth_contract_20260706",
+      "cart_id": "cart_contract_20260706",
+      "checkout_id": "checkout_contract_20260706",
+      "payment_id": "payment_contract_20260706",
+      "payment_provider_reference": "provider_ref_contract_20260706",
+      "order_id": "order_contract_20260706",
+      "email_message_id": "email_contract_20260706",
+      "marketing_handoff_id": "lead_contract_20260706",
+      "storefront_id": "flipflop"
+    },
+    "commercial": {
+      "currency": "CZK",
+      "subtotal_amount": 149900,
+      "discount_amount": 0,
+      "shipping_amount": 9900,
+      "tax_amount": 0,
+      "total_amount": 159800,
+      "precision": 2,
+      "item_count": 1,
+      "coupon_ids": []
+    },
+    "items": [
+      {
+        "product_id": "product_contract_sandal_001",
+        "sku": "FF-SANDAL-001",
+        "variant_id": null,
+        "quantity": 1,
+        "unit_price": {
+          "amount": 149900,
+          "currency": "CZK",
+          "precision": 2
+        }
+      }
+    ],
+    "metadata": {
+      "channel": "synthetic",
+      "synthetic": true,
+      "locale": "cs-CZ",
+      "cart_valid": true,
+      "shipping_method": "home_delivery",
+      "payment_method": "card",
+      "marketing_consent": true,
+      "handoff_target": "leads"
+    }
+  },
+  {
+    "event_id": "evt_contract_order_confirmation_email_sent_012",
+    "event_name": "order_confirmation_email_sent",
+    "version": "1.0.0",
+    "occurred_at": "2026-07-06T08:12:00.000Z",
+    "processed_at": "2026-07-06T08:12:01.000Z",
+    "journey_id": "journey_contract_20260706",
+    "correlation_id": "corr_contract_20260706",
+    "causation_id": "evt_contract_order_confirmation_email_queued_011",
+    "idempotency_key": "flipflop:order_confirmation_email_sent:contract:012",
+    "source": {
+      "service": "flipflop",
+      "component": "order-service",
+      "producer": "order-service",
+      "route": "/synthetic/customer-journey"
+    },
+    "environment": {
+      "name": "synthetic",
+      "release": "contract-fixture",
+      "commit_sha": null
+    },
+    "identifiers": {
+      "anonymous_id": "anon_contract_20260706",
+      "session_id": "session_contract_20260706",
+      "customer_id": "cust_contract_20260706",
+      "auth_subject": "auth_contract_20260706",
+      "cart_id": "cart_contract_20260706",
+      "checkout_id": "checkout_contract_20260706",
+      "payment_id": "payment_contract_20260706",
+      "payment_provider_reference": "provider_ref_contract_20260706",
+      "order_id": "order_contract_20260706",
+      "email_message_id": "email_contract_20260706",
+      "marketing_handoff_id": "lead_contract_20260706",
+      "storefront_id": "flipflop"
+    },
+    "commercial": {
+      "currency": "CZK",
+      "subtotal_amount": 149900,
+      "discount_amount": 0,
+      "shipping_amount": 9900,
+      "tax_amount": 0,
+      "total_amount": 159800,
+      "precision": 2,
+      "item_count": 1,
+      "coupon_ids": []
+    },
+    "items": [
+      {
+        "product_id": "product_contract_sandal_001",
+        "sku": "FF-SANDAL-001",
+        "variant_id": null,
+        "quantity": 1,
+        "unit_price": {
+          "amount": 149900,
+          "currency": "CZK",
+          "precision": 2
+        }
+      }
+    ],
+    "metadata": {
+      "channel": "synthetic",
+      "synthetic": true,
+      "locale": "cs-CZ",
+      "cart_valid": true,
+      "shipping_method": "home_delivery",
+      "payment_method": "card",
+      "marketing_consent": true,
+      "handoff_target": "leads"
+    }
+  },
+  {
+    "event_id": "evt_contract_marketing_handoff_requested_013",
+    "event_name": "marketing_handoff_requested",
+    "version": "1.0.0",
+    "occurred_at": "2026-07-06T08:13:00.000Z",
+    "processed_at": "2026-07-06T08:13:01.000Z",
+    "journey_id": "journey_contract_20260706",
+    "correlation_id": "corr_contract_20260706",
+    "causation_id": "evt_contract_order_confirmation_email_sent_012",
+    "idempotency_key": "flipflop:marketing_handoff_requested:contract:013",
+    "source": {
+      "service": "flipflop",
+      "component": "order-service",
+      "producer": "order-service",
+      "route": "/synthetic/customer-journey"
+    },
+    "environment": {
+      "name": "synthetic",
+      "release": "contract-fixture",
+      "commit_sha": null
+    },
+    "identifiers": {
+      "anonymous_id": "anon_contract_20260706",
+      "session_id": "session_contract_20260706",
+      "customer_id": "cust_contract_20260706",
+      "auth_subject": "auth_contract_20260706",
+      "cart_id": "cart_contract_20260706",
+      "checkout_id": "checkout_contract_20260706",
+      "payment_id": "payment_contract_20260706",
+      "payment_provider_reference": "provider_ref_contract_20260706",
+      "order_id": "order_contract_20260706",
+      "email_message_id": "email_contract_20260706",
+      "marketing_handoff_id": "lead_contract_20260706",
+      "storefront_id": "flipflop"
+    },
+    "commercial": {
+      "currency": "CZK",
+      "subtotal_amount": 149900,
+      "discount_amount": 0,
+      "shipping_amount": 9900,
+      "tax_amount": 0,
+      "total_amount": 159800,
+      "precision": 2,
+      "item_count": 1,
+      "coupon_ids": []
+    },
+    "items": [
+      {
+        "product_id": "product_contract_sandal_001",
+        "sku": "FF-SANDAL-001",
+        "variant_id": null,
+        "quantity": 1,
+        "unit_price": {
+          "amount": 149900,
+          "currency": "CZK",
+          "precision": 2
+        }
+      }
+    ],
+    "metadata": {
+      "channel": "synthetic",
+      "synthetic": true,
+      "locale": "cs-CZ",
+      "cart_valid": true,
+      "shipping_method": "home_delivery",
+      "payment_method": "card",
+      "marketing_consent": true,
+      "handoff_target": "leads"
+    }
+  },
+  {
+    "event_id": "evt_contract_marketing_handoff_accepted_014",
+    "event_name": "marketing_handoff_accepted",
+    "version": "1.0.0",
+    "occurred_at": "2026-07-06T08:14:00.000Z",
+    "processed_at": "2026-07-06T08:14:01.000Z",
+    "journey_id": "journey_contract_20260706",
+    "correlation_id": "corr_contract_20260706",
+    "causation_id": "evt_contract_marketing_handoff_requested_013",
+    "idempotency_key": "flipflop:marketing_handoff_accepted:contract:014",
+    "source": {
+      "service": "flipflop",
+      "component": "order-service",
+      "producer": "order-service",
+      "route": "/synthetic/customer-journey"
+    },
+    "environment": {
+      "name": "synthetic",
+      "release": "contract-fixture",
+      "commit_sha": null
+    },
+    "identifiers": {
+      "anonymous_id": "anon_contract_20260706",
+      "session_id": "session_contract_20260706",
+      "customer_id": "cust_contract_20260706",
+      "auth_subject": "auth_contract_20260706",
+      "cart_id": "cart_contract_20260706",
+      "checkout_id": "checkout_contract_20260706",
+      "payment_id": "payment_contract_20260706",
+      "payment_provider_reference": "provider_ref_contract_20260706",
+      "order_id": "order_contract_20260706",
+      "email_message_id": "email_contract_20260706",
+      "marketing_handoff_id": "lead_contract_20260706",
+      "storefront_id": "flipflop"
+    },
+    "commercial": {
+      "currency": "CZK",
+      "subtotal_amount": 149900,
+      "discount_amount": 0,
+      "shipping_amount": 9900,
+      "tax_amount": 0,
+      "total_amount": 159800,
+      "precision": 2,
+      "item_count": 1,
+      "coupon_ids": []
+    },
+    "items": [
+      {
+        "product_id": "product_contract_sandal_001",
+        "sku": "FF-SANDAL-001",
+        "variant_id": null,
+        "quantity": 1,
+        "unit_price": {
+          "amount": 149900,
+          "currency": "CZK",
+          "precision": 2
+        }
+      }
+    ],
+    "metadata": {
+      "channel": "synthetic",
+      "synthetic": true,
+      "locale": "cs-CZ",
+      "cart_valid": true,
+      "shipping_method": "home_delivery",
+      "payment_method": "card",
+      "marketing_consent": true,
+      "handoff_target": "leads"
     }
   }
 ]

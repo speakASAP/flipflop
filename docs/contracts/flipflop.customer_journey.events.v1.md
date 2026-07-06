@@ -1,69 +1,83 @@
 # flipflop.customer_journey.events.v1
 
-Status: source contract prepared with bounded runtime emitter hooks; mutating synthetic checkout remains blocked until sandbox/test-mode approval exists.
+## Intent Preservation Chain
 
-Intent Preservation Chain:
+- Vision: Make the successful FlipFlop customer funnel observable and testable before AI optimization is introduced.
+- Goal Impact: Every successful journey from session start through payment, order creation, confirmation email, and marketing handoff can be correlated, replayed, and validated.
+- System: FlipFlop e-commerce runtime publishes customer journey events to `flipflop.customer_journey.events.v1`.
+- Feature: Successful customer journey event contract with schema, fixture, verifier, and runtime emission points.
+- Task: Define the minimum event set, payload shape, correlation strategy, required fields, gap table, and AI-readiness gate.
+- Execution Plan: Add a versioned JSON Schema and fixture; wire order-service emissions for downstream milestones; retain frontend local journey capture until an ingestion API exists; validate with deterministic contract checks and TypeScript builds.
+- Coding Prompt: Implement only bounded observability events; do not weaken checkout, auth, payment, or marketing behavior; do not emit raw PII.
+- Code: `shared/rabbitmq/customer-journey-events.publisher.ts`, `services/order-service/src/orders/orders.service.ts`, `services/frontend/lib/guest-cart.ts`, `services/frontend/app/products/[id]/page.tsx`, `services/frontend/app/checkout/page.tsx`, this contract package, and `scripts/verify-customer-journey-events-contract.js`.
+- Validation: `npm run verify:customer-journey-events-contract`, `npm run verify:synthetic-journey-monitor`, `npm --prefix shared run build`, `npm --prefix services/order-service run build`, `cd services/frontend && ./node_modules/.bin/tsc --noEmit --pretty false`, `git diff --check`.
 
-- Vision: FlipFlop customer journey analytics can be consumed only through a deterministic event contract that excludes raw customer, payment, token, and provider payload data.
-- Goal Impact: downstream consumers can validate journey coverage, correlation, idempotency, and phase-specific identifiers before any runtime emitter is allowed to publish.
-- System: FlipFlop frontend, product-service, order-service, analytics/event consumers, central Orders, and payment/order identifiers represented only as hashed references where sensitive.
-- Feature: machine-checkable customer journey event envelope and fixture validation.
-- Task: define canonical envelope, required events, required/optional fields, journey_id/correlation_id/idempotency_key, no raw sensitive fields, phase-specific required identifiers, and runtime emitter redaction checks.
-- Execution Plan: docs/contracts schema plus synthetic fixture plus verifier plus order-service event hooks; no checkout smoke, secret, DB, migration, or provider-side mutation without sandbox/test-mode approval.
-- Coding Prompt: fail closed; mark unavailable sandbox/provider/customer facts as [MISSING: ...] and publish only hashed runtime identifiers.
-- Code: docs/contracts/flipflop.customer_journey.events.v1.schema.json, docs/contracts/fixtures/flipflop.customer_journey.events.v1.valid.json, scripts/verify-customer-journey-events-contract.js, shared/rabbitmq/customer-journey-events.publisher.ts, services/order-service/src/orders/orders.service.ts, and package script verify:customer-journey-events-contract.
-- Validation: npm run verify:customer-journey-events-contract.
+## Minimum Successful Journey Events
 
-## Canonical Envelope
+| Order | Event name | Required before AI | Current producer | Purpose |
+|---:|---|---|---|---|
+| 1 | `session_started` | Yes | frontend local buffer | Start a journey and establish anonymous/session identifiers. |
+| 2 | `product_viewed` | Yes | frontend local buffer | Observe product discovery before cart intent. |
+| 3 | `cart_item_added` | Yes | frontend local buffer | Observe cart conversion intent with product/cart identifiers. |
+| 4 | `checkout_started` | Yes | frontend local buffer | Mark transition from cart to checkout. |
+| 5 | `customer_identity_resolved` | Yes | order-service | Bind guest/auth/customer identity for the checkout context. |
+| 6 | `shipping_option_selected` | Yes | frontend local buffer and order-service | Record delivery selection used for validation and optimization. |
+| 7 | `cart_validated` | Yes | frontend local buffer and order-service | Prove checkout/cart validation passed before payment. |
+| 8 | `payment_attempt_started` | Yes | order-service | Mark handoff to payment provider or payment initiation. |
+| 9 | `payment_succeeded` | Yes | order-service | Mark successful payment result. |
+| 10 | `order_created` | Yes | order-service | Confirm local or central order creation. |
+| 11 | `order_confirmation_email_queued` | Yes | order-service | Observe email handoff before send. |
+| 12 | `order_confirmation_email_sent` | Yes | order-service | Observe customer confirmation delivery attempt success. |
+| 13 | `marketing_handoff_requested` | Yes | order-service | Observe marketing/Leads handoff request when consent exists. |
+| 14 | `marketing_handoff_accepted` | Yes | order-service | Observe downstream marketing/Leads acceptance. |
 
-Every event MUST validate against docs/contracts/flipflop.customer_journey.events.v1.schema.json and include these envelope fields: contract, schema_version, event_id, event_type, occurred_at, producer, journey_id, correlation_id, idempotency_key, phase, subject, context, and data.
+## Payload Schema
 
-The contract identifier MUST be `flipflop.customer_journey.events.v1`. The schema version MUST be `1`.
+Canonical schema: `docs/contracts/flipflop.customer_journey.events.v1.schema.json`.
 
-## Required Events
+Required top-level fields: `event_id`, `event_name`, `version`, `occurred_at`, `journey_id`, `correlation_id`, `causation_id`, `idempotency_key`, `source`, `environment`, `identifiers`, and `metadata`.
 
-A complete journey fixture MUST include these required event types exactly as contract coverage anchors:
+Optional top-level fields: `processed_at`, `commercial`, and `items`.
 
-- journey.started
-- catalog.product_viewed
-- cart.item_added
-- checkout.started
-- payment.intent_created
-- order.submitted
+Sensitive payload rule: raw email, phone, names, address fields, passwords, tokens, and card data are forbidden. Use opaque IDs or hashes only where identity linkage is needed.
 
-Terminal events are optional but, when present, MUST be one of journey.completed or journey.abandoned and must obey the same envelope rules.
+## Correlation ID Strategy
 
-## Correlation And Idempotency
+- Create `journey_id` and `correlation_id` at the first observed session.
+- Persist both through the frontend local event buffer, guest checkout metadata, order metadata, payment metadata, email event context, and marketing handoff context.
+- Publish AMQP `correlationId` equal to envelope `correlation_id`.
+- Use `causation_id` to point to the preceding event where the producer has reliable local context.
+- Use deterministic `idempotency_key` values so replay and provider retry behavior can be deduplicated.
+- When a runtime boundary cannot prove continuity, emit the event with the best known `correlation_id` and set the unavailable fact as `[UNKNOWN: previous causation event_id]` in validation reports rather than fabricating a link.
 
-- journey_id is the stable journey identifier and MUST use the `jrny_` prefix.
-- correlation_id is the cross-service trace identifier and MUST use the `corr_` prefix.
-- idempotency_key MUST start with `flipflop.customer_journey.events.v1:` and be unique within a fixture.
-- event_id MUST be unique within a fixture and use the `evt_` prefix.
+## Required vs Optional Fields
 
-## Sensitive Data Boundary
+| Field group | Required | Optional |
+|---|---|---|
+| Envelope | `event_id`, `event_name`, `version`, `occurred_at`, `journey_id`, `correlation_id`, `causation_id`, `idempotency_key` | `processed_at` |
+| Source | `source.service`, `source.component`, `source.producer` | `source.route` |
+| Environment | `environment.name` | `environment.release`, `environment.commit_sha` |
+| Identifiers | `identifiers.storefront_id` plus event-specific identifiers from schema rule `event_required_identifiers` | Other anonymous/customer/cart/order/product/payment/email/marketing identifiers when known |
+| Commercial | Required only when present: `currency`, `precision` | subtotal, discount, shipping, tax, total, item count, coupon IDs |
+| Items | Required only when present: `product_id` | SKU, variant, quantity, unit price |
+| Metadata | `metadata.channel`, `metadata.synthetic` | locale, validation booleans, shipping method, payment method, marketing consent, handoff target |
 
-Raw sensitive values are forbidden anywhere in the event object, including nested objects. The verifier rejects raw field names such as email, phone, name, address, password, token, cookie, authorization, cardNumber, iban, variableSymbol, and providerPayload.
+## Emitted/Missing/Unknown Gap Table
 
-Allowed identity references are bounded hashes such as subject.session_hash, subject.auth_subject_hash, subject.customer_hash, data.payment_id_hash, data.order_id_hash, and data.central_order_id_hash.
+| Journey capability | Current status | Evidence |
+|---|---|---|
+| Frontend session/product/cart/checkout capture | Emitted locally, not broker-published | `services/frontend/lib/guest-cart.ts`, product page script, checkout page script. |
+| Shared broker publisher | Emitted when invoked | `shared/rabbitmq/customer-journey-events.publisher.ts` publishes to `flipflop.customer_journey.events.v1`. |
+| Guest order identity/cart/payment/order/email/marketing milestones | Emitted by order-service | `services/order-service/src/orders/orders.service.ts`. |
+| Frontend-to-backend event ingestion API | [MISSING: no durable ingestion API inspected or implemented in this lane] | Frontend events remain local until checkout metadata/order-service bridge or future ingestion endpoint is available. |
+| Authenticated checkout parity | [UNKNOWN: authenticated journey emission coverage requires separate inspection] | Guest checkout path was wired; authenticated path was not broadened after build-safety review. |
+| Live broker consumer/storage | [UNKNOWN: no customer journey event consumer/storage implementation inspected in this lane] | Publisher exists; consumer/read model is outside this contract lane. |
+| Email provider message ID | [UNKNOWN: provider-specific message ID availability] | Contract supports `email_message_id`; runtime may emit only known order/email context. |
+| Marketing downstream acceptance ID | [UNKNOWN: Leads response identifier availability] | Contract supports `marketing_handoff_id`; runtime uses available Leads response context. |
+| AI optimizer | [MISSING: intentionally not introduced before complete event validation] | Minimum event set and replayable validation are prerequisites. |
 
-## Phase-Specific Identifiers
+## Minimum Event Set Before AI Journey Optimization
 
-The schema contains machine-readable x-contract-rules.phase_required_data and x-contract-rules.event_phase mappings. The verifier enforces them source-side.
+AI journey optimization is blocked until validation proves all 14 required events are complete and correlated for successful journeys: `session_started`, `product_viewed`, `cart_item_added`, `checkout_started`, `customer_identity_resolved`, `shipping_option_selected`, `cart_validated`, `payment_attempt_started`, `payment_succeeded`, `order_created`, `order_confirmation_email_queued`, `order_confirmation_email_sent`, `marketing_handoff_requested`, and `marketing_handoff_accepted`.
 
-- catalog requires product_id and catalog_product_id.
-- cart requires cart_id, cart_line_id, product_id, catalog_product_id, and quantity.
-- checkout requires cart_id and checkout_id.
-- payment requires checkout_id, payment_id_hash, payment_method, and total_czk_minor.
-- order requires checkout_id, order_id_hash, central_order_id_hash, and total_czk_minor.
-- completion requires order_id_hash and central_order_id_hash.
-- abandonment requires cart_id.
-
-## Runtime Status
-
-Runtime emitter hooks are present for order-service checkout/payment/email/marketing milestones. The hooks are fire-and-forget, publish hashed identifier references, and must not block checkout/payment flows.
-
-[MISSING: sandbox/test-mode payment contract for mutating end-to-end synthetic checkout]
-[MISSING: approved synthetic product/SKU and customer/contact packet]
-[MISSING: email queue/delivery consumer assertion endpoint or inbox contract]
-
-No mutating synthetic checkout, provider-side transfer, DB migration, secret change, or cleanup mutation is authorized by this contract alone.
+Optimization remains blocked when any required event is missing, any required event-specific identifier is absent, `journey_id`/`correlation_id` are unstable, or sensitive raw fields appear in emitted payloads.
