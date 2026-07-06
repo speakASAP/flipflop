@@ -1,4 +1,7 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import * as crypto from 'crypto';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as amqp from 'amqplib';
 import { LoggerService } from '../logger/logger.service';
 
@@ -167,6 +170,74 @@ export class CustomerJourneyEventsPublisher implements OnModuleDestroy {
     return this.channel;
   }
 
+  private hashTraceValue(value: unknown): string | undefined {
+    if (value === undefined || value === null || value === '') {
+      return undefined;
+    }
+    return crypto.createHash('sha256').update(String(value)).digest('hex').slice(0, 16);
+  }
+
+  private resolveSyntheticEventTracePath(): string | null {
+    const source = process.env.SYNTHETIC_EVENT_TRACE_SOURCE || '';
+    const prefix = 'synthetic-event-trace-jsonl:';
+    if (!source.startsWith(prefix)) {
+      return null;
+    }
+    const relativePath = source.slice(prefix.length).trim();
+    const segments = relativePath.split(/[\\/]+/).filter(Boolean);
+    if (!relativePath || path.isAbsolute(relativePath) || segments.includes('..')) {
+      this.logger.warn('Synthetic event trace source ignored because path is not repo-relative', 'CustomerJourneyEventsPublisher');
+      return null;
+    }
+    return path.resolve(process.cwd(), relativePath);
+  }
+
+  private recordSyntheticEventTrace(event: CustomerJourneyEventEnvelope, routingKey: string): void {
+    const tracePath = this.resolveSyntheticEventTracePath();
+    if (!tracePath) {
+      return;
+    }
+    const identifiers = Object.entries(event.identifiers || {}).reduce<Record<string, string>>((acc, [key, value]) => {
+      const hashed = this.hashTraceValue(value);
+      if (hashed) {
+        acc[`${key}_hash`] = hashed;
+      }
+      return acc;
+    }, {});
+    const record = {
+      assertion_source: 'synthetic-event-trace-jsonl',
+      generated_at: new Date().toISOString(),
+      exchange: this.exchangeName,
+      routing_key: routingKey,
+      event_name: event.event_name,
+      version: event.version,
+      occurred_at: event.occurred_at,
+      journey_id: event.journey_id,
+      correlation_id: event.correlation_id,
+      event_id_hash: this.hashTraceValue(event.event_id),
+      causation_id_hash: this.hashTraceValue(event.causation_id),
+      idempotency_key_hash: this.hashTraceValue(event.idempotency_key),
+      source: event.source,
+      environment: event.environment,
+      identifiers,
+      item_count: Array.isArray(event.items) ? event.items.length : 0,
+      commercial_currency: event.commercial?.currency,
+      commercial_precision: event.commercial?.precision,
+      metadata_keys: Object.keys(event.metadata || {}).sort(),
+      synthetic: Boolean(event.metadata?.synthetic),
+      raw_payload_output: false,
+      raw_customer_or_payment_evidence: false,
+      secret_output: false,
+    };
+    try {
+      fs.mkdirSync(path.dirname(tracePath), { recursive: true });
+      fs.appendFileSync(tracePath, `${JSON.stringify(record)}\n`, 'utf8');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`Synthetic event trace capture failed: ${message}`, 'CustomerJourneyEventsPublisher');
+    }
+  }
+
   async publish(event: CustomerJourneyEventEnvelope): Promise<boolean> {
     try {
       const ch = await this.ensureConnected();
@@ -188,6 +259,7 @@ export class CustomerJourneyEventsPublisher implements OnModuleDestroy {
           idempotency_key: event.idempotency_key,
         },
       });
+      this.recordSyntheticEventTrace(event, routingKey);
       this.logger.log(
         `Published ${routingKey} journey=present order=${event.identifiers.order_id ? "present" : "none"}` ,
         'CustomerJourneyEventsPublisher',

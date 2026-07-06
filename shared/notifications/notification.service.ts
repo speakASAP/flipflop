@@ -4,6 +4,9 @@
  */
 
 import { Injectable } from '@nestjs/common';
+import * as crypto from 'crypto';
+import * as fs from 'fs';
+import * as path from 'path';
 import { LoggerService } from '../logger/logger.service';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
@@ -47,6 +50,93 @@ export class NotificationService {
     this.resilienceMonitor = resilienceMonitor;
   }
 
+  private hashSyntheticAssertionValue(value: unknown): string | undefined {
+    if (value === undefined || value === null || value === '') {
+      return undefined;
+    }
+    return crypto.createHash('sha256').update(String(value)).digest('hex').slice(0, 16);
+  }
+
+  private resolveSyntheticEmailAssertionPath(): string | null {
+    const source = process.env.SYNTHETIC_EMAIL_ASSERTION_SOURCE || '';
+    const prefix = 'synthetic-email-jsonl:';
+    if (!source.startsWith(prefix)) {
+      return null;
+    }
+    const relativePath = source.slice(prefix.length).trim();
+    const segments = relativePath.split(/[\\/]+/).filter(Boolean);
+    if (!relativePath || path.isAbsolute(relativePath) || segments.includes('..')) {
+      this.logger.warn('Synthetic email assertion source ignored because path is not repo-relative', {
+        sourcePrefix: prefix,
+      });
+      return null;
+    }
+    return path.resolve(process.cwd(), relativePath);
+  }
+
+  private captureSyntheticEmailAssertion(dto: SendNotificationDto): NotificationResponse | null {
+    const assertionPath = this.resolveSyntheticEmailAssertionPath();
+    if (!assertionPath || dto.channel !== 'email') {
+      return null;
+    }
+    const recipient = String(dto.recipient || '').trim().toLowerCase();
+    const assertionDomain = (process.env.SYNTHETIC_EMAIL_ASSERTION_DOMAIN || 'example.invalid').trim().toLowerCase();
+    if (!recipient.endsWith(`@${assertionDomain}`)) {
+      this.logger.warn('Synthetic email assertion source refused non-synthetic recipient domain', {
+        channel: dto.channel,
+        type: dto.type,
+        recipientHash: this.hashSyntheticAssertionValue(recipient),
+      });
+      return null;
+    }
+
+    const assertionId = `synthetic-email-${Date.now()}-${this.hashSyntheticAssertionValue(recipient) || 'unknown'}`;
+    const templateData = dto.templateData || {};
+    const record = {
+      assertion_source: 'synthetic-email-jsonl',
+      assertion_id: assertionId,
+      generated_at: new Date().toISOString(),
+      status: 'captured_not_sent',
+      channel: dto.channel,
+      type: dto.type,
+      recipient_hash: this.hashSyntheticAssertionValue(recipient),
+      subject_hash: this.hashSyntheticAssertionValue(dto.subject),
+      message_hash: this.hashSyntheticAssertionValue(dto.message),
+      order_id_hash: this.hashSyntheticAssertionValue(templateData.orderId),
+      order_number_hash: this.hashSyntheticAssertionValue(templateData.orderNumber),
+      template_keys: Object.keys(templateData).sort(),
+      raw_recipient_output: false,
+      raw_message_output: false,
+      secret_output: false,
+    };
+    try {
+      fs.mkdirSync(path.dirname(assertionPath), { recursive: true });
+      fs.appendFileSync(assertionPath, `${JSON.stringify(record)}\n`, 'utf8');
+      this.logger.log('Synthetic email assertion captured without delivery', {
+        channel: dto.channel,
+        type: dto.type,
+        assertionId,
+      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error('Synthetic email assertion capture failed without delivery', {
+        channel: dto.channel,
+        type: dto.type,
+        assertionId,
+        message,
+      });
+    }
+    return {
+      success: true,
+      data: {
+        id: assertionId,
+        status: 'captured_not_sent',
+        channel: dto.channel,
+        recipient: 'synthetic-recipient-redacted',
+      },
+    };
+  }
+
   /**
    * Internal method to send notification via HTTP
    */
@@ -72,6 +162,11 @@ export class NotificationService {
   async sendNotification(
     dto: SendNotificationDto,
   ): Promise<NotificationResponse> {
+    const syntheticAssertion = this.captureSyntheticEmailAssertion(dto);
+    if (syntheticAssertion) {
+      return syntheticAssertion;
+    }
+
     // Create a function that captures the dto in closure
     const callFn = async () => this.sendNotificationHttp(dto);
 
