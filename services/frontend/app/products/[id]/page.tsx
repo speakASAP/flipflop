@@ -68,20 +68,35 @@ const formatMoney = (value: number) => `${Math.round(value).toLocaleString('cs-C
 
 const buildProductViewedPayload = (product: Product) => JSON.stringify({
   productId: product.id,
-  productName: product.name,
   price: product.price,
-  brand: product.brand || null,
+  brandId: product.brand ? product.brand.trim().toLocaleLowerCase("cs-CZ").replace(/[^a-z0-9_-]+/g, "-") : null,
 }).replace(/</g, String.fromCharCode(92) + "u003c");
 
 const buildProductViewedScript = (product: Product) => ({
   __html: `(() => {
     const eventsKey = 'flipflop_journey_events_v1';
     const sessionKey = 'flipflop_journey_session_id_v1';
+    const journeyKey = 'flipflop_journey_id_v1';
+    const correlationKey = 'flipflop_journey_correlation_id_v1';
     const startedKey = 'flipflop_journey_session_started_v1';
     const maxEvents = 100;
     const makeId = () => crypto?.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
-    const sessionId = sessionStorage.getItem(sessionKey) || makeId();
-    sessionStorage.setItem(sessionKey, sessionId);
+    const makeContractId = (prefix) => prefix + '_' + makeId().replace(/[^a-zA-Z0-9_-]/g, '-').toLowerCase();
+    const valid = {
+      journey: /^journey_[a-z0-9][a-z0-9_-]{8,127}$/,
+      corr: /^corr_[a-z0-9][a-z0-9_-]{8,127}$/,
+      session: /^session_[a-z0-9][a-z0-9_-]{8,127}$/,
+    };
+    const getStoredOrCreate = (key, create, isValid) => {
+      const existing = sessionStorage.getItem(key);
+      if (existing && isValid(existing)) return existing;
+      const next = create();
+      sessionStorage.setItem(key, next);
+      return next;
+    };
+    const sessionId = getStoredOrCreate(sessionKey, () => makeContractId('session'), (value) => valid.session.test(value));
+    const journeyId = getStoredOrCreate(journeyKey, () => makeContractId('journey'), (value) => valid.journey.test(value));
+    const correlationId = getStoredOrCreate(correlationKey, () => makeContractId('corr'), (value) => valid.corr.test(value));
     const readEvents = () => {
       try {
         const parsed = JSON.parse(localStorage.getItem(eventsKey) || '[]');
@@ -91,7 +106,16 @@ const buildProductViewedScript = (product: Product) => ({
       }
     };
     const append = (type, payload) => {
-      const event = { id: makeId(), sessionId, type, payload, url: location.pathname + location.search, createdAt: new Date().toISOString() };
+      const event = {
+        id: makeId(),
+        journeyId,
+        correlationId,
+        sessionId,
+        type,
+        payload: { ...payload, journeyId, correlationId, sessionId },
+        url: location.pathname + location.search,
+        createdAt: new Date().toISOString(),
+      };
       localStorage.setItem(eventsKey, JSON.stringify([...readEvents(), event].slice(-maxEvents)));
       window.dispatchEvent(new CustomEvent('flipflop:journey-event-recorded', { detail: event }));
     };
