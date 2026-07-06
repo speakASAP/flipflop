@@ -50,6 +50,12 @@ data:
   FLIPFLOP_CATALOG_EVENTS_QUEUE: "catalog.flipflop-service"
   FLIPFLOP_HOLIDAY_DISCOUNT_PROCESS_VERSION: "2"
 
+  # Workstream 5 customer-journey sandbox/test-only monitor gates. Non-secret;
+  # invoice is a no-provider pending-payment contract, not payment-success evidence.
+  PAYMENT_SANDBOX_CONTRACT_APPROVED: "1"
+  TEST_MODE_PAYMENT_PROVIDER: "invoice"
+  CHECKOUT_MUTATION_MODE: "test-only"
+
   # Workstream 5 customer-journey sandbox assertion sinks. Non-secret and
   # disabled by behavior unless the runner targets example.invalid recipients.
   SYNTHETIC_EMAIL_ASSERTION_SOURCE: "synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl"

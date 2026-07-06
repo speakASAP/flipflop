@@ -37,11 +37,14 @@
   "ordersRouteInvocation": false,
   "dbWriteByRunner": false,
   "remainingBlockers": [
-    "[MISSING: CRM no-op/retention acknowledgement]",
     "[MISSING: sandbox/test-mode payment success evidence; invoice remains pending/no-provider]",
     "[MISSING: synthetic email JSONL assertion because deployed env lacks SYNTHETIC_EMAIL_ASSERTION_SOURCE]",
     "[MISSING: synthetic event JSONL assertion because deployed env lacks SYNTHETIC_EVENT_TRACE_SOURCE]"
   ],
   "successfulCustomerJourney": false,
-  "journeyVerdict": "blocked_invoice_pending_missing_crm_email_event_assertions"
+  "journeyVerdict": "blocked_invoice_pending_missing_payment_success_email_event_assertions",
+  "crmLeadsAcknowledgement": "accepted",
+  "crmLeadIdPresent": true,
+  "crmReadbackSource": "sanitized_orders_metadata_keys_only",
+  "crmRawOutput": false
 }

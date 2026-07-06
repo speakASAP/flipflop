@@ -21,6 +21,10 @@
 - centralLifecycleStage: ordered_unpaid
 - centralStatus: ordered_unpaid
 - centralPaymentStatus: pending
+- crmLeadsAcknowledgement: accepted
+- crmLeadIdPresent: true
+- crmReadbackSource: sanitized_orders_metadata_keys_only
+- crmRawOutput: false
 - emailAssertionSource: unavailable_deployed_env_missing
 - eventTraceSource: unavailable_deployed_env_missing
 - cleanupContract: flipflop.retention.invoice_pending.no_provider.channel_no_cleanup_until_stale_unpaid.v1
@@ -34,7 +38,6 @@
 
 ## Remaining Blockers
 
-- [MISSING: CRM no-op/retention acknowledgement]
 - [MISSING: sandbox/test-mode payment success evidence; invoice remains pending/no-provider]
 - [MISSING: synthetic email JSONL assertion because deployed env lacks SYNTHETIC_EMAIL_ASSERTION_SOURCE]
 - [MISSING: synthetic event JSONL assertion because deployed env lacks SYNTHETIC_EVENT_TRACE_SOURCE]
@@ -42,5 +45,5 @@
 ## Journey Verdict
 
 - successfulCustomerJourney: false
-- journeyVerdict: blocked_invoice_pending_missing_crm_email_event_assertions
-- interpretation: the runner produced a sanitized pending invoice order and central Orders readback, but this is not successful-customer-journey evidence because payment success, CRM no-op/retention acknowledgement, synthetic email assertion, and synthetic event assertion remain missing.
+- journeyVerdict: blocked_invoice_pending_missing_payment_success_email_event_assertions
+- interpretation: the runner produced a sanitized pending invoice order and central Orders readback, but this is not successful-customer-journey evidence because payment success, synthetic email assertion, and synthetic event assertion remain missing; CRM/Leads acknowledgement is accepted in sanitized metadata readback.

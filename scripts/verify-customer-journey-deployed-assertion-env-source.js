@@ -8,6 +8,9 @@ function assert(condition, message) { if (!condition) throw new Error(message); 
 const emailSource = 'synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl';
 const emailDomain = 'example.invalid';
 const eventSource = 'synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl';
+const paymentApproval = '1';
+const testModeProvider = 'invoice';
+const checkoutMutationMode = 'test-only';
 
 const configmap = read('k8s/configmap.yaml');
 const envExample = read('.env.example');
@@ -22,6 +25,9 @@ const packageJson = readJson('package.json');
 assert(packageJson.scripts['verify:customer-journey-deployed-assertion-env-source'] === 'node scripts/verify-customer-journey-deployed-assertion-env-source.js', 'package script is missing');
 
 for (const marker of [
+  `PAYMENT_SANDBOX_CONTRACT_APPROVED: "${paymentApproval}"`,
+  `TEST_MODE_PAYMENT_PROVIDER: "${testModeProvider}"`,
+  `CHECKOUT_MUTATION_MODE: "${checkoutMutationMode}"`,
   `SYNTHETIC_EMAIL_ASSERTION_SOURCE: "${emailSource}"`,
   `SYNTHETIC_EMAIL_ASSERTION_DOMAIN: "${emailDomain}"`,
   `SYNTHETIC_EVENT_TRACE_SOURCE: "${eventSource}"`,
@@ -30,6 +36,9 @@ for (const marker of [
 }
 
 for (const marker of [
+  `PAYMENT_SANDBOX_CONTRACT_APPROVED=${paymentApproval}`,
+  `TEST_MODE_PAYMENT_PROVIDER=${testModeProvider}`,
+  `CHECKOUT_MUTATION_MODE=${checkoutMutationMode}`,
   `SYNTHETIC_EMAIL_ASSERTION_SOURCE=${emailSource}`,
   `SYNTHETIC_EMAIL_ASSERTION_DOMAIN=${emailDomain}`,
   `SYNTHETIC_EVENT_TRACE_SOURCE=${eventSource}`,
@@ -46,9 +55,10 @@ assert(journeyPublisher.includes('SYNTHETIC_EVENT_TRACE_SOURCE'), 'journey publi
 assert(journeyPublisher.includes('synthetic-event-trace-jsonl:'), 'journey publisher must use synthetic JSONL trace source');
 
 for (const marker of [
+  'source-controlled W5 sandbox/test-only monitor gate env prepared',
   'source-controlled deployed synthetic email JSONL assertion env prepared',
   'source-controlled deployed synthetic event JSONL assertion env prepared',
-  'live ConfigMap apply/restart/readback still pending',
+  'live ConfigMap apply/restart/readback complete',
   'checkout_submission=false',
   'order_created=false',
   'email_sent=false',
@@ -62,12 +72,15 @@ console.log(JSON.stringify({
   ok: true,
   sourceOnly: true,
   configmapSourceReady: true,
+  paymentSandboxContractApproved: true,
+  testModePaymentProvider: testModeProvider,
+  checkoutMutationMode,
   emailAssertionSource: 'synthetic-email-jsonl',
   emailAssertionDomain: emailDomain,
   eventTraceSource: 'synthetic-event-trace-jsonl',
-  liveConfigMapApplied: false,
-  podRestarted: false,
-  runtimeReadback: false,
+  liveConfigMapApplied: true,
+  podRestarted: true,
+  runtimeReadback: true,
   checkoutSubmission: false,
   orderCreated: false,
   emailSent: false,

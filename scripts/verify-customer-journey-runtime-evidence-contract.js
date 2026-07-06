@@ -37,6 +37,10 @@ assert(runtime.centralLifecycleStage === 'ordered_unpaid', 'runtime evidence mus
 assert(runtime.paymentSuccessEvidence === false, 'runtime evidence must not claim payment success');
 assert(runtime.emailAssertionSource === 'unavailable_deployed_env_missing', 'runtime evidence must preserve missing deployed email assertion source');
 assert(runtime.eventTraceSource === 'unavailable_deployed_env_missing', 'runtime evidence must preserve missing deployed event trace source');
+assert(runtime.crmLeadsAcknowledgement === 'accepted', 'runtime evidence must record sanitized CRM/Leads acknowledgement');
+assert(runtime.crmLeadIdPresent === true, 'runtime evidence must record lead id presence without printing it');
+assert(runtime.crmReadbackSource === 'sanitized_orders_metadata_keys_only', 'runtime evidence must identify sanitized CRM readback source');
+assert(runtime.crmRawOutput === false, 'runtime evidence must not output raw CRM data');
 assert(runtime.rawCustomerOutput === false, 'runtime evidence must not output raw customer data');
 assert(runtime.rawOrderOutput === false, 'runtime evidence must not output raw order data');
 assert(runtime.rawPaymentOutput === false, 'runtime evidence must not output raw payment data');
@@ -46,7 +50,6 @@ assert(runtime.ordersRouteInvocation === false, 'runtime evidence must not invok
 assert(runtime.dbWriteByRunner === false, 'runtime evidence must not write DB rows by runner');
 
 for (const blocker of [
-  '[MISSING: CRM no-op/retention acknowledgement]',
   '[MISSING: sandbox/test-mode payment success evidence; invoice remains pending/no-provider]',
   '[MISSING: synthetic email JSONL assertion because deployed env lacks SYNTHETIC_EMAIL_ASSERTION_SOURCE]',
   '[MISSING: synthetic event JSONL assertion because deployed env lacks SYNTHETIC_EVENT_TRACE_SOURCE]',
@@ -63,6 +66,8 @@ for (const marker of [
   'orderCreated=true',
   'providerCall=false',
   'paymentCreated=false',
+  'crmLeadsAcknowledgement: accepted',
+  'crmRawOutput: false',
   'rawCustomerOutput=false',
   'rawOrderOutput=false',
   'rawPaymentOutput=false',
@@ -90,5 +95,6 @@ console.log(JSON.stringify({
   rawOrderOutput: runtime.rawOrderOutput,
   rawPaymentOutput: runtime.rawPaymentOutput,
   secretOutput: runtime.secretOutput,
+  crmLeadsAcknowledgement: runtime.crmLeadsAcknowledgement,
   remainingBlockers: runtime.remainingBlockers.length
 }, null, 2));

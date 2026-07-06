@@ -296,6 +296,9 @@ Decision: `[RESOLVED/NARROWED: source deployment config now wires W5 synthetic e
 Config values:
 
 ```text
+PAYMENT_SANDBOX_CONTRACT_APPROVED=1
+TEST_MODE_PAYMENT_PROVIDER=invoice
+CHECKOUT_MUTATION_MODE=test-only
 SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl
 SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid
 SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl
@@ -348,8 +351,8 @@ Remaining blockers:
 
 - `[MISSING: CRM no-op/retention acknowledgement]`
 - `[MISSING: sandbox/test-mode payment success evidence; invoice remains pending/no-provider]`
-- `[RESOLVED/NARROWED: source-controlled deployed synthetic email JSONL assertion env prepared; live ConfigMap apply/restart/readback still pending]`
-- `[RESOLVED/NARROWED: source-controlled deployed synthetic event JSONL assertion env prepared; live ConfigMap apply/restart/readback still pending]`
+- `[RESOLVED/NARROWED: source-controlled deployed synthetic email JSONL assertion env prepared; live ConfigMap apply/restart/readback complete; assertion file generation still requires a future approved runtime event]`
+- `[RESOLVED/NARROWED: source-controlled deployed synthetic event JSONL assertion env prepared; live ConfigMap apply/restart/readback complete; assertion file generation still requires a future approved runtime event]`
 
 Boundary: this packet update records the approved runtime attempt. It created one pre-prod invoice/no-provider guest order and central ordered_unpaid record, but did not create provider payment, call a provider, move real money, replay webhooks, send email, run manual cleanup, deploy, print secrets, or print raw customer/order/payment data.
 
@@ -395,6 +398,9 @@ User approval captured in orchestration thread `019f387b-12f0-7de1-9cc4-f1b16830
 Email assertion source:
 
 ```text
+PAYMENT_SANDBOX_CONTRACT_APPROVED=1
+TEST_MODE_PAYMENT_PROVIDER=invoice
+CHECKOUT_MUTATION_MODE=test-only
 SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl
 SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid
 ```
@@ -485,14 +491,17 @@ npm run verify:customer-journey-cleanup-contract
 
 At 2026-07-06T21:30:00+02:00 the owner approved a pre-prod W5 run. The executed safe path used paymentMethod=invoice only. One guest checkout submission succeeded with orderStatus=pending, paymentStatus=pending, central lifecycle ordered_unpaid, providerCall=false, externalProviderCall=false, realMoneyMovement=false, and paymentCreated=false. Sanitized evidence is recorded at reports/validation/VAL-W5-customer-journey-sandbox-final-redacted-evidence-2026-07-06.md and reports/validation/customer-journey-sandbox-runtime/w5-owner-approved-invoice-runtime-20260706-2130.json.
 
-Remaining blockers after the runtime attempt: [MISSING: CRM no-op/retention acknowledgement], [MISSING: sandbox/test-mode payment success evidence; invoice remains pending/no-provider], [MISSING: synthetic email JSONL assertion because deployed env lacks SYNTHETIC_EMAIL_ASSERTION_SOURCE], and [MISSING: synthetic event JSONL assertion because deployed env lacks SYNTHETIC_EVENT_TRACE_SOURCE].
+Sanitized CRM/Leads readback after the runtime attempt: crmLeadsAcknowledgement: accepted; leadsSync=accepted and leadId present in order metadata, with metadata keys/hash only and crmRawOutput: false; no raw lead/order/customer output. Remaining blockers after the runtime attempt: [MISSING: sandbox/test-mode payment success evidence; invoice remains pending/no-provider], [MISSING: synthetic email JSONL assertion because deployed env lacks SYNTHETIC_EMAIL_ASSERTION_SOURCE at execution time], and [MISSING: synthetic event JSONL assertion because deployed env lacks SYNTHETIC_EVENT_TRACE_SOURCE at execution time].
 
 
 ## 2026-07-06 W5 Deployed Assertion Env Source Readiness
 
-Source-controlled runtime env has been prepared in `k8s/configmap.yaml` for the disabled-by-default assertion sinks:
+source-controlled W5 sandbox/test-only monitor gate env prepared. Source-controlled runtime env has been prepared in `k8s/configmap.yaml` for the W5 monitor gate and disabled-by-default assertion sinks:
 
 ```text
+PAYMENT_SANDBOX_CONTRACT_APPROVED=1
+TEST_MODE_PAYMENT_PROVIDER=invoice
+CHECKOUT_MUTATION_MODE=test-only
 SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl
 SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid
 SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl
@@ -500,7 +509,7 @@ SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/cust
 
 `k8s/deployment.yaml` wires `flipflop-config` through `envFrom` into `flipflop-order-service`, and the order-service image contains the shared notification and customer-journey publisher code that reads these variables.
 
-Boundary: this source update does not apply the ConfigMap, restart pods, create another order, send email, publish an event, mutate Orders/Warehouse, deploy, write DB rows, print secrets, or print raw customer/order/payment data. Runtime readback remains blocked until the ConfigMap is applied, the relevant pods are restarted, and assertion files are read back without creating a new order.
+Boundary: this source update records non-secret W5 monitor gate env and assertion source env. It does not by itself apply the ConfigMap, restart pods, create another order, send email, publish an event, mutate Orders/Warehouse, deploy, write DB rows, print secrets, or print raw customer/order/payment data. ConfigMap apply, order-service restart, and live env readback are complete. Assertion files remain absent for the prior 21:30 runtime because those env vars were not present at execution time; no new order was created by the env readback.
 
 Validation command:
 
