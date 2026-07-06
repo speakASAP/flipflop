@@ -45,7 +45,8 @@
     "verify:customer-journey-cleanup-contract": "node scripts/verify-customer-journey-cleanup-contract.js",
     "verify:customer-journey-synthetic-contact-contract": "node scripts/verify-customer-journey-synthetic-contact-contract.js",
     "verify:customer-journey-runtime-evidence-contract": "node scripts/verify-customer-journey-runtime-evidence-contract.js",
-    "verify:bpcp-runtime-consumer-contract": "node scripts/verify-bpcp-runtime-consumer-contract.js"
+    "verify:bpcp-runtime-consumer-contract": "node scripts/verify-bpcp-runtime-consumer-contract.js",
+    "verify:customer-journey-deployed-assertion-env-source": "node scripts/verify-customer-journey-deployed-assertion-env-source.js"
   },
   "dependencies": {
     "@nestjs-modules/ioredis": "^2.2.1",

@@ -50,6 +50,12 @@ data:
   FLIPFLOP_CATALOG_EVENTS_QUEUE: "catalog.flipflop-service"
   FLIPFLOP_HOLIDAY_DISCOUNT_PROCESS_VERSION: "2"
 
+  # Workstream 5 customer-journey sandbox assertion sinks. Non-secret and
+  # disabled by behavior unless the runner targets example.invalid recipients.
+  SYNTHETIC_EMAIL_ASSERTION_SOURCE: "synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl"
+  SYNTHETIC_EMAIL_ASSERTION_DOMAIN: "example.invalid"
+  SYNTHETIC_EVENT_TRACE_SOURCE: "synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl"
+
   PAYMENT_CALLBACK_URL: "https://flipflop.alfares.cz/api/webhooks/payment-result"
   PAYMENT_CANCEL_URL: "https://flipflop.alfares.cz/payment-result?status=cancelled"
   PAYMENT_SUCCESS_URL: "https://flipflop.alfares.cz/payment-result?status=completed"

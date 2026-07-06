@@ -288,6 +288,29 @@ Still missing for runtime execution:
 - [RESOLVED/NARROWED: final redacted evidence content exists for partial invoice/no-provider runtime; successful paid journey evidence remains missing]
 
 
+
+## 2026-07-06 Deployed Assertion Source Wiring
+
+Decision: `[RESOLVED/NARROWED: source deployment config now wires W5 synthetic email and event assertion sources through k8s/configmap.yaml; deployed runtime readback remains required before another W5 runtime attempt]`.
+
+Config values:
+
+```text
+SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl
+SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid
+SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl
+```
+
+Boundary: this is source/config wiring only. No deployment, rollout restart, checkout, order, payment, provider call, email send, event publish, CRM/Leads readback, DB write, or secret output occurred in this update.
+
+Runtime blocker status: the previous runtime evidence remains blocked by missing deployed assertion readback. The next runtime attempt must first deploy the ConfigMap and prove sanitized runtime readback that these environment variables are present without printing secrets or raw customer/order/payment data.
+
+Validation command:
+
+```bash
+npm run verify:customer-journey-assertion-sources
+```
+
 ## 2026-07-06 W5 Runtime Evidence Partial Success
 
 Evidence paths:
@@ -325,8 +348,8 @@ Remaining blockers:
 
 - `[MISSING: CRM no-op/retention acknowledgement]`
 - `[MISSING: sandbox/test-mode payment success evidence; invoice remains pending/no-provider]`
-- `[MISSING: deployed synthetic email JSONL assertion source]`
-- `[MISSING: deployed synthetic event JSONL assertion source]`
+- `[RESOLVED/NARROWED: source-controlled deployed synthetic email JSONL assertion env prepared; live ConfigMap apply/restart/readback still pending]`
+- `[RESOLVED/NARROWED: source-controlled deployed synthetic event JSONL assertion env prepared; live ConfigMap apply/restart/readback still pending]`
 
 Boundary: this packet update records the approved runtime attempt. It created one pre-prod invoice/no-provider guest order and central ordered_unpaid record, but did not create provider payment, call a provider, move real money, replay webhooks, send email, run manual cleanup, deploy, print secrets, or print raw customer/order/payment data.
 
@@ -463,6 +486,27 @@ npm run verify:customer-journey-cleanup-contract
 At 2026-07-06T21:30:00+02:00 the owner approved a pre-prod W5 run. The executed safe path used paymentMethod=invoice only. One guest checkout submission succeeded with orderStatus=pending, paymentStatus=pending, central lifecycle ordered_unpaid, providerCall=false, externalProviderCall=false, realMoneyMovement=false, and paymentCreated=false. Sanitized evidence is recorded at reports/validation/VAL-W5-customer-journey-sandbox-final-redacted-evidence-2026-07-06.md and reports/validation/customer-journey-sandbox-runtime/w5-owner-approved-invoice-runtime-20260706-2130.json.
 
 Remaining blockers after the runtime attempt: [MISSING: CRM no-op/retention acknowledgement], [MISSING: sandbox/test-mode payment success evidence; invoice remains pending/no-provider], [MISSING: synthetic email JSONL assertion because deployed env lacks SYNTHETIC_EMAIL_ASSERTION_SOURCE], and [MISSING: synthetic event JSONL assertion because deployed env lacks SYNTHETIC_EVENT_TRACE_SOURCE].
+
+
+## 2026-07-06 W5 Deployed Assertion Env Source Readiness
+
+Source-controlled runtime env has been prepared in `k8s/configmap.yaml` for the disabled-by-default assertion sinks:
+
+```text
+SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl
+SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid
+SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl
+```
+
+`k8s/deployment.yaml` wires `flipflop-config` through `envFrom` into `flipflop-order-service`, and the order-service image contains the shared notification and customer-journey publisher code that reads these variables.
+
+Boundary: this source update does not apply the ConfigMap, restart pods, create another order, send email, publish an event, mutate Orders/Warehouse, deploy, write DB rows, print secrets, or print raw customer/order/payment data. Runtime readback remains blocked until the ConfigMap is applied, the relevant pods are restarted, and assertion files are read back without creating a new order.
+
+Validation command:
+
+```bash
+npm run verify:customer-journey-deployed-assertion-env-source
+```
 
 ## Current Decision
 

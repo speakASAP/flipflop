@@ -16,6 +16,7 @@ const journeyPublisher = read('shared/rabbitmq/customer-journey-events.publisher
 const packet = read('docs/orchestrator/2026-07-06-customer-journey-sandbox-runtime-packet.md');
 const monitorDoc = read('docs/orchestrator/2026-07-06-synthetic-customer-journey-monitor.md');
 const packageJson = JSON.parse(read('package.json'));
+const configMap = read('k8s/configmap.yaml');
 
 assert(notificationService.includes('SYNTHETIC_EMAIL_ASSERTION_SOURCE'), 'notification service must read SYNTHETIC_EMAIL_ASSERTION_SOURCE');
 assert(notificationService.includes('synthetic-email-jsonl:'), 'notification service must require the synthetic-email-jsonl source prefix');
@@ -38,6 +39,15 @@ for (const marker of [
   assert(monitorDoc.includes(marker), `monitor doc missing marker ${marker}`);
 }
 
+
+for (const marker of [
+  'SYNTHETIC_EMAIL_ASSERTION_SOURCE: "synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl"',
+  'SYNTHETIC_EMAIL_ASSERTION_DOMAIN: "example.invalid"',
+  'SYNTHETIC_EVENT_TRACE_SOURCE: "synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl"',
+]) {
+  assert(configMap.includes(marker), `k8s configmap missing deployed assertion marker ${marker}`);
+}
+
 assert(packageJson.scripts['verify:customer-journey-assertion-sources'] === 'node scripts/verify-customer-journey-assertion-sources.js', 'package script is missing');
 
 console.log(JSON.stringify({
@@ -46,6 +56,7 @@ console.log(JSON.stringify({
   mutation: false,
   emailAssertionSource: 'synthetic-email-jsonl',
   eventTraceSource: 'synthetic-event-trace-jsonl',
+  deployedConfigMapWired: true,
   rawRecipientOutput: false,
   rawPayloadOutput: false,
   secretOutput: false
