@@ -42,8 +42,8 @@ Remote repository state at packet preparation:
 ```text
 repository: /home/ssf/Documents/Github/flipflop
 branch: main
-head: d89bdaf Accept journey correlation contract
-worktree: dirty from this packet and generated validation evidence
+head: 57fcec1 Merge workstream 3C backend journey emission
+worktree: dirty from this packet
 ```
 
 Relevant completed commits:
@@ -125,9 +125,9 @@ The full sandbox runner remains blocked until every item below is resolved.
 
 | Required fact | Current status | Required evidence |
 | --- | --- | --- |
-| Synthetic product/SKU | `[MISSING: approved synthetic product/SKU]`; `[RESOLVED/NARROWED: historical GOAL-09 precedent used dedicated SKU CODEX-STOCK-TRACE-011, but it is not approved as a reusable customer-journey sandbox SKU]` | product id/SKU or approved deterministic selector, with stock/price/delivery suitability and no raw DB row output |
+| Synthetic product/SKU | `[MISSING: approved synthetic product/SKU]`; `[RESOLVED/NARROWED: historical GOAL-09 precedent used dedicated SKU CODEX-STOCK-TRACE-011, but current public product API lookup did not find that SKU; first-sellable public product is not reclassified as synthetic]` | product id/SKU or approved deterministic selector, with stock/price/delivery suitability and no raw DB row output |
 | Synthetic customer/contact | `[MISSING: synthetic customer/contact]` | approved synthetic identity or token-bound test actor; no raw email/customer data in logs |
-| Delivery test contract | `[MISSING: approved delivery test contract]`; `[RESOLVED/NARROWED: checkout source and previous reports show delivery method candidates, but no reusable approved delivery contract for the full sandbox run]` | delivery method/address/pickup policy that cannot create real shipment obligations |
+| Delivery test contract | `[RESOLVED/NARROWED: packet-prep delivery test contract is flipflop.delivery.store_pickup.no_external_carrier.v1 using deliveryMethod=store, shippingCost=0, and no external-carrier handoff; runtime still blocked until product/customer/payment/email/event/cleanup facts exist]` | source references for `store` delivery method and server-side cost calculation; any checkout execution still requires full sandbox packet approval |
 | Payment sandbox approval flag | `[MISSING: sandbox/test-mode payment approval flag]` | explicit owner-approved `PAYMENT_SANDBOX_CONTRACT_APPROVED=1` or equivalent non-secret packet |
 | Test-mode provider | `[MISSING: documented sandbox/test-mode payment provider]`; `[RESOLVED/NARROWED: Goal 24 Fiobanka QR material is policy/checklist evidence only and is not a reusable sandbox/test-mode approval packet]` | provider/method/environment and proof that no real money movement occurs |
 | Checkout mutation mode | `[MISSING: sandbox or test-only checkout mutation mode]` | `CHECKOUT_MUTATION_MODE=sandbox|test-only` and service-side enforcement proof |
@@ -204,12 +204,14 @@ Integrated findings:
 
 - W5A: `CODEX-STOCK-TRACE-011` is a historical GOAL-09 dedicated test SKU precedent, but not an approved reusable synthetic product/SKU for this customer-journey sandbox packet.
 - W5A: checkout source and prior evidence show delivery method candidates, but no approved delivery test contract for this full sandbox run.
+- W5A current public product lookup: `CODEX-STOCK-TRACE-011` was not returned by `GET /api/products?limit=200`; the first sellable public product remains a real catalog candidate and must not be reclassified as synthetic without explicit product/catalog approval.
+- W5A delivery narrowing: owner-approved packet preparation may use `flipflop.delivery.store_pickup.no_external_carrier.v1` as the delivery test contract candidate because checkout source exposes `deliveryMethod=store` and order-service calculates `shippingCost=0`, avoiding external carrier/shipment obligations during future sandbox planning.
 - W5B: FlipFlop source has provider/method candidates such as `fiobanka`, `invoice`, `webpay`, `stripe`, `paypal`, and `payu`; none is currently documented as a reusable sandbox/test-mode provider for this packet.
 - W5B: Goal 24 Fiobanka QR material can inform hard-stop policy only. It is not current approval for this customer-journey sandbox run.
 - W5C: customer-journey AMQP publisher/schema exists, but no approved event trace readback/query source exists.
 - W5C: notification/email implementation exists, but no approved synthetic email sink/readback source exists.
 
-These final W5A/W5B/W5C findings keep the packet `draft-runtime-side-effects-blocked`.
+These final W5A/W5B/W5C findings kept the packet blocked for runtime execution. The owner approval intake below authorizes packet preparation only; it does not resolve the missing runtime facts.
 
 ## Proposed Owner Approval Statement
 
@@ -238,7 +240,7 @@ Still missing for execution:
 
 - `[MISSING: approved synthetic product/SKU]`
 - `[MISSING: synthetic customer/contact]`
-- `[MISSING: approved delivery test contract]`
+- `[RESOLVED/NARROWED: delivery test contract candidate flipflop.delivery.store_pickup.no_external_carrier.v1 selected for packet preparation only; no runtime checkout allowed until the remaining missing facts are resolved]`
 - `[MISSING: documented sandbox/test-mode payment provider with environment proof]`
 - `[MISSING: CHECKOUT_MUTATION_MODE=sandbox|test-only service-side enforcement proof]`
 - `[MISSING: synthetic email assertion source]`
@@ -248,7 +250,7 @@ Still missing for execution:
 
 ## Current Decision
 
-Status: `owner-approved-packet-prep-runtime-side-effects-blocked`.
+Status: `owner-approved-packet-prep-delivery-contract-narrowed-runtime-side-effects-blocked`.
 
 The packet is ready for fact discovery and owner review, not for execution. The current safe state remains:
 
@@ -260,3 +262,29 @@ runtime_side_effects: forbidden
 ```
 
 Next safe action: integration owner must supply the missing runtime facts, then run verifier/read-only gates before any sandbox runner is enabled.
+
+
+## 2026-07-06 W5A Product And Delivery Narrowing
+
+Read-only product lookup:
+
+```text
+GET https://flipflop.alfares.cz/api/products?limit=200 -> HTTP 200
+CODEX-STOCK-TRACE-011 found: false
+first sellable public product: present, but not synthetic-approved
+```
+
+Decision: `[MISSING: approved synthetic product/SKU]` remains open. The historical GOAL-09 SKU is valid precedent only; it is not currently discoverable through the public product API and must not be assumed reusable for `flipflop.successful_customer_journey.v1`.
+
+Delivery contract selected for packet preparation:
+
+```text
+contract_id: flipflop.delivery.store_pickup.no_external_carrier.v1
+deliveryMethod: store
+shippingCost: 0
+externalCarrier: false
+shipmentObligation: false
+source: services/frontend/app/checkout/page.tsx DELIVERY_OPTIONS and services/order-service/src/orders/orders.service.ts calculateGuestDeliveryCost
+```
+
+Decision: `[RESOLVED/NARROWED: delivery test contract candidate selected for packet preparation]`. This narrows only the delivery fact. It does not authorize checkout/order/payment/email/event execution and does not replace the remaining missing product, customer, payment, email, event, cleanup, or evidence-path facts.
