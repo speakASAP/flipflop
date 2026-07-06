@@ -1,6 +1,6 @@
 {
-  "ok": false,
-  "generatedAt": "2026-07-05T22:02:16.265Z",
+  "ok": true,
+  "generatedAt": "2026-07-06T10:59:45.277Z",
   "mutation": true,
   "providerCall": false,
   "approvalIdPresent": true,
@@ -8,7 +8,7 @@
   "preflight": {
     "deploymentReady": "1/1",
     "deploymentAvailable": "1/1",
-    "image": "localhost:5000/flipflop-order-service:latest",
+    "image": "localhost:5000/flipflop-order-service@sha256:861047a762142a434025365972539a0cc4b22bde23f351f662f9196b157254ea",
     "podEnv": {
       "ORDERS_SERVICE_URL": true,
       "ORDERS_SERVICE_TOKEN": true,
@@ -24,12 +24,10 @@
     "cleanup": {
       "attempted": true,
       "skippedReason": null,
-      "httpStatus": 403
+      "httpStatus": 200
     }
   },
-  "blockers": [
-    "[MISSING: runtime cleanup cancelled synthetic Orders order]"
-  ],
+  "blockers": [],
   "cleanupAuthorityConfirmed": true,
   "next": "Set RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1, AUTH_SUBJECT_SMOKE_APPROVAL_ID, AUTH_SUBJECT_SMOKE_CONFIRM=CREATE_READ_OPTIONAL_CANCEL, AUTH_SUBJECT_SMOKE_CLEANUP_CONFIRM=ORDERS_ADMIN_STATUS_CANCEL, AUTH_SUBJECT_SMOKE_CATALOG_PRODUCT_ID, AUTH_SUBJECT_SMOKE_WAREHOUSE_ID, and project ORDERS_STATUS_SERVICE_TOKEN only after owner approval for one synthetic central Orders create/read/cancel smoke."
 }
