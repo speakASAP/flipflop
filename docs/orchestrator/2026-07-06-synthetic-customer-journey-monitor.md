@@ -125,7 +125,7 @@ The monitor writes `reports/validation/synthetic-journey-monitor/report-latest.j
 - `[RESOLVED/NARROWED: source-only no-external-provider payment contract]` with `PAYMENT_SANDBOX_CONTRACT_APPROVED=1`, `TEST_MODE_PAYMENT_PROVIDER=invoice`, and `CHECKOUT_MUTATION_MODE=test-only`; this does not prove payment success and does not authorize checkout execution while product/customer/cleanup facts remain missing.
 - `[RESOLVED/NARROWED: synthetic email assertion source]` as `SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl` plus `SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid`.
 - `[RESOLVED/NARROWED: event trace assertion source]` as `SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl`.
-- `[RESOLVED/NARROWED: order/payment cleanup or retention contract]` as `SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.cleanup.invoice_pending.stale_unpaid_retention.v1`; runner records retention contract only and must not invoke cleanup mutation.
+- `[RESOLVED/NARROWED: order/payment cleanup or retention contract]` as `SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.retention.invoice_pending.no_provider.channel_no_cleanup_until_stale_unpaid.v1`; runner records retention contract only and must not invoke cleanup mutation.
 
 ## Assertions
 

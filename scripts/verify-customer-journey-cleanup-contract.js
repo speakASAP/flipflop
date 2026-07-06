@@ -17,7 +17,7 @@ const packageJson = JSON.parse(read('package.json'));
 assert(packageJson.scripts['verify:customer-journey-cleanup-contract'] === 'node scripts/verify-customer-journey-cleanup-contract.js', 'package script is missing');
 
 for (const marker of [
-  'SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.cleanup.invoice_pending.stale_unpaid_retention.v1',
+  'SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.retention.invoice_pending.no_provider.channel_no_cleanup_until_stale_unpaid.v1',
   'cleanup_mode=retain_then_platform_stale_unpaid_cancel',
   'manual_cleanup_mutation=false',
   'orders_route_invocation=false',
@@ -27,8 +27,8 @@ for (const marker of [
   assert(packet.includes(marker), `runtime packet missing marker ${marker}`);
 }
 
-assert(monitorDoc.includes('SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.cleanup.invoice_pending.stale_unpaid_retention.v1'), 'monitor doc missing cleanup contract env value');
-assert(status.includes('SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.cleanup.invoice_pending.stale_unpaid_retention.v1'), 'STATUS missing cleanup contract update');
+assert(monitorDoc.includes('SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.retention.invoice_pending.no_provider.channel_no_cleanup_until_stale_unpaid.v1'), 'monitor doc missing cleanup contract env value');
+assert(status.includes('SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.retention.invoice_pending.no_provider.channel_no_cleanup_until_stale_unpaid.v1'), 'STATUS missing cleanup contract update');
 assert(status.includes('FINAL_REDACTED_EVIDENCE_PATH=reports/validation/VAL-W5-customer-journey-sandbox-final-redacted-evidence-2026-07-06.md'), 'STATUS missing final evidence path update');
 assert(packet.includes('SYNTHETIC_CUSTOMER_EMAIL=synthetic.customer-journey.w5@example.invalid'), 'packet missing synthetic customer contact contract');
 
@@ -47,7 +47,7 @@ for (const marker of [
 console.log(JSON.stringify({
   ok: true,
   sourceOnly: true,
-  cleanupContract: 'flipflop.cleanup.invoice_pending.stale_unpaid_retention.v1',
+  cleanupContract: 'flipflop.retention.invoice_pending.no_provider.channel_no_cleanup_until_stale_unpaid.v1',
   cleanupMode: 'retain_then_platform_stale_unpaid_cancel',
   manualCleanupMutation: false,
   ordersRouteInvocation: false,

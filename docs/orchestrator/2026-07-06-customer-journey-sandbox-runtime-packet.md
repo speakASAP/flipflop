@@ -133,7 +133,7 @@ The full sandbox runner remains blocked until every item below is resolved.
 | Checkout mutation mode | `[RESOLVED/NARROWED: CHECKOUT_MUTATION_MODE=test-only for source-only packet preparation; future runner must enforce this before any order mutation]` | verifier checks source contract and invoice no-provider branch; runtime runner remains blocked until product/customer/cleanup/evidence facts exist |
 | Email assertion source | `[RESOLVED/NARROWED: approved source contract is SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl with SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid; notification code captures matching synthetic email assertions as sanitized JSONL and returns captured_not_sent]` | synthetic email sink/queue/log readback that does not send to real customers |
 | Event trace assertion source | `[RESOLVED/NARROWED: approved source contract is SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl; customer journey publisher records sanitized JSONL trace rows after broker publish, queryable by journey_id/correlation_id]` | query path for `flipflop.customer_journey.events.v1` by `journey_id`/`correlation_id` |
-| Cleanup/retention contract | `[RESOLVED/NARROWED: SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.cleanup.invoice_pending.stale_unpaid_retention.v1; retain invoice/pending synthetic order evidence and let existing stale unpaid order lifecycle handle cancellation after STALE_UNPAID_ORDER_HOURS default 24h; runner must not invoke manual cleanup mutation]` | stale unpaid retention contract, idempotency namespace, side-effect acknowledgement limits, and final redacted evidence path |
+| Cleanup/retention contract | `[RESOLVED/NARROWED: SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.retention.invoice_pending.no_provider.channel_no_cleanup_until_stale_unpaid.v1; retain invoice/pending synthetic order evidence and let existing stale unpaid order lifecycle handle cancellation after STALE_UNPAID_ORDER_HOURS default 24h; runner must not invoke manual cleanup mutation]` | stale unpaid retention contract, idempotency namespace, side-effect acknowledgement limits, and final redacted evidence path |
 
 ## Environment Variables Expected by Monitor
 
@@ -158,7 +158,7 @@ CHECKOUT_MUTATION_MODE=test-only
 SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl
 SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid
 SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl
-SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.cleanup.invoice_pending.stale_unpaid_retention.v1
+SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.retention.invoice_pending.no_provider.channel_no_cleanup_until_stale_unpaid.v1
 FINAL_REDACTED_EVIDENCE_PATH=reports/validation/VAL-W5-customer-journey-sandbox-final-redacted-evidence-2026-07-06.md
 ```
 
@@ -232,7 +232,7 @@ W5C is now source-resolved by disabled-by-default assertion capture contracts. S
 This section is intentionally not executable until every `[MISSING: ...]` marker is replaced.
 
 ```text
-I approve exactly one FlipFlop customer journey sandbox run for process flipflop.successful_customer_journey.v1 using approval id [MISSING: approval id], execution window [MISSING: start/end Europe/Prague], synthetic product/SKU ffb4883f-ec48-4745-8147-b836f3fb2b88 / ALLEGRO-OFFER-18106037370, synthetic customer/contact synthetic.customer-journey.w5@example.invalid with synthetic non-secret billing/contact payload, delivery contract flipflop.delivery.store_pickup.no_external_carrier.v1, sandbox/test-mode payment provider invoice under flipflop.payment.invoice.bank_transfer.no_provider_call.v1, checkout mutation mode test-only, email assertion source synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl, event trace source synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl, cleanup/retention contract flipflop.cleanup.invoice_pending.stale_unpaid_retention.v1, and redacted evidence path reports/validation/VAL-W5-customer-journey-sandbox-final-redacted-evidence-2026-07-06.md.
+I approve exactly one FlipFlop customer journey sandbox run for process flipflop.successful_customer_journey.v1 using approval id [MISSING: approval id], execution window [MISSING: start/end Europe/Prague], synthetic product/SKU ffb4883f-ec48-4745-8147-b836f3fb2b88 / ALLEGRO-OFFER-18106037370, synthetic customer/contact synthetic.customer-journey.w5@example.invalid with synthetic non-secret billing/contact payload, delivery contract flipflop.delivery.store_pickup.no_external_carrier.v1, sandbox/test-mode payment provider invoice under flipflop.payment.invoice.bank_transfer.no_provider_call.v1, checkout mutation mode test-only, email assertion source synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl, event trace source synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl, cleanup/retention contract flipflop.retention.invoice_pending.no_provider.channel_no_cleanup_until_stale_unpaid.v1, and redacted evidence path reports/validation/VAL-W5-customer-journey-sandbox-final-redacted-evidence-2026-07-06.md.
 
 I understand this authorizes only the named sandbox/test-mode attempt. The executor must stop at the first hard stop and must not print secrets, tokens, raw customer/contact/address data, raw provider payloads, raw DB rows, raw order ids, raw payment ids, or full event payloads containing sensitive data.
 ```
@@ -259,7 +259,7 @@ Still missing for execution:
 - `[RESOLVED/NARROWED: CHECKOUT_MUTATION_MODE=test-only source contract selected; future runner must enforce it before any checkout/order mutation]`
 - `[RESOLVED/NARROWED: SYNTHETIC_EMAIL_ASSERTION_SOURCE=synthetic-email-jsonl:reports/validation/synthetic-email-assertions/email-assertions.jsonl with SYNTHETIC_EMAIL_ASSERTION_DOMAIN=example.invalid]`
 - `[RESOLVED/NARROWED: SYNTHETIC_EVENT_TRACE_SOURCE=synthetic-event-trace-jsonl:reports/validation/customer-journey-event-trace/events.jsonl]`
-- `[RESOLVED/NARROWED: SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.cleanup.invoice_pending.stale_unpaid_retention.v1; cleanup_mode=retain_then_platform_stale_unpaid_cancel; manual_cleanup_mutation=false; orders_route_invocation=false; db_write_by_runner=false]`
+- `[RESOLVED/NARROWED: SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.retention.invoice_pending.no_provider.channel_no_cleanup_until_stale_unpaid.v1; cleanup_mode=retain_then_platform_stale_unpaid_cancel; manual_cleanup_mutation=false; orders_route_invocation=false; db_write_by_runner=false]`
 - `[RESOLVED/NARROWED: FINAL_REDACTED_EVIDENCE_PATH=reports/validation/VAL-W5-customer-journey-sandbox-final-redacted-evidence-2026-07-06.md; evidence content remains missing until an approved runtime run exists]`
 
 
@@ -361,7 +361,7 @@ User approval `Да, я опрувлю` is consumed only for source/docs/verifie
 Contract values:
 
 ```text
-SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.cleanup.invoice_pending.stale_unpaid_retention.v1
+SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.retention.invoice_pending.no_provider.channel_no_cleanup_until_stale_unpaid.v1
 cleanup_mode=retain_then_platform_stale_unpaid_cancel
 payment_method=invoice
 payment_status_expected=pending
@@ -375,7 +375,7 @@ idempotency_key_namespace=w5:customer-journey:<approvalId>:<journeyHash>:<orderH
 sideEffectsHandled.payment=true_no_provider_call
 sideEffectsHandled.warehouse=false_until_owner_packet
 sideEffectsHandled.notification=false_until_synthetic_email_jsonl_readback
-sideEffectsHandled.crm=false_not_in_scope
+sideEffectsHandled.crm=false_missing_no_op_or_retention_acknowledgement
 sideEffectsHandled.channel=false_until_redacted_channel_evidence
 FINAL_REDACTED_EVIDENCE_PATH=reports/validation/VAL-W5-customer-journey-sandbox-final-redacted-evidence-2026-07-06.md
 ```
@@ -454,7 +454,7 @@ paid-provider bundle checkout gate: ok=true, mutation=false, providerCall=false,
 orders lifecycle UI verifier: ok=true, coveredStages=13, sensitiveOutput=redacted-source-only
 ```
 
-Validation decision: packet preparation is source-valid; runtime execution remains blocked by missing approval id, execution window, runner implementation, and final redacted evidence content. Sandbox/test-mode provider, checkout mutation mode, cleanup/retention contract, and final redacted evidence path are source-narrowed only.
+Validation decision: packet preparation is source-valid; runtime execution remains blocked by missing approval id, execution window, runner implementation, CRM no-op/retention acknowledgement, invoice payment-success decision, and final redacted evidence content. Sandbox/test-mode provider, checkout mutation mode, cleanup/retention contract, and final redacted evidence path are source-narrowed only.
 
 
 
