@@ -535,6 +535,8 @@ Remaining blockers: [MISSING: sandbox/test-mode payment success evidence; invoic
 
 Source follow-up after 22:00 readback: CustomerJourneyEventsPublisher now records sanitized `synthetic-event-trace-jsonl` rows before RabbitMQ connectivity and guest invoice checkout emits a no-external-call `payment_attempt_started` event. This resolves the event trace assertion source for future runs. Existing 22:00 runtime evidence remains unchanged and blocked because it was captured before the source fix. Email assertion readback still requires a payment-success/order-confirmation path; invoice pending/no-provider does not send the confirmation email.
 
+Deploy follow-up at 2026-07-06T22:13:08+02:00: commit `92c51f9` is on `main`/`origin/main`. `./scripts/deploy.sh` built and pushed images; the script timed out during slow local-registry image pulls, then all six FlipFlop deployments reported successful rollout on recheck. HTTP checks passed for `https://flipflop.alfares.cz/` and `/api/products?limit=1`. Live order-service pod env readback confirmed the W5 assertion source env values. No additional checkout/order mutation was run after this source fix.
+
 ## Current Decision
 
 Status: `owner-approved-packet-prep-product-customer-delivery-payment-w5c-cleanup-source-narrowed-runtime-side-effects-blocked`.
