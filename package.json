@@ -38,7 +38,8 @@
     "verify:catalog-bundleid-checkout-migration": "node scripts/verify-catalog-bundleid-checkout-migration.js",
     "verify:admin-status-central-authority": "node scripts/verify-admin-status-central-authority.js",
     "verify:w6b-admin-status-authority-contract": "node scripts/verify-w6b-admin-status-authority-contract.js",
-    "verify:synthetic-journey-monitor": "node scripts/synthetic-customer-journey-monitor.js"
+    "verify:synthetic-journey-monitor": "node scripts/synthetic-customer-journey-monitor.js",
+    "verify:customer-journey-events-contract": "node scripts/verify-customer-journey-events-contract.js"
   },
   "dependencies": {
     "@nestjs-modules/ioredis": "^2.2.1",

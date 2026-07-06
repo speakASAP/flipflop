@@ -24,13 +24,15 @@ import {
   WarehouseClientService,
   InventoryEventsPublisher,
   CustomerEventsPublisher,
+  CustomerJourneyEventsPublisher,
+  CustomerJourneyEventName,
   AuthService,
   LeadsClientService,
   CatalogClientService,
 } from '@flipflop/shared';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
-import { randomUUID } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { PaymentResultDto } from './dto/payment-result.dto';
 import { UpdateOrderPaymentStatusDto } from './dto/update-order-payment-status.dto';
 import { UpdateAdminOrderStatusDto } from './dto/update-admin-order-status.dto';
@@ -214,6 +216,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     private readonly discountService: DiscountService,
     private readonly inventoryEventsPublisher: InventoryEventsPublisher,
     private readonly customerEventsPublisher: CustomerEventsPublisher,
+    private readonly customerJourneyEventsPublisher: CustomerJourneyEventsPublisher,
   ) {}
 
   private static readonly DEFAULT_LOW_STOCK_THRESHOLD = 10;
@@ -773,6 +776,17 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
 
       await this.tryAccrueLoyaltyPointsForOrder(order.id);
 
+      this.publishCustomerJourneyEvent('payment_succeeded', order, {
+        idempotencySuffix: body.paymentId || 'completed',
+        customerId: order.userId,
+        paymentId: body.paymentId,
+        metadata: {
+          payment_status: 'succeeded',
+          order_status: OrderStatus.confirmed,
+          payment_captured_at: new Date().toISOString(),
+        },
+      });
+
       if (this.isCentralOrdersOwnedOrder(order)) {
         this.logger.log('Skipped local warehouse mutation after payment for central-owned order', {
           orderNumber: order.orderNumber,
@@ -859,6 +873,14 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         : undefined;
       const recipient = guestEmail || buyer?.email;
       if (recipient) {
+        const emailMessageId = `order-confirmation:${order.id}`;
+        this.publishCustomerJourneyEvent('order_confirmation_email_queued', order, {
+          idempotencySuffix: emailMessageId,
+          customerId: order.userId,
+          paymentId: body.paymentId,
+          emailMessageId,
+          metadata: { email_status: 'queued', notification_type: 'order_confirmation' },
+        });
         try {
           await this.notificationService.sendOrderConfirmation({
             to: recipient,
@@ -873,6 +895,13 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
             })),
             total: Number(order.total),
             currency: 'CZK',
+          });
+          this.publishCustomerJourneyEvent('order_confirmation_email_sent', order, {
+            idempotencySuffix: emailMessageId,
+            customerId: order.userId,
+            paymentId: body.paymentId,
+            emailMessageId,
+            metadata: { email_status: 'sent', notification_type: 'order_confirmation' },
           });
         } catch (err: unknown) {
           this.logger.error('Order confirmation email failed after payment', {
@@ -2019,6 +2048,19 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       }
     }
 
+    if (dto.marketingConsent === true) {
+      this.publishCustomerJourneyEvent('marketing_handoff_requested', order, {
+        idempotencySuffix: 'leads-checkout-sync',
+        customerId: guestUser.id,
+        marketingHandoffId: `lead-sync:${order.id}`,
+        metadata: {
+          consent_marketing: true,
+          consent_source: 'flipflop:checkout:v1',
+          handoff_destination: 'leads-microservice',
+        },
+      });
+    }
+
     try {
       const lead = await this.leadsClient.submitFlipFlopCheckoutLead({
         email: guestEmail,
@@ -2038,6 +2080,20 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         syncedAt: new Date().toISOString(),
       };
       metadataPatch.leadId = lead.leadId;
+      if (dto.marketingConsent === true) {
+        this.publishCustomerJourneyEvent('marketing_handoff_accepted', order, {
+          idempotencySuffix: lead.leadId,
+          customerId: guestUser.id,
+          marketingHandoffId: lead.leadId,
+          metadata: {
+            consent_marketing: true,
+            handoff_destination: 'leads-microservice',
+            handoff_status: 'accepted',
+            lead_status: lead.status,
+            confirmation_sent: lead.confirmationSent ?? null,
+          },
+        });
+      }
     } catch (error: unknown) {
       metadataPatch.leadsSync = {
         status: 'failed',
@@ -2059,6 +2115,135 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     };
 
     await this.mergeOrderMetadata(order.id, metadataPatch);
+  }
+
+
+  private createCustomerJourneyContext(dto: any): Record<string, unknown> {
+    const journeyId = this.normalizeGuestText(dto?.journeyId || dto?.journey_id, '') || `journey_${randomUUID()}`;
+    const correlationId = this.normalizeGuestText(dto?.correlationId || dto?.correlation_id, '') || journeyId;
+    const sessionId = this.normalizeGuestText(dto?.sessionId || dto?.session_id, '');
+    return {
+      version: '1.0.0',
+      journeyId,
+      correlationId,
+      ...(sessionId ? { sessionId } : {}),
+      source: 'checkout',
+      createdAt: new Date().toISOString(),
+    };
+  }
+
+  private getCustomerJourneyContext(order: any): { journeyId: string; correlationId: string; sessionId?: string } {
+    const metadata = this.getMetadataObject(order?.metadata);
+    const raw = metadata.customerJourney && typeof metadata.customerJourney === 'object' && !Array.isArray(metadata.customerJourney)
+      ? metadata.customerJourney as Record<string, unknown>
+      : {};
+    const journeyId = typeof raw.journeyId === 'string' && raw.journeyId.trim()
+      ? raw.journeyId.trim()
+      : `journey_${order?.id || 'unknown'}`;
+    const correlationId = typeof raw.correlationId === 'string' && raw.correlationId.trim()
+      ? raw.correlationId.trim()
+      : journeyId;
+    const sessionId = typeof raw.sessionId === 'string' && raw.sessionId.trim()
+      ? raw.sessionId.trim()
+      : undefined;
+    return { journeyId, correlationId, sessionId };
+  }
+
+  private publishCustomerJourneyEvent(
+    eventName: CustomerJourneyEventName,
+    order: any,
+    options: {
+      idempotencySuffix: string;
+      customerId?: string;
+      paymentId?: string;
+      emailMessageId?: string;
+      marketingHandoffId?: string;
+      metadata?: Record<string, unknown>;
+      causationId?: string | null;
+    },
+  ): void {
+    const journey = this.getCustomerJourneyContext(order);
+    const eventId = `evt_${randomUUID()}`;
+    const paymentId = options.paymentId || order?.paymentTransactionId || undefined;
+    const customerRef = this.hashJourneyReference(options.customerId || order?.userId);
+    const checkoutRef = this.hashJourneyReference(order?.id);
+    const orderRef = this.hashJourneyReference(order?.id);
+    const paymentRef = this.hashJourneyReference(paymentId);
+    const emailRef = this.hashJourneyReference(options.emailMessageId);
+    const marketingRef = this.hashJourneyReference(options.marketingHandoffId);
+    const idempotencyRef = this.hashJourneyReference([eventName, order?.id || "unknown", options.idempotencySuffix].join(":"));
+    const orderItems = Array.isArray(order?.order_items) ? order.order_items : [];
+    void this.customerJourneyEventsPublisher.publish({
+      event_id: eventId,
+      event_name: eventName,
+      version: '1.0.0',
+      occurred_at: new Date().toISOString(),
+      processed_at: new Date().toISOString(),
+      journey_id: journey.journeyId,
+      correlation_id: journey.correlationId,
+      causation_id: options.causationId ?? null,
+      idempotency_key: "flipflop:" + eventName + ":" + idempotencyRef,
+      source: {
+        service: 'flipflop',
+        component: 'orders',
+        producer: 'order-service',
+      },
+      environment: {
+        name: process.env.NODE_ENV || 'development',
+        release: process.env.APP_VERSION || undefined,
+        commit_sha: process.env.GIT_COMMIT || undefined,
+      },
+      identifiers: {
+        ...(journey.sessionId ? { session_id: journey.sessionId } : {}),
+        ...(customerRef ? { customer_id: customerRef } : {}),
+        ...(checkoutRef ? { checkout_id: checkoutRef } : {}),
+        ...(orderRef ? { order_id: orderRef } : {}),
+        ...(paymentRef ? { payment_id: paymentRef } : {}),
+        ...(emailRef ? { email_message_id: emailRef } : {}),
+        ...(marketingRef ? { marketing_handoff_id: marketingRef } : {}),
+        storefront_id: 'flipflop',
+      },
+      commercial: {
+        currency: 'CZK',
+        subtotal_amount: this.toJourneyNumber(order?.subtotal),
+        discount_amount: this.toJourneyNumber(order?.discount),
+        shipping_amount: this.toJourneyNumber(order?.shippingCost),
+        tax_amount: this.toJourneyNumber(order?.tax),
+        total_amount: this.toJourneyNumber(order?.total),
+        precision: 2,
+        item_count: orderItems.reduce((sum: number, item: any) => sum + this.toJourneyNumber(item?.quantity), 0),
+        coupon_ids: [],
+      },
+      items: orderItems.map((item: any) => ({
+        product_id: String(item.productId || item.product_id || ''),
+        sku: item.productSku || item.product_sku || undefined,
+        variant_id: item.variantId || item.variant_id || null,
+        quantity: this.toJourneyNumber(item.quantity),
+        unit_price: {
+          amount: this.toJourneyNumber(item.unitPrice),
+          currency: 'CZK',
+          precision: 2,
+        },
+      })).filter((item: { product_id: string }) => item.product_id),
+      metadata: {
+        channel: 'web',
+        synthetic: false,
+        checkout_mode: this.getMetadataObject(order?.metadata).checkoutMode || undefined,
+        payment_method_type: order?.paymentMethod || undefined,
+        ...options.metadata,
+      },
+    });
+  }
+
+  private hashJourneyReference(value: unknown): string | undefined {
+    const normalized = typeof value === 'string' ? value.trim() : String(value ?? '').trim();
+    if (!normalized) return undefined;
+    return 'sha256:' + createHash('sha256').update(normalized).digest('hex');
+  }
+
+  private toJourneyNumber(value: unknown): number {
+    const num = Number(value ?? 0);
+    return Number.isFinite(num) ? Math.round(num * 100) / 100 : 0;
   }
 
   private getMetadataObject(metadata: unknown): Record<string, unknown> {
@@ -2403,6 +2588,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       },
     });
 
+
     let reservationWarehouseId: string;
     try {
       reservationWarehouseId = await this.reserveOrderLines(order.orderNumber, order.order_items);
@@ -2580,8 +2766,10 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     const discount = discountApplication.discount;
     const total = this.roundMoney(orderTotalBeforeDiscount - discount);
     const catalogBundleEvidence = this.buildCatalogBundleEvidence(dto.bundleIntent, orderItems);
+    const customerJourney = this.createCustomerJourneyContext(dto);
     const metadataValue: Record<string, unknown> = {
       checkoutMode: 'guest',
+      customerJourney,
       guestEmail,
       wantsAccount: dto.wantsAccount === true,
       marketingConsent: dto.marketingConsent === true,
@@ -2639,6 +2827,22 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       },
     });
 
+    this.publishCustomerJourneyEvent('customer_identity_resolved', order, {
+      idempotencySuffix: 'guest-customer-linked',
+      customerId: guestUser.id,
+      metadata: { customer_type: 'guest', checkout_mode: 'guest' },
+    });
+    this.publishCustomerJourneyEvent('shipping_option_selected', order, {
+      idempotencySuffix: deliveryMethod,
+      customerId: guestUser.id,
+      metadata: { shipping_option_id: deliveryMethod, delivery_method: deliveryMethod },
+    });
+    this.publishCustomerJourneyEvent('cart_validated', order, {
+      idempotencySuffix: 'server-price-stock-validation',
+      customerId: guestUser.id,
+      metadata: { validation_status: 'passed', validation_source: 'order-service' },
+    });
+
     let reservationWarehouseId: string;
     try {
       reservationWarehouseId = await this.reserveOrderLines(order.orderNumber, order.order_items);
@@ -2662,6 +2866,16 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       await this.unreserveOrderLines(order.orderNumber, order.order_items);
       throw error;
     }
+
+    this.publishCustomerJourneyEvent('order_created', order, {
+      idempotencySuffix: centralAcceptance.centralOrderId,
+      customerId: guestUser.id,
+      metadata: {
+        central_order_id: centralAcceptance.centralOrderId,
+        central_order_status: centralAcceptance.status,
+        order_status: OrderStatus.pending,
+      },
+    });
 
     let redirectUrl: string | null = null;
     if (paymentMethod === 'invoice') {
@@ -2715,6 +2929,16 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
         status: 'created',
         centralOrderId: centralAcceptance.centralOrderId,
         paymentId: paymentResult.data.id,
+      });
+      this.publishCustomerJourneyEvent('payment_attempt_started', order, {
+        idempotencySuffix: paymentResult.data.id,
+        customerId: guestUser.id,
+        paymentId: paymentResult.data.id,
+        metadata: {
+          payment_status: 'created',
+          payment_method_type: paymentMethod,
+          central_order_id: centralAcceptance.centralOrderId,
+        },
       });
       redirectUrl = paymentResult.data.redirectUri || null;
     }

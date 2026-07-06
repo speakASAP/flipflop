@@ -1,0 +1,209 @@
+[
+  {
+    "contract": "flipflop.customer_journey.events.v1",
+    "schema_version": 1,
+    "producer": {
+      "service": "flipflop",
+      "source": "frontend",
+      "environment": "synthetic"
+    },
+    "journey_id": "jrny_contract_synthetic_20260706",
+    "correlation_id": "corr_contract_synthetic_20260706",
+    "subject": {
+      "session_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "auth_subject_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+    },
+    "context": {
+      "channel": "synthetic",
+      "locale": "cs-CZ",
+      "currency": "CZK"
+    },
+    "event_id": "evt_contract_journey_started_001",
+    "event_type": "journey.started",
+    "occurred_at": "2026-07-06T08:00:00.000Z",
+    "idempotency_key": "flipflop.customer_journey.events.v1:synthetic:journey:started:001",
+    "phase": "landing",
+    "data": {}
+  },
+  {
+    "contract": "flipflop.customer_journey.events.v1",
+    "schema_version": 1,
+    "producer": {
+      "service": "flipflop",
+      "source": "frontend",
+      "environment": "synthetic"
+    },
+    "journey_id": "jrny_contract_synthetic_20260706",
+    "correlation_id": "corr_contract_synthetic_20260706",
+    "subject": {
+      "session_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "auth_subject_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+    },
+    "context": {
+      "channel": "synthetic",
+      "locale": "cs-CZ",
+      "currency": "CZK"
+    },
+    "event_id": "evt_contract_product_viewed_001",
+    "event_type": "catalog.product_viewed",
+    "occurred_at": "2026-07-06T08:01:00.000Z",
+    "idempotency_key": "flipflop.customer_journey.events.v1:synthetic:catalog:viewed:001",
+    "phase": "catalog",
+    "data": {
+      "product_id": "local-product-001",
+      "catalog_product_id": "catalog-product-001"
+    }
+  },
+  {
+    "contract": "flipflop.customer_journey.events.v1",
+    "schema_version": 1,
+    "producer": {
+      "service": "flipflop",
+      "source": "frontend",
+      "environment": "synthetic"
+    },
+    "journey_id": "jrny_contract_synthetic_20260706",
+    "correlation_id": "corr_contract_synthetic_20260706",
+    "subject": {
+      "session_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "auth_subject_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+    },
+    "context": {
+      "channel": "synthetic",
+      "locale": "cs-CZ",
+      "currency": "CZK"
+    },
+    "event_id": "evt_contract_cart_item_added_001",
+    "event_type": "cart.item_added",
+    "occurred_at": "2026-07-06T08:02:00.000Z",
+    "idempotency_key": "flipflop.customer_journey.events.v1:synthetic:cart:item-added:001",
+    "phase": "cart",
+    "data": {
+      "cart_id": "cart-synthetic-001",
+      "cart_line_id": "cart-line-synthetic-001",
+      "product_id": "local-product-001",
+      "catalog_product_id": "catalog-product-001",
+      "quantity": 1
+    }
+  },
+  {
+    "contract": "flipflop.customer_journey.events.v1",
+    "schema_version": 1,
+    "producer": {
+      "service": "flipflop",
+      "source": "frontend",
+      "environment": "synthetic"
+    },
+    "journey_id": "jrny_contract_synthetic_20260706",
+    "correlation_id": "corr_contract_synthetic_20260706",
+    "subject": {
+      "session_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "auth_subject_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+    },
+    "context": {
+      "channel": "synthetic",
+      "locale": "cs-CZ",
+      "currency": "CZK"
+    },
+    "event_id": "evt_contract_checkout_started_001",
+    "event_type": "checkout.started",
+    "occurred_at": "2026-07-06T08:03:00.000Z",
+    "idempotency_key": "flipflop.customer_journey.events.v1:synthetic:checkout:started:001",
+    "phase": "checkout",
+    "data": {
+      "cart_id": "cart-synthetic-001",
+      "checkout_id": "checkout-synthetic-001"
+    }
+  },
+  {
+    "contract": "flipflop.customer_journey.events.v1",
+    "schema_version": 1,
+    "producer": {
+      "service": "flipflop",
+      "source": "frontend",
+      "environment": "synthetic"
+    },
+    "journey_id": "jrny_contract_synthetic_20260706",
+    "correlation_id": "corr_contract_synthetic_20260706",
+    "subject": {
+      "session_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "auth_subject_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+    },
+    "context": {
+      "channel": "synthetic",
+      "locale": "cs-CZ",
+      "currency": "CZK"
+    },
+    "event_id": "evt_contract_payment_intent_001",
+    "event_type": "payment.intent_created",
+    "occurred_at": "2026-07-06T08:04:00.000Z",
+    "idempotency_key": "flipflop.customer_journey.events.v1:synthetic:payment:intent:001",
+    "phase": "payment",
+    "data": {
+      "checkout_id": "checkout-synthetic-001",
+      "payment_id_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "payment_method": "synthetic",
+      "total_czk_minor": 30000
+    }
+  },
+  {
+    "contract": "flipflop.customer_journey.events.v1",
+    "schema_version": 1,
+    "producer": {
+      "service": "flipflop",
+      "source": "order-service",
+      "environment": "synthetic"
+    },
+    "journey_id": "jrny_contract_synthetic_20260706",
+    "correlation_id": "corr_contract_synthetic_20260706",
+    "subject": {
+      "session_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "auth_subject_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+    },
+    "context": {
+      "channel": "synthetic",
+      "locale": "cs-CZ",
+      "currency": "CZK"
+    },
+    "event_id": "evt_contract_order_submitted_001",
+    "event_type": "order.submitted",
+    "occurred_at": "2026-07-06T08:05:00.000Z",
+    "idempotency_key": "flipflop.customer_journey.events.v1:synthetic:order:submitted:001",
+    "phase": "order",
+    "data": {
+      "checkout_id": "checkout-synthetic-001",
+      "order_id_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "central_order_id_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+      "total_czk_minor": 30000
+    }
+  },
+  {
+    "contract": "flipflop.customer_journey.events.v1",
+    "schema_version": 1,
+    "producer": {
+      "service": "flipflop",
+      "source": "order-service",
+      "environment": "synthetic"
+    },
+    "journey_id": "jrny_contract_synthetic_20260706",
+    "correlation_id": "corr_contract_synthetic_20260706",
+    "subject": {
+      "session_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "auth_subject_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+    },
+    "context": {
+      "channel": "synthetic",
+      "locale": "cs-CZ",
+      "currency": "CZK"
+    },
+    "event_id": "evt_contract_journey_completed_001",
+    "event_type": "journey.completed",
+    "occurred_at": "2026-07-06T08:06:00.000Z",
+    "idempotency_key": "flipflop.customer_journey.events.v1:synthetic:journey:completed:001",
+    "phase": "completion",
+    "data": {
+      "order_id_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "central_order_id_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+    }
+  }
+]
