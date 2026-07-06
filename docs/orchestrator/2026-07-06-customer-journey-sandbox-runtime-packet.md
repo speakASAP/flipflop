@@ -539,6 +539,43 @@ Deploy follow-up at 2026-07-06T22:13:08+02:00: commit `92c51f9` is on `main`/`or
 
 Event JSONL follow-up at 2026-07-06T22:17:24+02:00: after commit `92c51f9`, a bounded owner-approved invoice/no-provider pass created one additional pending invoice order with providerCall=false, externalProviderCall=false, realMoneyMovement=false, and paymentCreated=false. Synthetic event trace JSONL was observed with 10 matching rows covering cart_validated, customer_identity_resolved, shipping_option_selected, order_created, and payment_attempt_started. Evidence: `reports/validation/VAL-W5-customer-journey-sandbox-event-jsonl-after-92c51f9-2026-07-06.md` and `reports/validation/customer-journey-sandbox-runtime/w5-owner-approved-invoice-runtime-20260706-event-jsonl-after-92c51f9.json`. Remaining blockers: [MISSING: sandbox/test-mode payment success evidence; invoice remains pending/no-provider] and [MISSING: synthetic email JSONL assertion row for payment-success confirmation path; invoice pending/no-provider does not send payment-success confirmation].
 
+
+## 2026-07-06 W5 Synthetic Internal Payment-Result Success Contract
+
+Owner approval on 2026-07-06 is consumed for one bounded W5 synthetic success runtime attempt. The selected implementation is `runtime:w5-synthetic-success`, a fail-closed runner that uses the existing public guest checkout route with the approved W5 product/contact/delivery and `paymentMethod=invoice`, then invokes the existing internal order-service payment-result handler from inside the deployed `flipflop-order-service` pod.
+
+Contract values:
+
+```text
+approvalId=W5-OWNER-APPROVED-20260706-AUTONOMOUS-CODEX
+payment_success_contract=w5.synthetic_internal_payment_result_simulation.v1
+paymentSuccessEvidenceSource=synthetic_internal_payment_result_handler
+providerTruth=false
+providerCall=false
+externalProviderCall=false
+realMoneyMovement=false
+paymentCreated=false
+rawCustomerOutput=false
+rawOrderOutput=false
+rawPaymentOutput=false
+rawProviderPayloadOutput=false
+secretOutput=false
+tokenOutput=false
+expected_evidence_json=reports/validation/customer-journey-sandbox-runtime/w5-owner-approved-synthetic-success-runtime-20260706.json
+expected_final_report=reports/validation/VAL-W5-customer-journey-sandbox-synthetic-success-2026-07-06.md
+```
+
+This is local synthetic success evidence, not provider, bank, or real-money completion evidence. The runner must not print raw customer/contact/address data, raw order/payment ids, provider payloads, tokens, secrets, or raw DB rows. It may use DB readback internally only to emit sanitized statuses, hashes, and booleans.
+
+Known limitation to preserve if observed: `[MISSING: central Orders paid lifecycle evidence; local synthetic payment success does not update central payment status]`.
+
+Validation commands:
+
+```bash
+npm run runtime:w5-synthetic-success
+npm run verify:customer-journey-synthetic-success-runtime
+```
+
 ## Current Decision
 
 Status: `owner-approved-packet-prep-product-customer-delivery-payment-w5c-cleanup-source-narrowed-runtime-side-effects-blocked`.
@@ -580,6 +617,49 @@ source: services/frontend/app/checkout/page.tsx DELIVERY_OPTIONS and services/or
 
 Decision: `[RESOLVED/NARROWED: delivery test contract candidate selected for packet preparation]`. This narrows only the delivery fact. It does not authorize checkout/order/payment/email/event execution and does not replace the remaining missing product, customer, payment, email, event, cleanup, or evidence-path facts.
 
+
+
+## 2026-07-06 W5 Synthetic Internal Payment-Result Runtime Completed
+
+Decision: `[RESOLVED/NARROWED: W5 has sanitized successful customer-journey evidence for the owner-approved synthetic internal payment-result contract, not provider/bank truth]`.
+
+Runtime evidence:
+
+```text
+runtime:w5-synthetic-success: ok=true
+successfulCustomerJourney=true
+paymentSuccessEvidence=true
+paymentSuccessEvidenceSource=synthetic_internal_payment_result_handler
+paymentResultSimulationContract=w5.synthetic_internal_payment_result_simulation.v1
+providerTruth=false
+providerCall=false
+externalProviderCall=false
+realMoneyMovement=false
+paymentCreated=false
+orderStatus=confirmed
+paymentStatus=paid
+crmLeadsAcknowledgement=accepted
+emailAssertionRows=1
+eventTraceRows=16
+rawCustomerOutput=false
+rawOrderOutput=false
+rawPaymentOutput=false
+rawProviderPayloadOutput=false
+secretOutput=false
+```
+
+Evidence references:
+
+```text
+reports/validation/VAL-W5-customer-journey-sandbox-synthetic-success-2026-07-06.md
+reports/validation/customer-journey-sandbox-runtime/w5-owner-approved-synthetic-success-runtime-20260706.json
+scripts/run-w5-synthetic-success-runtime.js
+scripts/verify-customer-journey-synthetic-success-runtime.js
+```
+
+Remaining blocker: `[MISSING: central Orders paid lifecycle evidence; local synthetic payment success does not update central payment status]`.
+
+Boundary: this run used the existing internal payment-result handler from inside the order-service pod under the W5 synthetic contract. It does not prove external provider truth, bank settlement, provider callback delivery, real money movement, or central Orders paid lifecycle progression.
 
 ## 2026-07-06 Validation Refresh
 
