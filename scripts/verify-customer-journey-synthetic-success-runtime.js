@@ -101,6 +101,8 @@ assert(centralPaidRuntime.secretOutput === false, 'central paid lifecycle eviden
 assert(centralPaidRuntime.tokenOutput === false, 'central paid lifecycle evidence must not output tokens');
 assert(centralPaidRuntime.centralOrdersPaidLifecycleEvidence === true, 'central paid lifecycle evidence flag must be true');
 assert(!centralPaidRuntime.remainingBlockers.includes('[MISSING: central Orders paid lifecycle evidence; local synthetic payment success does not update central payment status]'), 'central paid lifecycle blocker must be closed');
+assert(centralPaidRuntime.warehouseHandoffStatus === 'failed', 'Warehouse handoff blocker must be preserved after central paid lifecycle');
+assert(centralPaidRuntime.remainingBlockers.includes('[MISSING: Warehouse fulfillment handoff success after central Orders paid lifecycle; central readback shows warehouseHandoffStatus=failed]'), 'Warehouse fulfillment residual blocker must remain explicit');
 
 for (const marker of [
   centralPaidRuntimePath,
@@ -108,6 +110,7 @@ for (const marker of [
   'centralAfterPaymentStatus=paid',
   'centralAfterLifecycleStage=paid_not_delivered',
   'orders.payment-status.v1',
+  'warehouseHandoffStatus=failed',
 ]) {
   assert(packet.includes(marker) || status.includes(marker) || state.includes(marker) || centralPaidEvidence.includes(marker), `central paid evidence marker missing ${marker}`);
 }
@@ -126,7 +129,8 @@ console.log(JSON.stringify({
   eventTraceRows: runtime.eventTraceRows,
   historicalLocalRemainingBlockers: runtime.remainingBlockers.length,
   centralOrdersPaidLifecycleEvidence: true,
-  centralOrdersRemainingBlockers: centralPaidRuntime.remainingBlockers.length,
+  centralOrdersRemainingBlockers: centralPaidRuntime.remainingBlockers,
+  warehouseHandoffStatus: centralPaidRuntime.warehouseHandoffStatus,
   centralOrdersPaymentStatus: centralPaidRuntime.centralAfterPaymentStatus,
   centralOrdersLifecycleStage: centralPaidRuntime.centralAfterLifecycleStage,
 }, null, 2));
