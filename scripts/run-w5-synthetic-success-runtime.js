@@ -128,10 +128,15 @@ function readCentralLifecycle(centralOrderId) {
       const base = process.env.ORDERS_SERVICE_URL || 'http://orders-microservice:3203';
       if (!token) throw new Error('missing orders token');
       const response = await fetch(base.replace(/\\/$/, '') + '/api/orders/' + encodeURIComponent(input.centralOrderId) + '/lifecycle', {
-        headers: { authorization: 'Bearer ' + token }
+        headers: {
+          'x-internal-service-token': token,
+          'x-service-name': 'flipflop-service'
+        }
       });
       let data = {};
       try { data = await response.json(); } catch {}
+      const errorCode = data && (data.error && data.error.code || data.code || null);
+      const errorClass = response.ok ? null : (response.status === 401 || response.status === 403 ? 'auth' : (errorCode || 'unavailable'));
       const row = data && (data.data && (data.data.order || data.data) || data.order || data);
       const lifecycle = row && row.lifecycle || {};
       const payment = row && row.payment || {};
@@ -140,7 +145,8 @@ function readCentralLifecycle(centralOrderId) {
         readStatus: response.ok ? 'available' : 'unavailable',
         lifecycleStage: lifecycle.stage || lifecycle.status || row.status || null,
         status: row.status || lifecycle.status || null,
-        paymentStatus: payment.status || row.paymentStatus || null
+        paymentStatus: payment.status || row.paymentStatus || null,
+        errorClass
       }));
     })().catch((error) => { console.log(JSON.stringify({ readStatus: 'error', errorClass: error.message ? 'error' : 'unknown' })); });
   `;

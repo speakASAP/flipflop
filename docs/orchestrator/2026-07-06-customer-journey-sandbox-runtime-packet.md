@@ -657,9 +657,48 @@ scripts/run-w5-synthetic-success-runtime.js
 scripts/verify-customer-journey-synthetic-success-runtime.js
 ```
 
-Remaining blocker: `[MISSING: central Orders paid lifecycle evidence; local synthetic payment success does not update central payment status]`.
+Central Orders follow-up at 2026-07-07: the selected synthetic W5 central order now has sanitized central paid lifecycle evidence. Orders payment-status contract `orders.payment-status.v1` was invoked for the bounded synthetic central order, and central readback is available with `centralAfterPaymentStatus=paid`, `centralAfterStatus=confirmed`, and `centralAfterLifecycleStage=paid_not_delivered`. Evidence: `reports/validation/VAL-W5-central-orders-paid-lifecycle-evidence-2026-07-07.md` and `reports/validation/customer-journey-sandbox-runtime/w5-owner-approved-central-paid-lifecycle-runtime-20260707.json`. Verifier: `npm run verify:customer-journey-central-paid-lifecycle-evidence`.
 
-Boundary: this run used the existing internal payment-result handler from inside the order-service pod under the W5 synthetic contract. It does not prove external provider truth, bank settlement, provider callback delivery, real money movement, or central Orders paid lifecycle progression.
+Future central lifecycle readback hardening: the W5 synthetic success runner now uses the Orders internal-service read contract for `GET /api/orders/:id/lifecycle`, passing `x-internal-service-token` with the projected `ORDERS_SERVICE_TOKEN` and `x-service-name=flipflop-service`. This only fixes future sanitized readback authority; it does not invoke `PUT /api/orders/:id/payment-status`.
+
+Remaining blocker for W5 synthetic customer journey evidence: none for the selected synthetic internal payment-result plus central paid lifecycle packet. Provider/bank truth remains explicitly unclaimed.
+
+Boundary: this run used synthetic/internal contracts only. It does not prove external provider truth, bank settlement, provider callback delivery, real money movement, or external payment creation.
+
+
+## 2026-07-07 W5 Central Orders Paid Lifecycle Evidence
+
+Decision: `[RESOLVED/NARROWED: W5 central Orders paid lifecycle evidence exists for the owner-approved synthetic no-provider handoff]`.
+
+Runtime evidence:
+
+```text
+ordersPaymentStatusContract=orders.payment-status.v1
+ordersPaymentStatusRouteInvoked=true
+centralAfterPaymentStatus=paid
+centralAfterLifecycleStage=paid_not_delivered
+providerTruth=false
+providerCall=false
+externalProviderCall=false
+realMoneyMovement=false
+paymentCreated=false
+rawCustomerOutput=false
+rawOrderOutput=false
+rawPaymentOutput=false
+rawProviderPayloadOutput=false
+secretOutput=false
+remainingBlockers=1
+[MISSING: Warehouse fulfillment handoff success after central Orders paid lifecycle; central readback shows warehouseHandoffStatus=failed]
+```
+
+Evidence references:
+
+```text
+reports/validation/VAL-W5-central-orders-paid-lifecycle-evidence-2026-07-07.md
+reports/validation/customer-journey-sandbox-runtime/w5-owner-approved-central-paid-lifecycle-runtime-20260707.json
+```
+
+Boundary: this central Orders evidence uses a synthetic no-provider payment-status handoff. It does not prove provider, bank, real-money, or external callback truth, and it does not output raw customer/order/payment/provider identifiers or secrets.
 
 ## 2026-07-06 Validation Refresh
 

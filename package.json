@@ -48,7 +48,8 @@
     "verify:bpcp-runtime-consumer-contract": "node scripts/verify-bpcp-runtime-consumer-contract.js",
     "verify:customer-journey-deployed-assertion-env-source": "node scripts/verify-customer-journey-deployed-assertion-env-source.js",
     "runtime:w5-synthetic-success": "node scripts/run-w5-synthetic-success-runtime.js",
-    "verify:customer-journey-synthetic-success-runtime": "node scripts/verify-customer-journey-synthetic-success-runtime.js"
+    "verify:customer-journey-synthetic-success-runtime": "node scripts/verify-customer-journey-synthetic-success-runtime.js",
+    "verify:customer-journey-central-paid-lifecycle-evidence": "node scripts/verify-customer-journey-central-paid-lifecycle-evidence.js"
   },
   "dependencies": {
     "@nestjs-modules/ioredis": "^2.2.1",
