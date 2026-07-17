@@ -43,6 +43,7 @@ export function buildHostedAuthUrl(flow: HostedAuthFlow, redirectPath: string): 
   authUrl.searchParams.set('client_id', CLIENT_ID);
   authUrl.searchParams.set('return_url', buildCallbackUrl(nextPath).toString());
   authUrl.searchParams.set('state', state);
+  authUrl.searchParams.set('lang', 'cs');
   return authUrl.toString();
 }
 
@@ -52,6 +53,7 @@ export function buildHostedPasswordResetUrl(redirectPath: string): string {
   const resetUrl = new URL('/reset-password', AUTH_BASE_URL);
   resetUrl.searchParams.set('client_id', CLIENT_ID);
   resetUrl.searchParams.set('return_url', buildCallbackUrl(redirectPath).toString());
+  resetUrl.searchParams.set('lang', 'cs');
   return resetUrl.toString();
 }
 
