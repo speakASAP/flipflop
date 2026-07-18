@@ -63,7 +63,7 @@ Ready for Catalog Goal 24 orchestrator review as the FlipFlop protected producer
 
 ## Traceability confirmation
 
-Validation maps to `11_tasks/TASK-006-flipflop-affinity-replay-export.md`, `21_execution_plans/EP-TASK-006-flipflop-affinity-replay-export.md`, `13_context_packages/CP-TASK-006-flipflop-affinity-replay-export.md`, `14_prompts/PROMPT-TASK-006-flipflop-affinity-replay-export.md`, and `22_goal_impact/GOAL-IMPACT-TASK-006-flipflop-affinity-replay-export.md`.
+Validation maps to `docs/11_tasks/TASK-006-flipflop-affinity-replay-export.md`, `docs/21_execution_plans/EP-TASK-006-flipflop-affinity-replay-export.md`, `docs/13_context_packages/CP-TASK-006-flipflop-affinity-replay-export.md`, `docs/14_prompts/PROMPT-TASK-006-flipflop-affinity-replay-export.md`, and `docs/22_goal_impact/GOAL-IMPACT-TASK-006-flipflop-affinity-replay-export.md`.
 
 ## Remaining Blockers
 

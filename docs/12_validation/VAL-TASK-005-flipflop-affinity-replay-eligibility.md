@@ -40,7 +40,7 @@ Ready for Catalog Goal 24 orchestrator review as the FlipFlop mapping-resolution
 
 ## Traceability confirmation
 
-Validation maps to `11_tasks/TASK-005-flipflop-affinity-replay-eligibility.md`, `21_execution_plans/EP-TASK-005-flipflop-affinity-replay-eligibility.md`, `13_context_packages/CP-TASK-005-flipflop-affinity-replay-eligibility.md`, `14_prompts/PROMPT-TASK-005-flipflop-affinity-replay-eligibility.md`, and `22_goal_impact/GOAL-IMPACT-TASK-005-flipflop-affinity-replay-eligibility.md`.
+Validation maps to `docs/11_tasks/TASK-005-flipflop-affinity-replay-eligibility.md`, `docs/21_execution_plans/EP-TASK-005-flipflop-affinity-replay-eligibility.md`, `docs/13_context_packages/CP-TASK-005-flipflop-affinity-replay-eligibility.md`, `docs/14_prompts/PROMPT-TASK-005-flipflop-affinity-replay-eligibility.md`, and `docs/22_goal_impact/GOAL-IMPACT-TASK-005-flipflop-affinity-replay-eligibility.md`.
 
 ## Commands
 

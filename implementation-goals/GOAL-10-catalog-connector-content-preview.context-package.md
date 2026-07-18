@@ -6,12 +6,12 @@
 
 ## Upstream traceability
 
-- `00_constitution/CONSTITUTION.md`
-- `01_vision/VISION.md`
-- `02_business_case/BUSINESS_CASE.md`
+- `docs/00_constitution/CONSTITUTION.md`
+- `docs/01_vision/VISION.md`
+- `docs/02_business_case/BUSINESS_CASE.md`
 - `docs/INTENT_MEMORY.md`
-- `11_tasks/TASK-003-catalog-connector-content-preview.md`
-- `21_execution_plans/EP-TASK-003-catalog-connector-content-preview.md`
+- `docs/11_tasks/TASK-003-catalog-connector-content-preview.md`
+- `docs/21_execution_plans/EP-TASK-003-catalog-connector-content-preview.md`
 
 ## Included documents
 

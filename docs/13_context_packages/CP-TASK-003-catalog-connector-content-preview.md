@@ -17,17 +17,17 @@ related_adrs:
 
 ## Target task
 
-`11_tasks/TASK-003-catalog-connector-content-preview.md` exposes Catalog canonical content connector previews in the FlipFlop admin product flow through a read-only product-service endpoint.
+`docs/11_tasks/TASK-003-catalog-connector-content-preview.md` exposes Catalog canonical content connector previews in the FlipFlop admin product flow through a read-only product-service endpoint.
 
 ## Upstream traceability
 
-- `00_constitution/CONSTITUTION.md`
-- `01_vision/VISION.md`
-- `02_business_case/BUSINESS_CASE.md`
-- `10_features/FEAT-001-intent-preserved-revenue-readiness.md`
-- `11_tasks/TASK-003-catalog-connector-content-preview.md`
-- `21_execution_plans/EP-TASK-003-catalog-connector-content-preview.md`
-- `22_goal_impact/GOAL-IMPACT-TASK-003-catalog-connector-content-preview.md`
+- `docs/00_constitution/CONSTITUTION.md`
+- `docs/01_vision/VISION.md`
+- `docs/02_business_case/BUSINESS_CASE.md`
+- `docs/10_features/FEAT-001-intent-preserved-revenue-readiness.md`
+- `docs/11_tasks/TASK-003-catalog-connector-content-preview.md`
+- `docs/21_execution_plans/EP-TASK-003-catalog-connector-content-preview.md`
+- `docs/22_goal_impact/GOAL-IMPACT-TASK-003-catalog-connector-content-preview.md`
 
 ## Included documents
 

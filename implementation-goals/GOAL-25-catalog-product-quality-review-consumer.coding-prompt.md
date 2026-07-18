@@ -5,12 +5,12 @@ You are the FlipFlop channel consumer worker for Catalog Goal 25 Product Quality
 ## Read First
 
 ```text
-00_constitution/CONSTITUTION.md
-01_vision/VISION.md
-10_features/FEAT-001-intent-preserved-revenue-readiness.md
-17_governance/PROJECT_INVARIANTS.md
-11_tasks/TASK-004-catalog-product-quality-review-consumer.md
-21_execution_plans/EP-TASK-004-catalog-product-quality-review-consumer.md
+docs/00_constitution/CONSTITUTION.md
+docs/01_vision/VISION.md
+docs/10_features/FEAT-001-intent-preserved-revenue-readiness.md
+docs/17_governance/PROJECT_INVARIANTS.md
+docs/11_tasks/TASK-004-catalog-product-quality-review-consumer.md
+docs/21_execution_plans/EP-TASK-004-catalog-product-quality-review-consumer.md
 ```
 
 ## Task

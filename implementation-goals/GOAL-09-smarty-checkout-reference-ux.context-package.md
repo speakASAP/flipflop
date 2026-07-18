@@ -20,9 +20,9 @@ related_adrs:
 ## Read First
 
 ```text
-00_constitution/CONSTITUTION.md
-01_vision/VISION.md
-02_business_case/BUSINESS_CASE.md
+docs/00_constitution/CONSTITUTION.md
+docs/01_vision/VISION.md
+docs/02_business_case/BUSINESS_CASE.md
 SPEC.md
 docs/INTENT_MEMORY.md
 docs/reference/smarty-checkout/README.md

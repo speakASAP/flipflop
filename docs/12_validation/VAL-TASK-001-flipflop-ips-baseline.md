@@ -40,5 +40,5 @@ Use this baseline for future FlipFlop coding sessions and keep validation eviden
 
 ## Traceability confirmation
 
-Validation maps to `11_tasks/TASK-001-flipflop-ips-baseline.md`, `21_execution_plans/EP-TASK-001-flipflop-ips-baseline.md`, and `22_goal_impact/GOAL-IMPACT-TASK-001-flipflop-ips-baseline.md`.
+Validation maps to `docs/11_tasks/TASK-001-flipflop-ips-baseline.md`, `docs/21_execution_plans/EP-TASK-001-flipflop-ips-baseline.md`, and `docs/22_goal_impact/GOAL-IMPACT-TASK-001-flipflop-ips-baseline.md`.
 

@@ -17,15 +17,15 @@ related_adrs:
 
 ## Target task
 
-`11_tasks/TASK-002-smarty-checkout-reference-ux.md` implements guest checkout and optional magic-link account creation using the Smarty.cz screenshot reference.
+`docs/11_tasks/TASK-002-smarty-checkout-reference-ux.md` implements guest checkout and optional magic-link account creation using the Smarty.cz screenshot reference.
 
 ## Upstream traceability
 
-- `00_constitution/CONSTITUTION.md`
-- `01_vision/VISION.md`
-- `02_business_case/BUSINESS_CASE.md`
-- `10_features/FEAT-001-intent-preserved-revenue-readiness.md`
-- `21_execution_plans/EP-TASK-002-smarty-checkout-reference-ux.md`
+- `docs/00_constitution/CONSTITUTION.md`
+- `docs/01_vision/VISION.md`
+- `docs/02_business_case/BUSINESS_CASE.md`
+- `docs/10_features/FEAT-001-intent-preserved-revenue-readiness.md`
+- `docs/21_execution_plans/EP-TASK-002-smarty-checkout-reference-ux.md`
 - `docs/reference/smarty-checkout/README.md`
 
 ## Included documents

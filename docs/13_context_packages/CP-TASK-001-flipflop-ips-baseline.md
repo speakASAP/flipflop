@@ -17,14 +17,14 @@ related_adrs:
 
 ## Target task
 
-`11_tasks/TASK-001-flipflop-ips-baseline.md` adds the FlipFlop IPS documentation and gate baseline.
+`docs/11_tasks/TASK-001-flipflop-ips-baseline.md` adds the FlipFlop IPS documentation and gate baseline.
 
 ## Upstream traceability
 
-- `00_constitution/CONSTITUTION.md`
-- `01_vision/VISION.md`
+- `docs/00_constitution/CONSTITUTION.md`
+- `docs/01_vision/VISION.md`
 - `docs/INTENT_MEMORY.md`
-- `21_execution_plans/EP-TASK-001-flipflop-ips-baseline.md`
+- `docs/21_execution_plans/EP-TASK-001-flipflop-ips-baseline.md`
 
 ## Included documents
 

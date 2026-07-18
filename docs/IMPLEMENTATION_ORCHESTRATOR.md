@@ -9,17 +9,17 @@ The FlipFlop orchestrator manages implementation by goals. It preserves the orig
 Before implementation work, read:
 
 ```text
-00_constitution/CONSTITUTION.md
-01_vision/VISION.md
-02_business_case/BUSINESS_CASE.md
+docs/00_constitution/CONSTITUTION.md
+docs/01_vision/VISION.md
+docs/02_business_case/BUSINESS_CASE.md
 README.md
 BUSINESS.md
 SYSTEM.md
 SPEC.md
 GOALS.md
 PLAN.md
-17_governance/PROJECT_INVARIANTS.md
-23_documentation_contracts/DOCUMENTATION_COMPLETENESS_STANDARD.md
+docs/17_governance/PROJECT_INVARIANTS.md
+docs/23_documentation_contracts/DOCUMENTATION_COMPLETENESS_STANDARD.md
 docs/INTENT_MEMORY.md
 docs/IMPLEMENTATION_STATE.md
 docs/process/PROJECT_INVARIANTS.md

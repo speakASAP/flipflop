@@ -5,7 +5,7 @@ Every implementation goal must leave enough documentation for the next agent to 
 This local standard is the FlipFlop companion to the canonical IPS contract in:
 
 ```text
-23_documentation_contracts/DOCUMENTATION_COMPLETENESS_STANDARD.md
+docs/23_documentation_contracts/DOCUMENTATION_COMPLETENESS_STANDARD.md
 ```
 
 The required IPS chain is:

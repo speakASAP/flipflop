@@ -205,8 +205,8 @@ IPS chain:
 - System: FlipFlop order-service owns local order history and product-to-Catalog mapping; Marketing remains replay aggregation/scheduling owner; Catalog remains relation persistence owner.
 - Feature: Marketplace-affinity replay readiness for FlipFlop local order history.
 - Task: `TASK-006-FLIPFLOP-AFFINITY-REPLAY-EXPORT`.
-- Execution Plan: `21_execution_plans/EP-TASK-006-flipflop-affinity-replay-export.md`.
-- Coding Prompt: `14_prompts/PROMPT-TASK-006-flipflop-affinity-replay-export.md`.
+- Execution Plan: `docs/21_execution_plans/EP-TASK-006-flipflop-affinity-replay-export.md`.
+- Coding Prompt: `docs/14_prompts/PROMPT-TASK-006-flipflop-affinity-replay-export.md`.
 - Code: `services/order-service/src/orders/orders-internal.controller.ts`, `services/order-service/src/orders/orders.service.ts`, `scripts/verify-flipflop-affinity-replay-export.js`, and package verifier wiring.
 - Validation: `npm run verify:flipflop-affinity-eligibility`, `npm run verify:flipflop-affinity-replay-export`, `git diff --check`, `cd services/order-service && npm run build`, and IPS gates passed.
 
@@ -242,8 +242,8 @@ IPS chain:
 - System: FlipFlop order-service owns local order state and product-to-Catalog mapping; Marketing remains replay aggregation owner; Catalog remains relation metadata owner.
 - Feature: Marketplace-affinity replay readiness for FlipFlop local order history.
 - Task: `TASK-005-FLIPFLOP-AFFINITY-REPLAY-ELIGIBILITY`.
-- Execution Plan: `21_execution_plans/EP-TASK-005-flipflop-affinity-replay-eligibility.md`.
-- Coding Prompt: `14_prompts/PROMPT-TASK-005-flipflop-affinity-replay-eligibility.md`.
+- Execution Plan: `docs/21_execution_plans/EP-TASK-005-flipflop-affinity-replay-eligibility.md`.
+- Coding Prompt: `docs/14_prompts/PROMPT-TASK-005-flipflop-affinity-replay-eligibility.md`.
 - Code: `services/order-service/src/orders/affinity-replay-eligibility.ts`, `scripts/verify-flipflop-affinity-eligibility.js`, and package verifier wiring.
 - Validation: `npm run verify:flipflop-affinity-eligibility`, `git diff --check`, and `cd services/order-service && npm run build` passed; IPS gates passed before and after edits.
 
@@ -866,12 +866,12 @@ Planning artifacts added:
 - `implementation-goals/GOAL-10-catalog-connector-content-preview.context-package.md`
 - `implementation-goals/GOAL-10-catalog-connector-content-preview.coding-prompt.md`
 - `implementation-goals/GOAL-10-catalog-connector-content-preview.validation-report.md`
-- `11_tasks/TASK-003-catalog-connector-content-preview.md`
-- `22_goal_impact/GOAL-IMPACT-TASK-003-catalog-connector-content-preview.md`
-- `21_execution_plans/EP-TASK-003-catalog-connector-content-preview.md`
-- `13_context_packages/CP-TASK-003-catalog-connector-content-preview.md`
-- `14_prompts/PROMPT-TASK-003-catalog-connector-content-preview.md`
-- `12_validation/VAL-TASK-003-catalog-connector-content-preview.md`
+- `docs/11_tasks/TASK-003-catalog-connector-content-preview.md`
+- `docs/22_goal_impact/GOAL-IMPACT-TASK-003-catalog-connector-content-preview.md`
+- `docs/21_execution_plans/EP-TASK-003-catalog-connector-content-preview.md`
+- `docs/13_context_packages/CP-TASK-003-catalog-connector-content-preview.md`
+- `docs/14_prompts/PROMPT-TASK-003-catalog-connector-content-preview.md`
+- `docs/12_validation/VAL-TASK-003-catalog-connector-content-preview.md`
 
 Parallel execution section:
 
@@ -956,12 +956,12 @@ Orchestrator agents must not overwrite or revert those changes unless the owner 
   `.execution-plan.md`, `.context-package.md`, `.coding-prompt.md`, and
   `.validation-report.md`.
 - Added IPS traceability artifacts for TASK-002 guest checkout:
-  `11_tasks/TASK-002-smarty-checkout-reference-ux.md`,
-  `22_goal_impact/GOAL-IMPACT-TASK-002-smarty-checkout-reference-ux.md`,
-  `21_execution_plans/EP-TASK-002-smarty-checkout-reference-ux.md`,
-  `13_context_packages/CP-TASK-002-smarty-checkout-reference-ux.md`,
-  `14_prompts/PROMPT-TASK-002-smarty-checkout-reference-ux.md`, and
-  `12_validation/VAL-TASK-002-smarty-checkout-reference-ux.md`.
+  `docs/11_tasks/TASK-002-smarty-checkout-reference-ux.md`,
+  `docs/22_goal_impact/GOAL-IMPACT-TASK-002-smarty-checkout-reference-ux.md`,
+  `docs/21_execution_plans/EP-TASK-002-smarty-checkout-reference-ux.md`,
+  `docs/13_context_packages/CP-TASK-002-smarty-checkout-reference-ux.md`,
+  `docs/14_prompts/PROMPT-TASK-002-smarty-checkout-reference-ux.md`, and
+  `docs/12_validation/VAL-TASK-002-smarty-checkout-reference-ux.md`.
 - Added canonical Intent Preservation System baseline: constitution, vision, business case, domain model, system/subsystem, architecture, ADR, roadmap, milestone, feature, task, goal-impact record, execution plan, context package, coding prompt, validation report, audit checklist, project graph, and local gate scripts.
 - Updated FlipFlop orchestrator and process docs so future coding must pass IPS pre-coding and strict documentation gates before code edits, and deployment-readiness before release closure.
 - Validated IPS baseline locally: `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues` passed 100/100, `python3 scripts/pre_coding_gate.py --root .` passed, `python3 scripts/deployment_readiness_gate.py --root .` passed, and `./scripts/next_goal.sh` preserved the no-active-goal/payment-follow-up state.

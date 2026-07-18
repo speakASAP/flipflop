@@ -22,10 +22,10 @@ Replace mandatory registration/login before purchase with guest checkout and opt
 
 ## Upstream Links
 
-- `00_constitution/CONSTITUTION.md`
-- `01_vision/VISION.md`
-- `02_business_case/BUSINESS_CASE.md`
-- `10_features/FEAT-001-intent-preserved-revenue-readiness.md`
+- `docs/00_constitution/CONSTITUTION.md`
+- `docs/01_vision/VISION.md`
+- `docs/02_business_case/BUSINESS_CASE.md`
+- `docs/10_features/FEAT-001-intent-preserved-revenue-readiness.md`
 - `SPEC.md` Module 2 and Module 3
 - `docs/reference/smarty-checkout/README.md`
 
@@ -35,7 +35,7 @@ This task reduces checkout friction and preserves checkout-to-first-revenue inte
 
 ## Project Invariant Impact
 
-Applies all invariants in `17_governance/PROJECT_INVARIANTS.md`, especially the rules for checkout-to-first-revenue, payment safety, pricing/order total safety, shared ecosystem services, and sensitive-data handling.
+Applies all invariants in `docs/17_governance/PROJECT_INVARIANTS.md`, especially the rules for checkout-to-first-revenue, payment safety, pricing/order total safety, shared ecosystem services, and sensitive-data handling.
 
 ## Sensitive-Data Classification
 
@@ -102,4 +102,4 @@ Run strict documentation audit, pre-coding gate, frontend build, affected servic
 
 ## Execution Plan Requirement
 
-This task must not be converted into coding work until `21_execution_plans/EP-TASK-002-smarty-checkout-reference-ux.md` exists, includes a validation plan, and the backend guest-order contract decision is recorded.
+This task must not be converted into coding work until `docs/21_execution_plans/EP-TASK-002-smarty-checkout-reference-ux.md` exists, includes a validation plan, and the backend guest-order contract decision is recorded.

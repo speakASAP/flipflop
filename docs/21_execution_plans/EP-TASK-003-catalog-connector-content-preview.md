@@ -20,12 +20,12 @@ Execution plan for `TASK-003`, a bounded FlipFlop lane that exposes Catalog cano
 
 ## Upstream Traceability
 
-- Constitution: `00_constitution/CONSTITUTION.md`
-- Vision: `01_vision/VISION.md`
-- Business case: `02_business_case/BUSINESS_CASE.md`
-- Feature: `10_features/FEAT-001-intent-preserved-revenue-readiness.md`
-- Task: `11_tasks/TASK-003-catalog-connector-content-preview.md`
-- Goal impact: `22_goal_impact/GOAL-IMPACT-TASK-003-catalog-connector-content-preview.md`
+- Constitution: `docs/00_constitution/CONSTITUTION.md`
+- Vision: `docs/01_vision/VISION.md`
+- Business case: `docs/02_business_case/BUSINESS_CASE.md`
+- Feature: `docs/10_features/FEAT-001-intent-preserved-revenue-readiness.md`
+- Task: `docs/11_tasks/TASK-003-catalog-connector-content-preview.md`
+- Goal impact: `docs/22_goal_impact/GOAL-IMPACT-TASK-003-catalog-connector-content-preview.md`
 - Implementation goal: `implementation-goals/GOAL-10-catalog-connector-content-preview.md`
 
 ## Goal Impact
@@ -34,7 +34,7 @@ The plan makes canonical Catalog content visible to FlipFlop admins while preser
 
 ## Project Invariants
 
-Preserve all invariants in `17_governance/PROJECT_INVARIANTS.md`. This plan especially protects shared ecosystem service integration, no unapproved money-state changes, no customer-visible publication without review, and no sensitive-data leakage.
+Preserve all invariants in `docs/17_governance/PROJECT_INVARIANTS.md`. This plan especially protects shared ecosystem service integration, no unapproved money-state changes, no customer-visible publication without review, and no sensitive-data leakage.
 
 ## Sensitive-Data Handling
 
@@ -86,12 +86,12 @@ The endpoint performs one Catalog GET per request. It must not enqueue jobs, pub
 - `implementation-goals/GOAL-10-catalog-connector-content-preview.context-package.md`
 - `implementation-goals/GOAL-10-catalog-connector-content-preview.coding-prompt.md`
 - `implementation-goals/GOAL-10-catalog-connector-content-preview.validation-report.md`
-- `11_tasks/TASK-003-catalog-connector-content-preview.md`
-- `21_execution_plans/EP-TASK-003-catalog-connector-content-preview.md`
-- `22_goal_impact/GOAL-IMPACT-TASK-003-catalog-connector-content-preview.md`
-- `13_context_packages/CP-TASK-003-catalog-connector-content-preview.md`
-- `14_prompts/PROMPT-TASK-003-catalog-connector-content-preview.md`
-- `12_validation/VAL-TASK-003-catalog-connector-content-preview.md`
+- `docs/11_tasks/TASK-003-catalog-connector-content-preview.md`
+- `docs/21_execution_plans/EP-TASK-003-catalog-connector-content-preview.md`
+- `docs/22_goal_impact/GOAL-IMPACT-TASK-003-catalog-connector-content-preview.md`
+- `docs/13_context_packages/CP-TASK-003-catalog-connector-content-preview.md`
+- `docs/14_prompts/PROMPT-TASK-003-catalog-connector-content-preview.md`
+- `docs/12_validation/VAL-TASK-003-catalog-connector-content-preview.md`
 
 ## Files to Modify
 
@@ -140,7 +140,7 @@ Pass the IPS gates before source edits. After implementation, verify the source 
 
 ## Documentation Updates
 
-Update `implementation-goals/GOAL-10-catalog-connector-content-preview.validation-report.md`, `12_validation/VAL-TASK-003-catalog-connector-content-preview.md`, and `docs/IMPLEMENTATION_STATE.md` with command results, blockers, and no-deploy status.
+Update `implementation-goals/GOAL-10-catalog-connector-content-preview.validation-report.md`, `docs/12_validation/VAL-TASK-003-catalog-connector-content-preview.md`, and `docs/IMPLEMENTATION_STATE.md` with command results, blockers, and no-deploy status.
 
 ## Rollback Plan
 

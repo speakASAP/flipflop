@@ -48,13 +48,13 @@ related_adrs:
   },
   "why_this_task_exists": "The current FlipFlop checkout forces unauthenticated customers into login/registration before purchase, which blocks normal Czech e-commerce guest purchase behavior and reduces checkout-to-first-revenue conversion.",
   "upstream_traceability": [
-    "00_constitution/CONSTITUTION.md",
-    "01_vision/VISION.md",
-    "02_business_case/BUSINESS_CASE.md",
+    "docs/00_constitution/CONSTITUTION.md",
+    "docs/01_vision/VISION.md",
+    "docs/02_business_case/BUSINESS_CASE.md",
     "SPEC.md Module 2 and Module 3",
     "docs/reference/smarty-checkout/README.md",
-    "11_tasks/TASK-002-smarty-checkout-reference-ux.md",
-    "22_goal_impact/GOAL-IMPACT-TASK-002-smarty-checkout-reference-ux.md"
+    "docs/11_tasks/TASK-002-smarty-checkout-reference-ux.md",
+    "docs/22_goal_impact/GOAL-IMPACT-TASK-002-smarty-checkout-reference-ux.md"
   ],
   "approved_execution_plan_ref": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.execution-plan.md",
   "context_package_ref": "implementation-goals/GOAL-09-smarty-checkout-reference-ux.context-package.md",

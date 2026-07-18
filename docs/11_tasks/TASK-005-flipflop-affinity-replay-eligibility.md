@@ -21,11 +21,11 @@ Catalog Goal 24 needs a FlipFlop-owned answer for which local orders may contrib
 
 ## Upstream Links
 
-- `00_constitution/CONSTITUTION.md`
-- `01_vision/VISION.md`
-- `04_systems/SYS-001-commerce-platform.md`
-- `10_features/FEAT-001-intent-preserved-revenue-readiness.md`
-- `17_governance/PROJECT_INVARIANTS.md`
+- `docs/00_constitution/CONSTITUTION.md`
+- `docs/01_vision/VISION.md`
+- `docs/04_systems/SYS-001-commerce-platform.md`
+- `docs/10_features/FEAT-001-intent-preserved-revenue-readiness.md`
+- `docs/17_governance/PROJECT_INVARIANTS.md`
 - Catalog contract `/home/ssf/Documents/Github/catalog-microservice/docs/contracts/catalog-marketplace-affinity-backfill.md`
 
 ## Goal Impact

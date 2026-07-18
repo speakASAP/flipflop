@@ -24,52 +24,52 @@
     {
       "line": 66,
       "marker": "[MISSING: FlipFlop protected replay endpoint or owner-run CLI export for marketplace.order_affinity_replay_candidates.v1]",
-      "path": "12_validation/VAL-TASK-005-flipflop-affinity-replay-eligibility.md"
+      "path": "docs/12_validation/VAL-TASK-005-flipflop-affinity-replay-eligibility.md"
     },
     {
       "line": 67,
       "marker": "[MISSING: Marketing parser support for marketplace-owned replay source envelopes]",
-      "path": "12_validation/VAL-TASK-005-flipflop-affinity-replay-eligibility.md"
+      "path": "docs/12_validation/VAL-TASK-005-flipflop-affinity-replay-eligibility.md"
     },
     {
       "line": 68,
       "marker": "[MISSING: durable Marketing backfill run ledger and idempotency key registry]",
-      "path": "12_validation/VAL-TASK-005-flipflop-affinity-replay-eligibility.md"
+      "path": "docs/12_validation/VAL-TASK-005-flipflop-affinity-replay-eligibility.md"
     },
     {
       "line": 69,
       "marker": "[MISSING: owner-approved dry-run window before live FlipFlop replay execution]",
-      "path": "12_validation/VAL-TASK-005-flipflop-affinity-replay-eligibility.md"
+      "path": "docs/12_validation/VAL-TASK-005-flipflop-affinity-replay-eligibility.md"
     },
     {
       "line": 70,
       "marker": "[MISSING: Marketing parser support for marketplace-owned replay source envelopes]",
-      "path": "12_validation/VAL-TASK-006-flipflop-affinity-replay-export.md"
+      "path": "docs/12_validation/VAL-TASK-006-flipflop-affinity-replay-export.md"
     },
     {
       "line": 71,
       "marker": "[MISSING: durable Marketing backfill run ledger and idempotency key registry]",
-      "path": "12_validation/VAL-TASK-006-flipflop-affinity-replay-export.md"
+      "path": "docs/12_validation/VAL-TASK-006-flipflop-affinity-replay-export.md"
     },
     {
       "line": 72,
       "marker": "[MISSING: owner-approved dry-run window before live FlipFlop replay execution]",
-      "path": "12_validation/VAL-TASK-006-flipflop-affinity-replay-export.md"
+      "path": "docs/12_validation/VAL-TASK-006-flipflop-affinity-replay-export.md"
     },
     {
       "line": 74,
       "marker": "[MISSING: owner-approved FlipFlop recurring marketplace publish/replace-window schedule activation]",
-      "path": "12_validation/VAL-TASK-006-flipflop-affinity-replay-export.md"
+      "path": "docs/12_validation/VAL-TASK-006-flipflop-affinity-replay-export.md"
     },
     {
       "line": 43,
       "marker": "[MISSING: ...]",
-      "path": "23_documentation_contracts/DOCUMENTATION_COMPLETENESS_STANDARD.md"
+      "path": "docs/23_documentation_contracts/DOCUMENTATION_COMPLETENESS_STANDARD.md"
     },
     {
       "line": 43,
       "marker": "[UNKNOWN: ...]",
-      "path": "23_documentation_contracts/DOCUMENTATION_COMPLETENESS_STANDARD.md"
+      "path": "docs/23_documentation_contracts/DOCUMENTATION_COMPLETENESS_STANDARD.md"
     },
     {
       "line": 60,
@@ -3454,12 +3454,12 @@
   ],
   "validation_reports": {
     "reports": [
-      "12_validation/VAL-TASK-001-flipflop-ips-baseline.md",
-      "12_validation/VAL-TASK-002-smarty-checkout-reference-ux.md",
-      "12_validation/VAL-TASK-003-catalog-connector-content-preview.md",
-      "12_validation/VAL-TASK-004-catalog-product-quality-review-consumer.md",
-      "12_validation/VAL-TASK-005-flipflop-affinity-replay-eligibility.md",
-      "12_validation/VAL-TASK-006-flipflop-affinity-replay-export.md"
+      "docs/12_validation/VAL-TASK-001-flipflop-ips-baseline.md",
+      "docs/12_validation/VAL-TASK-002-smarty-checkout-reference-ux.md",
+      "docs/12_validation/VAL-TASK-003-catalog-connector-content-preview.md",
+      "docs/12_validation/VAL-TASK-004-catalog-product-quality-review-consumer.md",
+      "docs/12_validation/VAL-TASK-005-flipflop-affinity-replay-eligibility.md",
+      "docs/12_validation/VAL-TASK-006-flipflop-affinity-replay-export.md"
     ],
     "status": "pass",
     "target": null

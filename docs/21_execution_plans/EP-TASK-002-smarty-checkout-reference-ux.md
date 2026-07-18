@@ -20,12 +20,12 @@ Execution plan for `TASK-002`, implementing a Smarty.cz-referenced guest checkou
 
 ## Upstream Traceability
 
-- Constitution: `00_constitution/CONSTITUTION.md`
-- Vision: `01_vision/VISION.md`
-- Business case: `02_business_case/BUSINESS_CASE.md`
-- Feature: `10_features/FEAT-001-intent-preserved-revenue-readiness.md`
-- Task: `11_tasks/TASK-002-smarty-checkout-reference-ux.md`
-- Goal impact: `22_goal_impact/GOAL-IMPACT-TASK-002-smarty-checkout-reference-ux.md`
+- Constitution: `docs/00_constitution/CONSTITUTION.md`
+- Vision: `docs/01_vision/VISION.md`
+- Business case: `docs/02_business_case/BUSINESS_CASE.md`
+- Feature: `docs/10_features/FEAT-001-intent-preserved-revenue-readiness.md`
+- Task: `docs/11_tasks/TASK-002-smarty-checkout-reference-ux.md`
+- Goal impact: `docs/22_goal_impact/GOAL-IMPACT-TASK-002-smarty-checkout-reference-ux.md`
 - Reference: `docs/reference/smarty-checkout/README.md`
 
 ## Goal Impact
@@ -34,7 +34,7 @@ The plan removes account-registration friction from checkout while preserving sa
 
 ## Project Invariants
 
-Preserve all invariants in `17_governance/PROJECT_INVARIANTS.md`. This plan especially protects payment/provider truthfulness, no unapproved money-state mutation, shared ecosystem service usage, and sensitive-data redaction.
+Preserve all invariants in `docs/17_governance/PROJECT_INVARIANTS.md`. This plan especially protects payment/provider truthfulness, no unapproved money-state mutation, shared ecosystem service usage, and sensitive-data redaction.
 
 ## Sensitive-Data Handling
 

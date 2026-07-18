@@ -17,17 +17,17 @@ related_adrs:
 
 ## Target task
 
-`11_tasks/TASK-004-catalog-product-quality-review-consumer.md` integrates FlipFlop seller/admin Catalog selection and publication readiness with Catalog Goal 25 product-quality blockers.
+`docs/11_tasks/TASK-004-catalog-product-quality-review-consumer.md` integrates FlipFlop seller/admin Catalog selection and publication readiness with Catalog Goal 25 product-quality blockers.
 
 ## Upstream traceability
 
-- `00_constitution/CONSTITUTION.md`
-- `01_vision/VISION.md`
-- `04_systems/SYS-001-commerce-platform.md`
-- `10_features/FEAT-001-intent-preserved-revenue-readiness.md`
-- `11_tasks/TASK-004-catalog-product-quality-review-consumer.md`
-- `21_execution_plans/EP-TASK-004-catalog-product-quality-review-consumer.md`
-- `22_goal_impact/GOAL-IMPACT-TASK-004-catalog-product-quality-review-consumer.md`
+- `docs/00_constitution/CONSTITUTION.md`
+- `docs/01_vision/VISION.md`
+- `docs/04_systems/SYS-001-commerce-platform.md`
+- `docs/10_features/FEAT-001-intent-preserved-revenue-readiness.md`
+- `docs/11_tasks/TASK-004-catalog-product-quality-review-consumer.md`
+- `docs/21_execution_plans/EP-TASK-004-catalog-product-quality-review-consumer.md`
+- `docs/22_goal_impact/GOAL-IMPACT-TASK-004-catalog-product-quality-review-consumer.md`
 - `implementation-goals/GOAL-25-catalog-product-quality-review-consumer.md`
 
 ## Included documents

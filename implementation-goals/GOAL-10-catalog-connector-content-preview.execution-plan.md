@@ -29,12 +29,12 @@
   },
   "why_this_task_exists": "Catalog now exposes canonical content connector previews. FlipFlop needs an admin inspection surface for the flipflop connector while preserving its existing service boundaries and avoiding the failing Allegro route.",
   "upstream_traceability": [
-    "00_constitution/CONSTITUTION.md",
-    "01_vision/VISION.md",
-    "02_business_case/BUSINESS_CASE.md",
-    "10_features/FEAT-001-intent-preserved-revenue-readiness.md",
-    "11_tasks/TASK-003-catalog-connector-content-preview.md",
-    "22_goal_impact/GOAL-IMPACT-TASK-003-catalog-connector-content-preview.md"
+    "docs/00_constitution/CONSTITUTION.md",
+    "docs/01_vision/VISION.md",
+    "docs/02_business_case/BUSINESS_CASE.md",
+    "docs/10_features/FEAT-001-intent-preserved-revenue-readiness.md",
+    "docs/11_tasks/TASK-003-catalog-connector-content-preview.md",
+    "docs/22_goal_impact/GOAL-IMPACT-TASK-003-catalog-connector-content-preview.md"
   ],
   "approved_execution_plan_ref": "implementation-goals/GOAL-10-catalog-connector-content-preview.execution-plan.md",
   "context_package_ref": "implementation-goals/GOAL-10-catalog-connector-content-preview.context-package.md",

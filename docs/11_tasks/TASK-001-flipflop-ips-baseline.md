@@ -21,10 +21,10 @@ Add a canonical Intent Preservation System baseline to FlipFlop so future coding
 
 ## Upstream Links
 
-- `00_constitution/CONSTITUTION.md`
-- `01_vision/VISION.md`
+- `docs/00_constitution/CONSTITUTION.md`
+- `docs/01_vision/VISION.md`
 - `docs/INTENT_MEMORY.md`
-- `10_features/FEAT-001-intent-preserved-revenue-readiness.md`
+- `docs/10_features/FEAT-001-intent-preserved-revenue-readiness.md`
 
 ## Goal Impact
 
@@ -32,7 +32,7 @@ This task prevents future implementation sessions from losing checkout-to-first-
 
 ## Project Invariant Impact
 
-Applies all invariants in `17_governance/PROJECT_INVARIANTS.md` and `docs/process/PROJECT_INVARIANTS.md`.
+Applies all invariants in `docs/17_governance/PROJECT_INVARIANTS.md` and `docs/process/PROJECT_INVARIANTS.md`.
 
 ## Sensitive-Data Classification
 
@@ -70,7 +70,7 @@ No runtime replay behavior is changed. Gate command output should be determinist
 - `docs/INTENT_MEMORY.md`
 - `docs/IMPLEMENTATION_STATE.md`
 - `implementation-goals/README.md`
-- `23_documentation_contracts/DOCUMENTATION_COMPLETENESS_STANDARD.md`
+- `docs/23_documentation_contracts/DOCUMENTATION_COMPLETENESS_STANDARD.md`
 
 ## Validation Task
 
@@ -84,4 +84,4 @@ Run strict documentation audit, pre-coding gate, deployment-readiness gate, and 
 
 ## Execution Plan Requirement
 
-This task must not be converted into coding work until `21_execution_plans/EP-TASK-001-flipflop-ips-baseline.md` exists and includes a validation plan.
+This task must not be converted into coding work until `docs/21_execution_plans/EP-TASK-001-flipflop-ips-baseline.md` exists and includes a validation plan.

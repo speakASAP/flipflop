@@ -22,11 +22,11 @@ Expose Catalog canonical content connector previews inside the FlipFlop admin pr
 
 ## Upstream Links
 
-- `00_constitution/CONSTITUTION.md`
-- `01_vision/VISION.md`
-- `02_business_case/BUSINESS_CASE.md`
-- `10_features/FEAT-001-intent-preserved-revenue-readiness.md`
-- `17_governance/PROJECT_INVARIANTS.md`
+- `docs/00_constitution/CONSTITUTION.md`
+- `docs/01_vision/VISION.md`
+- `docs/02_business_case/BUSINESS_CASE.md`
+- `docs/10_features/FEAT-001-intent-preserved-revenue-readiness.md`
+- `docs/17_governance/PROJECT_INVARIANTS.md`
 - `docs/process/PROJECT_INVARIANTS.md`
 - `SPEC.md` Module 1 Products and Catalogue
 - Owner request on 2026-06-30 for Catalog canonical content connector previews.
@@ -37,7 +37,7 @@ This task strengthens the shared Catalog integration by letting FlipFlop admins 
 
 ## Project Invariant Impact
 
-Applies all invariants in `17_governance/PROJECT_INVARIANTS.md`. The task especially protects shared ecosystem service usage, no unapproved price or order mutation, no fake AI content publication, and sensitive-data redaction.
+Applies all invariants in `docs/17_governance/PROJECT_INVARIANTS.md`. The task especially protects shared ecosystem service usage, no unapproved price or order mutation, no fake AI content publication, and sensitive-data redaction.
 
 ## Sensitive-Data Classification
 
@@ -120,4 +120,4 @@ Run pre-coding/doc gates before code edits, then run whitespace diff validation 
 
 ## Execution Plan Requirement
 
-This task must not be converted into coding work until `21_execution_plans/EP-TASK-003-catalog-connector-content-preview.md` exists and records scope, forbidden files, validation, rollback, and parallel ownership.
+This task must not be converted into coding work until `docs/21_execution_plans/EP-TASK-003-catalog-connector-content-preview.md` exists and records scope, forbidden files, validation, rollback, and parallel ownership.

@@ -52,4 +52,4 @@ Goal 10/TASK-003 connector preview is released. Optional follow-up: normalize sh
 
 ## Traceability confirmation
 
-Validation maps to `11_tasks/TASK-003-catalog-connector-content-preview.md`, `21_execution_plans/EP-TASK-003-catalog-connector-content-preview.md`, `22_goal_impact/GOAL-IMPACT-TASK-003-catalog-connector-content-preview.md`, and `implementation-goals/GOAL-10-catalog-connector-content-preview.validation-report.md`.
+Validation maps to `docs/11_tasks/TASK-003-catalog-connector-content-preview.md`, `docs/21_execution_plans/EP-TASK-003-catalog-connector-content-preview.md`, `docs/22_goal_impact/GOAL-IMPACT-TASK-003-catalog-connector-content-preview.md`, and `implementation-goals/GOAL-10-catalog-connector-content-preview.validation-report.md`.

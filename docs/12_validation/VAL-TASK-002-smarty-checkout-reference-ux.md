@@ -47,4 +47,4 @@ Do not start coding until the backend guest-order contract is selected and IPS g
 
 ## Traceability confirmation
 
-Validation maps to `11_tasks/TASK-002-smarty-checkout-reference-ux.md`, `21_execution_plans/EP-TASK-002-smarty-checkout-reference-ux.md`, `22_goal_impact/GOAL-IMPACT-TASK-002-smarty-checkout-reference-ux.md`, and `implementation-goals/GOAL-09-smarty-checkout-reference-ux.validation-report.md`.
+Validation maps to `docs/11_tasks/TASK-002-smarty-checkout-reference-ux.md`, `docs/21_execution_plans/EP-TASK-002-smarty-checkout-reference-ux.md`, `docs/22_goal_impact/GOAL-IMPACT-TASK-002-smarty-checkout-reference-ux.md`, and `implementation-goals/GOAL-09-smarty-checkout-reference-ux.validation-report.md`.

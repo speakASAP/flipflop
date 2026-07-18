@@ -34,9 +34,9 @@ created: 2026-07-02
   },
   "why_this_task_exists": "Owner requested Amazon-style related products and buy-together sets under product detail pages.",
   "upstream_traceability": [
-    "00_constitution/CONSTITUTION.md",
-    "01_vision/VISION.md",
-    "02_business_case/BUSINESS_CASE.md",
+    "docs/00_constitution/CONSTITUTION.md",
+    "docs/01_vision/VISION.md",
+    "docs/02_business_case/BUSINESS_CASE.md",
     "docs/INTENT_MEMORY.md",
     "docs/process/PROJECT_INVARIANTS.md"
   ],

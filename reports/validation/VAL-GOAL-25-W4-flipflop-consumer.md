@@ -17,9 +17,9 @@ Feature: FlipFlop consumer of `catalog.product_quality.v1`.
 
 Task: Validate that FlipFlop blocks or surfaces Catalog mandatory blockers without moving storefront, checkout, Warehouse stock, or Catalog policy ownership into FlipFlop.
 
-Execution Plan: `21_execution_plans/EP-TASK-004-catalog-product-quality-review-consumer.md` and `13_context_packages/CP-TASK-004-catalog-product-quality-review-consumer.md`.
+Execution Plan: `docs/21_execution_plans/EP-TASK-004-catalog-product-quality-review-consumer.md` and `docs/13_context_packages/CP-TASK-004-catalog-product-quality-review-consumer.md`.
 
-Coding Prompt: `14_prompts/PROMPT-TASK-004-catalog-product-quality-review-consumer.md`.
+Coding Prompt: `docs/14_prompts/PROMPT-TASK-004-catalog-product-quality-review-consumer.md`.
 
 Code: Existing source validated in this worker: `shared/clients/catalog-client.service.ts`, `services/product-service/src/products/catalog-product-quality.policy.ts`, `services/product-service/src/products/products.service.ts`, `services/product-service/src/products/products.controller.ts`, `services/frontend/lib/api/products.ts`, `services/frontend/app/dashboard/page.tsx`, `services/frontend/app/admin/sync/page.tsx`, and `scripts/verify-catalog-product-quality-blockers.js`.
 

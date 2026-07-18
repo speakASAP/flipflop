@@ -20,11 +20,11 @@ Documentation-only execution plan for `TASK-001`.
 
 ## Upstream Traceability
 
-- Constitution: `00_constitution/CONSTITUTION.md`
-- Vision: `01_vision/VISION.md`
+- Constitution: `docs/00_constitution/CONSTITUTION.md`
+- Vision: `docs/01_vision/VISION.md`
 - Intent memory: `docs/INTENT_MEMORY.md`
-- Feature: `10_features/FEAT-001-intent-preserved-revenue-readiness.md`
-- Goal impact: `22_goal_impact/GOAL-IMPACT-TASK-001-flipflop-ips-baseline.md`
+- Feature: `docs/10_features/FEAT-001-intent-preserved-revenue-readiness.md`
+- Goal impact: `docs/22_goal_impact/GOAL-IMPACT-TASK-001-flipflop-ips-baseline.md`
 
 ## Goal Impact
 
@@ -32,7 +32,7 @@ This plan makes future coding dependent on approved intent, explicit boundaries,
 
 ## Project Invariants
 
-Preserve all invariants in `17_governance/PROJECT_INVARIANTS.md`.
+Preserve all invariants in `docs/17_governance/PROJECT_INVARIANTS.md`.
 
 ## Sensitive-Data Handling
 
@@ -59,7 +59,7 @@ Runtime implementation, production deployment, and payment-provider verification
 - `docs/INTENT_MEMORY.md`
 - `docs/IMPLEMENTATION_STATE.md`
 - `implementation-goals/README.md`
-- `23_documentation_contracts/DOCUMENTATION_COMPLETENESS_STANDARD.md`
+- `docs/23_documentation_contracts/DOCUMENTATION_COMPLETENESS_STANDARD.md`
 
 ## Files to Create
 

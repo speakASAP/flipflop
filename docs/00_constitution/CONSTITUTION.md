@@ -26,5 +26,5 @@ related_adrs:
 
 ## Change Control
 
-This document is protected intent. AI agents may reference it but must not weaken it. Human-approved amendments must be recorded in `01_vision/VISION_EVOLUTION.md`.
+This document is protected intent. AI agents may reference it but must not weaken it. Human-approved amendments must be recorded in `docs/01_vision/VISION_EVOLUTION.md`.
 

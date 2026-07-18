@@ -43,7 +43,7 @@ Ready for Catalog orchestrator review as a FlipFlop consumer validation hardenin
 
 ## Traceability confirmation
 
-Validation maps to `11_tasks/TASK-004-catalog-product-quality-review-consumer.md`, `21_execution_plans/EP-TASK-004-catalog-product-quality-review-consumer.md`, `13_context_packages/CP-TASK-004-catalog-product-quality-review-consumer.md`, `14_prompts/PROMPT-TASK-004-catalog-product-quality-review-consumer.md`, and `22_goal_impact/GOAL-IMPACT-TASK-004-catalog-product-quality-review-consumer.md`.
+Validation maps to `docs/11_tasks/TASK-004-catalog-product-quality-review-consumer.md`, `docs/21_execution_plans/EP-TASK-004-catalog-product-quality-review-consumer.md`, `docs/13_context_packages/CP-TASK-004-catalog-product-quality-review-consumer.md`, `docs/14_prompts/PROMPT-TASK-004-catalog-product-quality-review-consumer.md`, and `docs/22_goal_impact/GOAL-IMPACT-TASK-004-catalog-product-quality-review-consumer.md`.
 
 ## Commands
 

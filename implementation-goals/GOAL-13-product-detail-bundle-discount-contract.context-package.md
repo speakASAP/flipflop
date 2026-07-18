@@ -36,9 +36,9 @@ owner: original Codex integration thread
   },
   "why_this_task_exists": "GOAL-12 displays bundle savings and adds bundle items to cart, but checkout/order/payment totals still need a real server-side discount contract.",
   "upstream_traceability": [
-    "00_constitution/CONSTITUTION.md",
-    "01_vision/VISION.md",
-    "02_business_case/BUSINESS_CASE.md",
+    "docs/00_constitution/CONSTITUTION.md",
+    "docs/01_vision/VISION.md",
+    "docs/02_business_case/BUSINESS_CASE.md",
     "docs/INTENT_MEMORY.md",
     "implementation-goals/GOAL-12-product-detail-upsell-recommendations.md",
     "implementation-goals/GOAL-13-ecosystem-related-products-order-affinity-plan.md"

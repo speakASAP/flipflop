@@ -22,11 +22,11 @@ Add the protected FlipFlop-owned read-only replay surface for Catalog Goal 24 by
 
 ## Upstream Links
 
-- `00_constitution/CONSTITUTION.md`
-- `01_vision/VISION.md`
-- `04_systems/SYS-001-commerce-platform.md`
-- `10_features/FEAT-001-intent-preserved-revenue-readiness.md`
-- `11_tasks/TASK-005-flipflop-affinity-replay-eligibility.md`
+- `docs/00_constitution/CONSTITUTION.md`
+- `docs/01_vision/VISION.md`
+- `docs/04_systems/SYS-001-commerce-platform.md`
+- `docs/10_features/FEAT-001-intent-preserved-revenue-readiness.md`
+- `docs/11_tasks/TASK-005-flipflop-affinity-replay-eligibility.md`
 - `/home/ssf/Documents/Github/catalog-microservice/docs/contracts/catalog-marketplace-affinity-backfill.md`
 
 ## Goal Impact
