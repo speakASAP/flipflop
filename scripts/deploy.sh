@@ -17,13 +17,45 @@ source "$(dirname "$PROJECT_ROOT")/shared/scripts/load-deploy-phase-timing.sh" "
   || { echo "Error: deploy timing library not found" >&2; exit 1; }
 deploy_timing_init "$SERVICE_NAME"
 
+# Tag describes the WORKING TREE that is actually built, not just git HEAD:
+# a tag derived from HEAD alone repeats itself when files changed without a
+# commit, which makes `kubectl set image` a no-op and silently keeps the old
+# image running.
+compute_default_tag() {
+  local head dirty root
+  root="${PROJECT_ROOT:-$(pwd)}"
+  head="$(git -C "$root" rev-parse --short HEAD 2>/dev/null || true)"
+  if [ -z "$head" ]; then
+    echo "build-$(date -u +%Y%m%d%H%M%S)"
+    return
+  fi
+  dirty="$(git -C "$root" status --porcelain 2>/dev/null || true)"
+  if [ -n "$dirty" ]; then
+    echo "${head}-wt$(date -u +%Y%m%d%H%M%S)"
+  else
+    echo "$head"
+  fi
+}
+IMAGE_TAG="${1:-$(compute_default_tag)}"
+
 build_and_push() {
   local image="$1"
   local dockerfile="$2"
   shift 2
   echo -e "${YELLOW}Building ${image}...${NC}"
-  docker build "$@" -f "$dockerfile" -t "${REGISTRY}/${image}:latest" "$PROJECT_ROOT"
+  docker build "$@" -f "$dockerfile" -t "${REGISTRY}/${image}:${IMAGE_TAG}" -t "${REGISTRY}/${image}:latest" "$PROJECT_ROOT"
+  docker push "${REGISTRY}/${image}:${IMAGE_TAG}"
   docker push "${REGISTRY}/${image}:latest"
+}
+
+set_image() {
+  local deployment="$1" container="$2" image="$3"
+  local current
+  current=$(kubectl get deployment/"$deployment" -n "$NAMESPACE" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
+  kubectl set image "deployment/${deployment}" "${container}=${REGISTRY}/${image}:${IMAGE_TAG}" -n "$NAMESPACE"
+  if [ "$current" = "${REGISTRY}/${image}:${IMAGE_TAG}" ]; then
+    kubectl rollout restart deployment/"$deployment" -n "$NAMESPACE"
+  fi
 }
 
 preflight_service_health() {
@@ -85,18 +117,14 @@ done
 echo -e "${GREEN}OK Kubernetes manifests applied${NC}"
 deploy_timing_phase_end "Apply Kubernetes manifests"
 
-deploy_timing_phase_start "Rollout restart"
-for deployment in \
-  flipflop-service \
-  flipflop-frontend \
-  flipflop-product-service \
-  flipflop-cart-service \
-  flipflop-order-service \
-  flipflop-user-service; do
-  echo -e "${YELLOW}Triggering rollout restart for ${deployment}...${NC}"
-  kubectl rollout restart deployment/"$deployment" -n "$NAMESPACE"
-done
-deploy_timing_phase_end "Rollout restart"
+deploy_timing_phase_start "Set deployment images"
+set_image flipflop-service         api-gateway     flipflop-service
+set_image flipflop-frontend        frontend        flipflop-frontend
+set_image flipflop-product-service product-service flipflop-product-service
+set_image flipflop-cart-service    cart-service    flipflop-cart-service
+set_image flipflop-order-service   order-service   flipflop-order-service
+set_image flipflop-user-service    user-service    flipflop-user-service
+deploy_timing_phase_end "Set deployment images"
 
 deploy_timing_phase_start "Wait for rollouts"
 for deployment in \
