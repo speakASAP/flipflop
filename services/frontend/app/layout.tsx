@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import SiteFooter from "@/components/SiteFooter";
 import VisitorActivityTracker from "@/components/VisitorActivityTracker";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ConsentBanner } from '@/components/ConsentBanner';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -33,6 +34,7 @@ export default function RootLayout({
             <SiteFooter />
           </AuthProvider>
         </ErrorBoundary>
+        <ConsentBanner />
       </body>
     </html>
   );
