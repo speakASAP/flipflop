@@ -14,7 +14,7 @@ data:
 
   DB_HOST: "db-server-postgres"
   DB_PORT: "5432"
-  DB_USER: "dbadmin"
+  DB_USER: "flipflop"
   DB_NAME: "flipflop"
   DB_SYNC: "false"
   DB_AUTO_CREATE: "true"
