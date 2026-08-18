@@ -158,6 +158,11 @@ export class Logger {
         headers: {
           'Content-Type': 'application/json',
           'Content-Length': Buffer.byteLength(postData),
+          // Ingest has required a credential since 2026-07-06. Omit the header
+          // when unset rather than sending "Bearer undefined".
+          ...(process.env.LOGGING_SERVICE_TOKEN?.trim()
+            ? { Authorization: `Bearer ${process.env.LOGGING_SERVICE_TOKEN.trim()}` }
+            : {}),
         },
         timeout: 5000, // 5 second timeout
       };
