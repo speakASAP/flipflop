@@ -41,9 +41,29 @@ export class EmailCampaignService {
     private readonly logger: LoggerService,
   ) {}
 
+  /**
+   * Fail closed. This previously read `if (expected && internalKey !== expected)`,
+   * so an unset FLIPFLOP_INTERNAL_SERVICE_SECRET made every route using it fully
+   * unauthenticated instead of refusing the request — including the payment-result
+   * and payment-status mutations. A missing credential is a misconfiguration and
+   * must be surfaced, never treated as permission to proceed.
+   */
   assertInternalServiceKey(internalKey: string | undefined): void {
-    const expected = this.configService.get<string>('FLIPFLOP_INTERNAL_SERVICE_SECRET');
-    if (expected && internalKey !== expected) {
+    const expected = this.configService.get<string>('FLIPFLOP_INTERNAL_SERVICE_SECRET')?.trim();
+    if (!expected) {
+      this.logger.error(
+        'FLIPFLOP_INTERNAL_SERVICE_SECRET is not configured; refusing internal service request',
+        undefined,
+        'InternalServiceAuth',
+      );
+      throw new UnauthorizedException('Internal service key is not configured');
+    }
+    if (!internalKey || internalKey !== expected) {
+      this.logger.error(
+        'Rejected internal service request: x-flipflop-internal-key missing or does not match',
+        undefined,
+        'InternalServiceAuth',
+      );
       throw new UnauthorizedException('Invalid internal service key');
     }
   }
