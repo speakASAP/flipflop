@@ -16,6 +16,7 @@ import {
   OrderStatus,
   PaymentStatus,
   PrismaService,
+  AiClientService,
 } from '@flipflop/shared';
 
 /** Explicit shape so declaration emit (TS2742) does not reference shared/.prisma paths. */
@@ -33,6 +34,7 @@ export class AbandonedCartService implements OnModuleInit, OnModuleDestroy {
     private readonly httpService: HttpService,
     private readonly notificationService: NotificationService,
     private readonly logger: LoggerService,
+    private readonly aiClient: AiClientService,
   ) {
     const t = Number(this.configService.get<string>('ABANDONED_CART_THRESHOLD_MINUTES'));
     this.defaultThresholdMinutes =
@@ -92,19 +94,16 @@ export class AbandonedCartService implements OnModuleInit, OnModuleDestroy {
       .join('\n');
     const userPrompt = `Jsi copywriter pro e-shop FlipFlop.cz. Zákazník má nedokončenou objednávku č. ${order.orderNumber} (celkem ${Number(order.total)} Kč vč. DPH dle objednávky).\nPoložky:\n${lines}\n\nNapiš jeden stručný připomínkovací e-mail (lákavě, ale slušně), ať dokončí platbu. Odpověz POUZE jako jeden JSON objekt bez markdownu, ve tvaru:\n{"subject":"...","body":"..."}\nPředmět max 80 znaků. Tělo v češtině, HTML povoleno (jednoduché značky), max ~800 znaků.`;
 
-    const aiUrl =
-      this.configService.get<string>('AI_SERVICE_URL') ?? 'http://e-commerce-ai-service:3007';
     const requestStartedAt = Date.now();
     let rawText = '';
     try {
-      const aiRes = await this.httpService.axiosRef.post(`${aiUrl}/ai/complete`, {
+      const aiData = await this.aiClient.complete({
         model_tier: 'free',
         user_prompt: userPrompt,
         max_tokens: 800,
         correlation_id: `abandoned-cart-${orderId}-${Date.now()}`,
       });
-      rawText =
-        aiRes.data?.text ?? aiRes.data?.content ?? aiRes.data?.result ?? '';
+      rawText = AiClientService.extractText(aiData);
     } catch (error: unknown) {
       this.logger.error('sendRecoveryEmail AI request failed', {
         timestamp: new Date().toISOString(),

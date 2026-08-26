@@ -29,6 +29,7 @@ import {
   AuthService,
   LeadsClientService,
   CatalogClientService,
+  AiClientService,
 } from '@flipflop/shared';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
@@ -217,6 +218,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
     private readonly inventoryEventsPublisher: InventoryEventsPublisher,
     private readonly customerEventsPublisher: CustomerEventsPublisher,
     private readonly customerJourneyEventsPublisher: CustomerJourneyEventsPublisher,
+    private readonly aiClient: AiClientService,
   ) {}
 
   private static readonly DEFAULT_LOW_STOCK_THRESHOLD = 10;
@@ -3475,20 +3477,19 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
 
     let commentary = 'Analýza není dostupná — AI služba nedosažitelná.';
     try {
-      const aiUrl = this.configService.get<string>('AI_SERVICE_URL') ?? 'http://e-commerce-ai-service:3007';
       const prompt =
         products.length > 0
           ? `Jako e-commerce analytik ohodnoť cenovou konkurenceschopnost těchto produktů pro český trh. Produkty: ${products.map((item) => `${item.name} (${item.price} Kč)`).join(', ')}. Napiš krátkou analýzu (max 150 slov) v češtině s doporučením.`
           : 'Napiš krátkou obecnou analýzu cenové konkurenceschopnosti pro český e-commerce trh (max 100 slov, česky).';
 
       const requestStartedAt = Date.now();
-      const aiRes = await this.httpService.axiosRef.post(`${aiUrl}/ai/complete`, {
+      const aiData = await this.aiClient.complete({
         model_tier: 'free',
         user_prompt: prompt,
         max_tokens: 400,
         correlation_id: `competitor-analysis-${Date.now()}`,
       });
-      commentary = aiRes.data?.text ?? aiRes.data?.content ?? aiRes.data?.result ?? commentary;
+      commentary = AiClientService.extractText(aiData) || commentary;
 
       this.logger.log('Competitor analysis AI commentary generated', {
         timestamp: new Date().toISOString(),
@@ -3815,9 +3816,6 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       }
     }
 
-    const aiBase =
-      this.configService.get<string>('AI_SERVICE_URL') ?? 'http://ai-microservice:3380';
-    const aiUrl = `${aiBase.replace(/\/$/, '')}/ai/complete`;
     const aiCache = new Map<string, number | null>();
 
     const resolveMarkdownPct = (data: Record<string, unknown> | null | undefined): number | null => {
@@ -3863,12 +3861,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
             ? Math.max(0, Math.floor((Date.now() - lastSold.getTime()) / (24 * 60 * 60 * 1000)))
             : days;
           const userPrompt = `Product: ${p.name}, price: ${Number(p.price)} CZK, stock: ${p.stockQuantity} units, unsold for ${unsoldDays} days. Suggest a markdown percentage (0-50%) to clear stock. Reply with JSON: { "markdownPct": number, "reason": string }`;
-          const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-          if (authorizationHeader) {
-            headers.Authorization = authorizationHeader;
-          }
-          const aiRes = await this.httpService.axiosRef.post(
-            aiUrl,
+          const aiData = await this.aiClient.complete(
             {
               model_tier: 'cheap',
               system_prompt:
@@ -3877,9 +3870,9 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
               max_tokens: 256,
               correlation_id: `dead-stock-${p.id}-${Date.now()}`,
             },
-            { headers, timeout: 25000 },
+            { timeout: 25000 },
           );
-          suggestedMarkdown = resolveMarkdownPct(aiRes.data as Record<string, unknown>);
+          suggestedMarkdown = resolveMarkdownPct(aiData);
           this.logger.log('Dead stock AI suggestion', {
             timestamp: new Date().toISOString(),
             duration_ms: Date.now() - aiStartedAt,
@@ -4037,9 +4030,6 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       productLinesByUser.set(uid, arr);
     }
 
-    const aiBase =
-      this.configService.get<string>('AI_SERVICE_URL') ?? 'http://ai-microservice:3380';
-    const aiUrl = `${aiBase.replace(/\/$/, '')}/ai/complete`;
 
     const resolveProduct = (data: Record<string, unknown> | null | undefined): string | null => {
       if (!data || typeof data !== 'object') {
@@ -4090,12 +4080,7 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
       let recommendedProduct: string | null = null;
       const aiStartedAt = Date.now();
       try {
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (authorizationHeader) {
-          headers.Authorization = authorizationHeader;
-        }
-        const aiRes = await this.httpService.axiosRef.post(
-          aiUrl,
+        const aiData = await this.aiClient.complete(
           {
             model_tier: 'cheap',
             system_prompt:
@@ -4104,9 +4089,9 @@ export class OrdersService implements OnModuleInit, OnModuleDestroy {
             max_tokens: 256,
             correlation_id: `repeat-buyer-${customerId}-${Date.now()}`,
           },
-          { headers, timeout: 25000 },
+          { timeout: 25000 },
         );
-        recommendedProduct = resolveProduct(aiRes.data as Record<string, unknown>);
+        recommendedProduct = resolveProduct(aiData);
         this.logger.log('Repeat buyer AI suggestion', {
           timestamp: new Date().toISOString(),
           duration_ms: Date.now() - aiStartedAt,

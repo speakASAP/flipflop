@@ -69,6 +69,7 @@ export * from './clients/catalog-client.service';
 export * from './clients/warehouse-client.service';
 export * from './clients/order-client.service';
 export * from './clients/leads-client.service';
+export * from './clients/ai-client.service';
 
 // RabbitMQ
 export * from './rabbitmq/rabbitmq.module';

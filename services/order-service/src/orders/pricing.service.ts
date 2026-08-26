@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
-import { LoggerService, PricingEventsPublisher, PrismaService } from '@flipflop/shared';
+import { AiClientService, LoggerService, PricingEventsPublisher, PrismaService } from '@flipflop/shared';
 
 type PriceSuggestionRow = {
   id: string;
@@ -27,6 +27,7 @@ export class PricingService {
     private readonly configService: ConfigService,
     private readonly logger: LoggerService,
     private readonly pricingEventsPublisher: PricingEventsPublisher,
+    private readonly aiClient: AiClientService,
   ) {}
 
   async getSuggestions(limitParam?: string, statusParam?: string): Promise<{
@@ -103,9 +104,6 @@ export class PricingService {
   async generateSuggestions(): Promise<{ created: number; skipped: number }> {
     const startedAt = Date.now();
     const timestamp = new Date().toISOString();
-    const aiServiceBase =
-      this.configService.get<string>('AI_SERVICE_URL') ?? 'http://ai-microservice:3380';
-    const aiUrl = `${aiServiceBase.replace(/\/$/, '')}/ai/complete`;
 
     const products = await this.prisma.$queryRaw<
       Array<{
@@ -177,13 +175,13 @@ export class PricingService {
           product.category ?? 'General'
         }. Suggest an optimal retail price in CZK for a Czech e-commerce platform. Reply with JSON only: {"suggestedPrice": <number>, "rationale": "<one sentence>"}.`;
 
-        const aiResponse = await this.httpService.axiosRef.post(aiUrl, {
+        const aiResponse = await this.aiClient.complete({
           tier: 'cheap',
           messages: [{ role: 'user', content: message }],
           output_schema: { suggestedPrice: 'number', rationale: 'string' },
         });
 
-        const parsed = this.parseAiSuggestion(aiResponse.data as Record<string, unknown>);
+        const parsed = this.parseAiSuggestion(aiResponse);
         if (!parsed) {
           this.logger.warn('Pricing suggestion skipped due to unparsable AI response', {
             timestamp: new Date().toISOString(),

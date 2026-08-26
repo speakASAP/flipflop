@@ -14,6 +14,7 @@ import {
   PrismaService,
   LoggerService,
   NotificationService,
+  AiClientService,
 } from '@flipflop/shared';
 
 export interface CampaignResult {
@@ -39,6 +40,7 @@ export class EmailCampaignService {
     private readonly httpService: HttpService,
     private readonly notificationService: NotificationService,
     private readonly logger: LoggerService,
+    private readonly aiClient: AiClientService,
   ) {}
 
   /**
@@ -99,19 +101,16 @@ export class EmailCampaignService {
 
     const userPrompt = `Jsi copywriter pro e-shop FlipFlop.cz. Vytvoř krátký marketingový e-mail o sezónním výprodeji pro tyto produkty:\n${productLines}\n\nOdpověz POUZE jako jeden JSON objekt bez markdownu, ve tvaru:\n{"subject":"...","body":"..."}\nPředmět max 80 znaků. Tělo e-mailu v češtině, HTML povoleno (jednoduché značky), max ~800 znaků.`;
 
-    const aiUrl =
-      this.configService.get<string>('AI_SERVICE_URL') ?? 'http://e-commerce-ai-service:3007';
     const requestStartedAt = Date.now();
     let rawText = '';
     try {
-      const aiRes = await this.httpService.axiosRef.post(`${aiUrl}/ai/complete`, {
+      const aiData = await this.aiClient.complete({
         model_tier: 'free',
         user_prompt: userPrompt,
         max_tokens: 800,
         correlation_id: `marketing-campaign-${goalId}-${Date.now()}`,
       });
-      rawText =
-        aiRes.data?.text ?? aiRes.data?.content ?? aiRes.data?.result ?? '';
+      rawText = AiClientService.extractText(aiData);
     } catch (error: unknown) {
       this.logger.error('generateCampaign AI request failed', {
         timestamp: new Date().toISOString(),
