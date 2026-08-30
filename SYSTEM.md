@@ -39,3 +39,35 @@ kubectl get pods -n statex-apps -l app=flipflop
 ./scripts/orch-status.sh
 ./scripts/orch-trigger-cycle.sh flipflop-v1
 ```
+
+## Purpose
+A Czech e-commerce platform with AI-driven product management, pricing, and marketing, delivered through NestJS services and a Next.js storefront.
+
+## Responsibilities
+Provide the behavior and runtime described by the tracked project documentation.
+
+## Non-Responsibilities
+Do not add integrations, persistence, or product scope not declared by repository sources.
+
+## Inputs
+Inputs are the browser, runtime, and configuration inputs described in existing project sources.
+
+## Outputs
+Outputs are the user-visible or operational results described in existing project sources.
+
+## Dependencies
+Kubernetes runtime at flipflop.alfares.cz with declared auth, PostgreSQL, Redis, catalog, warehouse, orders, payments, notifications, logging, and AI integrations.
+
+## Upstream Traceability
+The approved business baseline and vision define this system’s intent.
+
+## Downstream Artifacts
+The integration contract and bootstrap chain record planning evidence.
+
+## Validation Criteria
+Run the IPS planning validator and applicable existing project checks.
+
+## Open Questions
+No new open question is asserted by this documentation-only adoption.
+Status: reviewed
+completeness_level: complete

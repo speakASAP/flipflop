@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "profile": "application",
+  "project": {
+    "name": "flipflop",
+    "repository": "https://github.com/speakASAP/flipflop.git"
+  },
+  "standard": {
+    "repository": "https://github.com/speakASAP/intent-preservation-system",
+    "revision": "3e36f64c11e31b878fd2fe09267426738b25ae7f"
+  },
+  "artifacts": {
+    "readme": "README.md",
+    "business": "BUSINESS.md",
+    "system": "SYSTEM.md",
+    "agents": "AGENTS.md",
+    "operations": "AGENT_OPERATIONS.md",
+    "claude": "CLAUDE.md",
+    "tasks": "TASKS.md",
+    "state": "STATE.json",
+    "constitution": "docs/00_constitution/CONSTITUTION.md",
+    "vision": "docs/01_vision/VISION.md",
+    "integrationContract": "docs/06_architecture/INTEGRATION_CONTRACT.md",
+    "projectInvariants": "docs/17_governance/PROJECT_INVARIANTS.md",
+    "validationDebt": "docs/orchestrator/VALIDATION_DEBT.md",
+    "bootstrapTask": "docs/11_tasks/TASK-001-bootstrap-service.md",
+    "bootstrapGoalImpact": "docs/22_goal_impact/GOAL-IMPACT-TASK-001.md",
+    "bootstrapExecutionPlan": "docs/21_execution_plans/EP-TASK-001-bootstrap-service.md",
+    "bootstrapValidation": "docs/12_validation/VAL-TASK-001-bootstrap-service.md"
+  },
+  "integrationReview": [
+    {
+      "capability": "auth",
+      "decision": "required",
+      "reason": "The existing runtime configuration declares authentication integration.",
+      "contract": "The documented auth dependency is used only through its configured runtime interface.",
+      "configuration": "Use the repository configuration and deployed manifests for the auth endpoint or platform integration; no secret values are documented.",
+      "failureMode": "If auth is unavailable, the dependent behavior is unavailable and must not fabricate a successful result.",
+      "validation": "Validate the configured auth path or its declared runtime probe with non-sensitive evidence."
+    },
+    {
+      "capability": "postgres",
+      "decision": "required",
+      "reason": "The existing runtime configuration declares PostgreSQL integration.",
+      "contract": "The documented postgres dependency is used only through its configured runtime interface.",
+      "configuration": "Use the repository configuration and deployed manifests for the postgres endpoint or platform integration; no secret values are documented.",
+      "failureMode": "If postgres is unavailable, the dependent behavior is unavailable and must not fabricate a successful result.",
+      "validation": "Validate the configured postgres path or its declared runtime probe with non-sensitive evidence."
+    },
+    {
+      "capability": "redis",
+      "decision": "required",
+      "reason": "The existing runtime configuration declares Redis integration.",
+      "contract": "The documented redis dependency is used only through its configured runtime interface.",
+      "configuration": "Use the repository configuration and deployed manifests for the redis endpoint or platform integration; no secret values are documented.",
+      "failureMode": "If redis is unavailable, the dependent behavior is unavailable and must not fabricate a successful result.",
+      "validation": "Validate the configured redis path or its declared runtime probe with non-sensitive evidence."
+    },
+    {
+      "capability": "logging",
+      "decision": "required",
+      "reason": "Operational logs are retained through the ecosystem logging path for this runtime.",
+      "contract": "The documented logging dependency is used only through its configured runtime interface.",
+      "configuration": "Use the repository configuration and deployed manifests for the logging endpoint or platform integration; no secret values are documented.",
+      "failureMode": "If logging is unavailable, the dependent behavior is unavailable and must not fabricate a successful result.",
+      "validation": "Validate the configured logging path or its declared runtime probe with non-sensitive evidence."
+    },
+    {
+      "capability": "notifications",
+      "decision": "required",
+      "reason": "The existing runtime configuration declares notification integration.",
+      "contract": "The documented notifications dependency is used only through its configured runtime interface.",
+      "configuration": "Use the repository configuration and deployed manifests for the notifications endpoint or platform integration; no secret values are documented.",
+      "failureMode": "If notifications is unavailable, the dependent behavior is unavailable and must not fabricate a successful result.",
+      "validation": "Validate the configured notifications path or its declared runtime probe with non-sensitive evidence."
+    },
+    {
+      "capability": "ai",
+      "decision": "required",
+      "reason": "The existing runtime configuration declares AI integration.",
+      "contract": "The documented ai dependency is used only through its configured runtime interface.",
+      "configuration": "Use the repository configuration and deployed manifests for the ai endpoint or platform integration; no secret values are documented.",
+      "failureMode": "If ai is unavailable, the dependent behavior is unavailable and must not fabricate a successful result.",
+      "validation": "Validate the configured ai path or its declared runtime probe with non-sensitive evidence."
+    },
+    {
+      "capability": "payments",
+      "decision": "required",
+      "reason": "The existing runtime configuration declares payment integration.",
+      "contract": "The documented payments dependency is used only through its configured runtime interface.",
+      "configuration": "Use the repository configuration and deployed manifests for the payments endpoint or platform integration; no secret values are documented.",
+      "failureMode": "If payments is unavailable, the dependent behavior is unavailable and must not fabricate a successful result.",
+      "validation": "Validate the configured payments path or its declared runtime probe with non-sensitive evidence."
+    },
+    {
+      "capability": "catalog",
+      "decision": "required",
+      "reason": "The existing runtime configuration declares catalog integration.",
+      "contract": "The documented catalog dependency is used only through its configured runtime interface.",
+      "configuration": "Use the repository configuration and deployed manifests for the catalog endpoint or platform integration; no secret values are documented.",
+      "failureMode": "If catalog is unavailable, the dependent behavior is unavailable and must not fabricate a successful result.",
+      "validation": "Validate the configured catalog path or its declared runtime probe with non-sensitive evidence."
+    },
+    {
+      "capability": "orders",
+      "decision": "required",
+      "reason": "The existing runtime configuration declares orders integration.",
+      "contract": "The documented orders dependency is used only through its configured runtime interface.",
+      "configuration": "Use the repository configuration and deployed manifests for the orders endpoint or platform integration; no secret values are documented.",
+      "failureMode": "If orders is unavailable, the dependent behavior is unavailable and must not fabricate a successful result.",
+      "validation": "Validate the configured orders path or its declared runtime probe with non-sensitive evidence."
+    },
+    {
+      "capability": "warehouse",
+      "decision": "required",
+      "reason": "The existing runtime configuration declares warehouse integration.",
+      "contract": "The documented warehouse dependency is used only through its configured runtime interface.",
+      "configuration": "Use the repository configuration and deployed manifests for the warehouse endpoint or platform integration; no secret values are documented.",
+      "failureMode": "If warehouse is unavailable, the dependent behavior is unavailable and must not fabricate a successful result.",
+      "validation": "Validate the configured warehouse path or its declared runtime probe with non-sensitive evidence."
+    },
+    {
+      "capability": "invoices",
+      "decision": "not-applicable",
+      "reason": "flipflop has no declared invoices dependency in the reviewed repository runtime configuration."
+    },
+    {
+      "capability": "object-storage",
+      "decision": "not-applicable",
+      "reason": "flipflop has no declared object-storage dependency in the reviewed repository runtime configuration."
+    },
+    {
+      "capability": "event-bus",
+      "decision": "not-applicable",
+      "reason": "flipflop has no declared event-bus dependency in the reviewed repository runtime configuration."
+    },
+    {
+      "capability": "docs-rag",
+      "decision": "required",
+      "reason": "Repository documentation is indexed by docs-rag-microservice; Git remains authoritative.",
+      "contract": "The documented docs-rag dependency is used only through its configured runtime interface.",
+      "configuration": "Use the repository configuration and deployed manifests for the docs-rag endpoint or platform integration; no secret values are documented.",
+      "failureMode": "If docs-rag is unavailable, the dependent behavior is unavailable and must not fabricate a successful result.",
+      "validation": "Validate the configured docs-rag path or its declared runtime probe with non-sensitive evidence."
+    },
+    {
+      "capability": "monitoring",
+      "decision": "required",
+      "reason": "The declared Kubernetes probe and public runtime health are monitored by the ecosystem.",
+      "contract": "The documented monitoring dependency is used only through its configured runtime interface.",
+      "configuration": "Use the repository configuration and deployed manifests for the monitoring endpoint or platform integration; no secret values are documented.",
+      "failureMode": "If monitoring is unavailable, the dependent behavior is unavailable and must not fabricate a successful result.",
+      "validation": "Validate the configured monitoring path or its declared runtime probe with non-sensitive evidence."
+    },
+    {
+      "capability": "backups",
+      "decision": "not-applicable",
+      "reason": "flipflop has no declared backups dependency in the reviewed repository runtime configuration."
+    }
+  ]
+}
