@@ -415,13 +415,28 @@ export class OrderClientService {
     return orderedAt instanceof Date ? orderedAt.toISOString() : orderedAt;
   }
 
+  /**
+   * Fail closed. This previously returned `{}` when ORDERS_SERVICE_TOKEN was unset,
+   * which sent the order-create call to orders-microservice with no credential at
+   * all -- a misconfiguration surfaced as an anonymous request rather than an error.
+   * A missing credential is never permission to proceed, matching
+   * getStatusActionHeaders() below.
+   *
+   * Sends Bearer. The legacy `x-internal-service-token` + `x-service-name` pair let
+   * orders synthesise the caller's role from an unauthenticated header; the Bearer
+   * path carries a real RS256 principal (svc-flipflop-service--orders-microservice,
+   * role internal:flipflop-service:service) whose roles orders verifies itself.
+   */
   private getAuthHeaders(): Record<string, string> {
     const token = process.env.ORDERS_SERVICE_TOKEN?.trim();
     if (!token) {
-      return {};
+      throw new HttpException(
+        'ORDERS_SERVICE_TOKEN is not configured; refusing to call orders-microservice unauthenticated',
+        HttpStatus.FORBIDDEN,
+      );
     }
     return {
-      'x-internal-service-token': token,
+      authorization: token.startsWith('Bearer ') ? token : 'Bearer ' + token,
       'x-service-name': 'flipflop-service',
     };
   }
