@@ -4,12 +4,15 @@
 
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { GatewayModule } from './gateway/gateway.module';
 import { HealthModule, LoggerModule, AuthModule } from '@flipflop/shared';
+import { CredentialSelfReporter } from './health/credential-self-reporter';
 import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '../../.env',
@@ -20,6 +23,7 @@ import { HealthController } from './health/health.controller';
     GatewayModule,
   ],
   controllers: [HealthController],
+  providers: [CredentialSelfReporter],
 })
 export class AppModule {}
 
