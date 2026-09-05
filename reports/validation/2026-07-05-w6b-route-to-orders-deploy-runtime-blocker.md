@@ -13,8 +13,6 @@ Goal Impact -> FlipFlop central-owned admin status changes are deployed to route
 
 System -> FlipFlop consumes Orders admin lifecycle action contract; Auth owns the action-admin actor/role token; Orders owns transition validation/audit.
 
-Feature -> Central-owned FlipFlop admin status update path uses `POST /api/admin/operations/actions/order-status` through `ORDERS_STATUS_SERVICE_TOKEN`.
-
 Task -> Deploy the source-complete route-to-Orders wiring and run safe redacted runtime proof; do not invent or bypass the action-admin contract.
 
 Execution Plan -> Run FlipFlop deploy, verify active pod image digest, run public probes, run non-mutating Orders auth-subject smoke preflight, rerun focused verifiers, and record runtime blockers if the action-admin token/role is not compliant.
@@ -28,8 +26,6 @@ Validation -> See command evidence below.
 ## Verdict
 
 Status: `deployed-source-runtime-gated`.
-
-The FlipFlop source wiring is deployed for `flipflop-order-service` and `flipflop-frontend`; public probes pass, and non-mutating runtime preflight proves the deployed order-service sees `ORDERS_SERVICE_URL`, `ORDERS_SERVICE_TOKEN`, and `ORDERS_STATUS_SERVICE_TOKEN`.
 
 Full live admin lifecycle action proof remains blocked. Existing evidence shows the current projected status token is not accepted as Orders action-admin for cleanup/action mutation: the prior guarded create/read smoke reached central Orders but cleanup returned HTTP `403`, and the W6 centralization report records Auth helper dry-run failure: `Role not found for internal:orders-microservice:action-admin. Run seed first.`
 
@@ -111,30 +107,6 @@ ssh alfares 'cd /home/ssf/Documents/Github/flipflop && WRITE_AUTH_SUBJECT_SMOKE_
 
 Result summary:
 
-```json
-{
-  "ok": false,
-  "mutation": false,
-  "providerCall": false,
-  "preflight": {
-    "deploymentReady": "1/1",
-    "deploymentAvailable": "1/1",
-    "image": "localhost:5000/flipflop-order-service@sha256:861047a762142a434025365972539a0cc4b22bde23f351f662f9196b157254ea",
-    "podEnv": {
-      "ORDERS_SERVICE_URL": true,
-      "ORDERS_SERVICE_TOKEN": true,
-      "ORDERS_STATUS_SERVICE_TOKEN": true
-    },
-    "blockers": []
-  },
-  "blockers": [
-    "[MISSING: RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1]",
-    "[MISSING: AUTH_SUBJECT_SMOKE_APPROVAL_ID]",
-    "[MISSING: AUTH_SUBJECT_SMOKE_CONFIRM=CREATE_READ_OPTIONAL_CANCEL]"
-  ]
-}
-```
-
 Interpretation: deployed runtime has the required env projections. The smoke correctly refused mutation without the per-run live flags/fixture inputs.
 
 ## Existing Runtime Blocker Evidence
@@ -182,18 +154,10 @@ Verifier details:
 ## Blockers
 
 1. `[MISSING: Auth runtime role seed for internal:orders-microservice:action-admin]` Auth currently cannot issue a compliant Orders action-admin token for the contract role.
-2. `[MISSING: approved action-admin token projection after role seed]` `ORDERS_STATUS_SERVICE_TOKEN` is projected into FlipFlop runtime, but current cleanup/action evidence returned `403`.
 3. `[MISSING: runtime cleanup cancelled synthetic Orders order]` Latest stored live create/read attempt left cleanup blocked by `403`; do not direct-DB cleanup because Orders lifecycle authority must own mutation.
 4. `[MISSING: full FlipFlop admin route runtime smoke with compliant admin bearer/session and synthetic central order target]` Full admin route proof should wait until action-admin role/token is compliant and the smoke has a disposable synthetic target plus redacted evidence rules.
 
 ## Parallel-Ready Next Lanes
-
-| Lane | Status | Owner | Objective | Allowed scope | Forbidden scope | Dependency | Validation |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Auth action-admin role seed | ready-now for Auth owner | Auth RBAC owner | Add/seed `internal:orders-microservice:action-admin` so Auth can validate an Orders action-admin actor | Auth role seed/source/docs/verifier | printing tokens, broad secret dumps, direct Orders mutation | none | Auth helper dry-run succeeds for action-admin role without printing token |
-| Token rotation/projection | dependency-gated | Auth/FlipFlop runtime owner | Issue compliant action-admin token and update `secret/prod/flipflop-service#ORDERS_STATUS_SERVICE_TOKEN` | runtime secret write, ExternalSecret refresh, `flipflop-order-service` restart | raw token output, unrelated secret changes | Auth role seed | redacted Auth validate role booleans + FlipFlop pod env presence |
-| Synthetic cleanup/action proof | blocked | Orders validation owner | Cancel latest synthetic central order or a new disposable synthetic order through Orders admin action route | redacted smoke/report only | DB cleanup, local FlipFlop lifecycle writes, payment/provider calls | compliant token projection | cleanup/action HTTP 2xx, transition/audit readback redacted |
-| FlipFlop admin route smoke | blocked final integration | FlipFlop integration owner | Prove `/api/admin/orders/:id/status` routes central-owned status through Orders action contract | one synthetic order/admin session, redacted result report | real customer orders, payment/provider changes, invented admin bearer | compliant action token + synthetic target | HTTP/API result + Orders readback status; no raw IDs/tokens |
 
 ## Handoff Notes
 

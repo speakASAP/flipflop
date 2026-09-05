@@ -59,15 +59,7 @@ Result:
 }
 ```
 
-```bash
-ssh alfares 'AUTH_POD=$(kubectl -n statex-apps get pod -l app=auth-microservice -o jsonpath="{.items[0].metadata.name}") && kubectl -n statex-apps exec "$AUTH_POD" -- env NODE_PATH=/app/node_modules node /tmp/provision-internal-service-token.js --email=orders-status-cleanup@internal.invalid --service-name=orders-status-cleanup --role=internal:orders-microservice:action-admin --dry-run --create-if-missing'
-```
-
 Result: dry-run found the application, action-admin role, and existing service principal; `mutatesDatabase=false`, `emitsToken=false`, `status=ready-for-owner-approval`.
-
-```bash
-ssh alfares 'AUTH_POD=$(kubectl -n statex-apps get pod -l app=auth-microservice -o jsonpath="{.items[0].metadata.name}") && kubectl -n statex-apps exec "$AUTH_POD" -- sh -lc "rm -f /tmp/orders-status-action-admin.jwt && NODE_PATH=/app/node_modules node /tmp/provision-internal-service-token.js --email=orders-status-cleanup@internal.invalid --service-name=orders-status-cleanup --role=internal:orders-microservice:action-admin --create-if-missing --apply --confirm-db-mutation=INTERNAL_SERVICE_PRINCIPAL --confirm-token-issuance=INTERNAL_SERVICE_JWT --token-output=/tmp/orders-status-action-admin.jwt && stat -c \"token_file_mode=%a token_file_bytes=%s\" /tmp/orders-status-action-admin.jwt"'
-```
 
 Result: apply returned `status=ok`, `roleAssigned=true`, `tokenPrinted=false`, `tokenFileMode=0600`.
 
@@ -118,39 +110,6 @@ ssh alfares 'cd /home/ssf/Documents/Github/flipflop && sed -n "1,220p" reports/v
 
 Result:
 
-```json
-{
-  "ok": true,
-  "mutation": true,
-  "providerCall": false,
-  "approvalIdPresent": true,
-  "confirmation": "CREATE_READ_OPTIONAL_CANCEL",
-  "preflight": {
-    "deploymentReady": "1/1",
-    "deploymentAvailable": "1/1",
-    "podEnv": {
-      "ORDERS_SERVICE_URL": true,
-      "ORDERS_SERVICE_TOKEN": true,
-      "ORDERS_STATUS_SERVICE_TOKEN": true
-    },
-    "blockers": []
-  },
-  "result": {
-    "createHttpStatus": 201,
-    "orderIdPresent": true,
-    "readHttpStatus": 200,
-    "authSubjectPersisted": true,
-    "cleanup": {
-      "attempted": true,
-      "skippedReason": null,
-      "httpStatus": 200
-    }
-  },
-  "blockers": [],
-  "cleanupAuthorityConfirmed": true
-}
-```
-
 ```bash
 ssh alfares 'cd /home/ssf/Documents/Github/flipflop && npm run verify:orders-lifecycle-ui && npm run verify:orders-hub-integration && npm run verify:admin-status-central-authority && git diff --check'
 ```
@@ -159,7 +118,6 @@ Result: all three FlipFlop verifiers passed; `git diff --check` passed.
 
 ## Source And Runtime Evidence
 
-- `shared/clients/order-client.service.ts` reads central lifecycle through Orders and uses `applyAdminOrderStatusAction()` for `POST /api/admin/operations/actions/order-status` with `ORDERS_STATUS_SERVICE_TOKEN`.
 - `services/order-service/src/orders/orders.service.ts` maps customer list, customer detail, admin list, admin detail, and dashboard reads through `mapOrderWithCentralLifecycle()` before returning to frontend callers.
 - `services/order-service/src/orders/orders.service.ts` routes changed central-owned admin `status` to Orders admin action using the central order id. It keeps central-owned `paymentStatus` fail-closed with `[MISSING: payment/refund/provider correction workflow]` and leaves notes-only local updates available.
 - `services/frontend/lib/api/orders.ts` and the customer/admin order pages render central lifecycle only when `centralOrder.readStatus === 'available'`; otherwise they expose stale/missing central lifecycle notices.
@@ -171,8 +129,6 @@ Result: all three FlipFlop verifiers passed; `git diff --check` passed.
 FlipFlop customer/admin order UI is source-proven to read central Orders lifecycle for order list/detail pages and dashboard recent-order widgets.
 
 The previous local-authority admin status drift gap is closed: central-owned status actions no longer directly write local lifecycle truth and instead route to the Orders-owned admin action endpoint with Auth-issued action-admin authority.
-
-The previous runtime blocker is closed: Auth can issue `internal:orders-microservice:action-admin`, Vault contains the rotated `ORDERS_STATUS_SERVICE_TOKEN`, FlipFlop projects it, and guarded create/read/cancel proof passed.
 
 ## Remaining Gaps And Blockers
 
@@ -191,8 +147,6 @@ The previous runtime blocker is closed: Auth can issue `internal:orders-microser
 | Runtime action token rotation | complete | Auth/FlipFlop runtime owner | Emit action-admin JWT without printing it, patch Vault, refresh ExternalSecret, restart only `flipflop-order-service` | Vault secret path and FlipFlop deployment restart | raw token output, broad secret dumps | none | Auth validation booleans from pod | Complete |
 | Synthetic order cleanup proof | complete | Orders validation owner | Cancel synthetic central order through Orders status action path | redacted smoke/report only | direct DB updates, local FlipFlop status writes, payment/provider calls | none | cleanup HTTP 201 for prior row; fresh smoke cleanup HTTP 200 | Complete |
 | W7 final integration | ready | Orchestrator | Merge W6 runtime-complete evidence into lifecycle master status | docs/reports | code/schema changes | W6 report complete | completion audit/runtime-gate verifiers | Run after this commit |
-
-Shared contracts: Orders admin lifecycle action contract, Auth-owned RBAC roles, Vault-backed `ORDERS_STATUS_SERVICE_TOKEN`, central Orders lifecycle read model, `centralOrder.readStatus`, admin payment correction fail-closed policy.
 
 Integration owner: original orders-lifecycle orchestrator.
 

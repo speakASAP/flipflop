@@ -11,11 +11,7 @@ Accepted for source/config verification. Deployment was not requested.
 
 ## Sensitive Data
 
-No token values or raw lead/contact/payment data were printed or persisted. `LEADS_INTERNAL_SERVICE_TOKEN` is mapped by secret key/property name only.
-
 ## Follow-Up
-
-Runtime use requires integration-owner deployment approval and a provisioned Leads-compatible internal token/trust configuration for `x-service-name: flipflop-service`.
 
 ## Final scans
 

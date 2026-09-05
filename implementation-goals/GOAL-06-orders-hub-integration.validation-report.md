@@ -2,12 +2,6 @@
 
 ## Status
 
-Implemented, validated, deployed, and live-smoke proven on 2026-06-13.
-Deployment completed for all FlipFlop workloads. Runtime authorization was
-corrected with an Orders-runtime-signed `ORDERS_SERVICE_TOKEN`, the
-ExternalSecret was refreshed, only `flipflop-order-service` was restarted, and
-final checkout smoke proved central Orders forwarding in production.
-
 ## Commands
 
 ```bash
@@ -57,9 +51,6 @@ central Orders log evidence query for ORD-1781378332000-840
 - Workload health: PARTIAL; all service health endpoints returned HTTP 200,
   but bodies reported `degraded` due a logging dependency error.
   `logging-microservice` itself returned healthy.
-- Runtime authorization: PASS. The deployed FlipFlop order-service pod has
-  `ORDERS_SERVICE_TOKEN` projected, and a non-mutating in-cluster probe to
-  central Orders returned HTTP 200 without exposing token values.
 - Checkout smoke: PASS. `node scripts/smoke-checkout.js` created
   `ORD-1781378332000-840` with pending Stripe payment and a redirect URL.
 - Central Orders forwarding: PASS. FlipFlop local metadata recorded
@@ -82,7 +73,6 @@ central Orders log evidence query for ORD-1781378332000-840
 - Next step: return to H8 candidate application integration decisions and pick
   the next application/service to migrate into central Orders.
 
-
 ## 2026-07-01 Goal 7.2 Recheck Addendum
 
 Status: Orders-auth source fix complete, Warehouse runtime-blocked, and no live order mutation performed.
@@ -100,7 +90,6 @@ RUN_LIVE_ORDERS_SMOKE=1 node scripts/smoke-orders-readiness.js
 
 Results:
 
-- Source verifier: PASS. The current source sends `orders.create.v1`, keeps stable channel/idempotency fields, authenticates to Orders through `x-internal-service-token` and `x-service-name=flipflop-service`, uses canonical Catalog product ids, and requires exactly one Warehouse reservation authority id.
 - Sanitized smoke runner: PASS for syntax and blocker recording. It writes only sanitized metadata to `reports/validation/orders-readiness-smoke/report-latest.json` and uses a non-mutating invalid create request to prove Orders auth reaches validation.
 - Build checks: PASS for `shared` and `services/order-service`.
 - Live smoke: NOT RUN. The runner exited before mutation with `liveSmokeRun=false`.
@@ -109,7 +98,6 @@ Results:
   - Public post-deploy checks: `GET https://flipflop.alfares.cz/` returned HTTP 200 and `GET https://flipflop.alfares.cz/api/products?limit=1` returned HTTP 200.
   - Post-deploy readiness smoke: `RUN_LIVE_ORDERS_SMOKE=1 node scripts/smoke-orders-readiness.js` stopped before mutation; Orders create auth reached validation with HTTP 400.
   - `[MISSING: warehouseId]` because the in-pod Warehouse probe returned HTTP 401 and no `DEFAULT_WAREHOUSE_ID` is configured.
-  - `[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]` because no dedicated Warehouse token is projected and the available token did not authorize `/api/warehouses`.
 - Unknowns preserved:
   - `[UNKNOWN: approved Auth/Vault runtime path for a FlipFlop-to-Warehouse service principal token with the Warehouse-required role]`
 

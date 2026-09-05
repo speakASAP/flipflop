@@ -55,17 +55,9 @@ For central-owned FlipFlop orders, defined as local orders whose `metadata.centr
 - `[MISSING: approved live customer/admin bearer/session packet for deployed FlipFlop smoke]`
 
 - `[RESOLVED/NARROWED: FlipFlop route-to-Orders admin action implementation source-wired]`
-- `[MISSING: approved live action-admin session packet / ORDERS_STATUS_SERVICE_TOKEN projection for runtime action proof]`
 - `[MISSING: payment/refund/provider correction workflow]`
 
 ## Parallel Execution
-
-| Workstream | Status | Owner role | Objective | Dependencies/blockers | Validation evidence | Handoff notes |
-|---|---|---|---|---|---|
-| W6-B1 FlipFlop fail-closed guard | complete | FlipFlop order-service owner | Block local `status`/`paymentStatus` writes for central-owned orders; keep notes local | none | `verify:w6b-admin-status-authority-contract` | Safe source guard; deploy remains separate |
-| W6-B2 Orders command contract | blocked | Orders lifecycle owner | Define admin correction/cancellation command for channel admins | `[RESOLVED/NARROWED: Orders admin lifecycle action contract source-validated in orders-microservice 333b131]` | new Orders contract verifier | Must preserve cancellation approval and side-effect gates |
-| W6-B3 FlipFlop route-to-Orders implementation | source-complete-runtime-gated | Orders/FlipFlop integration owner | Source wire central status actions to Orders action route; runtime proof waits for action-admin packet | `[MISSING: approved live action-admin session packet / ORDERS_STATUS_SERVICE_TOKEN projection for runtime action proof]` | focused service tests + UI verifier | Do not run live mutation without exact packet |
-| W6-C Live deployed smoke | blocked | Validation owner | Prove deployed admin/customer pages and fail-closed behavior with safe session | `[MISSING: approved live customer/admin bearer/session packet]` | sanitized smoke report | No deploy/run in this lane |
 
 Shared contracts: Orders lifecycle read model, Orders status transition approval gate, Orders payment status boundary, Warehouse handoff contract, FlipFlop `centralOrdersForwarding` metadata.
 

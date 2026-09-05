@@ -90,6 +90,3 @@
 ## Current Checkpoint
 
 GOAL-04 started on 2026-06-12 after GOAL-03 was closed.
-
-SEO pass-through and metadata rendering are deployed. AI draft generation is
-implemented but blocked by missing `AI_SERVICE_TOKEN`.

@@ -65,14 +65,6 @@ catalog is empty or unavailable for a product listing request.
 Production secrets are sourced through Vault and ExternalSecrets. Do not print
 secret values in terminal output, logs, reports, or handoff notes.
 
-`AI_SERVICE_TOKEN` is stored at Vault path `secret/prod/flipflop-service` and
-synced into `flipflop-service-secret`. Presence can be checked safely from the
-pod without exposing the value:
-
-```bash
-ssh alfares 'kubectl -n statex-apps exec deploy/flipflop-service -- sh -c "for k in AI_SERVICE_TOKEN AI_SERVICE_URL CATALOG_SERVICE_URL JWT_SECRET; do if [ -n \"$(eval echo \\$$k)\" ]; then echo \"$k=present\"; else echo \"$k=missing\"; fi; done"'
-```
-
 ## AI SEO Drafts
 
 Generate draft-only content with:

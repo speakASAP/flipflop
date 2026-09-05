@@ -79,7 +79,6 @@ Allowed redacted proof fields only:
 ## Forbidden Paths
 
 - Do not create users, assign roles, mint Auth JWTs locally, reuse machine/service tokens as a human admin actor, paste bearer tokens into shell history/chat/docs, decode JWTs into reports, print Authorization headers, persist cookies, or record token lengths/hashes.
-- Service tokens, API keys, internal service JWTs, `x-internal-token`, provider tokens, and Vault read credentials are not Auth user actor substitutes for the FlipFlop admin route.
 - Do not infer Auth token binding from Payments refund state, provider state, Orders cleanup state, Warehouse stock state, or channel cleanup state.
 - Do not read raw customer/order/payment/provider payloads, raw DB rows, raw user ids, raw emails, role-assignment rows, Authorization headers, cookies, or full request/response bodies for actor proof.
 

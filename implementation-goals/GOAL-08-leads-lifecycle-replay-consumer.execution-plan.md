@@ -18,8 +18,6 @@ Classification: synthetic/minimized. No token values, contact values, raw lead r
 
 ## Contract Impact
 
-Adds a server-side client for `GET /api/leads/internal/:id/lifecycle-replay` with `consumer=flipflop-service`, max limit 30, `x-service-name`, and env-provided internal token header. No public FlipFlop API contract changes.
-
 ## Replay/Determinism
 
 Client clamps request limit to 30 and does not trigger any mutation in Leads or FlipFlop.

@@ -237,7 +237,6 @@ I approve exactly one FlipFlop customer journey sandbox run for process flipflop
 I understand this authorizes only the named sandbox/test-mode attempt. The executor must stop at the first hard stop and must not print secrets, tokens, raw customer/contact/address data, raw provider payloads, raw DB rows, raw order ids, raw payment ids, or full event payloads containing sensitive data.
 ```
 
-
 ## 2026-07-06 Owner Approval Intake
 
 Owner reply: `Yes, I approve it. Go ahead.`
@@ -262,10 +261,6 @@ Still missing for execution:
 - `[RESOLVED/NARROWED: SYNTHETIC_ORDER_CLEANUP_CONTRACT=flipflop.retention.invoice_pending.no_provider.channel_no_cleanup_until_stale_unpaid.v1; cleanup_mode=retain_then_platform_stale_unpaid_cancel; manual_cleanup_mutation=false; orders_route_invocation=false; db_write_by_runner=false]`
 - `[RESOLVED/NARROWED: FINAL_REDACTED_EVIDENCE_PATH=reports/validation/VAL-W5-customer-journey-sandbox-final-redacted-evidence-2026-07-06.md; evidence content remains missing until an approved runtime run exists]`
 
-
-
-
-
 ## 2026-07-06 Additional Approval Signal
 
 Owner reply: I approve
@@ -286,8 +281,6 @@ Still missing for runtime execution:
 - [MISSING: crm no-op/retention acknowledgement]
 - [MISSING: sandbox/test-mode payment success evidence for invoice pending/no-provider]
 - [RESOLVED/NARROWED: final redacted evidence content exists for partial invoice/no-provider runtime; successful paid journey evidence remains missing]
-
-
 
 ## 2026-07-06 Deployed Assertion Source Wiring
 
@@ -421,7 +414,6 @@ Validation command:
 npm run verify:customer-journey-assertion-sources
 ```
 
-
 ## Workstream 5 Synthetic Customer Contact Contract
 
 User approval `Да, хорошо, продолжай` is consumed only for source/docs/verifier narrowing of a non-secret synthetic contact. It does not authorize checkout submission, order creation, payment creation, provider calls, webhook replay, email sending, event publishing, Warehouse mutation, Orders mutation, deploy, DB reads/writes, secret output, token output, raw customer/contact/address output in runtime evidence, raw order/payment ids, or raw provider payload output.
@@ -450,8 +442,6 @@ Validation command:
 ```bash
 npm run verify:customer-journey-synthetic-contact-contract
 ```
-
-
 
 ## Workstream 5 Cleanup And Evidence Path Contract
 
@@ -493,7 +483,6 @@ At 2026-07-06T21:30:00+02:00 the owner approved a pre-prod W5 run. The executed 
 
 Sanitized CRM/Leads readback after the runtime attempt: crmLeadsAcknowledgement: accepted; leadsSync=accepted and leadId present in order metadata, with metadata keys/hash only and crmRawOutput: false; no raw lead/order/customer output. Remaining blockers after the runtime attempt: [MISSING: sandbox/test-mode payment success evidence; invoice remains pending/no-provider], [MISSING: synthetic email JSONL assertion because deployed env lacks SYNTHETIC_EMAIL_ASSERTION_SOURCE at execution time], and [MISSING: synthetic event JSONL assertion because deployed env lacks SYNTHETIC_EVENT_TRACE_SOURCE at execution time].
 
-
 ## 2026-07-06 W5 Deployed Assertion Env Source Readiness
 
 source-controlled W5 sandbox/test-only monitor gate env prepared. Source-controlled runtime env has been prepared in `k8s/configmap.yaml` for the W5 monitor gate and disabled-by-default assertion sinks:
@@ -517,7 +506,6 @@ Validation command:
 npm run verify:customer-journey-deployed-assertion-env-source
 ```
 
-
 ## 2026-07-06 W5 Live Env Readback And Invoice Rerun
 
 After applying `k8s/configmap.yaml` and restarting only `flipflop-order-service`, sanitized pod readback confirmed the expected non-secret W5 gate/assertion env classes. A single additional owner-approved pre-prod invoice/no-provider order was submitted with `paymentMethod=invoice`, `paymentStatus=pending`, `providerCall=false`, `externalProviderCall=false`, `realMoneyMovement=false`, and `paymentCreated=false`.
@@ -538,7 +526,6 @@ Source follow-up after 22:00 readback: CustomerJourneyEventsPublisher now record
 Deploy follow-up at 2026-07-06T22:13:08+02:00: commit `92c51f9` is on `main`/`origin/main`. `./scripts/deploy.sh` built and pushed images; the script timed out during slow local-registry image pulls, then all six FlipFlop deployments reported successful rollout on recheck. HTTP checks passed for `https://flipflop.alfares.cz/` and `/api/products?limit=1`. Live order-service pod env readback confirmed the W5 assertion source env values. No additional checkout/order mutation was run after this source fix.
 
 Event JSONL follow-up at 2026-07-06T22:17:24+02:00: after commit `92c51f9`, a bounded owner-approved invoice/no-provider pass created one additional pending invoice order with providerCall=false, externalProviderCall=false, realMoneyMovement=false, and paymentCreated=false. Synthetic event trace JSONL was observed with 10 matching rows covering cart_validated, customer_identity_resolved, shipping_option_selected, order_created, and payment_attempt_started. Evidence: `reports/validation/VAL-W5-customer-journey-sandbox-event-jsonl-after-92c51f9-2026-07-06.md` and `reports/validation/customer-journey-sandbox-runtime/w5-owner-approved-invoice-runtime-20260706-event-jsonl-after-92c51f9.json`. Remaining blockers: [MISSING: sandbox/test-mode payment success evidence; invoice remains pending/no-provider] and [MISSING: synthetic email JSONL assertion row for payment-success confirmation path; invoice pending/no-provider does not send payment-success confirmation].
-
 
 ## 2026-07-06 W5 Synthetic Internal Payment-Result Success Contract
 
@@ -591,7 +578,6 @@ runtime_side_effects: forbidden
 
 Next safe action: integration owner must supply the missing runtime facts, then run verifier/read-only gates before any sandbox runner is enabled.
 
-
 ## 2026-07-06 W5A Product And Delivery Narrowing
 
 Read-only product lookup:
@@ -616,8 +602,6 @@ source: services/frontend/app/checkout/page.tsx DELIVERY_OPTIONS and services/or
 ```
 
 Decision: `[RESOLVED/NARROWED: delivery test contract candidate selected for packet preparation]`. This narrows only the delivery fact. It does not authorize checkout/order/payment/email/event execution and does not replace the remaining missing product, customer, payment, email, event, cleanup, or evidence-path facts.
-
-
 
 ## 2026-07-06 W5 Synthetic Internal Payment-Result Runtime Completed
 
@@ -659,12 +643,9 @@ scripts/verify-customer-journey-synthetic-success-runtime.js
 
 Central Orders follow-up at 2026-07-07: the selected synthetic W5 central order now has sanitized central paid lifecycle evidence. Orders payment-status contract `orders.payment-status.v1` was invoked for the bounded synthetic central order, and central readback is available with `centralAfterPaymentStatus=paid`, `centralAfterStatus=confirmed`, and `centralAfterLifecycleStage=paid_not_delivered`, while `warehouseHandoffStatus=failed`. Evidence: `reports/validation/VAL-W5-central-orders-paid-lifecycle-evidence-2026-07-07.md` and `reports/validation/customer-journey-sandbox-runtime/w5-owner-approved-central-paid-lifecycle-runtime-20260707.json`. Verifier: `npm run verify:customer-journey-central-paid-lifecycle-evidence`.
 
-Future central lifecycle readback hardening: the W5 synthetic success runner now uses the Orders internal-service read contract for `GET /api/orders/:id/lifecycle`, passing `x-internal-service-token` with the projected `ORDERS_SERVICE_TOKEN` and `x-service-name=flipflop-service`. This only fixes future sanitized readback authority; it does not invoke `PUT /api/orders/:id/payment-status`.
-
 Remaining blocker for W5 synthetic customer journey evidence: `[MISSING: Warehouse fulfillment handoff success after central Orders paid lifecycle; central readback shows warehouseHandoffStatus=failed]`. Provider/bank truth remains explicitly unclaimed.
 
 Boundary: this run used synthetic/internal contracts only. It does not prove external provider truth, bank settlement, provider callback delivery, real money movement, external payment creation, or Warehouse fulfillment success.
-
 
 ## 2026-07-07 W5 Central Orders Paid Lifecycle Evidence
 
@@ -727,8 +708,6 @@ orders lifecycle UI verifier: ok=true, coveredStages=13, sensitiveOutput=redacte
 ```
 
 Validation decision: packet preparation is source-valid; runtime execution remains blocked by missing approval id, execution window, runner implementation, CRM no-op/retention acknowledgement, invoice payment-success decision, and final redacted evidence content. Sandbox/test-mode provider, checkout mutation mode, cleanup/retention contract, and final redacted evidence path are source-narrowed only.
-
-
 
 ## 2026-07-06 W5A Owner-Approved Product Target
 

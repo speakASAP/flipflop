@@ -76,13 +76,9 @@
 
 2026-07-03: Goal 24 FlipFlop checkout UUID and cleanup ownership gate narrowed. Active authenticated checkout, guest checkout, and legacy create-payment paths already require central Orders acceptance before Payments provider creation and pass the central Orders UUID to Payments as both `orderId` and `centralOrderId`; local FlipFlop ids remain bounded metadata for callback correlation. `scripts/verify-paid-provider-bundle-checkout-gate.js` now checks that source proof directly. Channel ownership is narrowed to FlipFlop checkout owner for future smoke initiation and customer-visible cart/session/local projection cleanup policy, while live paid/provider execution remains blocked by owner approval, provider callback/refund evidence, Warehouse cleanup semantics, Orders cleanup actor/reason, and sanitized evidence policy. No live checkout, provider call, refund/cancel, order mutation, deploy, secret read, DB mutation, or marketplace publication occurred.
 
-2026-07-03: Goal 10 Auth wallet order snapshot create/read/cancel smoke passed. Auth issued an orders-status-cleanup service JWT with internal:orders-microservice:admin; the value was stored in Vault under secret/prod/flipflop-service#ORDERS_STATUS_SERVICE_TOKEN, projected through flipflop-service-secret, and flipflop-order-service was restarted only after ExternalSecret sync. Guarded smoke GOAL10-AUTH-SUBJECT-CREATE-READ-CANCEL-20260703 created one synthetic central Orders order (HTTP 201), read it back (HTTP 200), verified customer.authSubject persisted, and cancelled it through Orders status cleanup (HTTP 200). Evidence is sanitized in reports/validation/orders-auth-subject-smoke/report-goal10-create-read-cancel-20260703.json; no token value, raw order id, raw customer data, request/response body, DB row, payment provider data, or notification payload was printed.
-
 2026-07-03: Goal 10 Auth-subject smoke UUID validation fixed. The guarded auth-subject smoke now accepts normal UUIDs with a four-character variant group before the final 12-character group, so approval-gated fixture ids are validated correctly before the cleanup-token fail-closed gate. No live checkout/order mutation, deploy, DB read/write, token/secret inspection, or customer-data output occurred.
 
 2026-07-03: Goal 10 Auth-subject cleanup contract tightened against Orders cancellation policy. `scripts/smoke-orders-auth-subject.js` now requires `AUTH_SUBJECT_SMOKE_CLEANUP_CONFIRM=ORDERS_ADMIN_STATUS_CANCEL` for approved execution and sends Orders cancellation approval fields `approved=true`, `approvalType=human`, `reasonCode=synthetic_auth_subject_smoke_cleanup`, and side-effect acknowledgements for payment, warehouse, notification, crm, and channel. `scripts/verify-auth-wallet-order-snapshot-gate.js` checks these cleanup contract markers. No live checkout/order mutation, deploy, DB read/write, token/secret inspection, or customer-data output occurred.
-
-2026-07-03: Goal 10 Auth-subject order snapshot smoke cleanup gate hardened. The guarded `scripts/smoke-orders-auth-subject.js` now blocks approved live execution before order creation unless `ORDERS_STATUS_SERVICE_TOKEN` is projected into `flipflop-order-service`, and a passing smoke now requires the cleanup cancellation path to be attempted with HTTP 2xx. `scripts/verify-auth-wallet-order-snapshot-gate.js` records the cleanup-token evidence and preserves the remaining approval blockers. No live checkout/order mutation, deploy, DB read/write, token/secret inspection, or customer-data output occurred.
 
 # Implementation State
 
@@ -253,7 +249,6 @@ Boundaries preserved: no replay endpoint, no live export, no checkout/payment/pr
 
 Remaining gates: `[MISSING: FlipFlop protected replay endpoint or owner-run CLI export for marketplace.order_affinity_replay_candidates.v1]`, `[MISSING: Marketing parser support for marketplace-owned replay source envelopes]`, `[MISSING: durable Marketing backfill run ledger and idempotency key registry]`, `[MISSING: owner-approved dry-run window before live FlipFlop replay execution]`.
 
-
 ## Current Status
 
 ## 2026-07-03 - Auth Wallet Checkout/Profile Smoke Harness
@@ -281,10 +276,6 @@ FlipFlop admin order, inventory, and pricing routes are hardened with existing s
 **Active goal:** GOAL-10-catalog-connector-content-preview
 **Goal status:** implemented, validated, deployed, and runtime-smoked
 **Current checkpoint:** Catalog canonical `flipflop` connector previews are deployed through the protected read-only product-service endpoint and admin sync flow. Runtime deployment completed after repairing gateway CMD layout, product-service Prisma client packaging, and product-service entrypoint layout tolerance.
-
-
-
-
 
 ## 2026-07-02 - F1 Central Orders Checkout And Cabinets
 
@@ -422,7 +413,6 @@ Remaining gate:
 
 - `[MISSING: approved RUN_LIVE_AUTH_SUBJECT_ORDERS_SMOKE=1 runtime execution with AUTH_SUBJECT_SMOKE_APPROVAL_ID, fixture product/warehouse ids, and persisted customer.authSubject evidence]`
 
-
 ## 2026-07-02 - F1 Admin Dashboard Order Visibility Addendum
 
 Objective: preserve customer cabinet privacy while ensuring the admin dashboard recent-orders surface uses the admin Orders route.
@@ -451,7 +441,6 @@ Known blockers/gaps:
 - Live `/cart` HTTP 503 from prior F1 status remains the blocker for live checkout/cabinet smoke; this worker did not recheck or deploy.
 
 Next action: integrate or confirm the central Orders lifecycle read endpoint, then rerun live checkout/cabinet smoke once `/cart` is healthy.
-
 
 ## 2026-07-02 - Product Detail Bundle Discount Contract
 
@@ -621,8 +610,6 @@ Cart availability follow-up:
 
 Next action: monitor Catalog bulk publication volume; if the public storefront should show more products, publish additional Catalog products through the native FlipFlop lifecycle after Warehouse stock is positive.
 
-
-
 ## 2026-07-02 - Product Detail Photo Gallery
 
 Objective: make product photos easier to inspect from the public product detail page without changing catalog, stock, price, cart, checkout, payment, auth, or order contracts.
@@ -647,7 +634,6 @@ Parallel execution section:
 
 Next action: commit and push all current FlipFlop changes without deployment.
 
-
 ## 2026-07-01 - Hosted Auth Local Profile Sync Hotfix
 
 Objective: stop hosted Auth users from being logged out immediately after returning to FlipFlop when no local FlipFlop profile exists yet.
@@ -670,7 +656,6 @@ Parallel execution section:
 - Runtime deployment lane: ready after deployment-readiness gate; owner role integration/deploy operator; forbidden scope Auth microservice secrets, production DB manual edits, payment/order/stock mutations; validation owner original thread.
 
 Next action: run deployment-readiness gate, deploy FlipFlop, then smoke hosted Auth callback/profile behavior.
-
 
 ## 2026-07-01 - Fio QR Payment Via Payments Microservice
 
@@ -717,8 +702,6 @@ Post-deploy evidence:
 Live payment mutation: not run in this session; no production order/payment was created without a separate owner-approved mutating smoke.
 
 Next action: optional owner-approved live `fiobanka` test order/payment smoke if provider-level QR creation evidence is required.
-
-
 
 ## 2026-07-01 - Checkout Address Autocomplete
 
@@ -774,15 +757,11 @@ IPS chain:
 Runtime prerequisite result:
 
 - `flipflop-order-service` deployment ready/available: 1/1.
-- `flipflop-service-secret` ExternalSecret Ready=True and `ORDERS_SERVICE_TOKEN` Kubernetes Secret data is present.
-- Deployed order-service env presence: `ORDERS_SERVICE_URL`, `ORDERS_MICROSERVICE_URL`, `ORDERS_SERVICE_TOKEN`, `WAREHOUSE_SERVICE_URL`, `JWT_TOKEN`, and `TEST_PASSWORD` are present by name; `WAREHOUSE_SERVICE_TOKEN` and `DEFAULT_WAREHOUSE_ID` are not present.
-- Central Orders auth probe from the deployed order-service pod now uses `x-internal-service-token` plus `x-service-name=flipflop-service`; the non-mutating synthetic create probe returned HTTP 400, proving auth reached create-body validation without creating an order.
 - Warehouse `/api/warehouses` probe from the deployed order-service pod still returned HTTP 401 and no Warehouse id was available.
 
 Blockers:
 
 - `[MISSING: warehouseId]`
-- `[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]`
 - `[UNKNOWN: approved Auth/Vault runtime path for a FlipFlop-to-Warehouse service principal token with the Warehouse-required role]`
 
 Live smoke status: not run; the runner stopped before creating an order because runtime prerequisites are missing.
@@ -790,7 +769,6 @@ Live smoke status: not run; the runner stopped before creating an order because 
 Parallel execution section:
 
 - Orders auth lane: complete in FlipFlop source; `OrderClientService` now sends Orders internal service headers and the sanitized probe verifies create-route auth acceptance without mutation.
-- Warehouse reservation lane: ready now; owner role Warehouse/Auth/Secrets operator; allowed scope is Warehouse/Auth service-principal provisioning and Vault/Kubernetes projection for `WAREHOUSE_SERVICE_TOKEN`, plus an approved default warehouse source if required; forbidden files are Orders code and unrelated FlipFlop service behavior; expected output is Warehouse accepting the deployed FlipFlop service token for `/api/warehouses` and reservation endpoints, with one Warehouse-owned `warehouseId` available; validation owner FlipFlop integration owner.
 - FlipFlop final smoke lane: dependency-gated; owner role this integration lane; allowed files `scripts/smoke-orders-readiness.js`, `reports/validation/orders-readiness-smoke/*`, and this status addendum; forbidden files Orders/Warehouse/Catalog/Leads/Marketing repos unless owner explicitly opens those lanes; merge order Warehouse service principal/default warehouse, FlipFlop rerun.
 
 Next action: provision/project an Auth-compatible Warehouse service token and a Warehouse-owned default id for FlipFlop, then rerun `RUN_LIVE_ORDERS_SMOKE=1 node scripts/smoke-orders-readiness.js`.
@@ -801,7 +779,6 @@ Post-deploy evidence:
 - Recovery was limited to recreating stuck replacement pods; all six FlipFlop deployments then reported `1/1` ready/available: `flipflop-service`, `flipflop-frontend`, `flipflop-product-service`, `flipflop-cart-service`, `flipflop-order-service`, and `flipflop-user-service`.
 - Post-rollout public checks returned HTTP 200 for `GET https://flipflop.alfares.cz/` and `GET https://flipflop.alfares.cz/api/products?limit=1`.
 - Post-rollout `RUN_LIVE_ORDERS_SMOKE=1 node scripts/smoke-orders-readiness.js` stopped before mutation and refreshed `reports/validation/orders-readiness-smoke/report-latest.json`; Orders create auth still reached validation with HTTP 400, while Warehouse remained blocked with HTTP 401 and no Warehouse id.
-- Remaining blockers are `[MISSING: warehouseId]` and `[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]`.
 
 ## 2026-06-30 - GOAL-10 Runtime Deployment Addendum
 
@@ -992,11 +969,6 @@ Orchestrator agents must not overwrite or revert those changes unless the owner 
   `OPERATIONAL_ALERT` warnings.
 - Started `GOAL-04-agent-content-seo`.
 - Deployed catalog SEO pass-through from product-service to frontend metadata.
-- Added an approval-first SEO draft generator that writes only
-  `seoData.aiDraft.reviewStatus = "draft"` and refuses to generate or store
-  fake AI content when `AI_SERVICE_TOKEN` is absent.
-- Connected `AI_SERVICE_TOKEN` through Vault and ExternalSecrets without
-  printing the secret value.
 - Generated AI SEO drafts for the first three priority catalog products and
   verified each remains `reviewStatus: "draft"`.
 - Tightened the draft generator to reject generated price, stock, delivery,
@@ -1045,11 +1017,6 @@ Orchestrator agents must not overwrite or revert those changes unless the owner 
 - Captured operational residuals after deployment: service health endpoints
   returned HTTP 200 with body status `degraded` due a logging dependency
   error while `logging-microservice` itself reported healthy.
-- Fixed deployed runtime authorization for FlipFlop-to-Orders forwarding by
-  storing an Orders-runtime-signed `ORDERS_SERVICE_TOKEN` in the FlipFlop
-  Vault path, forcing ExternalSecret refresh, verifying the Kubernetes Secret
-  against the central Orders runtime signing key without printing secret
-  values, and restarting only `flipflop-order-service`.
 - Proved central Orders auth from inside the deployed FlipFlop order-service
   pod: non-mutating `GET /api/orders?channel=flipflop` returned HTTP 200.
 - Added GOAL-08 Leads lifecycle replay consumer source/config path for owner-selected Leads Goal 24 first consumer. `LeadsClientService` calls the guarded one-lead replay route as `flipflop-service`, clamps limit to 30, sends only internal service identity headers from env, and is statically verified by `npm run verify:leads-lifecycle-replay`. Not deployed.
@@ -1109,7 +1076,6 @@ Next implementation step: before code edits, classify the existing dirty guest-c
 - Stripe webhook verification is blocked until `STRIPE_WEBHOOK_SECRET` or an
   approved verified callback path is configured.
 
-
 ## 2026-06-21 - Owner-Approved GOAL-07 Source Implementation
 
 Owner approval reopened the previously blocked `GOAL-07-leads-public-intake-adoption` lane for a new FlipFlop public contact surface with visible consent copy.
@@ -1167,7 +1133,6 @@ Safety notes:
 - The production lead smoke used a synthetic `example.invalid` contact and no raw contact value is recorded in this state file.
 - No payment provider, order total, price, cancellation, database migration, object storage, campaign execution, AI/CRM export, or manual secret change was performed.
 - Residual GOAL-02 payment-provider credential/webhook risk remains preserved.
-
 
 ## 2026-06-26 - GOAL-09 Bank-Transfer Vault Wiring
 
@@ -1466,7 +1431,6 @@ IPS chain: Vision -> Catalog receives aggregate-safe FlipFlop replay candidates 
 ## 2026-07-03 - Goal 24 Deploy Blocker
 
 IPS chain: Vision -> protected replay remains ready for aggregate-safe Catalog affinity backfill; Goal Impact -> source/config are merged but runtime activation is blocked outside application code; System -> Kubernetes/k3s node runtime must create replacement pod sandboxes before order-service can load the new endpoint and secret alias; Feature -> deploy/smoke evidence; Task -> deploy FlipFlop then run Marketing dry-run smoke; Execution Plan -> deploy script applied manifests and pushed images, then rollback stuck rollout annotations to keep existing pods serving; Coding Prompt -> do not mutate checkout/order/payment/stock or expose secret/customer data; Code -> no additional application code; Validation -> `./scripts/deploy.sh` failed on rollout timeout because new pods stayed `ContainerCreating` with `FailedCreatePodSandBox` / reserved sandbox names; state restored to 1/1 ready old pods, but runtime smoke remains blocked by `[MISSING: k3s/containerd sandbox recovery]`.
-
 
 Goal 24 autonomous runtime ownership packet retained hard stops:
 - `[RESOLVED/NARROWED: owner statement names Sergey Stasok / Сергей Сташок as the human Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; runtime side effects remain blocked until exact future payment/order/provider hashes, provider proof, Orders/Warehouse/channel packets, idempotency keys, and final redacted evidence exist]`

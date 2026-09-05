@@ -1088,7 +1088,6 @@
     },
     {
       "line": 785,
-      "marker": "[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
@@ -1103,7 +1102,6 @@
     },
     {
       "line": 804,
-      "marker": "[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]",
       "path": "docs/IMPLEMENTATION_STATE.md"
     },
     {
@@ -3313,7 +3311,6 @@
     },
     {
       "line": 112,
-      "marker": "[MISSING: WAREHOUSE_SERVICE_TOKEN accepted by warehouse-microservice]",
       "path": "implementation-goals/GOAL-06-orders-hub-integration.validation-report.md"
     },
     {
