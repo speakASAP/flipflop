@@ -70,7 +70,7 @@ The endpoint is read-only and deterministic for a stable order snapshot, query w
 
 ## Acceptance Criteria
 
-- [x] Endpoint requires configured `FLIPFLOP_INTERNAL_SERVICE_SECRET` and matching `X-Flipflop-Internal-Key`.
+- [x] Endpoint requires an Auth-issued service credential and declares the service roles it allows, per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - [x] Endpoint emits the required `marketplace.order_affinity_replay_candidates.v1` envelope for `flipflop-service` and `flipflop`.
 - [x] Query is bounded by `from`, `to`, `limit`, and opaque cursor.
 - [x] Returned events reuse the TASK-005 eligibility helper and exclude forbidden fields.

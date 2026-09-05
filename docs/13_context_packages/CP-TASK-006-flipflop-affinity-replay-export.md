@@ -41,7 +41,7 @@ Checkout UI, cart, Warehouse, Payments, Kubernetes, deployment, secrets, migrati
 
 ## Constraints
 
-- Endpoint must be internal-service only and fail closed when the internal secret is not configured or mismatched.
+- Endpoint must be service-to-service only under [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md) and fail closed when the presented service credential is absent, invalid, or lacks the route's allowed role.
 - Endpoint must be read-only and must not run live replay publish.
 - Events must be produced through the TASK-005 helper.
 - Output must include only aggregate-safe replay candidates and aggregate diagnostics.
@@ -49,7 +49,7 @@ Checkout UI, cart, Warehouse, Payments, Kubernetes, deployment, secrets, migrati
 
 ## Agent prompt
 
-Implement only the protected FlipFlop-owned read-only replay surface for `marketplace.order_affinity_replay_candidates.v1`. Keep the endpoint under internal order-service routes, use `X-Flipflop-Internal-Key`, require the configured internal secret, query only paid/processable candidate orders, and reuse `getFlipFlopAffinityReplayEligibility` for filtering and event construction. Do not modify Catalog, Marketing, Orders, payment, stock, checkout, Kubernetes, deploy scripts, secrets, migrations, or other marketplace source.
+Implement only the protected FlipFlop-owned read-only replay surface for `marketplace.order_affinity_replay_candidates.v1`. Keep the endpoint under internal order-service routes, require an Auth-issued service credential exactly as [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md) prescribes, query only paid/processable candidate orders, and reuse `getFlipFlopAffinityReplayEligibility` for filtering and event construction. Do not modify Catalog, Marketing, Orders, payment, stock, checkout, Kubernetes, deploy scripts, secrets, migrations, or other marketplace source.
 
 ## Validation instructions
 

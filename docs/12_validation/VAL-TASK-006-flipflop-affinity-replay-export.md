@@ -22,7 +22,7 @@ No deployment, live replay, checkout mutation, payment mutation, order-state mut
 
 ## Criteria checked
 
-- Endpoint is protected by configured `FLIPFLOP_INTERNAL_SERVICE_SECRET`.
+- Endpoint is protected by an Auth-issued service credential with an explicit allowed service role, per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - Endpoint response uses `sourceOwner=flipflop-service`, `consumerOwner=marketing-microservice`, `contract=marketplace.order_affinity_replay_candidates.v1`, and `channel=flipflop`.
 - Query is bounded by `from`, `to`, `limit`, and opaque cursor.
 - Events are generated through `getFlipFlopAffinityReplayEligibility`.

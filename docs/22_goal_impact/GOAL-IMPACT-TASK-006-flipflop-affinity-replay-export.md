@@ -29,8 +29,8 @@ Catalog Goal 24 needs each marketplace owner to provide a durable protected repl
 ## Evidence
 
 - TASK-005 provides the merged eligibility helper and redacted candidate shape.
-- The internal order-service route uses `X-Flipflop-Internal-Key`.
-- The TASK-006 endpoint requires the configured internal secret and returns only bounded candidate events and aggregate diagnostics.
+- The service-to-service order-service route authenticates under [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
+- The TASK-006 endpoint requires that Auth-issued service credential and returns only bounded candidate events and aggregate diagnostics.
 - The response envelope identifies `sourceOwner=flipflop-service`, `consumerOwner=marketing-microservice`, `contract=marketplace.order_affinity_replay_candidates.v1`, and `channel=flipflop`.
 
 ## Validation

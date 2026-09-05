@@ -30,7 +30,7 @@ TASK-005 already merged the eligibility helper. Eligible orders require `payment
 ## Constraints
 
 - Use the merged eligibility helper; do not duplicate eligibility logic.
-- Protected access must be internal-service only and must fail closed when the configured internal secret is absent or mismatched.
+- Protected access must be service-to-service only under [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md), and must fail closed when the presented service credential is absent, invalid, or lacks the route's allowed role.
 - Response must include `sourceOwner=flipflop-service`, `consumerOwner=marketing-microservice`, `contract=marketplace.order_affinity_replay_candidates.v1`, and `channel=flipflop`.
 - Include bounded `from`, `to`, `limit`, `cursorBefore`, `cursorAfter`, `dryRun`, and window metadata.
 - Emit only aggregate-safe candidate events and aggregate diagnostics.

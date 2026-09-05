@@ -80,7 +80,7 @@ Checkout UI, cart service, Warehouse client, Payments client, Kubernetes manifes
 
 1. Read mandatory repository instructions, TASK-005 artifacts, helper source, order-service auth/query patterns, the Catalog contract, and the cross-agent standard.
 2. Run IPS pre-coding and strict documentation gates; record/fix validation debt that blocks current gates.
-3. Add a protected read-only internal endpoint guarded by configured `FLIPFLOP_INTERNAL_SERVICE_SECRET`.
+3. Add a protected read-only service-to-service endpoint guarded by an Auth-issued service credential and an explicit allowed service role, per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 4. Query paid/processable orders with bounded window and cursor pagination.
 5. Reuse the TASK-005 helper for all eligibility and redacted candidate construction.
 6. Add focused verifier coverage and package script.
