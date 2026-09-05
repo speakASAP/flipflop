@@ -4,7 +4,7 @@
   "service": {
     "name": "flipflop",
     "kind": "service",
-    "lifecycle": "documented",
+    "lifecycle": "documentation",
     "deployment": "kubernetes"
   },
   "planning": {
