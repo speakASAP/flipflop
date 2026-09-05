@@ -2,7 +2,7 @@
 
 ```yaml
 id: EP-TASK-003
-status: approved
+status: validated
 source_task: ../11_tasks/TASK-003-catalog-connector-content-preview.md
 vision: ../01_vision/VISION.md
 constitution: ../00_constitution/CONSTITUTION.md

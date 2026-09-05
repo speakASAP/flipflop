@@ -62,5 +62,5 @@ Future work begins from a new approved linked task.
 
 ## Completion Checklist
 All artifacts including `../11_tasks/TASK-001-bootstrap-service.md`, `../22_goal_impact/GOAL-IMPACT-TASK-001.md`, and `../12_validation/VAL-TASK-001-bootstrap-service.md` are linked.
-Status: approved
+Status: validated
 completeness_level: complete
