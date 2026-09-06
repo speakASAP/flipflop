@@ -259,6 +259,15 @@ spec:
               value: "3009"
             - name: SERVICE_NAME
               value: "flipflop-cart-service"
+            # Per-pair principal for flipflop-cart-service -> catalog-microservice.
+            # Remapped from the prefixed Vault key because all flipflop services
+            # share one Secret; each caller still gets its OWN principal, since a
+            # shared credential is exactly what this lane removes.
+            - name: CATALOG_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: flipflop-service-secret
+                  key: CART_CATALOG_SERVICE_TOKEN
           startupProbe:
             httpGet:
               path: /health
@@ -320,6 +329,13 @@ spec:
               value: "3003"
             - name: SERVICE_NAME
               value: "flipflop-order-service"
+            # Per-pair principal for flipflop-order-service -> catalog-microservice.
+            # See the cart-service note above on why each caller has its own.
+            - name: CATALOG_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: flipflop-service-secret
+                  key: ORDER_CATALOG_SERVICE_TOKEN
           startupProbe:
             httpGet:
               path: /health

@@ -203,7 +203,6 @@ export interface CatalogProductQualityReviewQuery {
 @Injectable()
 export class CatalogClientService {
   private readonly baseUrl: string;
-  private readonly internalServiceToken?: string;
   private readonly serviceName: string;
 
   constructor(
@@ -211,10 +210,6 @@ export class CatalogClientService {
     private readonly logger: LoggerService,
   ) {
     this.baseUrl = process.env.CATALOG_SERVICE_URL || 'http://catalog-microservice:3200';
-    this.internalServiceToken = (
-      process.env.CATALOG_INTERNAL_SERVICE_TOKEN ||
-      process.env.INTERNAL_SERVICE_TOKEN
-    )?.trim();
     this.serviceName = process.env.SERVICE_NAME || 'flipflop-service';
   }
 
@@ -222,28 +217,35 @@ export class CatalogClientService {
     const headers = { ...(extraHeaders || {}) };
     const pairToken = (process.env.CATALOG_SERVICE_TOKEN || '').trim();
 
-    // Pair JWT takes precedence. Catalog prefers x-internal-service-token when
-    // both are present, which would hide the RS256 principal behind the shared secret.
-    if (!headers.Authorization && pairToken) {
+    // A caller-supplied user token wins: some catalog routes resolve per-user
+    // settings and reject a service actor outright, so the human identity must
+    // not be replaced by the service one.
+    if (headers.Authorization) {
+      return headers;
+    }
+
+    // Otherwise the per-pair principal for this service -> catalog-microservice.
+    // Each flipflop service has its OWN principal (CART_/ORDER_/PRODUCT_ keys in
+    // the shared Secret, remapped to CATALOG_SERVICE_TOKEN per container),
+    // because a credential shared between callers is the thing this replaces.
+    //
+    // The former x-internal-service-token fallback is deliberately gone. It was
+    // one shared static secret held by seven services plus a self-asserted
+    // x-service-name header -- the shape SERVICE_IDENTITY_CONSUMER_STANDARD.md
+    // prohibits. Catalog still accepts it until the last caller migrates, so
+    // falling back would authenticate successfully and hide the regression
+    // rather than surfacing it.
+    if (pairToken) {
       headers.Authorization = pairToken.startsWith('Bearer ') ? pairToken : `Bearer ${pairToken}`;
       return headers;
     }
 
-    if (this.internalServiceToken) {
-      headers['x-internal-service-token'] = this.internalServiceToken;
-      headers['x-service-name'] = this.serviceName;
-    }
-
-    if (!headers.Authorization && !headers['x-internal-service-token']) {
-      this.logger.error(
-        'No catalog credential configured (CATALOG_SERVICE_TOKEN / CATALOG_INTERNAL_SERVICE_TOKEN); refusing to call catalog-microservice unauthenticated',
-        undefined,
-        'CatalogClient',
-      );
-      throw new Error('[MISSING: catalog runtime credential]');
-    }
-
-    return headers;
+    this.logger.error(
+      'No catalog credential configured (CATALOG_SERVICE_TOKEN); refusing to call catalog-microservice unauthenticated',
+      undefined,
+      'CatalogClient',
+    );
+    throw new Error('[MISSING: catalog runtime credential]');
   }
 
   async getRelatedProducts(
