@@ -680,20 +680,20 @@ export class ProductsService {
     if (catalogSources) params.append('catalogSources', catalogSources);
 
     const baseUrl = process.env.CATALOG_SERVICE_URL || 'http://catalog-microservice:3200';
+    // A caller-supplied user token wins; otherwise the per-pair principal for
+    // flipflop-product-service -> catalog-microservice.
+    //
+    // The former x-internal-service-token branch is deliberately gone: it was
+    // one shared static secret held by seven services plus a self-asserted
+    // x-service-name header, the shape SERVICE_IDENTITY_CONSUMER_STANDARD.md
+    // prohibits. Catalog still accepts it until the last caller migrates, so
+    // falling back would authenticate successfully and hide the regression.
     const pairToken = (process.env.CATALOG_SERVICE_TOKEN || '').trim();
-    const internalServiceToken = (
-      process.env.CATALOG_INTERNAL_SERVICE_TOKEN ||
-      process.env.INTERNAL_SERVICE_TOKEN ||
-      ''
-    ).trim();
     const headers: Record<string, string> = {};
     if (authorizationHeader) {
       headers.Authorization = authorizationHeader;
     } else if (pairToken) {
       headers.Authorization = pairToken.startsWith('Bearer ') ? pairToken : `Bearer ${pairToken}`;
-    } else if (internalServiceToken) {
-      headers['x-internal-service-token'] = internalServiceToken;
-      headers['x-service-name'] = process.env.SERVICE_NAME || 'flipflop-service';
     }
 
     const response = await this.httpService.axiosRef.get(`${baseUrl}/api/products?${params.toString()}`, {
