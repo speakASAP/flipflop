@@ -183,6 +183,21 @@ spec:
               value: "3002"
             - name: SERVICE_NAME
               value: "flipflop-product-service"
+            - name: LOGGING_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: flipflop-service-secret
+                  key: PRODUCT_LOGGING_SERVICE_TOKEN
+            - name: WAREHOUSE_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: flipflop-service-secret
+                  key: PRODUCT_WAREHOUSE_SERVICE_TOKEN
+            - name: CATALOG_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: flipflop-service-secret
+                  key: PRODUCT_CATALOG_SERVICE_TOKEN
           startupProbe:
             httpGet:
               path: /health

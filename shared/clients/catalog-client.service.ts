@@ -213,7 +213,6 @@ export class CatalogClientService {
     this.baseUrl = process.env.CATALOG_SERVICE_URL || 'http://catalog-microservice:3200';
     this.internalServiceToken = (
       process.env.CATALOG_INTERNAL_SERVICE_TOKEN ||
-      process.env.CATALOG_SERVICE_TOKEN ||
       process.env.INTERNAL_SERVICE_TOKEN
     )?.trim();
     this.serviceName = process.env.SERVICE_NAME || 'flipflop-service';
@@ -221,13 +220,30 @@ export class CatalogClientService {
 
   private catalogHeaders(extraHeaders?: Record<string, string>): Record<string, string> | undefined {
     const headers = { ...(extraHeaders || {}) };
+    const pairToken = (process.env.CATALOG_SERVICE_TOKEN || '').trim();
+
+    // Pair JWT takes precedence. Catalog prefers x-internal-service-token when
+    // both are present, which would hide the RS256 principal behind the shared secret.
+    if (!headers.Authorization && pairToken) {
+      headers.Authorization = pairToken.startsWith('Bearer ') ? pairToken : `Bearer ${pairToken}`;
+      return headers;
+    }
 
     if (this.internalServiceToken) {
       headers['x-internal-service-token'] = this.internalServiceToken;
       headers['x-service-name'] = this.serviceName;
     }
 
-    return Object.keys(headers).length ? headers : undefined;
+    if (!headers.Authorization && !headers['x-internal-service-token']) {
+      this.logger.error(
+        'No catalog credential configured (CATALOG_SERVICE_TOKEN / CATALOG_INTERNAL_SERVICE_TOKEN); refusing to call catalog-microservice unauthenticated',
+        undefined,
+        'CatalogClient',
+      );
+      throw new Error('[MISSING: catalog runtime credential]');
+    }
+
+    return headers;
   }
 
   async getRelatedProducts(
@@ -250,17 +266,28 @@ export class CatalogClientService {
       );
 
       if (!response.data?.success || !Array.isArray(response.data?.data)) {
-        return [];
+        throw new HttpException(
+          `Catalog related-products response was not successful for product ${productId}`,
+          HttpStatus.BAD_GATEWAY,
+        );
       }
 
       return response.data.data;
     } catch (error: unknown) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      this.logger.warn(
-        `Catalog related products unavailable for product ${productId}: ${errorMessage}`,
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(
+        `Catalog related products lookup failed for product ${productId}: ${errorMessage}`,
+        errorStack,
         'CatalogClient',
       );
-      return [];
+      throw new HttpException(
+        `Catalog related products lookup failed: ${errorMessage}`,
+        HttpStatus.BAD_GATEWAY,
+      );
     }
   }
 
@@ -410,11 +437,16 @@ export class CatalogClientService {
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      this.logger.warn(
-        `Catalog bundle aggregates unavailable for FlipFlop display: ${errorMessage}`,
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(
+        `Catalog bundle aggregates lookup failed: ${errorMessage}`,
+        errorStack,
         'CatalogClient',
       );
-      return null;
+      throw new HttpException(
+        `Catalog bundle aggregates lookup failed: ${errorMessage}`,
+        HttpStatus.BAD_GATEWAY,
+      );
     }
   }
 
@@ -458,11 +490,16 @@ export class CatalogClientService {
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      this.logger.warn(
-        `Catalog bundle candidates unavailable for product ${productId}: ${errorMessage}`,
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(
+        `Catalog bundle candidates lookup failed for product ${productId}: ${errorMessage}`,
+        errorStack,
         'CatalogClient',
       );
-      return null;
+      throw new HttpException(
+        `Catalog bundle candidates lookup failed: ${errorMessage}`,
+        HttpStatus.BAD_GATEWAY,
+      );
     }
   }
 
@@ -490,11 +527,16 @@ export class CatalogClientService {
       return facts as CatalogDiscountEligibilityFacts;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      this.logger.warn(
-        `Catalog discount eligibility unavailable for product ${productId}: ${errorMessage}`,
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(
+        `Catalog discount eligibility lookup failed for product ${productId}: ${errorMessage}`,
+        errorStack,
         'CatalogClient',
       );
-      return null;
+      throw new HttpException(
+        `Catalog discount eligibility lookup failed: ${errorMessage}`,
+        HttpStatus.BAD_GATEWAY,
+      );
     }
   }
 
@@ -561,9 +603,15 @@ export class CatalogClientService {
       }
       return response.data.data;
     } catch (error: unknown) {
+      const status = (error as { response?: { status?: number } })?.response?.status;
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      this.logger.warn(`Product not found by SKU ${sku}: ${errorMessage}`, 'CatalogClient');
-      return null;
+      if (status === 404) {
+        this.logger.warn(`Product not found by SKU ${sku}`, 'CatalogClient');
+        return null;
+      }
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to get product by SKU ${sku}: ${errorMessage}`, errorStack, 'CatalogClient');
+      throw new HttpException(`Failed to get product by SKU ${sku}: ${errorMessage}`, HttpStatus.BAD_GATEWAY);
     }
   }
 
@@ -597,7 +645,7 @@ export class CatalogClientService {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error(`Failed to search products: ${errorMessage}`, errorStack, 'CatalogClient');
-      return { items: [], total: 0, page: 1, limit: 20 };
+      throw new HttpException(`Failed to search products: ${errorMessage}`, HttpStatus.BAD_GATEWAY);
     }
   }
 
@@ -613,7 +661,7 @@ export class CatalogClientService {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error(`Failed to get categories: ${errorMessage}`, errorStack, 'CatalogClient');
-      return [];
+      throw new HttpException(`Failed to get categories: ${errorMessage}`, HttpStatus.BAD_GATEWAY);
     }
   }
 
@@ -626,8 +674,14 @@ export class CatalogClientService {
       );
       return response.data.data;
     } catch (error) {
-      this.logger.warn(`Pricing not found for product ${productId}`, 'CatalogClient');
-      return null;
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if (status === 404) {
+        this.logger.warn(`Pricing not found for product ${productId}`, 'CatalogClient');
+        return null;
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to get pricing for product ${productId}: ${errorMessage}`, error instanceof Error ? error.stack : undefined, 'CatalogClient');
+      throw new HttpException(`Failed to get pricing for product ${productId}: ${errorMessage}`, HttpStatus.BAD_GATEWAY);
     }
   }
 
@@ -640,8 +694,14 @@ export class CatalogClientService {
       );
       return response.data.data || [];
     } catch (error) {
-      this.logger.warn(`Media not found for product ${productId}`, 'CatalogClient');
-      return [];
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if (status === 404) {
+        this.logger.warn(`Media not found for product ${productId}`, 'CatalogClient');
+        return [];
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to get media for product ${productId}: ${errorMessage}`, error instanceof Error ? error.stack : undefined, 'CatalogClient');
+      throw new HttpException(`Failed to get media for product ${productId}: ${errorMessage}`, HttpStatus.BAD_GATEWAY);
     }
   }
 }

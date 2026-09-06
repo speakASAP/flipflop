@@ -366,30 +366,18 @@ export class ProductsService {
         }
 
         if (catalogProduct?.id) {
-          try {
-            const availableStock = this.toNonNegativeInteger(await this.warehouseClient.getTotalAvailable(catalogProduct.id));
-            item.warehouseAvailable = availableStock;
-            if (availableStock <= 0) {
-              item.blockedReasons.push({
-                reason: 'warehouse_stock_unavailable',
-                message: 'Warehouse total available is zero for this Catalog product.',
-              });
-            }
-          } catch (error: any) {
-            item.warehouseLookupError = error?.message || 'unknown error';
+          const availableStock = this.toNonNegativeInteger(await this.warehouseClient.getTotalAvailable(catalogProduct.id));
+          item.warehouseAvailable = availableStock;
+          if (availableStock <= 0) {
+            item.blockedReasons.push({
+              reason: 'warehouse_stock_unavailable',
+              message: 'Warehouse total available is zero for this Catalog product.',
+            });
           }
         }
 
         const shouldDisable = item.blockedReasons.length > 0;
         if (!shouldDisable) {
-          if (item.warehouseLookupError) {
-            item.action = 'failed_dependency_lookup';
-            item.failed = true;
-            item.blockedReasons.push({
-              reason: 'warehouse_stock_lookup_failed',
-              message: `Warehouse total available lookup failed: ${item.warehouseLookupError}`,
-            });
-          }
           results.push(item);
           continue;
         }
@@ -692,17 +680,18 @@ export class ProductsService {
     if (catalogSources) params.append('catalogSources', catalogSources);
 
     const baseUrl = process.env.CATALOG_SERVICE_URL || 'http://catalog-microservice:3200';
+    const pairToken = (process.env.CATALOG_SERVICE_TOKEN || '').trim();
     const internalServiceToken = (
       process.env.CATALOG_INTERNAL_SERVICE_TOKEN ||
-      process.env.CATALOG_SERVICE_TOKEN ||
       process.env.INTERNAL_SERVICE_TOKEN ||
       ''
     ).trim();
     const headers: Record<string, string> = {};
     if (authorizationHeader) {
       headers.Authorization = authorizationHeader;
-    }
-    if (internalServiceToken) {
+    } else if (pairToken) {
+      headers.Authorization = pairToken.startsWith('Bearer ') ? pairToken : `Bearer ${pairToken}`;
+    } else if (internalServiceToken) {
       headers['x-internal-service-token'] = internalServiceToken;
       headers['x-service-name'] = process.env.SERVICE_NAME || 'flipflop-service';
     }
@@ -994,13 +983,8 @@ export class ProductsService {
         catalogProductIds,
       };
     } catch (error: any) {
-      await this.logger.warn('Catalog bundle-candidates lookup failed; using recommendation fallback', {
-        context: 'ProductsService',
-        productId: product.id,
-        catalogProductId: product.catalogProductId,
-        reason: error?.message || 'unknown error',
-      });
-      return { products: [], catalogProductIds: [] };
+      this.logger.error(`Catalog bundle-candidates lookup failed: ${error?.message || 'unknown error'}`, error?.stack, 'ProductsService');
+      throw error;
     }
   }
 
@@ -1047,13 +1031,8 @@ export class ProductsService {
         .filter(Boolean)
         .slice(0, limit);
     } catch (error: any) {
-      await this.logger.warn('Catalog related-products lookup failed; using local recommendation fallback', {
-        context: 'ProductsService',
-        productId: product.id,
-        catalogProductId: product.catalogProductId,
-        reason: error?.message || 'unknown error',
-      });
-      return [];
+      this.logger.error(`Catalog related-products lookup failed: ${error?.message || 'unknown error'}`, error?.stack, 'ProductsService');
+      throw error;
     }
   }
 
@@ -1077,12 +1056,8 @@ export class ProductsService {
       const ids = rows.map((row: any) => row.productId).filter(Boolean);
       return this.getSellableProductsByIds(ids);
     } catch (error: any) {
-      await this.logger.warn('OPERATIONAL_ALERT flipflop_recommendation_history_lookup_failed', {
-        context: 'ProductsService',
-        productId,
-        error: error?.message || 'unknown error',
-      });
-      return [];
+      this.logger.error(`FlipFlop recommendation history lookup failed: ${error?.message || 'unknown error'}`, error?.stack, 'ProductsService');
+      throw error;
     }
   }
 
@@ -1261,6 +1236,11 @@ export class ProductsService {
       try {
         catalogProduct = await this.catalogClient.getProductById(localProduct.catalogProductId);
       } catch (error: any) {
+        const status = typeof error?.getStatus === 'function' ? error.getStatus() : error?.status;
+        if (status !== 404) {
+          this.logger.error(`Catalog product lookup failed for ${localProduct.catalogProductId}: ${error?.message || 'unknown error'}`, error?.stack, 'ProductsService');
+          throw error;
+        }
         await this.logger.warn('OPERATIONAL_ALERT flipflop_product_catalog_missing', {
           context: 'ProductsService',
           productId: localProduct.id,
@@ -1624,7 +1604,8 @@ export class ProductsService {
         blockedReasons: [{ reason: 'flipflop_publish_failed', message: result.message }],
         resultSnapshot: result,
       }).catch((recordError: any) => {
-        this.logger.warn(`Failed to record FlipFlop publish failure for ${catalogProductId}: ${recordError.message}`, 'ProductsService');
+        this.logger.error(`Failed to record FlipFlop publish failure for ${catalogProductId}: ${recordError.message}`, recordError.stack, 'ProductsService');
+        throw recordError;
       });
       return result;
     }
@@ -1652,14 +1633,8 @@ export class ProductsService {
 
       return this.mapCatalogOfferProduct(catalogProduct, policy.availableStock, localProduct);
     } catch (error: any) {
-      await this.logger.warn('OPERATIONAL_ALERT flipflop_local_offer_catalog_lookup_failed', {
-        context: 'ProductsService',
-        productId: localProduct.id,
-        catalogProductId: localProduct.catalogProductId,
-        sku: localProduct.sku,
-        error: error?.message || 'unknown error',
-      });
-      return null;
+      this.logger.error(`FlipFlop local offer catalog lookup failed: ${error?.message || 'unknown error'}`, error?.stack, 'ProductsService');
+      throw error;
     }
   }
 
@@ -1734,14 +1709,7 @@ export class ProductsService {
     blockedReasons.push(...this.catalogQualityBlockedReasons(quality));
 
     if (catalogProduct?.id) {
-      try {
-        availableStock = this.toPositiveInteger(await this.warehouseClient.getTotalAvailable(catalogProduct.id));
-      } catch (error: any) {
-        blockedReasons.push({
-          reason: 'warehouse_stock_unavailable',
-          message: `Warehouse stock preflight failed: ${error?.message || 'unknown error'}`,
-        });
-      }
+      availableStock = this.toPositiveInteger(await this.warehouseClient.getTotalAvailable(catalogProduct.id));
     }
 
     if (availableStock <= 0) {

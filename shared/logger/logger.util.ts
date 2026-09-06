@@ -119,6 +119,11 @@ export class Logger {
       }
     }
 
+    const ingestToken = process.env.LOGGING_SERVICE_TOKEN?.trim();
+    if (!ingestToken) {
+      throw new Error('[MISSING: LOGGING_SERVICE_TOKEN]');
+    }
+
     const logData: LogData = {
       level,
       message,
@@ -131,22 +136,17 @@ export class Logger {
       },
     };
 
-    // Fire and forget - non-blocking HTTP request
-    setImmediate(() => {
-      this.sendToLoggingServiceAsync(logData).catch((error) => {
-        // Silently handle errors - don't block application
-        // Only log to console in development mode
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Failed to send log to logging service:', error.message);
-        }
-      });
+    void this.sendToLoggingServiceAsync(logData, ingestToken).catch((error) => {
+      const err = error instanceof Error ? error : new Error(String(error));
+      console.error(`${new Date().toISOString()} Failed to send log to logging service: ${err.message}`);
+      throw err;
     });
   }
 
   /**
    * Async HTTP request to logging service
    */
-  private async sendToLoggingServiceAsync(logData: LogData): Promise<void> {
+  private async sendToLoggingServiceAsync(logData: LogData, ingestToken: string): Promise<void> {
     try {
       const url = new URL(`${this.loggingServiceUrl}/api/logs`);
       const isHttps = url.protocol === 'https:';
@@ -162,11 +162,7 @@ export class Logger {
         headers: {
           'Content-Type': 'application/json',
           'Content-Length': Buffer.byteLength(postData),
-          // Ingest has required a credential since 2026-07-06. Omit the header
-          // when unset rather than sending "Bearer undefined".
-          ...(process.env.LOGGING_SERVICE_TOKEN?.trim()
-            ? { Authorization: `Bearer ${process.env.LOGGING_SERVICE_TOKEN.trim()}` }
-            : {}),
+          Authorization: `Bearer ${ingestToken}`,
         },
         timeout: 5000, // 5 second timeout
       };

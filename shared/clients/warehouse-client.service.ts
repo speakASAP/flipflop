@@ -18,18 +18,14 @@ export class WarehouseClientService {
   }
 
   private requestOptions() {
-    const token = (
-      process.env.WAREHOUSE_SERVICE_TOKEN ||
-      process.env.JWT_TOKEN ||
-      process.env.SERVICE_TOKEN ||
-      ''
-    ).trim();
+    const token = (process.env.WAREHOUSE_SERVICE_TOKEN || '').trim();
 
     if (!token) {
       // Sending the request unauthenticated would surface as a confusing 401 from
-      // warehouse rather than as the misconfiguration it is.
+      // warehouse rather than as the misconfiguration it is. JWT_TOKEN/SERVICE_TOKEN
+      // are other pairs' credentials and must not be reused for warehouse.
       this.logger.error(
-        'No warehouse credential configured (WAREHOUSE_SERVICE_TOKEN / JWT_TOKEN / SERVICE_TOKEN); refusing to call warehouse-microservice unauthenticated',
+        'No warehouse credential configured (WAREHOUSE_SERVICE_TOKEN); refusing to call warehouse-microservice unauthenticated',
         undefined,
         'WarehouseClient',
       );
@@ -134,7 +130,7 @@ export class WarehouseClientService {
           warehouseId,
           quantity,
           reason,
-        })
+        }, this.requestOptions())
       );
       return response.data.data;
     } catch (error: unknown) {
@@ -153,7 +149,7 @@ export class WarehouseClientService {
           warehouseId,
           quantity,
           reason,
-        })
+        }, this.requestOptions())
       );
       return response.data.data;
     } catch (error: unknown) {
@@ -208,15 +204,17 @@ export class WarehouseClientService {
     try {
       const warehouses = await this.getWarehouses();
       if (warehouses.length > 0) {
-        // Return first active warehouse (sorted by priority)
         return warehouses[0].id;
       }
-      // Fallback to environment variable
-      return process.env.DEFAULT_WAREHOUSE_ID || null;
+      const configured = (process.env.DEFAULT_WAREHOUSE_ID || '').trim();
+      if (!configured) {
+        throw new Error('[MISSING: default warehouse — warehouse list empty and DEFAULT_WAREHOUSE_ID unset]');
+      }
+      return configured;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      this.logger.warn(`Failed to get default warehouse: ${errorMessage}`, 'WarehouseClient');
-      return process.env.DEFAULT_WAREHOUSE_ID || null;
+      this.logger.error(`Failed to get default warehouse: ${errorMessage}`, error instanceof Error ? error.stack : undefined, 'WarehouseClient');
+      throw error;
     }
   }
 }
