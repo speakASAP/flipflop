@@ -1246,7 +1246,9 @@ export class ProductsService {
           productId: localProduct.id,
           catalogProductId: localProduct.catalogProductId,
           error: error?.message || 'unknown error',
+          timestamp: new Date().toISOString(),
         });
+        await this.disableLocalCatalogLinkedOffer(localProduct, 'catalog_product_missing');
         throw new NotFoundException('Product not found');
       }
 
@@ -1258,7 +1260,9 @@ export class ProductsService {
           catalogProductId: localProduct.catalogProductId,
           sku: localProduct.sku,
           blockedReasons: policy.blockedReasons,
+          timestamp: new Date().toISOString(),
         });
+        await this.disableLocalCatalogLinkedOffer(localProduct, 'catalog_offer_blocked');
         throw new NotFoundException('Product not found');
       }
 
@@ -1627,15 +1631,47 @@ export class ProductsService {
           catalogProductId: localProduct.catalogProductId,
           sku: localProduct.sku,
           blockedReasons: policy.blockedReasons,
+          timestamp: new Date().toISOString(),
         });
+        await this.disableLocalCatalogLinkedOffer(localProduct, 'catalog_offer_blocked');
         return null;
       }
 
       return this.mapCatalogOfferProduct(catalogProduct, policy.availableStock, localProduct);
     } catch (error: any) {
+      const status = typeof error?.getStatus === 'function' ? error.getStatus() : error?.status;
+      if (status === 404) {
+        await this.logger.warn('OPERATIONAL_ALERT flipflop_local_offer_catalog_missing', {
+          context: 'ProductsService',
+          productId: localProduct.id,
+          catalogProductId: localProduct.catalogProductId,
+          sku: localProduct.sku,
+          timestamp: new Date().toISOString(),
+        });
+        await this.disableLocalCatalogLinkedOffer(localProduct, 'catalog_product_missing');
+        return null;
+      }
       this.logger.error(`FlipFlop local offer catalog lookup failed: ${error?.message || 'unknown error'}`, error?.stack, 'ProductsService');
-      throw error;
+      return null;
     }
+  }
+
+  private async disableLocalCatalogLinkedOffer(localProduct: any, reason: string) {
+    if (!localProduct?.id || localProduct.isActive === false) {
+      return;
+    }
+
+    await this.prisma.product.update({
+      where: { id: localProduct.id },
+      data: {
+        isActive: false,
+        updatedAt: new Date(),
+      },
+    });
+    this.logger.log(
+      `${new Date().toISOString()} Disabled FlipFlop local offer ${localProduct.id} (${reason}) for catalogProductId ${localProduct.catalogProductId}`,
+      'ProductsService',
+    );
   }
 
   private requireSellerAuthorization(actor: FlipFlopPublishActor) {

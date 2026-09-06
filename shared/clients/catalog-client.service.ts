@@ -561,9 +561,13 @@ export class CatalogClientService {
       const responseMessage = err.response?.data?.error?.message || err.response?.data?.message;
       const errorMessage = responseMessage || err.message || 'Unknown error';
       const errorStack = err.stack;
-      const status = err.response?.status || HttpStatus.NOT_FOUND;
+      const status = err.response?.status;
+      if (status === 404) {
+        this.logger.error(`Catalog product ${productId} not found`, 'CatalogClient');
+        throw new HttpException(errorMessage || `Product not found: ${productId}`, HttpStatus.NOT_FOUND);
+      }
       this.logger.error(`Failed to get product ${productId}: ${errorMessage}`, errorStack, 'CatalogClient');
-      throw new HttpException(errorMessage || `Product not found: ${productId}`, status);
+      throw new HttpException(errorMessage || `Failed to get product ${productId}`, status || HttpStatus.BAD_GATEWAY);
     }
   }
 
