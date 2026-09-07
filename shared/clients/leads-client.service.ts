@@ -139,13 +139,15 @@ export class LeadsClientService {
   }
 
   private getInternalHeaders(): Record<string, string> {
-    const headers: Record<string, string> = {
-      "x-service-name": LEADS_REPLAY_CONSUMER,
-    };
-    const token = process.env.LEADS_INTERNAL_SERVICE_TOKEN?.trim();
-    if (token) {
-      headers["x-internal-service-token"] = token;
+    const token = process.env.LEADS_SERVICE_TOKEN?.trim();
+    if (!token) {
+      throw new HttpException(
+        'LEADS_SERVICE_TOKEN is not configured; refusing to call leads-microservice unauthenticated',
+        HttpStatus.FORBIDDEN,
+      );
     }
-    return headers;
+    return {
+      authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
+    };
   }
 }

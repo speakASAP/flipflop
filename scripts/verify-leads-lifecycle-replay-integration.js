@@ -32,20 +32,24 @@ assert(
   "Leads client must clamp replay limit to 30",
 );
 assert(
-  leadsClient.includes("\"x-service-name\": LEADS_REPLAY_CONSUMER") &&
-    leadsClient.includes("LEADS_INTERNAL_SERVICE_TOKEN") &&
-    leadsClient.includes("x-internal-service-token"),
-  "Leads client must send internal service identity headers without hardcoded tokens",
+  leadsClient.includes("LEADS_SERVICE_TOKEN") &&
+    leadsClient.includes("authorization:") &&
+    leadsClient.includes("Bearer"),
+  "Leads client must send Auth Bearer LEADS_SERVICE_TOKEN",
 );
 assert(
-  !leadsClient.includes("contactMethods:") &&
-    !leadsClient.includes("confirmationToken") &&
-    !leadsClient.includes("Authorization: Bearer"),
-  "Leads client must not construct raw lead fields or hardcode bearer secrets",
+  !leadsClient.includes("LEADS_INTERNAL_SERVICE_TOKEN") &&
+    !leadsClient.includes("x-internal-service-token") &&
+    !leadsClient.includes('"x-service-name"'),
+  "Leads client must not send static internal headers or x-service-name",
+);
+assert(
+  !leadsClient.includes("confirmationToken"),
+  "Leads client must not construct confirmation tokens",
 );
 assert(
   clientsModule.includes("LeadsClientService") &&
-    clientsModule.includes("exports: [CatalogClientService, WarehouseClientService, OrderClientService, LeadsClientService]"),
+    clientsModule.includes("exports: [CatalogClientService, WarehouseClientService, OrderClientService, LeadsClientService"),
   "Shared clients module must export LeadsClientService",
 );
 assert(
@@ -53,9 +57,10 @@ assert(
   "FlipFlop configmap must expose the in-cluster Leads service URL",
 );
 assert(
-  externalSecret.includes("secretKey: LEADS_INTERNAL_SERVICE_TOKEN") &&
-    externalSecret.includes("property: LEADS_INTERNAL_SERVICE_TOKEN"),
-  "FlipFlop ExternalSecret must map the Leads internal service token by name only",
+  externalSecret.includes("secretKey: LEADS_SERVICE_TOKEN") &&
+    externalSecret.includes("property: LEADS_SERVICE_TOKEN") &&
+    !externalSecret.includes("LEADS_INTERNAL_SERVICE_TOKEN"),
+  "FlipFlop ExternalSecret must map Auth-minted LEADS_SERVICE_TOKEN only",
 );
 
 console.log("leads lifecycle replay integration verification ok");

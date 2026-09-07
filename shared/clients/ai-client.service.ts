@@ -6,7 +6,8 @@ import { LoggerService } from '../logger/logger.service';
  * Single source of the ai-microservice credential for every flipflop service.
  *
  * ai-microservice runs ServiceAuthGuard globally and, since 2026-08-26, verifies
- * RS256 only (ALLOW_HS256_FALLBACK=false). Every call therefore needs a Bearer
+ * Auth-minted RS256 only (AI ServiceAuthGuard rejects non-Auth tokens).
+ * Every call therefore needs a Bearer
  * service token; without one the guard answers `401 Missing service token`.
  * All five flipflop services already mount a valid AI_SERVICE_TOKEN -- before
  * this helper existed no call site attached it, so every AI feature was dead.
