@@ -224,10 +224,8 @@ export class CatalogClientService {
       return headers;
     }
 
-    // Otherwise the per-pair principal for this service -> catalog-microservice.
-    // Each flipflop service has its OWN principal (CART_/ORDER_/PRODUCT_ keys in
-    // the shared Secret, remapped to CATALOG_SERVICE_TOKEN per container),
-    // because a credential shared between callers is the thing this replaces.
+    // Otherwise the per-pair principal for this service -> catalog-microservice,
+    // injected as CATALOG_SERVICE_TOKEN from that caller's dedicated Secret.
     //
     // The former x-internal-service-token fallback is deliberately gone. It was
     // one shared static secret held by seven services plus a self-asserted
