@@ -330,6 +330,11 @@ spec:
                 secretKeyRef:
                   name: flipflop-order-service-tokens
                   key: CATALOG_SERVICE_TOKEN
+            - name: LOGGING_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: flipflop-order-service-tokens
+                  key: LOGGING_SERVICE_TOKEN
           startupProbe:
             httpGet:
               path: /health
