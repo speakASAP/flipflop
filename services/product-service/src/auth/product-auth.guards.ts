@@ -39,11 +39,18 @@ export class ProductRolesGuard implements CanActivate {
       requireAll?: boolean;
     }>(ROLES_KEY, [context.getHandler(), context.getClass()]);
 
+    const request = context.switchToHttp().getRequest();
+    const path = request.url || request.path || 'unknown';
+    const method = request.method || 'UNKNOWN';
+
     if (!rolesMetadata?.roles?.length) {
-      return true;
+      // Fail closed — SERVICE_IDENTITY_CONSUMER_STANDARD.md
+      console.error(
+        `[ProductRolesGuard] Undecorated route denied: ${method} ${path}`,
+      );
+      throw new ForbiddenException('Route missing required role declaration');
     }
 
-    const request = context.switchToHttp().getRequest();
     const userRoles: string[] = Array.isArray(request.user?.roles) ? request.user.roles : [];
     const requiredRoles = rolesMetadata.roles;
     const requireAll = rolesMetadata.requireAll ?? false;
