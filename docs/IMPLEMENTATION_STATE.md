@@ -768,7 +768,7 @@ Live smoke status: not run; the runner stopped before creating an order because 
 
 Parallel execution section:
 
-- Orders auth lane: complete in FlipFlop source; `OrderClientService` now sends Orders internal service headers and the sanitized probe verifies create-route auth acceptance without mutation.
+- Orders auth lane: complete in FlipFlop source; `OrderClientService` now sends Orders Auth RS256 pair principal Bearer per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md) and the sanitized probe verifies create-route auth acceptance without mutation.
 - FlipFlop final smoke lane: dependency-gated; owner role this integration lane; allowed files `scripts/smoke-orders-readiness.js`, `reports/validation/orders-readiness-smoke/*`, and this status addendum; forbidden files Orders/Warehouse/Catalog/Leads/Marketing repos unless owner explicitly opens those lanes; merge order Warehouse service principal/default warehouse, FlipFlop rerun.
 
 Next action: provision/project an Auth-compatible Warehouse service token and a Warehouse-owned default id for FlipFlop, then rerun `RUN_LIVE_ORDERS_SMOKE=1 node scripts/smoke-orders-readiness.js`.
