@@ -6,7 +6,7 @@
 #   TOKEN=<jwt> ORDER_ID=<order-uuid> bash scripts/smoke-webpay.sh
 # Optional:
 #   BASE_URL=https://flipflop.example/api   # default: http://127.0.0.1:3000
-#   PAYMENT_WEBHOOK_API_KEY=<key>         # if api-gateway validates X-API-Key on webhooks
+#   PAYMENTS_TO_FLIPFLOP_TOKEN=<rs256>    # required for payment-result webhook (Auth Bearer)
 #
 # Real path: POST /api/payu/create-payment/:orderId (JwtAuthGuard). AGENT doc /api/orders/... is not wired.
 
@@ -14,15 +14,13 @@ set -euo pipefail
 
 : "${TOKEN:?set TOKEN (Bearer JWT)}"
 : "${ORDER_ID:?set ORDER_ID (internal order UUID)}"
+: "${PAYMENTS_TO_FLIPFLOP_TOKEN:?set PAYMENTS_TO_FLIPFLOP_TOKEN (Auth RS256 for payment-result webhook)}"
 
 BASE_URL="${BASE_URL:-http://127.0.0.1:3000}"
 BASE_URL="${BASE_URL%/}"
 
 hdr_auth=(-H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json")
-hdr_webhook=(-H "Content-Type: application/json")
-if [[ -n "${PAYMENT_WEBHOOK_API_KEY:-}" ]]; then
-  hdr_webhook+=(-H "X-API-Key: ${PAYMENT_WEBHOOK_API_KEY}")
-fi
+hdr_webhook=(-H "Content-Type: application/json" -H "Authorization: Bearer ${PAYMENTS_TO_FLIPFLOP_TOKEN}")
 
 echo "[1/4] POST create-payment (webpay from order row)..."
 pay_json="$(curl -fsS -X POST "${BASE_URL}/api/payu/create-payment/${ORDER_ID}" "${hdr_auth[@]}")"

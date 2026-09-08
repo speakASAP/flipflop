@@ -97,15 +97,27 @@ function podEnvReadback() {
 }
 
 function invokeInternalPaymentResult(body) {
+  const token = (
+    process.env.FLIPFLOP_GATEWAY_TO_ORDER_TOKEN
+    || process.env.PAYMENTS_TO_FLIPFLOP_TOKEN
+    || ''
+  ).trim();
+  if (!token) {
+    throw new Error(
+      'Set FLIPFLOP_GATEWAY_TO_ORDER_TOKEN (Auth RS256 with role internal:flipflop-service:service)',
+    );
+  }
   const code = `
     const fs = require('fs');
     (async () => {
-      const payload = JSON.parse(fs.readFileSync(0, 'utf8'));
-      const key = process.env.FLIPFLOP_INTERNAL_SERVICE_SECRET;
-      if (!key) throw new Error('missing internal key');
+      const envelope = JSON.parse(fs.readFileSync(0, 'utf8'));
+      const token = String(envelope.token || '').trim();
+      const payload = envelope.body;
+      if (!token) throw new Error('missing Auth RS256 service token for internal payment-result');
+      const bearer = token.startsWith('Bearer ') ? token : ('Bearer ' + token);
       const response = await fetch('http://127.0.0.1:3003/internal/orders/payment-result', {
         method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-flipflop-internal-key': key },
+        headers: { 'content-type': 'application/json', authorization: bearer },
         body: JSON.stringify(payload)
       });
       let parsed = {};
@@ -114,7 +126,7 @@ function invokeInternalPaymentResult(body) {
     })().catch((error) => { console.error(error.message); process.exit(1); });
   `;
   return JSON.parse(kube(['-n', 'statex-apps', 'exec', '-i', 'deploy/flipflop-order-service', '--', 'node', '-e', code], {
-    input: JSON.stringify(body),
+    input: JSON.stringify({ token, body }),
   }));
 }
 

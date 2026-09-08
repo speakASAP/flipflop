@@ -40,6 +40,11 @@ spec:
               value: "3000"
             - name: SERVICE_NAME
               value: "flipflop-api-gateway"
+            - name: FLIPFLOP_GATEWAY_TO_ORDER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: flipflop-api-gateway-tokens
+                  key: FLIPFLOP_GATEWAY_TO_ORDER_TOKEN
           startupProbe:
             httpGet:
               path: /health
@@ -335,6 +340,11 @@ spec:
                 secretKeyRef:
                   name: flipflop-order-service-tokens
                   key: LOGGING_SERVICE_TOKEN
+            - name: FLIPFLOP_TO_PAYMENTS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: flipflop-order-service-tokens
+                  key: FLIPFLOP_TO_PAYMENTS_TOKEN
           startupProbe:
             httpGet:
               path: /health

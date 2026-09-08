@@ -9,7 +9,7 @@
 #   BASE_URL=http://localhost:3011 TOKEN=<jwt> ORDER_ID=<uuid> bash scripts/smoke-paypal.sh
 #
 # Optional:
-#   PAYMENT_WEBHOOK_API_KEY — if api-gateway expects X-API-Key on /api/webhooks/payment-result.
+#   PAYMENTS_TO_FLIPFLOP_TOKEN — Auth RS256 Bearer required on /api/webhooks/payment-result.
 #
 # Steps:
 #   1) POST /api/payu/create-payment/:ORDER_ID (legacy route; forwards to order-service).
@@ -60,10 +60,8 @@ fi
 
 payment_id="smoke-paypal-$(date +%s)"
 
-webhook_hdr=( -H "Content-Type: application/json" )
-if [[ -n "${PAYMENT_WEBHOOK_API_KEY:-}" ]]; then
-  webhook_hdr+=( -H "X-API-Key: ${PAYMENT_WEBHOOK_API_KEY}" )
-fi
+: "${PAYMENTS_TO_FLIPFLOP_TOKEN:?Set PAYMENTS_TO_FLIPFLOP_TOKEN (Auth RS256 for payment-result webhook)}"
+webhook_hdr=( -H "Content-Type: application/json" -H "Authorization: Bearer ${PAYMENTS_TO_FLIPFLOP_TOKEN}" )
 
 curl -sfS -X POST "${BASE_URL}/api/webhooks/payment-result" "${webhook_hdr[@]}" \
   -d "{\"paymentId\":\"${payment_id}\",\"orderId\":\"${order_number}\",\"status\":\"completed\"}" \

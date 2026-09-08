@@ -2,7 +2,7 @@
 # Smoke test: Stripe end-to-end (flipflop-service + payments-microservice contract)
 #
 # Usage:
-#   TOKEN=<jwt> ORDER_ID=<order-uuid> PAYMENT_WEBHOOK_API_KEY=<key> bash scripts/smoke-stripe.sh
+#   TOKEN=<jwt> ORDER_ID=<order-uuid> PAYMENTS_TO_FLIPFLOP_TOKEN=<rs256> bash scripts/smoke-stripe.sh
 #
 # Optional:
 #   BASE_URL — api-gateway base (default http://localhost:3511)
@@ -17,7 +17,7 @@
 #   1) GET /api/orders/:ORDER_ID — read orderNumber and paymentMethod
 #   2) POST /api/payu/create-payment/:ORDER_ID — same route as PayU; calls payments-ms with order paymentMethod
 #   3) Assert redirectUri or clientSecret when present (current Stripe provider often returns neither)
-#   4) Simulate merchant callback: POST /api/webhooks/payment-result with x-api-key (signature is on payments-ms /webhooks/stripe, not this URL)
+#   4) Simulate merchant callback: POST /api/webhooks/payment-result with Authorization Bearer (Auth RS256)
 #   5) GET order — assert paymentStatus is paid
 #
 # Note: Real Stripe CLI (`stripe trigger payment_intent.succeeded`) hits payments-microservice /webhooks/stripe
@@ -30,13 +30,13 @@ cd "$ROOT"
 
 : "${TOKEN:?Set TOKEN to a JWT for a user who owns the order}"
 : "${ORDER_ID:?Set ORDER_ID to flipflop order UUID}"
-: "${PAYMENT_WEBHOOK_API_KEY:?Set PAYMENT_WEBHOOK_API_KEY (same as flipflop PAYMENT_WEBHOOK_API_KEY)}"
+: "${PAYMENTS_TO_FLIPFLOP_TOKEN:?Set PAYMENTS_TO_FLIPFLOP_TOKEN (Auth RS256 pair JWT for payments→flipflop webhook)}"
 
 BASE_URL="${BASE_URL:-http://localhost:3511}"
 BASE_URL="${BASE_URL%/}"
 
 hdr_auth=(-H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json")
-hdr_webhook=(-H "Content-Type: application/json" -H "x-api-key: ${PAYMENT_WEBHOOK_API_KEY}")
+hdr_webhook=(-H "Content-Type: application/json" -H "Authorization: Bearer ${PAYMENTS_TO_FLIPFLOP_TOKEN}")
 
 echo "[1/5] GET order ${ORDER_ID}"
 ORDER_JSON="$(curl -fsS "${hdr_auth[@]}" "${BASE_URL}/api/orders/${ORDER_ID}")" || {

@@ -5,7 +5,7 @@ import * as https from 'https';
 import { MarketingController } from './marketing.controller';
 import { EmailCampaignService } from './email-campaign.service';
 import { AbandonedCartService } from './abandoned-cart.service';
-import { PrismaModule, LoggerModule, NotificationModule } from '@flipflop/shared';
+import { PrismaModule, LoggerModule, NotificationModule, AuthModule } from '@flipflop/shared';
 
 @Module({
   imports: [
@@ -13,6 +13,7 @@ import { PrismaModule, LoggerModule, NotificationModule } from '@flipflop/shared
     PrismaModule,
     LoggerModule,
     NotificationModule,
+    AuthModule,
     HttpModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

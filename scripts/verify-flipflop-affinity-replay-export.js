@@ -16,15 +16,17 @@ function check(condition, message) {
 
 check(
   controller.includes("@Get('order-affinity/replay-candidates')") &&
-    controller.includes('this.ordersService.assertAffinityReplayAccess(internalKey)') &&
+    controller.includes("@UseGuards(JwtAuthGuard, RolesGuard)") &&
+    controller.includes("@Roles('internal:flipflop-service:order-affinity')") &&
     controller.includes('getOrderAffinityReplayCandidates'),
-  'internal replay endpoint exists and uses the stricter affinity replay access assertion',
+  'internal replay endpoint exists and requires Auth RS256 order-affinity role',
 );
 check(
-  service.includes('assertAffinityReplayAccess') &&
-    service.includes("FLIPFLOP_INTERNAL_SERVICE_SECRET')?.trim()") &&
-    service.includes("throw new UnauthorizedException('Invalid internal service key')"),
-  'replay endpoint fails closed when the internal secret is missing or mismatched',
+  controller.includes("@Roles('internal:flipflop-service:service')") &&
+    !controller.includes('x-flipflop-internal-key') &&
+    !service.includes('assertAffinityReplayAccess') &&
+    !service.includes('FLIPFLOP_INTERNAL_SERVICE_SECRET'),
+  'replay/payment internal routes no longer accept static FLIPFLOP_INTERNAL_SERVICE_SECRET',
 );
 check(
   service.includes('FLIPFLOP_AFFINITY_REPLAY_CONTRACT') &&

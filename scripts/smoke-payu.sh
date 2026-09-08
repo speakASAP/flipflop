@@ -7,11 +7,11 @@
 # - Step 1 calls payments-microservice, which may call PayU OAuth/order APIs (sandbox or prod per PAYU_* on payments-ms).
 #
 # Usage:
-#   BASE_URL=http://localhost:3011 TOKEN=<jwt> ORDER_ID=<uuid> [PAYMENT_WEBHOOK_API_KEY=key] bash scripts/smoke-payu.sh
+#   BASE_URL=http://localhost:3011 TOKEN=<jwt> ORDER_ID=<uuid> PAYMENTS_TO_FLIPFLOP_TOKEN=<rs256> bash scripts/smoke-payu.sh
 #
 # Optional:
 #   BASE_URL - api-gateway base URL (default: http://localhost:3011)
-#   PAYMENT_WEBHOOK_API_KEY - if flipflop PAYMENT_WEBHOOK_API_KEY is set, pass the same value (X-API-Key on webhook).
+#   PAYMENTS_TO_FLIPFLOP_TOKEN - Auth RS256 Bearer for POST /api/webhooks/payment-result.
 
 set -euo pipefail
 
@@ -100,10 +100,8 @@ if [[ -z "$order_number" ]]; then
 fi
 
 # --- 3) Simulate payments callback: POST /api/webhooks/payment-result ---
-hook_headers=(-H "Content-Type: application/json")
-if [[ -n "${PAYMENT_WEBHOOK_API_KEY:-}" ]]; then
-  hook_headers+=(-H "X-API-Key: $PAYMENT_WEBHOOK_API_KEY")
-fi
+: "${PAYMENTS_TO_FLIPFLOP_TOKEN:?Set PAYMENTS_TO_FLIPFLOP_TOKEN (Auth RS256 for payment-result webhook)}"
+hook_headers=(-H "Content-Type: application/json" -H "Authorization: Bearer ${PAYMENTS_TO_FLIPFLOP_TOKEN}")
 
 payment_id="smoke-payu-$(date +%s)"
 code="$(curl -sS -o "$tmp_hook" -w "%{http_code}" -X POST "$BASE_URL/api/webhooks/payment-result" \

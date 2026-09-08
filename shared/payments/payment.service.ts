@@ -3,7 +3,7 @@
  * Service to handle payments via external payments-microservice
  */
 
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { LoggerService } from '../logger/logger.service';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
@@ -48,6 +48,21 @@ export class PaymentService {
   }
 
   /**
+   * Auth-minted RS256 Bearer for flipflop → payments-microservice.
+   * Principal: svc-flipflop--payments-microservice@internal.alfares.cz
+   * See auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md.
+   */
+  private paymentsBearerHeaders(): { Authorization: string } {
+    const token = (this.configService.get<string>('FLIPFLOP_TO_PAYMENTS_TOKEN') || '').trim();
+    if (!token) {
+      throw new InternalServerErrorException(
+        'FLIPFLOP_TO_PAYMENTS_TOKEN (Auth-minted RS256) is required for payments-microservice calls',
+      );
+    }
+    return { Authorization: `Bearer ${token}` };
+  }
+
+  /**
    * Internal method to call payments-microservice via HTTP
    */
   private async callPaymentService<T>(
@@ -59,7 +74,7 @@ export class PaymentService {
     const config = {
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': this.configService.get<string>('PAYMENT_API_KEY') || '',
+        ...this.paymentsBearerHeaders(),
         ...extraHeaders,
       },
       timeout: 30000,
