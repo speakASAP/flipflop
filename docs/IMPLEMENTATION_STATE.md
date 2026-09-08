@@ -695,7 +695,7 @@ Post-deploy evidence:
 - Final deployments are `1/1` ready/available for `flipflop-service`, `flipflop-frontend`, `flipflop-product-service`, `flipflop-cart-service`, `flipflop-order-service`, and `flipflop-user-service`.
 - Public smoke returned HTTP 200 for `/`, `/checkout`, `GET /api/products?limit=1`, and `https://payments.alfares.cz/health`.
 - Deployed checkout JavaScript contains the `QR platba bankovnim prevodem` option text.
-- Deployed order-service runtime has `PAYMENT_APPLICATION_ID=flipflop-service`, payment service URL, success/cancel result URLs, API key, and webhook key present by env-name check only.
+- Deployed order-service runtime has `PAYMENT_APPLICATION_ID=flipflop-service`, payment service URL, and success/cancel result URLs present by env-name check only. Payments S2S auth must use Auth-issued RS256 Bearer per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md) (not `PAYMENT_API_KEY` / `X-API-Key`). Provider webhook verification is a separate lane.
 - Deployed `payments-microservice` runtime allows `flipflop-service`, has `flipflop-service` in callback keys, and has Fio account, Stripe, and PayPal provider config present by env-name check only.
 - `npm run verify:guest-checkout-ui` passed after deploy and remained non-mutating.
 

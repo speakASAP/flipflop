@@ -20,8 +20,10 @@ webhook-secret/provider-callback evidence.
 ```bash
 ssh alfares 'curl -s -i --max-time 10 https://payments.alfares.cz/health | sed -n "1,20p"'
 ssh alfares 'kubectl get deploy,pod -n statex-apps | grep -E "payments-microservice|flipflop-order-service|flipflop-service"'
-ssh alfares 'kubectl exec -n statex-apps deploy/payments-microservice -- sh -lc '\''for k in PAYU_CLIENT_ID PAYU_CLIENT_SECRET PAYU_MERCHANT_POS_ID PAYPAL_CLIENT_ID PAYPAL_CLIENT_SECRET STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET GPWEBPAY_MERCHANT_ID GPWEBPAY_PRIVATE_KEY_PATH GPWEBPAY_PUBLIC_KEY_PATH PAYMENT_API_KEY WEBPAY_APPLICATION_ID WEBPAY_DESCRIPTION; do eval v=\${$k:-}; if [ -n "$v" ]; then echo "$k=present"; else echo "$k=missing"; fi; done'\'''
-ssh alfares 'kubectl exec -n statex-apps deploy/flipflop-order-service -- sh -lc '\''for k in PAYMENT_SERVICE_URL PAYMENT_API_KEY PAYMENT_WEBHOOK_API_KEY API_GATEWAY_URL; do eval v=\${$k:-}; if [ -n "$v" ]; then echo "$k=present"; else echo "$k=missing"; fi; done'\'''
+ssh alfares 'kubectl exec -n statex-apps deploy/payments-microservice -- sh -lc '\''for k in PAYU_CLIENT_ID PAYU_CLIENT_SECRET PAYU_MERCHANT_POS_ID PAYPAL_CLIENT_ID PAYPAL_CLIENT_SECRET STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET GPWEBPAY_MERCHANT_ID GPWEBPAY_PRIVATE_KEY_PATH GPWEBPAY_PUBLIC_KEY_PATH WEBPAY_APPLICATION_ID WEBPAY_DESCRIPTION; do eval v=\${$k:-}; if [ -n "$v" ]; then echo "$k=present"; else echo "$k=missing"; fi; done'\'''
+ssh alfares 'kubectl exec -n statex-apps deploy/flipflop-order-service -- sh -lc '\''for k in PAYMENT_SERVICE_URL API_GATEWAY_URL; do eval v=\${$k:-}; if [ -n "$v" ]; then echo "$k=present"; else echo "$k=missing"; fi; done'\'''
+# S2S Payments auth: Auth-issued RS256 Bearer per auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md
+# (do not probe or teach PAYMENT_API_KEY / X-API-Key as the S2S credential)
 ssh alfares 'cd /home/ssf/Documents/Github/flipflop-service/shared && cp -r ../prisma ./prisma || true && npx prisma generate --schema=./prisma/schema.prisma && npm run build'
 ssh alfares 'cd /home/ssf/Documents/Github/flipflop-service/services/order-service && npm run build'
 ssh alfares 'cd /home/ssf/Documents/Github/flipflop-service/services/api-gateway && npm run build'
@@ -38,9 +40,12 @@ ssh alfares 'cd /home/ssf/Documents/Github/flipflop-service && node scripts/smok
 - Payments health: PASS, HTTP 200, `{"success":true,"status":"ok",...}`.
 - Workloads: PASS, `payments-microservice`, `flipflop-order-service`, and
   `flipflop-service` deployments/pods are running.
-- FlipFlop order service payment wiring: PASS, `PAYMENT_SERVICE_URL`,
-  `PAYMENT_API_KEY`, `PAYMENT_WEBHOOK_API_KEY`, and `API_GATEWAY_URL` present.
-- Payments service API key: PASS, `PAYMENT_API_KEY` present.
+- FlipFlop order service payment wiring: PASS for URL wiring
+  (`PAYMENT_SERVICE_URL`, `API_GATEWAY_URL` present). S2S auth must be
+  Auth-issued RS256 Bearer for `(flipflop -> payments)` per
+  [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md);
+  do not treat `PAYMENT_API_KEY` / `X-API-Key` as the S2S credential.
+- Provider webhook secrets remain a separate lane from service identity.
 
 Provider readiness:
 

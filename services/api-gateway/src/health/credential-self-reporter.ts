@@ -68,13 +68,13 @@ export class CredentialSelfReporter {
   }
 
   async runReport(): Promise<Array<{ principal: string; verdict: string; posted: boolean }>> {
-    const ingestToken = (process.env.NOTIFICATION_SERVICE_TOKEN || '').trim();
+    const ingestToken = (process.env.MONITORING_INGEST_SERVICE_TOKEN || '').trim();
 
     if (!ingestToken) {
       // A reporter that stops reporting is indistinguishable from a credential
       // that broke, and silence is this design's primary signal. Say so loudly.
       this.logger.error(
-        'credential_self_report_undeliverable: NOTIFICATION_SERVICE_TOKEN is empty',
+        'credential_self_report_undeliverable: MONITORING_INGEST_SERVICE_TOKEN is empty',
         undefined,
         'CredentialSelfReporter',
       );

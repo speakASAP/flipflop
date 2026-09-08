@@ -38,16 +38,11 @@ export class AiClientService {
    * actually is.
    */
   authHeaders(extra?: Record<string, string>): Record<string, string> {
-    const token = (
-      process.env.AI_SERVICE_TOKEN ||
-      process.env.JWT_TOKEN ||
-      process.env.SERVICE_TOKEN ||
-      ''
-    ).trim();
+    const token = (process.env.AI_SERVICE_TOKEN || '').trim();
 
     if (!token) {
       this.logger.error(
-        'No ai-microservice credential configured (AI_SERVICE_TOKEN / JWT_TOKEN / SERVICE_TOKEN); refusing to call ai-microservice unauthenticated',
+        'No ai-microservice credential configured (AI_SERVICE_TOKEN); refusing to call ai-microservice unauthenticated',
         undefined,
         'AiClient',
       );

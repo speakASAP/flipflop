@@ -105,12 +105,7 @@ async function selectLocalSmokeProduct(candidates) {
   return parseJson(kubectlNode(`
     (async () => {
       const candidates = JSON.parse(Buffer.from('${encodedCandidates}', 'base64').toString('utf8'));
-      const token = (
-        process.env.WAREHOUSE_SERVICE_TOKEN ||
-        process.env.JWT_TOKEN ||
-        process.env.SERVICE_TOKEN ||
-        ''
-      ).trim();
+      const token = (process.env.WAREHOUSE_SERVICE_TOKEN || '').trim();
       const headers = token
         ? { Authorization: token.startsWith('Bearer ') ? token : 'Bearer ' + token }
         : {};
@@ -222,7 +217,6 @@ function prerequisiteSnapshot() {
         'ORDERS_SERVICE_TOKEN',
         'WAREHOUSE_SERVICE_URL',
         'WAREHOUSE_SERVICE_TOKEN',
-        'JWT_TOKEN',
         'DEFAULT_WAREHOUSE_ID',
         'TEST_PASSWORD'
       ].map((key) => [key, Boolean((process.env[key] || '').trim())]));
@@ -243,7 +237,7 @@ function prerequisiteSnapshot() {
         out.ordersProbe = { httpStatus: null, authAccepted: false, error: String(error.message || error).slice(0, 120) };
       }
       try {
-        const token = process.env.WAREHOUSE_SERVICE_TOKEN || process.env.JWT_TOKEN || process.env.SERVICE_TOKEN || '';
+        const token = process.env.WAREHOUSE_SERVICE_TOKEN || '';
         const url = (process.env.WAREHOUSE_SERVICE_URL || 'http://warehouse-microservice:3201') + '/api/warehouses';
         const res = await fetch(url, { headers: bearerHeader(token) });
         const body = await res.json().catch(() => ({}));

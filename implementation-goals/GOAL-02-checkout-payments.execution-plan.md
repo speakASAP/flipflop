@@ -100,9 +100,14 @@ Initial production discovery:
 
 - `https://payments.alfares.cz/health` returns HTTP 200 with `status: ok`.
 - `payments-microservice` Kubernetes deployment and pod are running.
-- `flipflop-order-service` has `PAYMENT_SERVICE_URL`, `PAYMENT_API_KEY`,
-  `PAYMENT_WEBHOOK_API_KEY`, and `API_GATEWAY_URL` present.
-- Running `payments-microservice` pod has `PAYMENT_API_KEY` present.
+- `flipflop-order-service` has `PAYMENT_SERVICE_URL` and `API_GATEWAY_URL`
+  present. Payments S2S auth must use an Auth-issued RS256 Bearer token for
+  `(flipflop -> payments)` per
+  [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md);
+  do not treat `PAYMENT_API_KEY` / `X-API-Key` as the S2S credential.
+- Provider webhook verification (e.g. `PAYMENT_WEBHOOK_API_KEY` / provider
+  webhook secrets) is separate from service identity and is not a substitute
+  for Bearer S2S auth.
 - Running `payments-microservice` pod has `STRIPE_SECRET_KEY` present.
 - Running `payments-microservice` pod is missing `STRIPE_WEBHOOK_SECRET`.
 - Running `payments-microservice` pod is missing PayU credential keys checked:

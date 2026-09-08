@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
@@ -26,29 +25,7 @@ const limit = limitArgIndex === -1 ? 3 : Number(process.argv[limitArgIndex + 1] 
 const catalogUrl = (process.env.CATALOG_SERVICE_URL || 'https://catalog.alfares.cz').replace(/\/$/, '');
 const aiUrl = (process.env.AI_SERVICE_URL || 'https://ai.alfares.cz').replace(/\/$/, '');
 const aiToken = process.env.AI_SERVICE_TOKEN;
-const jwtSecret = process.env.JWT_SECRET || process.env.AUTH_JWT_SECRET;
-
-function base64url(value) {
-  return Buffer.from(JSON.stringify(value)).toString('base64url');
-}
-
-function signCatalogToken() {
-  if (!jwtSecret) {
-    throw new Error('JWT_SECRET or AUTH_JWT_SECRET is required to update catalog drafts.');
-  }
-  const header = { alg: 'HS256', typ: 'JWT' };
-  const now = Math.floor(Date.now() / 1000);
-  const payload = {
-    sub: 'flipflop-goal04-seo-drafts',
-    email: 'flipflop-goal04-seo-drafts@internal',
-    roles: ['catalog:write', 'internal:catalog-microservice:admin'],
-    iat: now,
-    exp: now + 900,
-  };
-  const unsigned = `${base64url(header)}.${base64url(payload)}`;
-  const signature = crypto.createHmac('sha256', jwtSecret).update(unsigned).digest('base64url');
-  return `${unsigned}.${signature}`;
-}
+const catalogToken = (process.env.CATALOG_SERVICE_TOKEN || '').trim();
 
 async function readJson(response, label) {
   const text = await response.text();
@@ -211,10 +188,15 @@ async function main() {
   if (dryRun) return;
   if (!selected.length) return;
 
-  const token = signCatalogToken();
+  if (!catalogToken) {
+    throw new Error(
+      'CATALOG_SERVICE_TOKEN is missing. Mint via auth-microservice/scripts/provision-service-token.js (Auth RS256 pair JWT); do not self-sign.',
+    );
+  }
+
   for (const product of selected) {
     const draft = await generateDraft(product);
-    await updateCatalogDraft(product, draft, token);
+    await updateCatalogDraft(product, draft, catalogToken);
     console.log(JSON.stringify({
       updated: true,
       productId: product.id,

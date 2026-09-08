@@ -20,8 +20,11 @@
 - `https://payments.alfares.cz/health` returns HTTP 200 and `status: ok`.
 - `payments-microservice`, `flipflop-order-service`, and `flipflop-service`
   deployments are running in Kubernetes.
-- FlipFlop order service has payment service URL and API/webhook keys present.
-- Payments service has `PAYMENT_API_KEY` present.
+- FlipFlop order service has `PAYMENT_SERVICE_URL` present. Payments S2S auth
+  must use an Auth-issued RS256 Bearer token for `(flipflop -> payments)` per
+  [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md);
+  do not treat `PAYMENT_API_KEY` / `X-API-Key` as the S2S credential.
+- Provider webhook verification keys are separate from service identity.
 
 ## Provider Status From Running Payments Pod
 
