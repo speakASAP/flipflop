@@ -49,11 +49,20 @@ RUN ln -sfn /app/node_modules /services/api-gateway/node_modules && \
     cd /services/api-gateway && \
     /app/node_modules/.bin/tsc --types node && \
     /app/node_modules/.bin/tsc-alias && \
+    mkdir -p /services/api-gateway/dist/health/vendor && \
+    cp /services/api-gateway/src/health/vendor/credential-reporter.js \
+       /services/api-gateway/dist/health/vendor/ && \
     cp -r /services/api-gateway/dist /app/dist
 
 # Fail the build if the compiled output is missing rather than shipping an
 # image whose entrypoint does not exist.
 RUN test -f /app/dist/main.js || (echo 'BUILD FAILED: dist/main.js not produced' && exit 1)
+# The vendored reporter is copied by package.json's postbuild, which a direct
+# tsc call bypasses. Without it the pod throws MODULE_NOT_FOUND at boot -- the
+# failure that crashlooped invoices-microservice on 2026-09-03 and this image
+# on 2026-09-10. Assert it rather than discovering it in a CrashLoopBackOff.
+RUN test -f /app/dist/health/vendor/credential-reporter.js || \
+    (echo 'BUILD FAILED: vendored credential-reporter.js missing from dist' && exit 1)
 
 
 # Set shared runtime modules on the Node resolution path
