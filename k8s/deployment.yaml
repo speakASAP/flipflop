@@ -45,6 +45,11 @@ spec:
                 secretKeyRef:
                   name: flipflop-api-gateway-tokens
                   key: FLIPFLOP_GATEWAY_TO_ORDER_TOKEN
+            - name: LOGGING_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: flipflop-api-gateway-tokens
+                  key: LOGGING_SERVICE_TOKEN
           startupProbe:
             httpGet:
               path: /health

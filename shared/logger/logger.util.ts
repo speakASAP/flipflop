@@ -34,6 +34,9 @@ interface LogData {
 type LogLevel = 'error' | 'warn' | 'info' | 'debug';
 
 export class Logger {
+  /** Process-wide latch so the missing-credential warning is not emitted per log line. */
+  private static missingTokenReported = false;
+
   private loggingServiceUrl: string;
   private logLevel: string;
   private timestampFormat: string;
@@ -121,7 +124,21 @@ export class Logger {
 
     const ingestToken = process.env.LOGGING_SERVICE_TOKEN?.trim();
     if (!ingestToken) {
-      throw new Error('[MISSING: LOGGING_SERVICE_TOKEN]');
+      // A missing ingest credential must be loud but must never take the process
+      // down: this runs from a @Cron tick, where a throw becomes an unhandled
+      // rejection and Node 24 exits non-zero. That crashlooped flipflop-service
+      // 84 times on 2026-09-10 while the service itself was perfectly healthy.
+      // Report once per process to stderr (which kubectl logs still captures)
+      // and keep serving; local file logging above is unaffected.
+      if (!Logger.missingTokenReported) {
+        Logger.missingTokenReported = true;
+        console.error(
+          `${new Date().toISOString()} [MISSING: LOGGING_SERVICE_TOKEN] ` +
+            `service=${this.serviceName} — logs are written locally but not shipped ` +
+            `to logging-microservice. Remote error alerting is blind to this service.`,
+        );
+      }
+      return;
     }
 
     const logData: LogData = {
@@ -138,8 +155,10 @@ export class Logger {
 
     void this.sendToLoggingServiceAsync(logData, ingestToken).catch((error) => {
       const err = error instanceof Error ? error : new Error(String(error));
+      // Report, never rethrow. Rethrowing here escapes into an unhandled
+      // rejection (nothing awaits this promise) and kills the process over a
+      // transport blip in a fire-and-forget path.
       console.error(`${new Date().toISOString()} Failed to send log to logging service: ${err.message}`);
-      throw err;
     });
   }
 
