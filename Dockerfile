@@ -25,11 +25,36 @@ RUN cd /app/shared && /app/node_modules/.bin/prisma generate --schema=/app/prism
     cp -r /app/node_modules/.prisma /app/shared/node_modules/.prisma && \
     npm run build
 
-# Copy pre-built dist (already compiled in repo)
-COPY services/api-gateway/dist ./dist
-
-# Ensure @flipflop/shared is properly resolved in node_modules
+# Build dist from source INSIDE the image.
+#
+# This previously did `COPY services/api-gateway/dist ./dist`, described as
+# "pre-built dist (already compiled in repo)" -- but dist/ is gitignored, so
+# nothing was in the repo and the build copied whatever happened to sit on the
+# building machine. On 2026-09-10 that shipped a months-old reporter reading
+# NOTIFICATION_SERVICE_TOKEN while the source had long moved to
+# MONITORING_INGEST_SERVICE_TOKEN, so a healthy pod logged a missing-credential
+# error every 30 minutes and the deploy reported success.
+# @flipflop/shared must resolve BEFORE the gateway is compiled: tsc fails with
+# TS2307 on every import otherwise.
 RUN mkdir -p /app/node_modules/@flipflop && ln -sf /app/shared /app/node_modules/@flipflop/shared
+
+# The service tsconfig extends ../../tsconfig.json and maps @flipflop/shared to
+# ../../shared, so the gateway is compiled at services/api-gateway/ inside the
+# image to keep those relative paths valid, then dist is moved to /app/dist.
+COPY tsconfig.json /tsconfig.json
+COPY services/api-gateway/tsconfig.json /services/api-gateway/tsconfig.json
+COPY services/api-gateway/src /services/api-gateway/src
+RUN ln -sfn /app/node_modules /services/api-gateway/node_modules && \
+    ln -sfn /app/shared /shared_pkg && \
+    cd /services/api-gateway && \
+    /app/node_modules/.bin/tsc --types node && \
+    /app/node_modules/.bin/tsc-alias && \
+    cp -r /services/api-gateway/dist /app/dist
+
+# Fail the build if the compiled output is missing rather than shipping an
+# image whose entrypoint does not exist.
+RUN test -f /app/dist/main.js || (echo 'BUILD FAILED: dist/main.js not produced' && exit 1)
+
 
 # Set shared runtime modules on the Node resolution path
 ENV NODE_PATH=/app/shared/node_modules:/app/node_modules
